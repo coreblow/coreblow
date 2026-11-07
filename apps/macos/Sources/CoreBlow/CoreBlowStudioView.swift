@@ -346,31 +346,37 @@ public struct CoreBlowStudioView: View {
                     .fill(Color.white.opacity(0.08))
                     .frame(width: 1)
 
-                // 2. Collapsible Project & Threads Sidebar
-                if self.viewModel.isSidebarVisible {
-                    StudioProjectSidebarView(viewModel: self.viewModel)
-                        .frame(width: 250)
-                        .background(Color.black.opacity(0.18))
+                // Center Content: CoreHub Manager OR Studio Project Workspace
+                if self.viewModel.activeNavTab == .coreHub {
+                    StudioCoreHubManagerView(viewModel: self.viewModel)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    // 2. Collapsible Project & Threads Sidebar
+                    if self.viewModel.isSidebarVisible {
+                        StudioProjectSidebarView(viewModel: self.viewModel)
+                            .frame(width: 250)
+                            .background(Color.black.opacity(0.18))
 
-                    Rectangle()
-                        .fill(Color.white.opacity(0.08))
-                        .frame(width: 1)
-                }
+                        Rectangle()
+                            .fill(Color.white.opacity(0.08))
+                            .frame(width: 1)
+                    }
 
-                // 3. Main Center Workspace Canvas (Luminous Translucent Frosted Glass)
-                StudioMainCanvasView(viewModel: self.viewModel)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black.opacity(0.06))
+                    // 3. Main Center Workspace Canvas (Luminous Translucent Frosted Glass)
+                    StudioMainCanvasView(viewModel: self.viewModel)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.black.opacity(0.06))
 
-                // 4. Right Inspector (Diff & PR Gate / Kanban / Wiki)
-                if self.viewModel.isInspectorVisible {
-                    Rectangle()
-                        .fill(Color.white.opacity(0.08))
-                        .frame(width: 1)
+                    // 4. Right Inspector (Diff & PR Gate / Kanban / Wiki)
+                    if self.viewModel.isInspectorVisible {
+                        Rectangle()
+                            .fill(Color.white.opacity(0.08))
+                            .frame(width: 1)
 
-                    StudioInspectorView(viewModel: self.viewModel)
-                        .frame(width: 360)
-                        .background(Color.black.opacity(0.24))
+                        StudioInspectorView(viewModel: self.viewModel)
+                            .frame(width: 360)
+                            .background(Color.black.opacity(0.24))
+                    }
                 }
             }
         }
@@ -1310,5 +1316,917 @@ struct StudioMemoryWikiView: View {
             }
             .padding(14)
         }
+    }
+}
+
+// ============================================================================
+// CoreHub Desktop & Studio App Manager View (Option 1 Palette)
+// Deep Muted Teal #0A2429, Dark Slate #08171C, Dark Obsidian #050D12,
+// Muted Cyan #1A857A, Ice-Cyan #60D9CC, Sage Green #5AB982
+// ============================================================================
+
+public enum CoreHubTopNavTab: String, CaseIterable, Identifiable {
+    case apps = "Apps"
+    case yourWork = "Your work"
+    case discover = "Discover"
+    case market = "Market"
+
+    public var id: String { self.rawValue }
+}
+
+public enum CoreHubPlatformFilter: String, CaseIterable, Identifiable {
+    case all = "All Apps"
+    case desktop = "Desktop"
+    case mobile = "Mobile"
+    case web = "Web"
+
+    public var id: String { self.rawValue }
+}
+
+public enum CoreHubCategory: String, CaseIterable, Identifiable {
+    case allApps = "All Apps"
+    case updates = "Updates (3)"
+    case autonomousAgents = "Autonomous Agents"
+    case evoLoopSkills = "EvoLoop Skills"
+    case devTools = "Dev Tools"
+    case mcpBridges = "MCP Bridges"
+    case memoryWiki = "Memory & Wiki"
+
+    public var id: String { self.rawValue }
+
+    public var icon: String {
+        switch self {
+        case .allApps: return "square.grid.2x2"
+        case .updates: return "arrow.triangle.2.circlepath.circle"
+        case .autonomousAgents: return "person.2.badge.gearshape"
+        case .evoLoopSkills: return "bolt.arrow.trianglehead.counterclockwise"
+        case .devTools: return "wrench.and.screwdriver"
+        case .mcpBridges: return "network"
+        case .memoryWiki: return "brain.head.profile"
+        }
+    }
+}
+
+public struct CoreHubInstalledAppItem: Identifiable {
+    public let id: String
+    public let name: String
+    public let description: String
+    public let version: String
+    public let icon: String
+    public let isUpdateAvailable: Bool
+    public let category: CoreHubCategory
+}
+
+public struct CoreHubPackageItem: Identifiable {
+    public let id: String
+    public let name: String
+    public let description: String
+    public let tierBadge: String
+    public let icon: String
+    public let isLocked: Bool
+    public let wilsonScore: Double?
+    public let isInstalled: Bool
+    public let category: CoreHubCategory
+}
+
+public struct StudioCoreHubManagerView: View {
+    @Bindable var viewModel: CoreBlowStudioViewModel
+
+    // Navigation and Filter States
+    @State private var selectedTopTab: CoreHubTopNavTab = .apps
+    @State private var selectedPlatform: CoreHubPlatformFilter = .all
+    @State private var selectedCategory: CoreHubCategory = .allApps
+    @State private var searchText: String = ""
+
+    // Color definitions (Option 1 Palette)
+    private let deepMutedTeal = Color(red: 10/255.0, green: 36/255.0, blue: 41/255.0)     // #0A2429
+    private let darkSlate = Color(red: 8/255.0, green: 23/255.0, blue: 28/255.0)         // #08171C
+    private let darkObsidian = Color(red: 5/255.0, green: 13/255.0, blue: 18/255.0)      // #050D12
+    private let mutedCyan = Color(red: 26/255.0, green: 133/255.0, blue: 122/255.0)      // #1A857A
+    private let iceCyan = Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0)        // #60D9CC
+    private let sageGreen = Color(red: 90/255.0, green: 185/255.0, blue: 130/255.0)      // Updated dot
+
+    // Installed Microkernel & Desktop Apps
+    private let installedApps: [CoreHubInstalledAppItem] = [
+        CoreHubInstalledAppItem(
+            id: "app_studio",
+            name: "CoreBlow Studio",
+            description: "Native 3-pane macOS workspace with floating context chips & Microkernel IPC",
+            version: "v2.0.0 GA",
+            icon: "macwindow.on.rectangle",
+            isUpdateAvailable: false,
+            category: .devTools
+        ),
+        CoreHubInstalledAppItem(
+            id: "app_companion",
+            name: "Companion Bar (⌥Space)",
+            description: "Floating system quick-launch bar with active window context pairing",
+            version: "v2.0.0 GA",
+            icon: "command.square.fill",
+            isUpdateAvailable: false,
+            category: .devTools
+        ),
+        CoreHubInstalledAppItem(
+            id: "app_memory",
+            name: "Cory 4-Layer Memory",
+            description: "SQLite WAL + FTS5 BM25 associative memory with continuous compaction",
+            version: "v2.0.1",
+            icon: "brain",
+            isUpdateAvailable: true,
+            category: .memoryWiki
+        ),
+        CoreHubInstalledAppItem(
+            id: "app_evoloop",
+            name: "EvoLoop Synthesizer",
+            description: "Closed-loop skill distillation & Bayesian Wilson score ranking (z=1.28)",
+            version: "v2.0.0 GA",
+            icon: "bolt.fill",
+            isUpdateAvailable: false,
+            category: .evoLoopSkills
+        ),
+        CoreHubInstalledAppItem(
+            id: "app_war_room",
+            name: "War Room Orchestrator",
+            description: "Lead-agent multi-worker task orchestration & DAG state machine flow",
+            version: "v2.0.2",
+            icon: "person.3.fill",
+            isUpdateAvailable: true,
+            category: .autonomousAgents
+        ),
+        CoreHubInstalledAppItem(
+            id: "app_mlx_voice",
+            name: "Sovereign MLX Voice",
+            description: "Local Apple Silicon Neural Engine TTS with real-time telemetry (RTF ≤ 0.4)",
+            version: "v2.0.0 GA",
+            icon: "waveform",
+            isUpdateAvailable: false,
+            category: .devTools
+        )
+    ]
+
+    // Available Two-Tier Packages
+    private let availablePackages: [CoreHubPackageItem] = [
+        CoreHubPackageItem(
+            id: "pkg_mcp",
+            name: "@coreblow/mcp-bridge",
+            description: "Model Context Protocol JSON-RPC & Stdio transport bridge exposing all 6 Microkernel tools",
+            tierBadge: "Tier A: Plugin",
+            icon: "network",
+            isLocked: false,
+            wilsonScore: nil,
+            isInstalled: true,
+            category: .mcpBridges
+        ),
+        CoreHubPackageItem(
+            id: "pkg_discord",
+            name: "@coreblow/discord",
+            description: "Gateway messaging channel adapter for Discord bots, threads & webhooks",
+            tierBadge: "Tier A: Plugin",
+            icon: "bubble.left.and.text.bubble.right.fill",
+            isLocked: false,
+            wilsonScore: nil,
+            isInstalled: false,
+            category: .devTools
+        ),
+        CoreHubPackageItem(
+            id: "pkg_telegram",
+            name: "@coreblow/telegram",
+            description: "Direct Telegram Bot API gateway driver with streaming responses & voice notes",
+            tierBadge: "Tier A: Plugin",
+            icon: "paperplane.fill",
+            isLocked: false,
+            wilsonScore: nil,
+            isInstalled: false,
+            category: .devTools
+        ),
+        CoreHubPackageItem(
+            id: "pkg_git_supercharged",
+            name: "skill/git-supercharged",
+            description: "Advanced git worktree staging, branch hygiene, and conflict resolution",
+            tierBadge: "Tier B: Skill",
+            icon: "arrow.triangle.branch",
+            isLocked: true,
+            wilsonScore: 0.98,
+            isInstalled: false,
+            category: .evoLoopSkills
+        ),
+        CoreHubPackageItem(
+            id: "pkg_rust_advisor",
+            name: "skill/rust-compiler-advisor",
+            description: "Rust borrow checker diagnostic reasoning and cargo workspace tuning",
+            tierBadge: "Tier B: Skill",
+            icon: "gearshape.2.fill",
+            isLocked: true,
+            wilsonScore: 0.95,
+            isInstalled: false,
+            category: .evoLoopSkills
+        ),
+        CoreHubPackageItem(
+            id: "pkg_audit_guard",
+            name: "skill/sovereign-audit-guard",
+            description: "Zero-trust AST verification, secret pattern scanner & 5-gate evaluator",
+            tierBadge: "Tier B: Skill",
+            icon: "shield.checkerboard",
+            isLocked: true,
+            wilsonScore: 0.99,
+            isInstalled: false,
+            category: .autonomousAgents
+        )
+    ]
+
+    public var body: some View {
+        VStack(spacing: 0) {
+            // a) Top Navigation Bar
+            topNavigationBar
+
+            Rectangle()
+                .fill(Color.white.opacity(0.08))
+                .frame(height: 1)
+
+            // b) Platform Filter Sub-Header
+            platformFilterSubHeader
+
+            Rectangle()
+                .fill(Color.white.opacity(0.08))
+                .frame(height: 1)
+
+            // Lower Split: c) Left Category Sidebar + d) Central Canvas
+            HStack(spacing: 0) {
+                // c) Left Category Sidebar
+                categorySidebar
+                    .frame(width: 220)
+                    .background(self.darkObsidian.opacity(0.65))
+
+                Rectangle()
+                    .fill(Color.white.opacity(0.08))
+                    .frame(width: 1)
+
+                // d) Central Canvas
+                centralCanvas
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(self.darkSlate.opacity(0.45))
+            }
+        }
+    }
+
+    // ========================================================================
+    // a) Top Navigation Bar
+    // ========================================================================
+    private var topNavigationBar: some View {
+        HStack(spacing: 16) {
+            // Navigation Tabs
+            HStack(spacing: 4) {
+                ForEach(CoreHubTopNavTab.allCases) { tab in
+                    Button(action: {
+                        self.selectedTopTab = tab
+                    }) {
+                        Text(tab.rawValue)
+                            .font(.system(size: 13, weight: self.selectedTopTab == tab ? .semibold : .medium))
+                            .foregroundStyle(self.selectedTopTab == tab ? Color.white : Color.white.opacity(0.65))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .fill(self.selectedTopTab == tab ? self.mutedCyan.opacity(0.4) : Color.clear)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            // Global Search Field
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.white.opacity(0.45))
+
+                TextField("🔍 Search CoreHub...", text: self.$searchText)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.white)
+
+                if !self.searchText.isEmpty {
+                    Button(action: { self.searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Color.white.opacity(0.5))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(self.darkObsidian.opacity(0.85))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                    )
+            )
+            .frame(maxWidth: 320)
+
+            Spacer()
+
+            // Sync Status Indicator
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(self.sageGreen)
+                    .frame(width: 7, height: 7)
+                Text("Gateway Synced")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(Color.white.opacity(0.75))
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                Capsule()
+                    .fill(self.deepMutedTeal.opacity(0.6))
+                    .overlay(Capsule().stroke(self.mutedCyan.opacity(0.3), lineWidth: 1))
+            )
+
+            // Notification Bell with Badge (3)
+            ZStack(alignment: .topTrailing) {
+                Button(action: {}) {
+                    Image(systemName: "bell.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.white.opacity(0.8))
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain)
+
+                Text("3")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(.black)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 1)
+                    .background(Capsule().fill(self.iceCyan))
+                    .offset(x: 4, y: -2)
+            }
+
+            // Profile Avatar Chip
+            ZStack(alignment: .bottomTrailing) {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [self.mutedCyan, self.deepMutedTeal],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 28, height: 28)
+                    .overlay(
+                        Text("RU")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                    )
+
+                Circle()
+                    .fill(self.sageGreen)
+                    .frame(width: 7, height: 7)
+                    .overlay(Circle().stroke(self.darkObsidian, lineWidth: 1.5))
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.top, 40)
+        .padding(.bottom, 12)
+        .background(self.darkObsidian.opacity(0.75))
+    }
+
+    // ========================================================================
+    // b) Platform Filter Sub-Header with Active Underline Indicator
+    // ========================================================================
+    private var platformFilterSubHeader: some View {
+        HStack(spacing: 20) {
+            ForEach(CoreHubPlatformFilter.allCases) { filter in
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        self.selectedPlatform = filter
+                    }
+                }) {
+                    VStack(spacing: 6) {
+                        Text(filter.rawValue)
+                            .font(.system(size: 12, weight: self.selectedPlatform == filter ? .semibold : .regular))
+                            .foregroundStyle(self.selectedPlatform == filter ? self.iceCyan : Color.white.opacity(0.65))
+
+                        // Active Underline Indicator
+                        Rectangle()
+                            .fill(self.selectedPlatform == filter ? self.iceCyan : Color.clear)
+                            .frame(height: 2)
+                    }
+                    .fixedSize(horizontal: true, vertical: false)
+                }
+                .buttonStyle(.plain)
+            }
+
+            Spacer()
+
+            // Microkernel Metrics Chip
+            HStack(spacing: 6) {
+                Image(systemName: "cpu")
+                    .font(.system(size: 10))
+                    .foregroundStyle(self.iceCyan)
+                Text("6 Installed • 6 Available • Two-Tier Sandbox")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(Color.white.opacity(0.7))
+            }
+            .padding(.trailing, 8)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .background(self.darkSlate.opacity(0.75))
+    }
+
+    // ========================================================================
+    // c) Left Category Sidebar
+    // ========================================================================
+    private var categorySidebar: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 4) {
+                // Section: Main Quick Links
+                categoryButton(category: .allApps, count: 12)
+                categoryButton(category: .updates, count: 3, badgeColor: self.iceCyan)
+
+                Divider()
+                    .padding(.vertical, 8)
+
+                // Section: Modular CoreBlow Categories
+                Text("CATEGORIES")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Color.white.opacity(0.45))
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 4)
+
+                categoryButton(category: .autonomousAgents)
+                categoryButton(category: .evoLoopSkills)
+                categoryButton(category: .devTools)
+                categoryButton(category: .mcpBridges)
+                categoryButton(category: .memoryWiki)
+
+                Spacer()
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 12)
+        }
+    }
+
+    private func categoryButton(category: CoreHubCategory, count: Int? = nil, badgeColor: Color? = nil) -> some View {
+        Button(action: {
+            self.selectedCategory = category
+        }) {
+            HStack(spacing: 8) {
+                Image(systemName: category.icon)
+                    .font(.system(size: 12))
+                    .foregroundStyle(self.selectedCategory == category ? self.iceCyan : Color.white.opacity(0.65))
+                    .frame(width: 16)
+
+                Text(category.rawValue)
+                    .font(.system(size: 12, weight: self.selectedCategory == category ? .semibold : .regular))
+                    .foregroundStyle(self.selectedCategory == category ? Color.white : Color.white.opacity(0.8))
+
+                Spacer()
+
+                if let count {
+                    Text("\(count)")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(badgeColor != nil ? Color.black : Color.white.opacity(0.7))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(
+                            Capsule()
+                                .fill(badgeColor ?? Color.white.opacity(0.12))
+                        )
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(self.selectedCategory == category ? self.mutedCyan.opacity(0.35) : Color.clear)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // ========================================================================
+    // d) Central Canvas (Hero Banner + Installed + Available)
+    // ========================================================================
+    private var centralCanvas: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                // 1. Hero Banner
+                heroBanner
+
+                // 2. Installed Section
+                installedSection
+
+                // 3. Available CoreHub Plugins & Skills Section
+                availablePackagesSection
+            }
+            .padding(20)
+        }
+    }
+
+    // 1. Hero Banner
+    private var heroBanner: some View {
+        ZStack(alignment: .leading) {
+            // Deep Muted Teal to Dark Slate Gradient Background
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [self.deepMutedTeal, self.darkSlate],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            // Subtle Ice-Cyan Rim Highlight
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            self.iceCyan.opacity(0.45),
+                            self.mutedCyan.opacity(0.2),
+                            Color.clear
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+
+            HStack(alignment: .center, spacing: 20) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 14))
+                            .foregroundStyle(self.iceCyan)
+
+                        Text("COREHUB SOVEREIGN APP & PLUGIN MANAGER")
+                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .foregroundStyle(self.iceCyan)
+                    }
+
+                    Text("Desktop Apps & 12-Service Microkernel Fleet")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(.white)
+
+                    Text("Manage native macOS/iOS/Android surfaces, Two-Tier extensible plugins (@coreblow/*), and autonomous SKILL.md V2 cognitive routines in one unified sovereign cockpit.")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.white.opacity(0.8))
+                        .lineLimit(2)
+
+                    HStack(spacing: 8) {
+                        heroPill(text: "Sovereign GA v2.0.0", icon: "checkmark.seal.fill")
+                        heroPill(text: "12 Microkernel Services Active", icon: "cpu")
+                        heroPill(text: "Two-Tier Sandbox: Enforced", icon: "lock.shield.fill")
+                    }
+                    .padding(.top, 4)
+                }
+
+                Spacer()
+
+                // Decorative Holographic Emblem
+                ZStack {
+                    Circle()
+                        .fill(self.mutedCyan.opacity(0.25))
+                        .frame(width: 72, height: 72)
+                        .blur(radius: 8)
+
+                    Image(systemName: "square.grid.2x2.fill")
+                        .font(.system(size: 34))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [self.iceCyan, self.mutedCyan],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+                .padding(.trailing, 10)
+            }
+            .padding(20)
+        }
+    }
+
+    private func heroPill(text: String, icon: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 10))
+                .foregroundStyle(self.iceCyan)
+            Text(text)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(Color.white.opacity(0.85))
+        }
+        .padding(.horizontal, 9)
+        .padding(.vertical, 4)
+        .background(
+            Capsule()
+                .fill(self.darkObsidian.opacity(0.6))
+                .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1))
+        )
+    }
+
+    // 2. Installed Section
+    private var installedSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("INSTALLED APPS & MICROKERNEL MODULES")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(Color.white.opacity(0.85))
+
+                Text("(\(self.installedApps.count))")
+                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(self.iceCyan)
+
+                Spacer()
+
+                Text("Auto-refresh active")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.white.opacity(0.45))
+            }
+
+            VStack(spacing: 8) {
+                ForEach(self.installedApps) { app in
+                    installedAppRow(app: app)
+                }
+            }
+        }
+    }
+
+    private func installedAppRow(app: CoreHubInstalledAppItem) -> some View {
+        HStack(spacing: 14) {
+            // App Icon
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(self.deepMutedTeal.opacity(0.8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(self.mutedCyan.opacity(0.35), lineWidth: 1)
+                    )
+                    .frame(width: 36, height: 36)
+
+                Image(systemName: app.icon)
+                    .font(.system(size: 16))
+                    .foregroundStyle(self.iceCyan)
+            }
+
+            // Title & Description
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 8) {
+                    Text(app.name)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white)
+
+                    Text(app.version)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundStyle(Color.white.opacity(0.5))
+                }
+
+                Text(app.description)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.white.opacity(0.65))
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            // Status Dot + Text
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(app.isUpdateAvailable ? self.iceCyan : self.sageGreen)
+                    .frame(width: 7, height: 7)
+
+                Text(app.isUpdateAvailable ? "Update Available" : "Updated")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(app.isUpdateAvailable ? self.iceCyan : self.sageGreen)
+            }
+            .frame(width: 120, alignment: .leading)
+
+            // Action Buttons
+            if app.isUpdateAvailable {
+                // Filled Muted Cyan "Update this app" Button
+                Button(action: {}) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.system(size: 10))
+                        Text("Update this app")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .foregroundStyle(.white)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(self.mutedCyan)
+                    )
+                }
+                .buttonStyle(.plain)
+            } else {
+                // Outline "Open" Button
+                Button(action: {}) {
+                    Text("Open")
+                        .font(.system(size: 11, weight: .medium))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 5)
+                        .foregroundStyle(Color.white.opacity(0.85))
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .stroke(Color.white.opacity(0.25), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+
+            // Overflow Menu Button (•••)
+            Menu {
+                Button("View Details") {}
+                Button("Inspect Manifest...") {}
+                Divider()
+                Button("Restart Service") {}
+                Button("Rollback to Previous Version") {}
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(Color.white.opacity(0.6))
+                    .frame(width: 24, height: 24)
+            }
+            .menuStyle(.borderlessButton)
+            .frame(width: 24)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(self.darkObsidian.opacity(0.55))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                )
+        )
+    }
+
+    // 3. Available CoreHub Plugins & Skills Section
+    private var availablePackagesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text("AVAILABLE COREHUB PLUGINS & SKILLS")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Color.white.opacity(0.85))
+
+                    Text("TWO-TIER MODEL")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundStyle(self.iceCyan)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(self.deepMutedTeal))
+
+                    Spacer()
+                }
+
+                Text("Official Tier A Plugins (@coreblow/*) run in sandboxed isolation. Community Tier B Skills (skill/*) are pure cognitive Markdown routines evaluated via Bayesian Wilson ranking.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.white.opacity(0.6))
+            }
+
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                ForEach(self.availablePackages) { pkg in
+                    packageCard(pkg: pkg)
+                }
+            }
+        }
+    }
+
+    private func packageCard(pkg: CoreHubPackageItem) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(self.deepMutedTeal.opacity(0.7))
+                        .frame(width: 30, height: 30)
+
+                    Image(systemName: pkg.icon)
+                        .font(.system(size: 14))
+                        .foregroundStyle(self.iceCyan)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(pkg.name)
+                        .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+
+                    HStack(spacing: 4) {
+                        // Tier Badge
+                        Text(pkg.tierBadge)
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(pkg.tierBadge.contains("Tier A") ? self.iceCyan : self.sageGreen)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(
+                                Capsule()
+                                    .fill(pkg.tierBadge.contains("Tier A") ? self.deepMutedTeal : self.darkObsidian)
+                            )
+
+                        // 🔒 Locked Badge
+                        if pkg.isLocked {
+                            HStack(spacing: 2) {
+                                Image(systemName: "lock.fill")
+                                    .font(.system(size: 8))
+                                Text("Locked")
+                                    .font(.system(size: 9, weight: .medium))
+                            }
+                            .foregroundStyle(self.iceCyan)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(Capsule().fill(self.mutedCyan.opacity(0.35)))
+                        }
+
+                        // Wilson Score Badge
+                        if let score = pkg.wilsonScore {
+                            HStack(spacing: 2) {
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 8))
+                                    .foregroundStyle(.yellow)
+                                Text(String(format: "%.2f", score))
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(.white)
+                            }
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(Capsule().fill(Color.white.opacity(0.1)))
+                        }
+                    }
+                }
+
+                Spacer()
+            }
+
+            Text(pkg.description)
+                .font(.system(size: 11))
+                .foregroundStyle(Color.white.opacity(0.7))
+                .lineLimit(2)
+                .frame(minHeight: 30, alignment: .topLeading)
+
+            HStack {
+                Spacer()
+
+                if pkg.isInstalled {
+                    Text("Installed")
+                        .font(.system(size: 11, weight: .medium))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .foregroundStyle(Color.white.opacity(0.6))
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                        )
+                } else if pkg.tierBadge.contains("Skill") {
+                    Button(action: {}) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.down.circle")
+                                .font(.system(size: 10))
+                            Text("Sync Skill")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .foregroundStyle(.white)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(self.mutedCyan.opacity(0.7))
+                        )
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Button(action: {}) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus.circle")
+                                .font(.system(size: 10))
+                            Text("Install")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .foregroundStyle(.white)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(self.mutedCyan)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(self.darkObsidian.opacity(0.55))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                )
+        )
     }
 }

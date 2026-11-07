@@ -587,5 +587,49 @@ Binary files a/assets/legacy.bin and /dev/null differ
       expect(result.data.snapshot.worktreeInspector.changedFiles).toHaveLength(1);
       expect(result.data.snapshot.worktreeInspector.changedFiles[0].filePath).toBe("src/app.ts");
     });
+
+    it("supports /quick-launch and /diff-inspector route aliases", async () => {
+      // 1. /quick-launch alias
+      const ql = createMockReqRes({
+        method: "POST",
+        url: "/quick-launch",
+        headers: {
+          authorization: "Bearer test-sovereign-admin-token",
+        },
+        body: {
+          prompt: "Quick launch check",
+        },
+      });
+      const qlHandled = await handleCoreHubRoute(ql.req, ql.res, microkernel, { auth: testAuth });
+      expect(qlHandled).toBe(true);
+      const qlRes = await ql.getResult();
+      expect(qlRes.statusCode).toBe(200);
+      expect(qlRes.data.ok).toBe(true);
+
+      // 2. /diff-inspector alias
+      const sampleDiff = `
+--- a/src/sample.ts
++++ b/src/sample.ts
+@@ -1,1 +1,2 @@
++export const test = 1;
++`;
+      const di = createMockReqRes({
+        method: "POST",
+        url: "/diff-inspector",
+        headers: {
+          authorization: "Bearer test-sovereign-admin-token",
+        },
+        body: {
+          diffText: sampleDiff,
+          branchName: "main",
+        },
+      });
+      const diHandled = await handleCoreHubRoute(di.req, di.res, microkernel, { auth: testAuth });
+      expect(diHandled).toBe(true);
+      const diRes = await di.getResult();
+      expect(diRes.statusCode).toBe(200);
+      expect(diRes.data.ok).toBe(true);
+      expect(diRes.data.diffView).toBeDefined();
+    });
   });
 });

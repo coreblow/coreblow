@@ -641,11 +641,20 @@ export async function handleCoreHubRoute(
 ): Promise<boolean> {
   const url = new URL(req.url ?? "/", "http://localhost");
   const rawPathname = url.pathname;
-  const pathname = rawPathname.startsWith("/api/corehub/v2/")
+  let normalizedPath = rawPathname.startsWith("/api/corehub/v2/")
     ? "/api/corehub/" + rawPathname.slice("/api/corehub/v2/".length)
     : rawPathname === "/api/corehub/v2"
       ? "/api/corehub"
       : rawPathname;
+
+  if (normalizedPath === "/quick-launch" || normalizedPath === "/api/corehub/quick-launch") {
+    normalizedPath = "/api/corehub/desktop/quick-launch";
+  } else if (normalizedPath === "/diff-inspector" || normalizedPath === "/api/corehub/diff-inspector") {
+    normalizedPath = "/api/corehub/desktop/diff-inspector";
+  } else if (normalizedPath === "/desktop/state") {
+    normalizedPath = "/api/corehub/desktop/state";
+  }
+  const pathname = normalizedPath;
   const method = (req.method ?? "GET").toUpperCase();
 
   if (!pathname.startsWith("/api/corehub/")) {
