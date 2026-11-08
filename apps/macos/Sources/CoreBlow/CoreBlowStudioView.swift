@@ -1071,42 +1071,39 @@ enum StudioSurfaces {
 // ============================================================================
 
 struct StudioApertureEmblemView: View {
-    var size: CGFloat = 36
+    var size: CGFloat = 38
 
     var body: some View {
         ZStack {
             // Ambient soft glow
             Circle()
-                .fill(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.12))
-                .frame(width: self.size * 1.5, height: self.size * 1.5)
+                .fill(Color(red: 46/255.0, green: 212/255.0, blue: 191/255.0).opacity(0.12))
+                .frame(width: self.size * 1.4, height: self.size * 1.4)
 
-            // Outer subtle circle
+            // Split cybernetic arcs (clean white with rounded caps)
             Circle()
-                .stroke(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.35), lineWidth: 1.0)
-                .frame(width: self.size, height: self.size)
-
-            // Split cybernetic arcs (white/cyan with rounded caps)
-            Circle()
-                .trim(from: 0.08, to: 0.42)
+                .trim(from: 0.06, to: 0.44)
                 .stroke(
-                    Color.white.opacity(0.92),
-                    style: StrokeStyle(lineWidth: max(1.5, self.size * 0.08), lineCap: .round)
+                    Color.white.opacity(0.96),
+                    style: StrokeStyle(lineWidth: max(2.6, self.size * 0.085), lineCap: .round)
                 )
-                .frame(width: self.size * 0.72, height: self.size * 0.72)
+                .rotationEffect(.degrees(-25))
+                .frame(width: self.size - 4, height: self.size - 4)
 
             Circle()
-                .trim(from: 0.58, to: 0.92)
+                .trim(from: 0.56, to: 0.94)
                 .stroke(
-                    Color.white.opacity(0.92),
-                    style: StrokeStyle(lineWidth: max(1.5, self.size * 0.08), lineCap: .round)
+                    Color.white.opacity(0.96),
+                    style: StrokeStyle(lineWidth: max(2.6, self.size * 0.085), lineCap: .round)
                 )
-                .frame(width: self.size * 0.72, height: self.size * 0.72)
+                .rotationEffect(.degrees(-25))
+                .frame(width: self.size - 4, height: self.size - 4)
 
-            // Core glowing cyan dot
+            // Core glowing mint cyan dot (#2ED4BF)
             Circle()
-                .fill(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
-                .frame(width: self.size * 0.26, height: self.size * 0.26)
-                .shadow(color: Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.8), radius: 4)
+                .fill(Color(red: 46/255.0, green: 212/255.0, blue: 191/255.0))
+                .frame(width: max(8.0, self.size * 0.22), height: max(8.0, self.size * 0.22))
+                .shadow(color: Color(red: 46/255.0, green: 212/255.0, blue: 191/255.0).opacity(0.7), radius: 3)
         }
         .frame(width: self.size, height: self.size)
     }
@@ -1121,9 +1118,9 @@ struct StudioUnifiedTopbarView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // macOS Traffic lights space (76pt)
+            // macOS Traffic lights space (68pt)
             Spacer()
-                .frame(width: 76)
+                .frame(width: 68)
 
             // Back & Forward navigation buttons
             HStack(spacing: 6) {
@@ -1186,8 +1183,8 @@ struct StudioUnifiedTopbarView: View {
             .help("Toggle Inspector")
             .padding(.trailing, 14)
         }
-        .frame(height: 38)
-        .background(Color(red: 24/255.0, green: 26/255.0, blue: 27/255.0)) // #181A1B
+        .frame(height: 32)
+        .background(Color(red: 30/255.0, green: 32/255.0, blue: 33/255.0)) // #1E2021
     }
 }
 
@@ -1236,9 +1233,9 @@ public struct CoreBlowStudioView: View {
                     .frame(height: 0.5)
 
                 HStack(spacing: 0) {
-                    // 1. Far-Left Vertical Icon Dock (56pt Codex-Aligned Nav Rail)
+                    // 1. Far-Left Vertical Icon Dock (40pt Nav Rail)
                     StudioNavRailView(viewModel: self.viewModel)
-                        .frame(width: 56)
+                        .frame(width: 40)
                         .background(StudioSurfaces.bgNavRail)
 
                     Rectangle()
@@ -1250,10 +1247,10 @@ public struct CoreBlowStudioView: View {
                         StudioCoreHubManagerView(viewModel: self.viewModel)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
-                        // 2. Collapsible Project & Threads Sidebar (260pt)
+                        // 2. Collapsible Project & Threads Sidebar (188pt)
                         if self.viewModel.isSidebarVisible {
                             StudioProjectSidebarView(viewModel: self.viewModel)
-                                .frame(width: 260)
+                                .frame(width: 188)
                                 .background(StudioSurfaces.bgSidebar)
 
                             Rectangle()
@@ -1266,7 +1263,7 @@ public struct CoreBlowStudioView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .background(StudioSurfaces.bgCanvas)
 
-                        // 4. Right Inspector (340pt Diff & PR Gate / Kanban / Wiki)
+                        // 4. Right Inspector (340pt)
                         if self.viewModel.isInspectorVisible {
                             Rectangle()
                                 .fill(StudioSurfaces.borderSubtle)
@@ -1280,7 +1277,7 @@ public struct CoreBlowStudioView: View {
                 }
             }
         }
-        .frame(minWidth: 1024, minHeight: 680)
+        .frame(minWidth: 860, minHeight: 540)
         .preferredColorScheme(.dark)
         .overlay(alignment: .bottomLeading) {
             if self.viewModel.isProfileMenuPresented {
@@ -1349,12 +1346,12 @@ struct StudioNavRailView: View {
     private var isID: Bool { self.studioLanguage == "ID" }
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 6) {
             // Top spacing below unified topbar
             Spacer()
-                .frame(height: 8)
+                .frame(height: 6)
 
-            // Navigation Icons (16pt icon inside 36x36pt hit target)
+            // Navigation Icons (13pt icon inside 28x28pt hit target)
             ForEach(StudioNavRailTab.allCases) { tab in
                 Button(action: {
                     self.viewModel.activeNavTab = tab
@@ -1371,20 +1368,20 @@ struct StudioNavRailView: View {
                 }) {
                     ZStack {
                         if self.viewModel.activeNavTab == tab {
-                            RoundedRectangle(cornerRadius: StudioRadius.md, style: .continuous)
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
                                 .fill(Color.white.opacity(0.12))
-                                .frame(width: 36, height: 36)
+                                .frame(width: 28, height: 28)
                         }
 
                         Image(systemName: tab.icon)
-                            .font(.system(size: 16))
+                            .font(.system(size: 13))
                             .foregroundStyle(
                                 self.viewModel.activeNavTab == tab
                                     ? Color.white
                                     : Color(white: 0.55)
                             )
                     }
-                    .frame(width: 36, height: 36)
+                    .frame(width: 28, height: 28)
                 }
                 .buttonStyle(.plain)
                 .help(tab.localizedName(isID: self.isID))
@@ -1400,16 +1397,16 @@ struct StudioNavRailView: View {
             }) {
                 Circle()
                     .fill(Color(red: 16/255.0, green: 185/255.0, blue: 129/255.0))
-                    .frame(width: 28, height: 28)
+                    .frame(width: 22, height: 22)
                     .overlay(
                         Text(self.viewModel.userInitials)
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.system(size: 9, weight: .bold))
                             .foregroundStyle(Color(red: 3/255.0, green: 8/255.0, blue: 12/255.0))
                     )
             }
             .buttonStyle(.plain)
             .help(self.isID ? "Akun & Pengaturan" : "Account & Settings")
-            .padding(.bottom, 16)
+            .padding(.bottom, 8)
         }
     }
 }
@@ -1602,7 +1599,7 @@ struct StudioProjectSidebarView: View {
                                     self.viewModel.openProjectFolderPicker()
                                 }) {
                                     HStack(spacing: 6) {
-                                        Image(systemName: "plus.rectangle.dashed")
+                                        Image(systemName: "folder")
                                             .font(.system(size: 11))
                                         Text(self.isID ? "Buka folder repositori..." : "Open repository folder...")
                                             .font(.system(size: 11))
@@ -1798,11 +1795,11 @@ struct StudioMainCanvasView: View {
                     axis: .vertical
                 )
                 .textFieldStyle(.plain)
-                .font(.system(size: 13))
-                .lineLimit(1...6)
+                .font(.system(size: 13.5))
+                .lineLimit(1...2)
                 .padding(.horizontal, 14)
-                .padding(.top, 12)
-                .padding(.bottom, 8)
+                .padding(.top, 10)
+                .padding(.bottom, 4)
                 .onSubmit {
                     self.viewModel.sendMessage()
                 }
@@ -1908,10 +1905,10 @@ struct StudioMainCanvasView: View {
                         ZStack {
                             Circle()
                                 .fill(Color(red: 26/255.0, green: 133/255.0, blue: 122/255.0))
-                                .frame(width: 26, height: 26)
+                                .frame(width: 24, height: 24)
 
                             Image(systemName: "arrow.up")
-                                .font(.system(size: 12, weight: .bold))
+                                .font(.system(size: 11, weight: .bold))
                                 .foregroundStyle(.white)
                         }
                     }
@@ -1922,17 +1919,18 @@ struct StudioMainCanvasView: View {
                 .padding(.horizontal, 10)
                 .padding(.bottom, 8)
             }
+            .frame(maxWidth: 683)
+            .frame(height: 70)
             .background(
-                RoundedRectangle(cornerRadius: StudioRadius.xl, style: .continuous)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(StudioSurfaces.bgComposer)
                     .overlay(
-                        RoundedRectangle(cornerRadius: StudioRadius.xl, style: .continuous)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .stroke(StudioSurfaces.borderCard, lineWidth: 1)
                     )
-                    .shadow(color: Color.black.opacity(0.22), radius: 8, x: 0, y: 4)
+                    .shadow(color: Color.black.opacity(0.35), radius: 16, x: 0, y: 6)
             )
-            .padding(.horizontal, self.viewModel.isInspectorVisible ? 16 : StudioSpacing.hero)
-            .padding(.bottom, StudioSpacing.xxl)
+            .padding(.bottom, 22)
         }
     }
 }

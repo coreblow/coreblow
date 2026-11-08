@@ -40,7 +40,7 @@ public final class CoreBlowStudioWindowController: NSWindowController, NSWindowD
     }
 
     private func createStudioWindow(initialPrompt: String? = nil) {
-        let contentRect = NSRect(x: 0, y: 0, width: 1280, height: 820)
+        let contentRect = NSRect(x: 0, y: 0, width: 1024, height: 638)
         let window = NSWindow(
             contentRect: contentRect,
             styleMask: [
@@ -54,9 +54,9 @@ public final class CoreBlowStudioWindowController: NSWindowController, NSWindowD
             defer: false
         )
 
-        window.minSize = NSSize(width: 1024, height: 680)
-        window.isOpaque = false
-        window.backgroundColor = .clear
+        window.minSize = NSSize(width: 860, height: 540)
+        window.isOpaque = true
+        window.backgroundColor = NSColor(red: 9/255.0, green: 17/255.0, blue: 15/255.0, alpha: 1.0)
         window.title = "CoreBlow Studio"
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
