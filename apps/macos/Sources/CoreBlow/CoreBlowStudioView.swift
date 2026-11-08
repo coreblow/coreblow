@@ -354,6 +354,10 @@ public final class CoreBlowStudioViewModel {
         await self.scanWorktreeDiff(at: self.currentProjectPath)
     }
 
+    public func refreshGitWorktreeStatus() async {
+        await self.refreshCurrentDiff()
+    }
+
     public func scanWorktreeDiff(at folderPath: String) async {
         guard !folderPath.isEmpty else { return }
 
@@ -991,6 +995,39 @@ public final class CoreBlowStudioViewModel {
 }
 
 // ============================================================================
+// Codex-Aligned Design Tokens (Spacing, Radius, Typography & Surfaces)
+// ============================================================================
+
+enum StudioSpacing {
+    static let xxs: CGFloat = 2
+    static let xs: CGFloat  = 4
+    static let sm: CGFloat  = 8
+    static let md: CGFloat  = 12
+    static let lg: CGFloat  = 16
+    static let xl: CGFloat  = 20
+    static let xxl: CGFloat = 24
+    static let hero: CGFloat = 32
+    static let topbarHeight: CGFloat = 48 // Strict unified macOS traffic-light clearance
+}
+
+enum StudioRadius {
+    static let sm: CGFloat = 6
+    static let md: CGFloat = 8
+    static let lg: CGFloat = 12
+    static let xl: CGFloat = 14 // Continuous curve for Floating Composer
+}
+
+enum StudioSurfaces {
+    static let borderSubtle = Color.white.opacity(0.04) // Ultra-clean 0.5pt hairline divider
+    static let borderCard   = Color.white.opacity(0.08)
+    static let bgNavRail    = Color.black.opacity(0.24)
+    static let bgSidebar    = Color.black.opacity(0.14)
+    static let bgCanvas     = Color.black.opacity(0.04)
+    static let bgInspector  = Color.black.opacity(0.18)
+    static let bgComposer   = Color(red: 8/255.0, green: 23/255.0, blue: 28/255.0).opacity(0.88)
+}
+
+// ============================================================================
 // CoreBlow Studio Master Desktop View (Sovereign Desktop Canvas)
 // ============================================================================
 
@@ -1027,50 +1064,50 @@ public struct CoreBlowStudioView: View {
             .ignoresSafeArea()
 
             HStack(spacing: 0) {
-                // 1. Far-Left Vertical Icon Dock (Nav Rail)
+                // 1. Far-Left Vertical Icon Dock (56pt Codex-Aligned Nav Rail)
                 StudioNavRailView(viewModel: self.viewModel)
-                    .frame(width: 52)
-                    .background(Color.black.opacity(0.28))
+                    .frame(width: 56)
+                    .background(StudioSurfaces.bgNavRail)
 
                 Rectangle()
-                    .fill(Color.white.opacity(0.08))
-                    .frame(width: 1)
+                    .fill(StudioSurfaces.borderSubtle)
+                    .frame(width: 0.5)
 
                 // Center Content: CoreHub Manager OR Studio Project Workspace
                 if self.viewModel.activeNavTab == .coreHub {
                     StudioCoreHubManagerView(viewModel: self.viewModel)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    // 2. Collapsible Project & Threads Sidebar
+                    // 2. Collapsible Project & Threads Sidebar (260pt)
                     if self.viewModel.isSidebarVisible {
                         StudioProjectSidebarView(viewModel: self.viewModel)
-                            .frame(width: 250)
-                            .background(Color.black.opacity(0.18))
+                            .frame(width: 260)
+                            .background(StudioSurfaces.bgSidebar)
 
                         Rectangle()
-                            .fill(Color.white.opacity(0.08))
-                            .frame(width: 1)
+                            .fill(StudioSurfaces.borderSubtle)
+                            .frame(width: 0.5)
                     }
 
                     // 3. Main Center Workspace Canvas (Luminous Translucent Frosted Glass)
                     StudioMainCanvasView(viewModel: self.viewModel)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.black.opacity(0.06))
+                        .background(StudioSurfaces.bgCanvas)
 
-                    // 4. Right Inspector (Diff & PR Gate / Kanban / Wiki)
+                    // 4. Right Inspector (340pt Diff & PR Gate / Kanban / Wiki)
                     if self.viewModel.isInspectorVisible {
                         Rectangle()
-                            .fill(Color.white.opacity(0.08))
-                            .frame(width: 1)
+                            .fill(StudioSurfaces.borderSubtle)
+                            .frame(width: 0.5)
 
                         StudioInspectorView(viewModel: self.viewModel)
-                            .frame(width: 360)
-                            .background(Color.black.opacity(0.24))
+                            .frame(width: 340)
+                            .background(StudioSurfaces.bgInspector)
                     }
                 }
             }
         }
-        .frame(minWidth: 1080, minHeight: 700)
+        .frame(minWidth: 1024, minHeight: 680)
         .preferredColorScheme(.dark)
         .overlay(alignment: .bottomLeading) {
             if self.viewModel.isProfileMenuPresented {
@@ -1087,7 +1124,7 @@ public struct CoreBlowStudioView: View {
 
                     // Anchored Profile Menu Card (Directly above the bottom-left button)
                     StudioAnchoredProfileMenuCard(viewModel: self.viewModel)
-                        .padding(.leading, 8)
+                        .padding(.leading, 10)
                         .padding(.bottom, 58)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
@@ -1129,19 +1166,19 @@ public struct CoreBlowStudioView: View {
 }
 
 // ============================================================================
-// 1. Far-Left Vertical Icon Dock (Nav Rail)
+// 1. Far-Left Vertical Icon Dock (56pt Codex-Aligned Nav Rail)
 // ============================================================================
 
 struct StudioNavRailView: View {
     @Bindable var viewModel: CoreBlowStudioViewModel
 
     var body: some View {
-        VStack(spacing: 14) {
-            // Top Window Traffic Light Safe Space
+        VStack(spacing: 10) {
+            // Unified 48pt Window Traffic Light Safe Space
             Spacer()
-                .frame(height: 38)
+                .frame(height: StudioSpacing.topbarHeight)
 
-            // Navigation Icons
+            // Navigation Icons (16pt icon inside 36x36pt hit target)
             ForEach(StudioNavRailTab.allCases) { tab in
                 Button(action: {
                     self.viewModel.activeNavTab = tab
@@ -1158,16 +1195,24 @@ struct StudioNavRailView: View {
                 }) {
                     ZStack {
                         if self.viewModel.activeNavTab == tab {
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(Color(white: 0.26))
+                            RoundedRectangle(cornerRadius: StudioRadius.md, style: .continuous)
+                                .fill(Color(red: 26/255.0, green: 133/255.0, blue: 122/255.0).opacity(0.32))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: StudioRadius.md, style: .continuous)
+                                        .stroke(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.28), lineWidth: 0.5)
+                                )
                                 .frame(width: 36, height: 36)
                         }
 
                         Image(systemName: tab.icon)
-                            .font(.system(size: 15))
-                            .foregroundStyle(self.viewModel.activeNavTab == tab ? Color.white : Color(white: 0.6))
+                            .font(.system(size: 16))
+                            .foregroundStyle(
+                                self.viewModel.activeNavTab == tab
+                                    ? Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0)
+                                    : Color(white: 0.58)
+                            )
                     }
-                    .frame(width: 44, height: 40)
+                    .frame(width: 36, height: 36)
                 }
                 .buttonStyle(.plain)
                 .help(tab.rawValue)
@@ -1175,23 +1220,28 @@ struct StudioNavRailView: View {
 
             Spacer()
 
-            // User Profile Avatar Button (Anchored bottom-left button matching reference)
+            // User Profile Avatar Button (Anchored bottom-left button)
             Button(action: {
                 withAnimation(.easeInOut(duration: 0.15)) {
                     self.viewModel.isProfileMenuPresented.toggle()
                 }
             }) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(self.viewModel.isProfileMenuPresented ? Color(white: 0.28) : Color(white: 0.18))
+                    RoundedRectangle(cornerRadius: StudioRadius.md, style: .continuous)
+                        .fill(self.viewModel.isProfileMenuPresented ? Color(white: 0.24) : Color(white: 0.14))
                         .frame(width: 36, height: 36)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(self.viewModel.isProfileMenuPresented ? Color.white.opacity(0.35) : Color.white.opacity(0.08), lineWidth: 1)
+                            RoundedRectangle(cornerRadius: StudioRadius.md, style: .continuous)
+                                .stroke(
+                                    self.viewModel.isProfileMenuPresented
+                                        ? Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.45)
+                                        : Color.white.opacity(0.08),
+                                    lineWidth: 0.5
+                                )
                         )
 
                     Circle()
-                        .fill(Color(red: 0.12, green: 0.25, blue: 0.28))
+                        .fill(Color(red: 0.10, green: 0.28, blue: 0.30))
                         .frame(width: 26, height: 26)
                         .overlay(
                             Text(self.viewModel.userInitials)
@@ -1202,13 +1252,13 @@ struct StudioNavRailView: View {
             }
             .buttonStyle(.plain)
             .help("Account & Settings")
-            .padding(.bottom, 14)
+            .padding(.bottom, 16)
         }
     }
 }
 
 // ============================================================================
-// 2. Collapsible Project & Threads Sidebar (Clean State + Native Folder Picker)
+// 2. Collapsible Project & Threads Sidebar (260pt Codex-Aligned)
 // ============================================================================
 
 struct StudioProjectSidebarView: View {
@@ -1219,7 +1269,7 @@ struct StudioProjectSidebarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Sidebar Header (Model Brand Dropdown + Add Folder)
+            // Sidebar Header (Unified 48pt Top Baseline)
             HStack(spacing: 8) {
                 Menu {
                     Button("CoreBlow v2.0 GA (Local Microkernel)") {}
@@ -1230,10 +1280,10 @@ struct StudioProjectSidebarView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Text("CoreBlow")
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 13, weight: .bold))
                             .foregroundStyle(.white)
                         Image(systemName: "chevron.down")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.system(size: 9, weight: .semibold))
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -1246,14 +1296,14 @@ struct StudioProjectSidebarView: View {
                 }) {
                     Image(systemName: "folder.badge.plus")
                         .font(.system(size: 13))
-                        .foregroundStyle(Color(white: 0.75))
+                        .foregroundStyle(Color(white: 0.72))
                 }
                 .buttonStyle(.plain)
                 .help(self.isID ? "Buka folder project (⌘O)" : "Open project folder (⌘O)")
             }
             .padding(.horizontal, 14)
-            .padding(.top, 42)
-            .padding(.bottom, 12)
+            .padding(.top, StudioSpacing.topbarHeight)
+            .padding(.bottom, 8)
 
             // "New chat" Button
             Button(action: {
@@ -1359,8 +1409,8 @@ struct StudioProjectSidebarView: View {
                                         .foregroundStyle(.white)
                                     Spacer()
                                 }
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 2)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     self.viewModel.currentProjectName = folder.name
@@ -1383,8 +1433,8 @@ struct StudioProjectSidebarView: View {
                                     Text("No chats yet")
                                         .font(.system(size: 12))
                                         .foregroundStyle(Color(white: 0.45))
-                                        .padding(.leading, 32)
-                                        .padding(.vertical, 2)
+                                        .padding(.leading, 24)
+                                        .padding(.vertical, 5)
                                 } else {
                                     ForEach(folder.threads) { thread in
                                         Button(action: {
@@ -1397,9 +1447,9 @@ struct StudioProjectSidebarView: View {
                                                     .lineLimit(1)
                                                 Spacer()
                                             }
-                                            .padding(.leading, 32)
+                                            .padding(.leading, 24)
                                             .padding(.trailing, 10)
-                                            .padding(.vertical, 4)
+                                            .padding(.vertical, 5)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                                                     .fill(thread.isCurrent ? Color(white: 0.22) : Color.clear)
@@ -1433,9 +1483,20 @@ struct StudioMainCanvasView: View {
 
     private var isID: Bool { self.studioLanguage == "ID" }
 
+    private var compactModelDisplay: String {
+        let raw = self.viewModel.selectedModel
+        if raw.hasPrefix("6-Tier Router: ") {
+            return raw.replacingOccurrences(of: "6-Tier Router: ", with: "")
+        }
+        if raw == "Local Ollama Engine" {
+            return "Ollama"
+        }
+        return raw
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            // Top Bar
+            // Unified 48pt Top Bar (Codex-Aligned Baseline)
             HStack(spacing: 12) {
                 // Sidebar Toggle Button
                 Button(action: {
@@ -1445,21 +1506,20 @@ struct StudioMainCanvasView: View {
                 }) {
                     Image(systemName: "sidebar.left")
                         .font(.system(size: 14))
-                        .foregroundStyle(Color(white: 0.75))
+                        .foregroundStyle(Color(white: 0.72))
                 }
                 .buttonStyle(.plain)
                 .help("Toggle sidebar (⇧⌘S)")
 
-                // Back / Forward Thread Navigation Chevrons & Breadcrumb
-                HStack(spacing: 8) {
+                // Back / Forward Thread Navigation Chevrons & Integrated Breadcrumb
+                HStack(spacing: 6) {
                     Button(action: {
                         self.viewModel.navigateThread(forward: false)
                     }) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(Color(white: 0.75))
-                            .padding(5)
-                            .background(Circle().fill(Color.white.opacity(0.06)))
+                            .foregroundStyle(Color(white: 0.72))
+                            .frame(width: 22, height: 22)
                     }
                     .buttonStyle(.plain)
                     .disabled(self.viewModel.selectedThreadId == nil)
@@ -1471,27 +1531,25 @@ struct StudioMainCanvasView: View {
                     }) {
                         Image(systemName: "chevron.right")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(Color(white: 0.75))
-                            .padding(5)
-                            .background(Circle().fill(Color.white.opacity(0.06)))
+                            .foregroundStyle(Color(white: 0.72))
+                            .frame(width: 22, height: 22)
                     }
                     .buttonStyle(.plain)
                     .disabled(self.viewModel.selectedThreadId == nil)
                     .opacity(self.viewModel.selectedThreadId == nil ? 0.25 : 1.0)
                     .help("Next thread")
 
-                    // Breadcrumb
                     if let selectedId = self.viewModel.selectedThreadId {
                         let threadTitle = self.viewModel.projectFolders.flatMap { $0.threads }.first(where: { $0.id == selectedId })?.title ?? "Active Thread"
-                        HStack(spacing: 4) {
+                        HStack(spacing: 5) {
                             Text(self.viewModel.currentProjectName.isEmpty ? "Studio" : self.viewModel.currentProjectName)
-                                .font(.system(size: 11, weight: .bold))
+                                .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(Color(white: 0.6))
                             Text("/")
-                                .font(.system(size: 10))
+                                .font(.system(size: 11))
                                 .foregroundStyle(Color(white: 0.3))
                             Text(threadTitle)
-                                .font(.system(size: 11, weight: .medium))
+                                .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(.white)
                                 .lineLimit(1)
                         }
@@ -1501,24 +1559,42 @@ struct StudioMainCanvasView: View {
 
                 Spacer()
 
-                // Top Right: Sovereign Badge & Inspector Toggle
+                // Top Right: Microkernel Status, PR Gates Pill & Inspector Toggle
                 HStack(spacing: 10) {
-                    // Sovereign GA Badge Pill
-                    HStack(spacing: 4) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 11))
-                            .foregroundStyle(Color(red: 0.45, green: 0.85, blue: 0.80))
-                        Text("Sovereign GA")
+                    // Subtle 12-Service Microkernel Health Indicator
+                    HStack(spacing: 5) {
+                        Circle()
+                            .fill(Color(red: 90/255.0, green: 185/255.0, blue: 130/255.0))
+                            .frame(width: 6, height: 6)
+                        Text("12 Services")
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(Color(red: 0.65, green: 0.92, blue: 0.88))
+                            .foregroundStyle(Color.white.opacity(0.6))
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule()
-                            .fill(Color(red: 0.06, green: 0.20, blue: 0.22).opacity(0.85))
-                            .overlay(Capsule().stroke(Color(red: 0.45, green: 0.85, blue: 0.80).opacity(0.2), lineWidth: 1))
-                    )
+
+                    // PR Gates Inspector Shortcut Pill
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            self.viewModel.isInspectorVisible = true
+                            self.viewModel.selectedInspectorTab = .diffAndGate
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "checklist.checked")
+                                .font(.system(size: 10))
+                            Text("PR Gates")
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                        .foregroundStyle(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color(red: 10/255.0, green: 36/255.0, blue: 41/255.0).opacity(0.85))
+                                .overlay(Capsule().stroke(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.22), lineWidth: 0.5))
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .help("Open 5-Gate PR Scorecard")
 
                     // Right Inspector Toggle Button
                     Button(action: {
@@ -1528,42 +1604,42 @@ struct StudioMainCanvasView: View {
                     }) {
                         Image(systemName: "sidebar.right")
                             .font(.system(size: 14))
-                            .foregroundStyle(self.viewModel.isInspectorVisible ? Color.white : Color(white: 0.7))
+                            .foregroundStyle(self.viewModel.isInspectorVisible ? Color.white : Color(white: 0.72))
                     }
                     .buttonStyle(.plain)
                     .help("Toggle Inspector")
                 }
             }
-            .padding(.horizontal, 18)
-            .padding(.top, 38)
-            .padding(.bottom, 12)
+            .padding(.horizontal, 20)
+            .padding(.top, StudioSpacing.topbarHeight)
+            .padding(.bottom, 10)
 
-            // Center Content: Either Clean Empty State OR Conversation Stream
+            // Center Content: Clean Minimalist Hero State OR Conversation Stream
             if self.viewModel.messages.isEmpty {
-                VStack(spacing: 20) {
+                VStack(spacing: 14) {
                     Spacer()
 
-                    // Glowing CoreBlow Brain / Neural Emblem (Deep Muted Teal & Ice-Cyan)
+                    // Refined 64pt CoreBlow Neural Emblem
                     ZStack {
                         Circle()
                             .fill(
                                 RadialGradient(
                                     colors: [
-                                        Color(red: 0.08, green: 0.28, blue: 0.30).opacity(0.45),
-                                        Color(red: 0.04, green: 0.14, blue: 0.16).opacity(0.20),
+                                        Color(red: 0.08, green: 0.28, blue: 0.30).opacity(0.40),
+                                        Color(red: 0.04, green: 0.14, blue: 0.16).opacity(0.15),
                                         Color.clear
                                     ],
                                     center: .center,
-                                    startRadius: 10,
-                                    endRadius: 55
+                                    startRadius: 8,
+                                    endRadius: 36
                                 )
                             )
-                            .frame(width: 80, height: 80)
+                            .frame(width: 64, height: 64)
 
                         Image(systemName: "brain.head.profile")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 50, height: 50)
+                            .frame(width: 40, height: 40)
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [
@@ -1576,80 +1652,23 @@ struct StudioMainCanvasView: View {
                             )
                     }
 
-                    // Prominent Heading (Clean when no project is selected yet)
+                    // Clean 24pt Semibold Heading
                     Text(
                         self.viewModel.currentProjectName.isEmpty
                             ? (self.isID ? "Apa yang ingin kita bangun?" : "What should we build?")
                             : (self.isID ? "Apa yang ingin kita bangun di \(self.viewModel.currentProjectName)?" : "What should we build in \(self.viewModel.currentProjectName)?")
                     )
-                    .font(.system(size: 28, weight: .semibold))
+                    .font(.system(size: 24, weight: .semibold))
                     .foregroundStyle(.white)
 
-                    // 3 Minimal Quick Action Cards (Clean Hero — Context Chips Preserved in Composer Below)
-                    HStack(spacing: 12) {
-                        Button(action: {
-                            self.viewModel.openProjectFolderPicker()
-                        }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "folder.badge.plus")
-                                    .font(.system(size: 11))
-                                Text(self.isID ? "Buka Repositori" : "Open Repository")
-                                    .font(.system(size: 12, weight: .medium))
-                            }
-                            .foregroundStyle(Color.white.opacity(0.85))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(Color(red: 0.03, green: 0.09, blue: 0.11).opacity(0.7))
-                                    .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Color.white.opacity(0.12), lineWidth: 0.5))
-                            )
-                        }
-                        .buttonStyle(.plain)
-
-                        Button(action: {
-                            self.viewModel.activeNavTab = .warRoom
-                            self.viewModel.isInspectorVisible = true
-                            self.viewModel.selectedInspectorTab = .warRoomKanban
-                        }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "person.2.fill")
-                                    .font(.system(size: 11))
-                                Text(self.isID ? "Mulai War Room" : "Start War Room")
-                                    .font(.system(size: 12, weight: .medium))
-                            }
-                            .foregroundStyle(Color.white.opacity(0.85))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(Color(red: 0.03, green: 0.09, blue: 0.11).opacity(0.7))
-                                    .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Color.white.opacity(0.12), lineWidth: 0.5))
-                            )
-                        }
-                        .buttonStyle(.plain)
-
-                        Button(action: {
-                            self.viewModel.activeNavTab = .coreHub
-                        }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "square.grid.2x2")
-                                    .font(.system(size: 11))
-                                Text(self.isID ? "Jelajahi CoreHub" : "Browse CoreHub")
-                                    .font(.system(size: 12, weight: .medium))
-                            }
-                            .foregroundStyle(Color(red: 0.38, green: 0.85, blue: 0.80))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(Color(red: 0.04, green: 0.14, blue: 0.16).opacity(0.8))
-                                    .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Color(red: 0.38, green: 0.85, blue: 0.80).opacity(0.3), lineWidth: 0.5))
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(.top, 4)
+                    // Single Subtle Keyboard Hint (Zero Clutter)
+                    Text(
+                        self.isID
+                            ? "Tekan ⌘O untuk memilih repositori atau ketik perintah di bawah"
+                            : "Press ⌘O to select a repository or type a command below"
+                    )
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.white.opacity(0.42))
 
                     Spacer()
                 }
@@ -1662,205 +1681,150 @@ struct StudioMainCanvasView: View {
                             StudioMessageBubbleView(message: message, userInitials: self.viewModel.userInitials)
                         }
                     }
-                    .padding(.horizontal, 36)
+                    .padding(.horizontal, StudioSpacing.hero)
                     .padding(.top, 16)
                     .padding(.bottom, 24)
                 }
             }
 
-            // Floating Composer Box (Integrated Compact Status + Context Chips)
+            // 2-Tier Clean Floating Composer Box (Codex-Aligned)
             VStack(spacing: 0) {
-                // Top Context Chips + Compact Router Status Bar
-                    HStack(spacing: 8) {
-                        Button(action: {
-                            self.viewModel.openProjectFolderPicker()
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "folder")
-                                    .font(.system(size: 10))
-                                Text(self.viewModel.currentProjectName.isEmpty ? (self.isID ? "Pilih folder..." : "Select folder...") : self.viewModel.currentProjectName)
-                                    .font(.system(size: 11, weight: .medium))
-                            }
-                            .foregroundStyle(Color(white: 0.8))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .fill(Color(white: 0.18))
-                            )
-                        }
-                        .buttonStyle(.plain)
+                // Tier 1: Breathable Text Input Area
+                TextField(
+                    self.isID ? "Ketik perintah atau tanya apa saja..." : "Do anything",
+                    text: self.$viewModel.inputPrompt,
+                    axis: .vertical
+                )
+                .textFieldStyle(.plain)
+                .font(.system(size: 13))
+                .lineLimit(1...6)
+                .padding(.horizontal, 14)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
+                .onSubmit {
+                    self.viewModel.sendMessage()
+                }
 
-                        HStack(spacing: 4) {
-                            Image(systemName: "macwindow")
+                // Tier 2: Single Integrated Context & Action Bar
+                HStack(spacing: 8) {
+                    // Unified [📁 folder · ⎇ branch] Capsule
+                    Button(action: {
+                        self.viewModel.openProjectFolderPicker()
+                    }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "folder")
                                 .font(.system(size: 10))
-                            Text(self.viewModel.currentEnvironment)
+                            Text(self.viewModel.currentProjectName.isEmpty ? (self.isID ? "Pilih folder..." : "Select folder...") : self.viewModel.currentProjectName)
                                 .font(.system(size: 11, weight: .medium))
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                            if !self.viewModel.currentProjectName.isEmpty {
+                                Text("·")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(Color.white.opacity(0.35))
+                                Image(systemName: "arrow.triangle.branch")
+                                    .font(.system(size: 9))
+                                Text(self.viewModel.currentBranch)
+                                    .font(.system(size: 11, weight: .medium))
+                                    .lineLimit(1)
+                            }
                         }
-                        .foregroundStyle(Color(white: 0.8))
+                        .foregroundStyle(Color.white.opacity(0.82))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(Color(white: 0.18))
+                            Capsule()
+                                .fill(Color.white.opacity(0.08))
+                                .overlay(Capsule().stroke(Color.white.opacity(0.08), lineWidth: 0.5))
                         )
+                    }
+                    .buttonStyle(.plain)
+                    .help(self.isID ? "Pilih folder repositori (⌘O)" : "Choose repository folder (⌘O)")
 
-                        if !self.viewModel.currentProjectName.isEmpty {
-                            HStack(spacing: 4) {
-                                Image(systemName: "arrow.triangle.branch")
-                                    .font(.system(size: 10))
-                                Text(self.viewModel.currentBranch)
-                                    .font(.system(size: 11, weight: .medium))
-                            }
-                            .foregroundStyle(Color(white: 0.8))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .fill(Color(white: 0.18))
-                            )
+                    // Execution Security Profile Chip
+                    Menu {
+                        Button("Full access") { self.viewModel.executionProfile = "Full access" }
+                        Button("Review required") { self.viewModel.executionProfile = "Review required" }
+                        Button("Strict sandbox") { self.viewModel.executionProfile = "Strict sandbox" }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "shield.checkered")
+                                .font(.system(size: 10))
+                            Text(self.viewModel.executionProfile)
+                                .font(.system(size: 11, weight: .medium))
+                                .lineLimit(1)
                         }
+                        .foregroundStyle(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
+                    }
+                    .menuStyle(.borderlessButton)
+                    .fixedSize()
 
-                        Spacer()
+                    Spacer(minLength: 6)
 
-                        // Compact Router Status & PR Gates Pill
-                        HStack(spacing: 6) {
+                    // Model Selector Dropdown (Codex Compact Display)
+                    Menu {
+                        Button("6-Tier Router: Auto") { self.viewModel.selectedModel = "6-Tier Router: Auto" }
+                        Button("6-Tier Router: Coding") { self.viewModel.selectedModel = "6-Tier Router: Coding" }
+                        Button("6-Tier Router: Deep Reasoning") { self.viewModel.selectedModel = "6-Tier Router: Deep Reasoning" }
+                        Button("Local Ollama Engine") { self.viewModel.selectedModel = "Local Ollama Engine" }
+                    } label: {
+                        HStack(spacing: 3) {
+                            Text(self.compactModelDisplay)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(Color(white: 0.72))
+                                .lineLimit(1)
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 8))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .menuStyle(.borderlessButton)
+                    .fixedSize()
+
+                    // Apple Silicon MLX Voice Button
+                    Button(action: {
+                        StudioCompanionBarController.shared.toggle()
+                    }) {
+                        Image(systemName: "mic.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color(white: 0.6))
+                            .frame(width: 22, height: 22)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Voice companion (⌥Space)")
+
+                    // Send Button (Teal circle with upward arrow)
+                    Button(action: {
+                        self.viewModel.sendMessage()
+                    }) {
+                        ZStack {
                             Circle()
-                                .fill(Color(red: 90/255.0, green: 185/255.0, blue: 130/255.0))
-                                .frame(width: 6, height: 6)
-                            Text("12 Services · [\(self.viewModel.decisionRouterTier.uppercased())]")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundStyle(Color.white.opacity(0.55))
-                        }
+                                .fill(Color(red: 26/255.0, green: 133/255.0, blue: 122/255.0))
+                                .frame(width: 26, height: 26)
 
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                self.viewModel.isInspectorVisible = true
-                                self.viewModel.selectedInspectorTab = .diffAndGate
-                            }
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "sparkles")
-                                    .font(.system(size: 9))
-                                Text("PR Gates")
-                                    .font(.system(size: 10, weight: .semibold))
-                            }
-                            .foregroundStyle(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                Capsule()
-                                    .fill(Color(red: 10/255.0, green: 36/255.0, blue: 41/255.0).opacity(0.85))
-                                    .overlay(Capsule().stroke(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.25), lineWidth: 0.5))
-                            )
+                            Image(systemName: "arrow.up")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(.white)
                         }
-                        .buttonStyle(.plain)
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.top, 10)
-                    .padding(.bottom, 6)
-
-                    // Text Input Area
-                    TextField(self.isID ? "Ketik perintah atau tanya apa saja..." : "Do anything", text: self.$viewModel.inputPrompt, axis: .vertical)
-                        .textFieldStyle(.plain)
-                        .font(.system(size: 14))
-                        .lineLimit(1...5)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 6)
-                        .onSubmit {
-                            self.viewModel.sendMessage()
-                        }
-
-                    // Bottom Action Toolbar
-                    HStack(spacing: 10) {
-                        // Left: + Open Folder / Attach button
-                        Button(action: {
-                            self.viewModel.openProjectFolderPicker()
-                        }) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Color(white: 0.6))
-                        }
-                        .buttonStyle(.plain)
-                        .help("Open project folder")
-
-                        // Full access / Security profile chip
-                        Menu {
-                            Button("Full access") { self.viewModel.executionProfile = "Full access" }
-                            Button("Review required") { self.viewModel.executionProfile = "Review required" }
-                            Button("Strict sandbox") { self.viewModel.executionProfile = "Strict sandbox" }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "shield.checkered")
-                                    .font(.system(size: 10))
-                                Text(self.viewModel.executionProfile)
-                                    .font(.system(size: 11, weight: .medium))
-                            }
-                            .foregroundStyle(Color(red: 0.45, green: 0.85, blue: 0.80))
-                        }
-                        .menuStyle(.borderlessButton)
-
-                        Spacer()
-
-                        // Right: Model Selector Dropdown
-                        Menu {
-                            Button("6-Tier Router: Auto") { self.viewModel.selectedModel = "6-Tier Router: Auto" }
-                            Button("6-Tier Router: Coding") { self.viewModel.selectedModel = "6-Tier Router: Coding" }
-                            Button("6-Tier Router: Deep Reasoning") { self.viewModel.selectedModel = "6-Tier Router: Deep Reasoning" }
-                            Button("Local Ollama Engine") { self.viewModel.selectedModel = "Local Ollama Engine" }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Text(self.viewModel.selectedModel)
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundStyle(Color(white: 0.75))
-                                Image(systemName: "chevron.down")
-                                    .font(.system(size: 8))
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .menuStyle(.borderlessButton)
-
-                        // Apple Silicon MLX Voice Button
-                        Button(action: {
-                            StudioCompanionBarController.shared.toggle()
-                        }) {
-                            Image(systemName: "mic.fill")
-                                .font(.system(size: 13))
-                                .foregroundStyle(Color(white: 0.6))
-                        }
-                        .buttonStyle(.plain)
-                        .help("Voice companion (⌥Space)")
-
-                        // Send Button (Teal circle with upward arrow)
-                        Button(action: {
-                            self.viewModel.sendMessage()
-                        }) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color(red: 0.10, green: 0.52, blue: 0.48))
-                                    .frame(width: 26, height: 26)
-
-                                Image(systemName: "arrow.up")
-                                    .font(.system(size: 12, weight: .bold))
-                                    .foregroundStyle(.white)
-                            }
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 10)
+                    .buttonStyle(.plain)
+                    .disabled(self.viewModel.inputPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .opacity(self.viewModel.inputPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.45 : 1.0)
                 }
-                .background(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(Color.white.opacity(0.08))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                .stroke(Color.white.opacity(0.16), lineWidth: 1)
-                        )
-                        .shadow(color: Color.black.opacity(0.25), radius: 14, x: 0, y: 7)
-                )
-                .padding(.horizontal, 24)
-                .padding(.bottom, 20)
+                .padding(.horizontal, 10)
+                .padding(.bottom, 8)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: StudioRadius.xl, style: .continuous)
+                    .fill(StudioSurfaces.bgComposer)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: StudioRadius.xl, style: .continuous)
+                            .stroke(StudioSurfaces.borderCard, lineWidth: 1)
+                    )
+                    .shadow(color: Color.black.opacity(0.22), radius: 8, x: 0, y: 4)
+            )
+            .padding(.horizontal, self.viewModel.isInspectorVisible ? 16 : StudioSpacing.hero)
+            .padding(.bottom, StudioSpacing.xxl)
         }
     }
 }
@@ -1979,8 +1943,8 @@ struct StudioInspectorView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Inspector Tab Bar
-            HStack(spacing: 6) {
+            // Inspector Tab Bar (Compact 340pt Codex-Aligned)
+            HStack(spacing: 4) {
                 ForEach(StudioInspectorTab.allCases) { tab in
                     Button(action: {
                         self.viewModel.selectedInspectorTab = tab
@@ -1989,11 +1953,12 @@ struct StudioInspectorView: View {
                             Image(systemName: tab.icon)
                                 .font(.system(size: 10))
                             Text(tab.rawValue)
-                                .font(.system(size: 11, weight: .medium))
+                                .font(.system(size: 10, weight: .medium))
+                                .lineLimit(1)
                         }
                         .foregroundStyle(self.viewModel.selectedInspectorTab == tab ? Color.white : Color(white: 0.6))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
                         .background(
                             RoundedRectangle(cornerRadius: 6, style: .continuous)
                                 .fill(self.viewModel.selectedInspectorTab == tab ? Color(white: 0.22) : Color.clear)
@@ -2003,11 +1968,13 @@ struct StudioInspectorView: View {
                 }
                 Spacer()
             }
-            .padding(.horizontal, 14)
-            .padding(.top, 40)
-            .padding(.bottom, 10)
+            .padding(.horizontal, 10)
+            .padding(.top, StudioSpacing.topbarHeight)
+            .padding(.bottom, 8)
 
-            Divider()
+            Rectangle()
+                .fill(StudioSurfaces.borderSubtle)
+                .frame(height: 0.5)
 
             // Inspector Tab Content
             switch self.viewModel.selectedInspectorTab {
@@ -2065,7 +2032,7 @@ struct StudioDiffAndGateView: View {
 
                         Button(action: {
                             Task {
-                                await self.viewModel.refreshCurrentDiff()
+                                await self.viewModel.refreshGitWorktreeStatus()
                             }
                         }) {
                             HStack(spacing: 4) {
@@ -2723,15 +2690,15 @@ public struct StudioCoreHubManagerView: View {
             topNavigationBar
 
             Rectangle()
-                .fill(Color.white.opacity(0.08))
-                .frame(height: 1)
+                .fill(StudioSurfaces.borderSubtle)
+                .frame(height: 0.5)
 
             // b) Platform Filter Sub-Header
             platformFilterSubHeader
 
             Rectangle()
-                .fill(Color.white.opacity(0.08))
-                .frame(height: 1)
+                .fill(StudioSurfaces.borderSubtle)
+                .frame(height: 0.5)
 
             // Lower Split: c) Left Category Sidebar + d) Central Canvas
             HStack(spacing: 0) {
@@ -2741,8 +2708,8 @@ public struct StudioCoreHubManagerView: View {
                     .background(self.darkObsidian.opacity(0.65))
 
                 Rectangle()
-                    .fill(Color.white.opacity(0.08))
-                    .frame(width: 1)
+                    .fill(StudioSurfaces.borderSubtle)
+                    .frame(width: 0.5)
 
                 // d) Central Canvas
                 centralCanvas
@@ -2858,10 +2825,11 @@ public struct StudioCoreHubManagerView: View {
                 }
             }
 
-            // Profile Avatar Chip (Opens Settings directly without floating popover)
+            // Profile Avatar Chip (Toggles Anchored Profile Menu Card)
             Button(action: {
-                SettingsTabRouter.open(tab: .general)
-                SettingsWindowOpener.shared.open()
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    self.viewModel.isProfileMenuPresented.toggle()
+                }
             }) {
                 ZStack(alignment: .bottomTrailing) {
                     Circle()
@@ -2886,11 +2854,11 @@ public struct StudioCoreHubManagerView: View {
                 }
             }
             .buttonStyle(.plain)
-            .help("Settings (⌘,)")
+            .help("Account & Settings")
         }
         .padding(.horizontal, 18)
-        .padding(.top, 40)
-        .padding(.bottom, 12)
+        .padding(.top, StudioSpacing.topbarHeight)
+        .padding(.bottom, 10)
         .background(self.darkObsidian.opacity(0.75))
     }
 

@@ -54,7 +54,7 @@ public final class CoreBlowStudioWindowController: NSWindowController, NSWindowD
             defer: false
         )
 
-        window.minSize = NSSize(width: 1000, height: 600)
+        window.minSize = NSSize(width: 1024, height: 680)
         window.isOpaque = false
         window.backgroundColor = .clear
         window.title = "CoreBlow Studio"
