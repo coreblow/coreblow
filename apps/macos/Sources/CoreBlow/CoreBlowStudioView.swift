@@ -18,6 +18,17 @@ public enum StudioNavRailTab: String, CaseIterable, Identifiable {
 
     public var id: String { self.rawValue }
 
+    public func localizedName(isID: Bool) -> String {
+        switch self {
+        case .chat: return isID ? "Obrolan Utama" : "Chat"
+        case .history: return isID ? "Riwayat Percakapan" : "History"
+        case .coreHub: return isID ? "Toko Fitur & Plugin" : "CoreHub Store"
+        case .warRoom: return isID ? "Kolaborasi Agen (War Room)" : "War Room"
+        case .memoryWiki: return isID ? "Memori & Pengetahuan" : "Memory & Wiki"
+        case .gitWorktree: return isID ? "Inspeksi Git & Diff" : "Git & Diff"
+        }
+    }
+
     public var icon: String {
         switch self {
         case .chat: return "bubble.left.and.bubble.right.fill"
@@ -162,6 +173,7 @@ public final class CoreBlowStudioViewModel {
     public var pairedFilePath: String = ""
 
     // Clean Empty Project Folders & Real Per-Thread Message Store
+    public var generalThreads: [StudioProjectThread] = []
     public var projectFolders: [StudioProjectFolder] = []
     public var messages: [StudioChatMessage] = []
     private var threadMessages: [String: [StudioChatMessage]] = [:]
@@ -290,10 +302,35 @@ public final class CoreBlowStudioViewModel {
         self.selectedThreadId = nil
         self.messages.removeAll()
         self.inputPrompt = ""
+        for idx in self.generalThreads.indices {
+            self.generalThreads[idx].isCurrent = false
+        }
         for fIdx in self.projectFolders.indices {
             for tIdx in self.projectFolders[fIdx].threads.indices {
                 self.projectFolders[fIdx].threads[tIdx].isCurrent = false
             }
+        }
+    }
+
+    public func selectGeneralThread(id: String) {
+        self.selectedThreadId = id
+        for idx in self.generalThreads.indices {
+            self.generalThreads[idx].isCurrent = (self.generalThreads[idx].id == id)
+        }
+        for fIdx in self.projectFolders.indices {
+            for tIdx in self.projectFolders[fIdx].threads.indices {
+                self.projectFolders[fIdx].threads[tIdx].isCurrent = false
+            }
+        }
+        self.messages = self.threadMessages[id] ?? []
+    }
+
+    public func deleteGeneralThread(id: String) {
+        self.generalThreads.removeAll(where: { $0.id == id })
+        self.threadMessages.removeValue(forKey: id)
+        if self.selectedThreadId == id {
+            self.selectedThreadId = nil
+            self.messages.removeAll()
         }
     }
 
@@ -302,6 +339,9 @@ public final class CoreBlowStudioViewModel {
         self.currentProjectPath = folder.path
         self.currentBranch = Self.detectGitBranch(at: folder.path)
         self.selectedThreadId = threadId
+        for idx in self.generalThreads.indices {
+            self.generalThreads[idx].isCurrent = false
+        }
         for fIdx in self.projectFolders.indices {
             for tIdx in self.projectFolders[fIdx].threads.indices {
                 self.projectFolders[fIdx].threads[tIdx].isCurrent = (self.projectFolders[fIdx].threads[tIdx].id == threadId)
@@ -314,7 +354,7 @@ public final class CoreBlowStudioViewModel {
     }
 
     public func navigateThread(forward: Bool) {
-        let allThreads = self.projectFolders.flatMap { $0.threads }
+        let allThreads = self.generalThreads + self.projectFolders.flatMap { $0.threads }
         guard !allThreads.isEmpty else { return }
         guard let currentId = self.selectedThreadId,
               let currentIndex = allThreads.firstIndex(where: { $0.id == currentId }) else {
@@ -570,7 +610,7 @@ public final class CoreBlowStudioViewModel {
 
         let userMsg = StudioChatMessage(id: UUID().uuidString, sender: "user", text: text, timestamp: timeString)
 
-        // Ensure an active project folder and thread exist for this session
+        // Ensure an active thread exists for this session
         let activeThreadId: String
         if let existingThreadId = self.selectedThreadId {
             activeThreadId = existingThreadId
@@ -578,32 +618,31 @@ public final class CoreBlowStudioViewModel {
             let newThreadId = "thread_\(UUID().uuidString)"
             let shortTitle = text.count > 38 ? String(text.prefix(38)) + "..." : text
 
-            if self.projectFolders.isEmpty {
-                let defaultName = self.currentProjectName.isEmpty ? "Workspace" : self.currentProjectName
-                let folder = StudioProjectFolder(
-                    id: "proj_\(UUID().uuidString)",
-                    name: defaultName,
-                    path: self.currentProjectPath,
-                    isExpanded: true,
-                    threads: [StudioProjectThread(id: newThreadId, title: shortTitle, isCurrent: true)]
-                )
-                self.projectFolders.append(folder)
-                self.currentProjectName = defaultName
+            if self.currentProjectPath.isEmpty {
+                // Standalone general chat for non-coders / general users (Clean, zero folder required)
+                let thread = StudioProjectThread(id: newThreadId, title: shortTitle, isCurrent: true)
+                for idx in self.generalThreads.indices {
+                    self.generalThreads[idx].isCurrent = false
+                }
+                self.generalThreads.insert(thread, at: 0)
+                self.selectedThreadId = newThreadId
+                activeThreadId = newThreadId
             } else {
-                let targetIdx = self.projectFolders.firstIndex(where: { $0.name == self.currentProjectName }) ?? 0
+                let targetIdx = self.projectFolders.firstIndex(where: { $0.path == self.currentProjectPath || $0.name == self.currentProjectName }) ?? 0
                 for fIdx in self.projectFolders.indices {
                     for tIdx in self.projectFolders[fIdx].threads.indices {
                         self.projectFolders[fIdx].threads[tIdx].isCurrent = false
                     }
                 }
-                self.projectFolders[targetIdx].threads.insert(
-                    StudioProjectThread(id: newThreadId, title: shortTitle, isCurrent: true),
-                    at: 0
-                )
-                self.currentProjectName = self.projectFolders[targetIdx].name
+                if targetIdx < self.projectFolders.count {
+                    self.projectFolders[targetIdx].threads.insert(
+                        StudioProjectThread(id: newThreadId, title: shortTitle, isCurrent: true),
+                        at: 0
+                    )
+                }
+                self.selectedThreadId = newThreadId
+                activeThreadId = newThreadId
             }
-            self.selectedThreadId = newThreadId
-            activeThreadId = newThreadId
         }
 
         self.messages.append(userMsg)
@@ -1171,6 +1210,9 @@ public struct CoreBlowStudioView: View {
 
 struct StudioNavRailView: View {
     @Bindable var viewModel: CoreBlowStudioViewModel
+    @AppStorage("coreblow.studio.language") private var studioLanguage: String = "ID"
+
+    private var isID: Bool { self.studioLanguage == "ID" }
 
     var body: some View {
         VStack(spacing: 10) {
@@ -1215,7 +1257,7 @@ struct StudioNavRailView: View {
                     .frame(width: 36, height: 36)
                 }
                 .buttonStyle(.plain)
-                .help(tab.rawValue)
+                .help(tab.localizedName(isID: self.isID))
             }
 
             Spacer()
@@ -1251,7 +1293,7 @@ struct StudioNavRailView: View {
                 }
             }
             .buttonStyle(.plain)
-            .help("Account & Settings")
+            .help(self.isID ? "Akun & Pengaturan" : "Account & Settings")
             .padding(.bottom, 16)
         }
     }
@@ -1264,6 +1306,7 @@ struct StudioNavRailView: View {
 struct StudioProjectSidebarView: View {
     @Bindable var viewModel: CoreBlowStudioViewModel
     @AppStorage("coreblow.studio.language") private var studioLanguage: String = "ID"
+    @State private var isProjectsExpanded: Bool = true
 
     private var isID: Bool { self.studioLanguage == "ID" }
 
@@ -1271,23 +1314,20 @@ struct StudioProjectSidebarView: View {
         VStack(spacing: 0) {
             // Sidebar Header (Unified 48pt Top Baseline)
             HStack(spacing: 8) {
-                Menu {
-                    Button("CoreBlow v2.0 GA (Local Microkernel)") {}
-                    Divider()
-                    Button(self.isID ? "Buka Folder Project..." : "Open Project Folder...") {
-                        self.viewModel.openProjectFolderPicker()
-                    }
-                } label: {
-                    HStack(spacing: 4) {
-                        Text("CoreBlow")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(.white)
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 9, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                    }
+                HStack(spacing: 6) {
+                    Image(systemName: "brain.head.profile")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
+                    Text("CoreBlow")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.white)
+                    Text("v2.0")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundStyle(Color.white.opacity(0.45))
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1.5)
+                        .background(Capsule().fill(Color.white.opacity(0.08)))
                 }
-                .menuStyle(.borderlessButton)
 
                 Spacer()
 
@@ -1299,13 +1339,13 @@ struct StudioProjectSidebarView: View {
                         .foregroundStyle(Color(white: 0.72))
                 }
                 .buttonStyle(.plain)
-                .help(self.isID ? "Buka folder project (⌘O)" : "Open project folder (⌘O)")
+                .help(self.isID ? "Buka folder proyek / dokumen (⌘O)" : "Open project folder (⌘O)")
             }
             .padding(.horizontal, 14)
             .padding(.top, StudioSpacing.topbarHeight)
             .padding(.bottom, 8)
 
-            // "New chat" Button
+            // "New chat" Primary Button
             Button(action: {
                 self.viewModel.startNewChat()
             }) {
@@ -1315,6 +1355,9 @@ struct StudioProjectSidebarView: View {
                     Text(self.isID ? "Obrolan baru" : "New chat")
                         .font(.system(size: 13, weight: .medium))
                     Spacer()
+                    Text("⌘N")
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color.white.opacity(0.35))
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, 12)
@@ -1322,153 +1365,241 @@ struct StudioProjectSidebarView: View {
                 .background(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .fill(Color(white: 0.18))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
+                        )
                 )
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 12)
-            .padding(.bottom, 14)
+            .padding(.bottom, 12)
 
-            // Section: Projects Header or History Header
-            if self.viewModel.activeNavTab == .history {
-                HStack {
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color(red: 0.38, green: 0.85, blue: 0.80))
-                    Text(self.isID ? "Riwayat Percakapan" : "Conversation History")
-                        .font(.system(size: 11, weight: .semibold))
+            // Scrollable Sidebar Content
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    // SECTION 1: RECENT CHATS (OBROLAN TERBARU)
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(self.isID ? "OBROLAN TERBARU" : "RECENT CHATS")
+                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .foregroundStyle(Color.white.opacity(0.45))
+                            Spacer()
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 2)
+
+                        if self.viewModel.generalThreads.isEmpty && self.viewModel.projectFolders.allSatisfy({ $0.threads.isEmpty }) {
+                            // Friendly, zero-pressure guidance for orang awam
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "sparkles")
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
+                                    Text(self.isID ? "Mulai obrolan baru" : "Start a new chat")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundStyle(Color.white.opacity(0.75))
+                                }
+                                Text(self.isID ? "Ketik apa saja di bawah untuk bertanya, merangkum, atau berdiskusi dengan AI." : "Type anything below to ask questions, summarize notes, or brainstorm.")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(Color.white.opacity(0.45))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(Color.white.opacity(0.03))
+                            )
+                            .padding(.horizontal, 10)
+                        } else {
+                            // General Threads List
+                            ForEach(self.viewModel.generalThreads) { thread in
+                                Button(action: {
+                                    self.viewModel.selectGeneralThread(id: thread.id)
+                                }) {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "bubble.left")
+                                            .font(.system(size: 11))
+                                            .foregroundStyle(thread.isCurrent ? Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0) : Color.white.opacity(0.5))
+                                        Text(thread.title)
+                                            .font(.system(size: 12))
+                                            .foregroundStyle(thread.isCurrent ? Color.white : Color(white: 0.8))
+                                            .lineLimit(1)
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                            .fill(thread.isCurrent ? Color(white: 0.20) : Color.clear)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                .padding(.horizontal, 10)
+                                .contextMenu {
+                                    Button(self.isID ? "Hapus Obrolan" : "Delete Chat", role: .destructive) {
+                                        self.viewModel.deleteGeneralThread(id: thread.id)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // SECTION 2: PROYEK & FOLDER (OPSIONAL & COLLAPSIBLE)
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
+                            Button(action: {
+                                withAnimation(.easeInOut(duration: 0.15)) {
+                                    self.isProjectsExpanded.toggle()
+                                }
+                            }) {
+                                HStack(spacing: 5) {
+                                    Image(systemName: self.isProjectsExpanded ? "chevron.down" : "chevron.right")
+                                        .font(.system(size: 8, weight: .bold))
+                                        .foregroundStyle(Color.white.opacity(0.45))
+                                        .frame(width: 10)
+
+                                    Text(self.isID ? "PROYEK (OPSIONAL)" : "PROJECTS (OPTIONAL)")
+                                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                        .foregroundStyle(Color.white.opacity(0.45))
+                                }
+                            }
+                            .buttonStyle(.plain)
+
+                            Spacer()
+
+                            Button(action: {
+                                self.viewModel.openProjectFolderPicker()
+                            }) {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundStyle(Color.white.opacity(0.6))
+                            }
+                            .buttonStyle(.plain)
+                            .help(self.isID ? "Tambah folder proyek" : "Add project folder")
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.top, 4)
+
+                        if self.isProjectsExpanded {
+                            if self.viewModel.projectFolders.isEmpty {
+                                Button(action: {
+                                    self.viewModel.openProjectFolderPicker()
+                                }) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "plus.rectangle.dashed")
+                                            .font(.system(size: 11))
+                                        Text(self.isID ? "Buka folder repositori..." : "Open repository folder...")
+                                            .font(.system(size: 11))
+                                    }
+                                    .foregroundStyle(Color.white.opacity(0.40))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 5)
+                                }
+                                .buttonStyle(.plain)
+                                .padding(.horizontal, 10)
+                            } else {
+                                ForEach(self.viewModel.projectFolders) { folder in
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        // Folder Header
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "folder")
+                                                .font(.system(size: 11))
+                                                .foregroundStyle(Color(white: 0.7))
+                                            Text(folder.name)
+                                                .font(.system(size: 12, weight: .medium))
+                                                .foregroundStyle(.white)
+                                                .lineLimit(1)
+                                            Spacer()
+                                        }
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 5)
+                                        .contentShape(Rectangle())
+                                        .onTapGesture {
+                                            self.viewModel.currentProjectName = folder.name
+                                            self.viewModel.currentProjectPath = folder.path
+                                        }
+                                        .contextMenu {
+                                            Button(self.isID ? "Obrolan Baru di \(folder.name)" : "New Chat in \(folder.name)") {
+                                                self.viewModel.currentProjectName = folder.name
+                                                self.viewModel.currentProjectPath = folder.path
+                                                self.viewModel.startNewChat()
+                                            }
+                                            Divider()
+                                            Button(self.isID ? "Hapus Folder" : "Remove Folder", role: .destructive) {
+                                                self.viewModel.removeProjectFolder(id: folder.id)
+                                            }
+                                        }
+
+                                        // Nested Threads inside Folder
+                                        ForEach(folder.threads) { thread in
+                                            Button(action: {
+                                                self.viewModel.selectThread(folder: folder, threadId: thread.id)
+                                            }) {
+                                                HStack(spacing: 6) {
+                                                    Text(thread.title)
+                                                        .font(.system(size: 11))
+                                                        .foregroundStyle(thread.isCurrent ? Color.white : Color(white: 0.75))
+                                                        .lineLimit(1)
+                                                    Spacer()
+                                                }
+                                                .padding(.leading, 22)
+                                                .padding(.trailing, 10)
+                                                .padding(.vertical, 4)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                                        .fill(thread.isCurrent ? Color(white: 0.20) : Color.clear)
+                                                )
+                                            }
+                                            .buttonStyle(.plain)
+                                            .contextMenu {
+                                                Button(self.isID ? "Hapus Obrolan" : "Delete Chat", role: .destructive) {
+                                                    self.viewModel.deleteThread(folderId: folder.id, threadId: thread.id)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+
+            // Bottom Quick Access: Toko Fitur & Plugin (CoreHub)
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    self.viewModel.activeNavTab = .coreHub
+                }
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "square.grid.2x2")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
+                    Text(self.isID ? "Toko Fitur & Plugin" : "Feature & Plugin Store")
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(Color.white.opacity(0.85))
                     Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 9))
+                        .foregroundStyle(Color.white.opacity(0.35))
                 }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 6)
-            } else {
-                HStack {
-                    Text(self.isID ? "Proyek" : "Projects")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Color(white: 0.55))
-                    Spacer()
-                    Button(action: {
-                        self.viewModel.openProjectFolderPicker()
-                    }) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(Color(white: 0.6))
-                    }
-                    .buttonStyle(.plain)
-                    .help(self.isID ? "Tambah folder project" : "Add project folder")
-                }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 6)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(Color.white.opacity(0.04))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .stroke(Color.white.opacity(0.06), lineWidth: 0.5)
+                        )
+                )
             }
-
-            // Project Folders & Chats ScrollView (Clean Empty State when no projects added)
-            ScrollView {
-                if self.viewModel.projectFolders.isEmpty {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(self.isID ? "Belum ada folder project dipilih." : "No project folders added yet.")
-                            .font(.system(size: 12))
-                            .foregroundStyle(Color(white: 0.45))
-
-                        Button(action: {
-                            self.viewModel.openProjectFolderPicker()
-                        }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "folder.badge.plus")
-                                    .font(.system(size: 11))
-                                Text(self.isID ? "Pilih folder..." : "Open folder...")
-                                    .font(.system(size: 12, weight: .medium))
-                            }
-                            .foregroundStyle(Color(red: 0.45, green: 0.85, blue: 0.80))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(
-                                RoundedRectangle(cornerRadius: 7, style: .continuous)
-                                    .fill(Color.white.opacity(0.06))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 7, style: .continuous)
-                                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                                    )
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 14)
-                    .padding(.top, 8)
-                } else {
-                    LazyVStack(alignment: .leading, spacing: 14) {
-                        ForEach(self.viewModel.projectFolders) { folder in
-                            VStack(alignment: .leading, spacing: 4) {
-                                // Folder Header
-                                HStack(spacing: 6) {
-                                    Image(systemName: "folder")
-                                        .font(.system(size: 12))
-                                        .foregroundStyle(Color(white: 0.7))
-                                    Text(folder.name)
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundStyle(.white)
-                                    Spacer()
-                                }
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    self.viewModel.currentProjectName = folder.name
-                                    self.viewModel.currentProjectPath = folder.path
-                                }
-                                .contextMenu {
-                                    Button("New Chat in \(folder.name)") {
-                                        self.viewModel.currentProjectName = folder.name
-                                        self.viewModel.currentProjectPath = folder.path
-                                        self.viewModel.startNewChat()
-                                    }
-                                    Divider()
-                                    Button("Remove Folder", role: .destructive) {
-                                        self.viewModel.removeProjectFolder(id: folder.id)
-                                    }
-                                }
-
-                                // Nested Threads
-                                if folder.threads.isEmpty {
-                                    Text("No chats yet")
-                                        .font(.system(size: 12))
-                                        .foregroundStyle(Color(white: 0.45))
-                                        .padding(.leading, 24)
-                                        .padding(.vertical, 5)
-                                } else {
-                                    ForEach(folder.threads) { thread in
-                                        Button(action: {
-                                            self.viewModel.selectThread(folder: folder, threadId: thread.id)
-                                        }) {
-                                            HStack {
-                                                Text(thread.title)
-                                                    .font(.system(size: 12))
-                                                    .foregroundStyle(thread.isCurrent ? Color.white : Color(white: 0.8))
-                                                    .lineLimit(1)
-                                                Spacer()
-                                            }
-                                            .padding(.leading, 24)
-                                            .padding(.trailing, 10)
-                                            .padding(.vertical, 5)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                                    .fill(thread.isCurrent ? Color(white: 0.22) : Color.clear)
-                                            )
-                                        }
-                                        .buttonStyle(.plain)
-                                        .contextMenu {
-                                            Button("Delete Chat", role: .destructive) {
-                                                self.viewModel.deleteThread(folderId: folder.id, threadId: thread.id)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
-            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 12)
+            .padding(.bottom, 12)
         }
     }
 }
@@ -1540,9 +1671,10 @@ struct StudioMainCanvasView: View {
                     .help("Next thread")
 
                     if let selectedId = self.viewModel.selectedThreadId {
-                        let threadTitle = self.viewModel.projectFolders.flatMap { $0.threads }.first(where: { $0.id == selectedId })?.title ?? "Active Thread"
+                        let allThreads = self.viewModel.generalThreads + self.viewModel.projectFolders.flatMap { $0.threads }
+                        let threadTitle = allThreads.first(where: { $0.id == selectedId })?.title ?? (self.isID ? "Obrolan Aktif" : "Active Thread")
                         HStack(spacing: 5) {
-                            Text(self.viewModel.currentProjectName.isEmpty ? "Studio" : self.viewModel.currentProjectName)
+                            Text(self.viewModel.currentProjectName.isEmpty ? "CoreBlow" : self.viewModel.currentProjectName)
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(Color(white: 0.6))
                             Text("/")
@@ -2249,6 +2381,18 @@ public enum CoreHubCategory: String, CaseIterable, Identifiable {
 
     public var id: String { self.rawValue }
 
+    public func localizedName(isID: Bool) -> String {
+        switch self {
+        case .allApps: return isID ? "Semua Fitur" : "All Apps"
+        case .updates: return isID ? "Pembaruan (3)" : "Updates (3)"
+        case .autonomousAgents: return isID ? "Asisten & Agen AI" : "AI Assistants"
+        case .evoLoopSkills: return isID ? "Kemampuan Pintar" : "Smart Skills"
+        case .devTools: return isID ? "Alat Pengembang" : "Developer Tools"
+        case .mcpBridges: return isID ? "Integrasi & Jembatan" : "Integrations & Bridges"
+        case .memoryWiki: return isID ? "Memori & Pengetahuan" : "Memory & Knowledge"
+        }
+    }
+
     public var icon: String {
         switch self {
         case .allApps: return "square.grid.2x2"
@@ -2332,6 +2476,9 @@ public struct CoreHubPackageItem: Identifiable {
 
 public struct StudioCoreHubManagerView: View {
     @Bindable var viewModel: CoreBlowStudioViewModel
+    @AppStorage("coreblow.studio.language") private var studioLanguage: String = "ID"
+
+    private var isID: Bool { self.studioLanguage == "ID" }
 
     // Navigation and Filter States
     @State private var selectedTopTab: CoreHubTopNavTab = .apps
@@ -2352,7 +2499,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubInstalledAppItem(
             id: "app_studio",
             name: "CoreBlow Studio",
-            description: "Native 3-pane macOS workspace with floating context chips & Microkernel IPC",
+            description: "Ruang kerja asisten AI interaktif dengan manajemen dokumen dan proyek",
             version: "v2.0.0 GA",
             icon: "macwindow.on.rectangle",
             isUpdateAvailable: false,
@@ -2362,7 +2509,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubInstalledAppItem(
             id: "app_companion",
             name: "Companion Bar (⌥Space)",
-            description: "Floating system quick-launch bar with active window context pairing",
+            description: "Bilah pintasan cepat mengambang di seluruh sistem macOS (⌥Space)",
             version: "v2.0.0 GA",
             icon: "command.square.fill",
             isUpdateAvailable: false,
@@ -2372,7 +2519,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubInstalledAppItem(
             id: "app_memory",
             name: "Cory 4-Layer Memory",
-            description: "SQLite WAL + FTS5 BM25 associative memory with continuous compaction",
+            description: "Memori jangka panjang cerdas untuk mengingat preferensi dan konteks percakapan Anda",
             version: "v2.0.1",
             icon: "brain",
             isUpdateAvailable: true,
@@ -2382,7 +2529,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubInstalledAppItem(
             id: "app_evoloop",
             name: "EvoLoop Synthesizer",
-            description: "Closed-loop skill distillation & Bayesian Wilson score ranking (z=1.28)",
+            description: "Penyempurnaan kemampuan AI otomatis berdasarkan hasil interaksi Anda",
             version: "v2.0.0 GA",
             icon: "bolt.fill",
             isUpdateAvailable: false,
@@ -2392,7 +2539,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubInstalledAppItem(
             id: "app_war_room",
             name: "War Room Orchestrator",
-            description: "Lead-agent multi-worker task orchestration & DAG state machine flow",
+            description: "Kolaborasi multi-agen cerdas untuk menyelesaikan tugas besar secara paralel",
             version: "v2.0.2",
             icon: "person.3.fill",
             isUpdateAvailable: true,
@@ -2402,7 +2549,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubInstalledAppItem(
             id: "app_mlx_voice",
             name: "Sovereign MLX Voice",
-            description: "Local Apple Silicon Neural Engine TTS with real-time telemetry (RTF ≤ 0.4)",
+            description: "Suara asisten alami berkecepatan tinggi yang diproses langsung di Apple Silicon",
             version: "v2.0.0",
             icon: "waveform",
             isUpdateAvailable: true,
@@ -2416,8 +2563,8 @@ public struct StudioCoreHubManagerView: View {
         CoreHubPackageItem(
             id: "pkg_mcp",
             name: "@coreblow/mcp-bridge",
-            description: "Model Context Protocol JSON-RPC & Stdio transport bridge exposing all 6 Microkernel tools",
-            tierBadge: "Tier A: Plugin",
+            description: "Jembatan protokol Model Context Protocol untuk menghubungkan alat dan database eksternal",
+            tierBadge: "Resmi",
             icon: "network",
             isLocked: false,
             wilsonScore: nil,
@@ -2428,8 +2575,8 @@ public struct StudioCoreHubManagerView: View {
         CoreHubPackageItem(
             id: "pkg_discord",
             name: "@coreblow/discord",
-            description: "Gateway messaging channel adapter for Discord bots, threads & webhooks",
-            tierBadge: "Tier A: Plugin",
+            description: "Integrasi bot percakapan cerdas untuk Discord server, channel, dan webhook",
+            tierBadge: "Resmi",
             icon: "bubble.left.and.text.bubble.right.fill",
             isLocked: false,
             wilsonScore: nil,
@@ -2440,8 +2587,8 @@ public struct StudioCoreHubManagerView: View {
         CoreHubPackageItem(
             id: "pkg_telegram",
             name: "@coreblow/telegram",
-            description: "Direct Telegram Bot API gateway driver with streaming responses & voice notes",
-            tierBadge: "Tier A: Plugin",
+            description: "Integrasi bot Telegram langsung dengan pesan suara dan balasan cepat",
+            tierBadge: "Resmi",
             icon: "paperplane.fill",
             isLocked: false,
             wilsonScore: nil,
@@ -2452,8 +2599,8 @@ public struct StudioCoreHubManagerView: View {
         CoreHubPackageItem(
             id: "pkg_git_supercharged",
             name: "skill/git-supercharged",
-            description: "Advanced git worktree staging, branch hygiene, and conflict resolution",
-            tierBadge: "Tier B: Skill",
+            description: "Percepatan alur kerja Git, penyelesaian konflik kode, dan manajemen branch",
+            tierBadge: "Komunitas",
             icon: "arrow.triangle.branch",
             isLocked: true,
             wilsonScore: 0.98,
@@ -2464,8 +2611,8 @@ public struct StudioCoreHubManagerView: View {
         CoreHubPackageItem(
             id: "pkg_rust_advisor",
             name: "skill/rust-compiler-advisor",
-            description: "Rust borrow checker diagnostic reasoning and cargo workspace tuning",
-            tierBadge: "Tier B: Skill",
+            description: "Asisten analisis error compiler Rust dan optimasi performa kode",
+            tierBadge: "Komunitas",
             icon: "gearshape.2.fill",
             isLocked: true,
             wilsonScore: 0.95,
@@ -2476,8 +2623,8 @@ public struct StudioCoreHubManagerView: View {
         CoreHubPackageItem(
             id: "pkg_audit_guard",
             name: "skill/sovereign-audit-guard",
-            description: "Zero-trust AST verification, secret pattern scanner & 5-gate evaluator",
-            tierBadge: "Tier B: Skill",
+            description: "Pemeriksaan keamanan kode otomatis dan pemindaian kebocoran kunci rahasia",
+            tierBadge: "Komunitas",
             icon: "shield.checkerboard",
             isLocked: true,
             wilsonScore: 0.99,
@@ -2755,7 +2902,7 @@ public struct StudioCoreHubManagerView: View {
                     .font(.system(size: 12))
                     .foregroundStyle(Color.white.opacity(0.45))
 
-                TextField("🔍 Search CoreHub...", text: self.$searchText)
+                TextField(self.isID ? "Cari fitur, plugin, atau kemampuan..." : "Search CoreHub...", text: self.$searchText)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12))
                     .foregroundStyle(.white)
@@ -2788,7 +2935,7 @@ public struct StudioCoreHubManagerView: View {
                 Circle()
                     .fill(self.sageGreen)
                     .frame(width: 7, height: 7)
-                Text("Gateway Synced")
+                Text(self.isID ? "Layanan Siap" : "Gateway Synced")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(Color.white.opacity(0.75))
             }
@@ -2890,12 +3037,12 @@ public struct StudioCoreHubManagerView: View {
 
             Spacer()
 
-            // Microkernel Metrics Chip
+            // Metrics Chip
             HStack(spacing: 6) {
                 Image(systemName: "cpu")
                     .font(.system(size: 10))
                     .foregroundStyle(self.iceCyan)
-                Text("\(self.installedApps.count) Installed • \(self.availablePackages.count) Available • Two-Tier Sandbox")
+                Text(self.isID ? "\(self.installedApps.count) Terpasang • \(self.availablePackages.count) Tersedia • Sandbox Aman" : "\(self.installedApps.count) Installed • \(self.availablePackages.count) Available • Sandbox Protected")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(Color.white.opacity(0.7))
             }
@@ -2920,7 +3067,7 @@ public struct StudioCoreHubManagerView: View {
                     .padding(.vertical, 8)
 
                 // Section: Modular CoreBlow Categories
-                Text("CATEGORIES")
+                Text(self.isID ? "KATEGORI FITUR" : "CATEGORIES")
                     .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(Color.white.opacity(0.45))
                     .padding(.horizontal, 12)
@@ -2951,7 +3098,7 @@ public struct StudioCoreHubManagerView: View {
                     .foregroundStyle(self.selectedCategory == category ? self.iceCyan : Color.white.opacity(0.65))
                     .frame(width: 16)
 
-                Text(category.rawValue)
+                Text(category.localizedName(isID: self.isID))
                     .font(.system(size: 12, weight: self.selectedCategory == category ? .semibold : .regular))
                     .foregroundStyle(self.selectedCategory == category ? Color.white : Color.white.opacity(0.8))
 
@@ -3042,24 +3189,24 @@ public struct StudioCoreHubManagerView: View {
                             .font(.system(size: 14))
                             .foregroundStyle(self.iceCyan)
 
-                        Text("COREHUB SOVEREIGN APP & PLUGIN MANAGER")
+                        Text(self.isID ? "PUSAT FITUR & PLUGIN ASISTEN AI" : "COREHUB APP & PLUGIN STORE")
                             .font(.system(size: 11, weight: .bold, design: .monospaced))
                             .foregroundStyle(self.iceCyan)
                     }
 
-                    Text("Desktop Apps & 12-Service Microkernel Fleet")
+                    Text(self.isID ? "Perluas Kemampuan Asisten AI Anda" : "Extend Your AI Assistant Capabilities")
                         .font(.system(size: 22, weight: .bold))
                         .foregroundStyle(.white)
 
-                    Text("Manage native macOS/iOS/Android surfaces, Two-Tier extensible plugins (@coreblow/*), and autonomous SKILL.md V2 cognitive routines in one unified sovereign cockpit.")
+                    Text(self.isID ? "Kelola integrasi aplikasi, saluran percakapan (WhatsApp, Telegram, Discord), serta kemampuan cerdas tambahan dalam satu pusat kendali yang aman." : "Manage app integrations, messaging channels (WhatsApp, Telegram, Discord), and smart assistant skills in one unified, secure cockpit.")
                         .font(.system(size: 12))
                         .foregroundStyle(Color.white.opacity(0.8))
                         .lineLimit(2)
 
                     HStack(spacing: 8) {
-                        heroPill(text: "Sovereign GA v2.0.0", icon: "checkmark.seal.fill")
-                        heroPill(text: "12 Microkernel Services Active", icon: "cpu")
-                        heroPill(text: "Two-Tier Sandbox: Enforced", icon: "lock.shield.fill")
+                        heroPill(text: "CoreBlow v2.0 GA", icon: "checkmark.seal.fill")
+                        heroPill(text: self.isID ? "Integrasi Aktif" : "Integrations Active", icon: "checkmark.circle.fill")
+                        heroPill(text: self.isID ? "Ruang Sandbox Aman" : "Sandbox Protected", icon: "lock.shield.fill")
                     }
                     .padding(.top, 4)
                 }
@@ -3154,7 +3301,7 @@ public struct StudioCoreHubManagerView: View {
     private var installedSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("INSTALLED APPS & MICROKERNEL MODULES")
+                Text(self.isID ? "APLIKASI & INTEGRASI TERPASANG" : "INSTALLED APPS & INTEGRATIONS")
                     .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(Color.white.opacity(0.85))
 
@@ -3164,13 +3311,13 @@ public struct StudioCoreHubManagerView: View {
 
                 Spacer()
 
-                Text("Auto-refresh active")
+                Text(self.isID ? "Pembaruan otomatis aktif" : "Auto-refresh active")
                     .font(.system(size: 11))
                     .foregroundStyle(Color.white.opacity(0.45))
             }
 
             if self.filteredInstalledApps.isEmpty {
-                Text(self.selectedCategory == .updates ? "All installed microkernel modules and apps are currently up to date." : "No installed apps match current filter criteria.")
+                Text(self.selectedCategory == .updates ? (self.isID ? "Semua aplikasi dan integrasi Anda sudah dalam versi terbaru." : "All installed modules and apps are currently up to date.") : (self.isID ? "Tidak ada aplikasi yang cocok dengan kriteria filter saat ini." : "No installed apps match current filter criteria."))
                     .font(.system(size: 11))
                     .foregroundStyle(Color.white.opacity(0.5))
                     .padding(.vertical, 8)
@@ -3305,11 +3452,11 @@ public struct StudioCoreHubManagerView: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("AVAILABLE COREHUB PLUGINS & SKILLS")
+                    Text(self.isID ? "PLUGIN & KEMAMPUAN TERSEDIA" : "AVAILABLE PLUGINS & SMART SKILLS")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundStyle(Color.white.opacity(0.85))
 
-                    Text("TWO-TIER MODEL")
+                    Text(self.isID ? "TERVERIFIKASI & AMAN" : "VERIFIED & SAFE")
                         .font(.system(size: 9, weight: .bold, design: .monospaced))
                         .foregroundStyle(self.iceCyan)
                         .padding(.horizontal, 6)
@@ -3319,13 +3466,13 @@ public struct StudioCoreHubManagerView: View {
                     Spacer()
                 }
 
-                Text("Official Tier A Plugins (@coreblow/*) run in sandboxed isolation. Community Tier B Skills (skill/*) are pure cognitive Markdown routines evaluated via Bayesian Wilson ranking.")
+                Text(self.isID ? "Perluas kapabilitas asisten AI Anda dengan plugin saluran pesan dan kemampuan analisis cerdas yang aman terisolasi." : "Extend your AI assistant with messaging channel plugins and smart reasoning routines in a protected sandbox.")
                     .font(.system(size: 11))
                     .foregroundStyle(Color.white.opacity(0.6))
             }
 
             if self.filteredAvailablePackages.isEmpty {
-                Text("No available packages or skills match current filter criteria.")
+                Text(self.isID ? "Tidak ada plugin atau kemampuan yang cocok dengan filter saat ini." : "No available packages or skills match current filter criteria.")
                     .font(.system(size: 11))
                     .foregroundStyle(Color.white.opacity(0.5))
                     .padding(.vertical, 8)
@@ -3524,9 +3671,9 @@ struct StudioAnchoredProfileMenuCard: View {
                         Circle()
                             .fill(self.isRestartingMicrokernel ? self.iceCyan : self.sageGreen)
                             .frame(width: 6, height: 6)
-                        Text(self.isRestartingMicrokernel ? "Restarting Microkernel..." : "Local Microkernel · Port 18789")
+                        Text(self.isRestartingMicrokernel ? (self.isID ? "Memuat ulang layanan..." : "Restarting service...") : (self.isID ? "CoreBlow Aktif · Siap Digunakan" : "CoreBlow Active · Online"))
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(Color.white.opacity(0.65))
+                            .foregroundStyle(Color.white.opacity(0.75))
                             .lineLimit(1)
                     }
                 }
@@ -3539,9 +3686,9 @@ struct StudioAnchoredProfileMenuCard: View {
 
             self.hairlineDivider
 
-            // 2. Cluster 1: PREFERENSI & SISTEM
+            // 2. Cluster 1: PENGATURAN & TAMPILAN
             VStack(alignment: .leading, spacing: 2) {
-                self.sectionLabel(self.isID ? "PREFERENSI & SISTEM" : "PREFERENCES & SYSTEM")
+                self.sectionLabel(self.isID ? "PENGATURAN & TAMPILAN" : "PREFERENCES & DISPLAY")
 
                 self.menuRow(icon: "gearshape", title: "Settings...", shortcut: "⌘,") {
                     self.close()
@@ -3594,7 +3741,7 @@ struct StudioAnchoredProfileMenuCard: View {
 
                 self.menuRow(
                     icon: "questionmark.circle",
-                    title: self.isID ? "Dokumentasi & Pintasan" : "Documentation & Shortcuts",
+                    title: self.isID ? "Panduan & Pintasan" : "Guides & Shortcuts",
                     shortcut: "⇧⌘/"
                 ) {
                     self.close()
@@ -3607,13 +3754,13 @@ struct StudioAnchoredProfileMenuCard: View {
 
             self.hairlineDivider
 
-            // 3. Cluster 2: EKOSISTEM & MODEL
+            // 3. Cluster 2: FITUR & MODEL AI
             VStack(alignment: .leading, spacing: 2) {
-                self.sectionLabel(self.isID ? "EKOSISTEM & MODEL" : "ECOSYSTEM & MODELS")
+                self.sectionLabel(self.isID ? "FITUR & MODEL AI" : "EXTENSIONS & MODELS")
 
                 self.menuRow(
                     icon: "puzzlepiece.extension",
-                    title: "CoreHub Store (Plugins & Skills)",
+                    title: self.isID ? "Toko Fitur & Plugin (CoreHub)" : "CoreHub Store (Plugins & Skills)",
                     shortcut: "⌘P"
                 ) {
                     self.close()
@@ -3622,7 +3769,7 @@ struct StudioAnchoredProfileMenuCard: View {
 
                 self.menuRow(
                     icon: "key.fill",
-                    title: "Provider API Keys",
+                    title: self.isID ? "Kunci API Model AI" : "Provider API Keys",
                     shortcut: "⌘K"
                 ) {
                     self.close()
@@ -3633,13 +3780,13 @@ struct StudioAnchoredProfileMenuCard: View {
 
             self.hairlineDivider
 
-            // 4. Cluster 3: SESI & WORKSPACE
+            // 4. Cluster 3: SESI & RUANG KERJA
             VStack(alignment: .leading, spacing: 2) {
-                self.sectionLabel(self.isID ? "SESI & WORKSPACE" : "SESSION & WORKSPACE")
+                self.sectionLabel(self.isID ? "SESI & RUANG KERJA" : "SESSION & WORKSPACE")
 
                 self.menuRow(
                     icon: "arrow.clockwise",
-                    title: self.isID ? "Restart Microkernel" : "Restart Microkernel"
+                    title: self.isID ? "Muat Ulang Layanan AI" : "Reload AI Services"
                 ) {
                     self.isRestartingMicrokernel = true
                     Task {
@@ -3654,7 +3801,7 @@ struct StudioAnchoredProfileMenuCard: View {
 
                 self.menuRow(
                     icon: "folder.badge.gearshape",
-                    title: self.isID ? "Pilih Workspace..." : "Switch Workspace...",
+                    title: self.isID ? "Buka Folder Kerja..." : "Open Workspace Folder...",
                     shortcut: "⌘O"
                 ) {
                     self.close()
@@ -3665,7 +3812,7 @@ struct StudioAnchoredProfileMenuCard: View {
             .padding(.bottom, 6)
         }
         .padding(10)
-        .frame(width: 248)
+        .frame(width: 290)
         .background(
             ZStack {
                 VisualEffectView(material: .popover, blendingMode: .withinWindow)
