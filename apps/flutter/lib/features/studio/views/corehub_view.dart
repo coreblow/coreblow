@@ -141,7 +141,7 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: StudioColors.bgCanvas,
+      color: StudioColors.bgCanvas, // #08110F
       child: Row(
         children: [
           // Left Sidebar: 11 Quiet Instrument Categories
@@ -167,11 +167,11 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
   Widget _buildSidebar() {
     return Container(
       width: 210,
-      decoration: BoxDecoration(
-        color: StudioColors.bgSidebar,
+      decoration: const BoxDecoration(
+        color: StudioColors.bgSidebar, // #09130F
         border: Border(
           right: BorderSide(
-            color: StudioColors.borderSubtle,
+            color: StudioColors.borderSidebar, // #12302A
             width: 0.5,
           ),
         ),
@@ -185,31 +185,31 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
               height: 30,
               padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.04),
+                color: StudioColors.bgCard, // #0A1815
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  width: 0.5,
+                  color: StudioColors.borderCard, // #16322C
+                  width: 0.8,
                 ),
               ),
               child: Row(
                 children: [
                   const CoreBlowIcon.search(
                     size: 14,
-                    color: Colors.white70,
-                    accentColor: StudioColors.accentCyan,
+                    color: StudioColors.textSecondary,
+                    accentColor: StudioColors.accentTeal,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
                       onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
-                      style: const TextStyle(color: Colors.white, fontSize: 11),
-                      cursorColor: StudioColors.accentCyan,
-                      decoration: InputDecoration(
+                      style: const TextStyle(color: StudioColors.textPrimary, fontSize: 11),
+                      cursorColor: StudioColors.accentTeal,
+                      decoration: const InputDecoration(
                         isDense: true,
                         hintText: 'Cari fitur & modul...',
                         hintStyle: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.35),
+                          color: StudioColors.textMuted, // #7FA99F
                           fontSize: 11,
                         ),
                         border: InputBorder.none,
@@ -238,7 +238,7 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
                   label: 'Pembaruan',
                   icon: const CoreBlowIcon.refresh(size: 14),
                   badgeText: '1',
-                  badgeColor: StudioColors.accentMint,
+                  badgeColor: StudioColors.accentTeal,
                 ),
                 _categoryItem(
                   id: 'installed',
@@ -247,14 +247,15 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
                   count: 4,
                 ),
                 const SizedBox(height: 6),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(8, 4, 8, 4),
                   child: Text(
                     'KATEGORI MODUL',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.35),
+                      color: StudioColors.textMuted, // #7FA99F
                       fontSize: 9.5,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 0.8,
                       fontFamily: 'monospace',
                     ),
                   ),
@@ -300,10 +301,10 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
           // Bottom Action: Buat Plugin Baru
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               border: Border(
                 top: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.06),
+                  color: StudioColors.borderSidebar, // #12302A
                   width: 0.5,
                 ),
               ),
@@ -314,19 +315,19 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
                 child: Row(
-                  children: [
-                    const CoreBlowIcon.plusDashed(
+                  children: const [
+                    CoreBlowIcon.plusDashed(
                       size: 15,
-                      color: Colors.white70,
-                      accentColor: StudioColors.accentCyan,
+                      color: StudioColors.textSecondary,
+                      accentColor: StudioColors.accentTeal,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Buat Plugin Baru',
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.85),
+                          color: StudioColors.textPrimary, // #D9FBF3
                           fontSize: 11.5,
                           fontWeight: FontWeight.w500,
                         ),
@@ -362,8 +363,9 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? StudioColors.accentMint.withValues(alpha: 0.12) : Colors.transparent,
+          color: isSelected ? StudioColors.bgNavActive : Colors.transparent, // #0F2B26
           borderRadius: BorderRadius.circular(6),
+          border: isSelected ? Border.all(color: StudioColors.borderNavActive, width: 0.8) : null, // #1F5148
         ),
         child: Row(
           children: [
@@ -372,8 +374,9 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
             Expanded(
               child: Text(
                 label,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.72),
+                  color: isSelected ? StudioColors.textPrimary : StudioColors.textSecondary, // #D9FBF3 / #9CC4BA
                   fontSize: 11.5,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
@@ -383,13 +386,13 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                 decoration: BoxDecoration(
-                  color: (badgeColor ?? StudioColors.accentCyan).withValues(alpha: 0.2),
+                  color: (badgeColor ?? StudioColors.accentTeal).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   badgeText,
                   style: TextStyle(
-                    color: badgeColor ?? StudioColors.accentCyan,
+                    color: badgeColor ?? StudioColors.accentTeal,
                     fontSize: 9.5,
                     fontWeight: FontWeight.bold,
                   ),
@@ -398,8 +401,8 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
             else if (count != null)
               Text(
                 '$count',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.35),
+                style: const TextStyle(
+                  color: StudioColors.textMuted, // #7FA99F
                   fontSize: 10,
                   fontFamily: 'monospace',
                 ),
@@ -412,12 +415,12 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-      decoration: BoxDecoration(
-        color: StudioColors.bgCanvas,
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      decoration: const BoxDecoration(
+        color: StudioColors.bgCanvas, // #08110F
         border: Border(
           bottom: BorderSide(
-            color: StudioColors.borderSubtle,
+            color: StudioColors.borderSidebar, // #12302A
             width: 0.5,
           ),
         ),
@@ -431,10 +434,10 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
               children: [
                 Row(
                   children: [
-                    Text(
+                    const Text(
                       'COREHUB STORE',
-                      style: const TextStyle(
-                        color: StudioColors.accentCyan,
+                      style: TextStyle(
+                        color: StudioColors.accentTeal, // #2DD4BF
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
@@ -443,15 +446,19 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      padding: const EdgeInsets.symmetric(horizontal: 4.5, vertical: 1),
                       decoration: BoxDecoration(
-                        color: StudioColors.accentMint.withValues(alpha: 0.12),
+                        color: StudioColors.bgChip, // #10261F
                         borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: StudioColors.borderChip, // #1A3A33
+                          width: 0.8,
+                        ),
                       ),
                       child: const Text(
                         'v2.0',
                         style: TextStyle(
-                          color: StudioColors.accentMint,
+                          color: StudioColors.textSecondary, // #9CC4BA
                           fontSize: 8.5,
                           fontWeight: FontWeight.bold,
                         ),
@@ -464,7 +471,7 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
                   'Ekosistem & Modul Aplikasi',
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Colors.white,
+                    color: StudioColors.textPrimary, // #D9FBF3
                     fontSize: 13.5,
                     fontWeight: FontWeight.bold,
                   ),
@@ -478,11 +485,11 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.04),
+              color: StudioColors.bgCard, // #0A1815
               borderRadius: BorderRadius.circular(5),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.08),
-                width: 0.5,
+                color: StudioColors.borderCard, // #16322C
+                width: 0.8,
               ),
             ),
             child: Row(
@@ -492,7 +499,7 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
                 const SizedBox(width: 6),
                 _specBadge('1.75', ''),
                 const SizedBox(width: 6),
-                _specBadge('#2DD4BF', '', color: StudioColors.accentCyan),
+                _specBadge('#2DD4BF', '', color: StudioColors.accentTeal),
               ],
             ),
           ),
@@ -505,25 +512,25 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               decoration: BoxDecoration(
-                color: _showSpecSheet ? StudioColors.accentMint.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.05),
+                color: _showSpecSheet ? StudioColors.bgNavActive : StudioColors.bgCard,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: _showSpecSheet ? StudioColors.accentMint.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.08),
-                  width: 0.5,
+                  color: _showSpecSheet ? StudioColors.borderNavActive : StudioColors.borderCard,
+                  width: 0.8,
                 ),
               ),
               child: Row(
                 children: [
                   CoreBlowIcon.sparkle(
                     size: 13,
-                    color: _showSpecSheet ? StudioColors.accentMint : Colors.white70,
-                    accentColor: StudioColors.accentCyan,
+                    color: _showSpecSheet ? StudioColors.textPrimary : StudioColors.textSecondary,
+                    accentColor: StudioColors.accentTeal,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     _showSpecSheet ? 'Lihat Toko' : 'Sistem Ikon',
                     style: TextStyle(
-                      color: _showSpecSheet ? StudioColors.accentMint : Colors.white70,
+                      color: _showSpecSheet ? StudioColors.textPrimary : StudioColors.textSecondary,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
@@ -542,22 +549,23 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
       children: [
         Text(
           '$label ',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.4),
+          style: const TextStyle(
+            color: StudioColors.textMuted,
             fontSize: 9,
             fontWeight: FontWeight.bold,
             fontFamily: 'monospace',
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            color: color ?? Colors.white.withValues(alpha: 0.8),
-            fontSize: 9,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'monospace',
+        if (value.isNotEmpty)
+          Text(
+            value,
+            style: TextStyle(
+              color: color ?? StudioColors.textSecondary,
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'monospace',
+            ),
           ),
-        ),
       ],
     );
   }
@@ -598,13 +606,13 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F1E1E).withValues(alpha: 0.85),
+        color: StudioColors.bgCard, // #0A1815
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: item.hasUpdate
-              ? StudioColors.accentMint.withValues(alpha: 0.35)
-              : Colors.white.withValues(alpha: 0.07),
-          width: 0.75,
+              ? StudioColors.borderNavActive // #1F5148
+              : StudioColors.borderCard,     // #16322C
+          width: 0.8,
         ),
       ),
       child: Row(
@@ -622,7 +630,7 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
                 width: 44,
                 height: 44,
                 color: const Color(0xFF143F37),
-                child: const Icon(Icons.apps_rounded, color: StudioColors.accentCyan),
+                child: const Icon(Icons.apps_rounded, color: StudioColors.accentTeal),
               ),
             ),
           ),
@@ -640,7 +648,7 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
                         item.name,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: StudioColors.textPrimary, // #D9FBF3
                           fontSize: 12.5,
                           fontWeight: FontWeight.bold,
                         ),
@@ -649,15 +657,17 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                       decoration: BoxDecoration(
-                        color: item.tier == 'Resmi'
-                            ? StudioColors.accentMint.withValues(alpha: 0.12)
-                            : Colors.white.withValues(alpha: 0.08),
+                        color: StudioColors.bgChip, // #10261F
                         borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: StudioColors.borderChip, // #1A3A33
+                          width: 0.8,
+                        ),
                       ),
                       child: Text(
                         item.tier,
-                        style: TextStyle(
-                          color: item.tier == 'Resmi' ? StudioColors.accentMint : Colors.white70,
+                        style: const TextStyle(
+                          color: StudioColors.textSecondary, // #9CC4BA
                           fontSize: 8.5,
                           fontWeight: FontWeight.bold,
                         ),
@@ -667,8 +677,8 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
                 ),
                 Text(
                   item.slug,
-                  style: TextStyle(
-                    color: StudioColors.accentCyan.withValues(alpha: 0.8),
+                  style: const TextStyle(
+                    color: StudioColors.accentTeal, // #2DD4BF
                     fontSize: 10,
                     fontFamily: 'monospace',
                   ),
@@ -679,8 +689,8 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
                     item.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.55),
+                    style: const TextStyle(
+                      color: StudioColors.textBody, // #8FB5AB
                       fontSize: 10.5,
                       height: 1.25,
                     ),
@@ -695,8 +705,8 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: item.hasUpdate
-                              ? StudioColors.accentMint
-                              : Colors.white.withValues(alpha: 0.4),
+                              ? StudioColors.accentTeal
+                              : StudioColors.textSecondary,
                           fontSize: 9.5,
                           fontWeight: item.hasUpdate ? FontWeight.bold : FontWeight.normal,
                         ),
@@ -704,19 +714,25 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                       decoration: BoxDecoration(
                         color: item.hasUpdate
-                            ? StudioColors.accentMint
-                            : Colors.white.withValues(alpha: 0.08),
+                            ? StudioColors.accentTeal // #2DD4BF
+                            : StudioColors.bgChip,    // #10261F
                         borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: item.hasUpdate
+                              ? StudioColors.accentTeal
+                              : StudioColors.borderChip, // #1A3A33
+                          width: 0.8,
+                        ),
                       ),
                       child: Text(
                         item.hasUpdate
                             ? 'Perbarui'
                             : (item.isInstalled ? 'Buka' : 'Pasang'),
                         style: TextStyle(
-                          color: item.hasUpdate ? StudioColors.textDark : Colors.white,
+                          color: item.hasUpdate ? StudioColors.textDark : StudioColors.textPrimary, // #04201B / #D9FBF3
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
@@ -740,16 +756,16 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
         const Text(
           'Sistem Ikon (Quiet Instrument)',
           style: TextStyle(
-            color: Colors.white,
+            color: StudioColors.textPrimary, // #D9FBF3
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 4),
-        Text(
+        const Text(
           'Satu bahasa visual untuk seluruh aplikasi: garis 1.75 px, ujung membulat, dan satu aksen teal (#2DD4BF) per ikon.',
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.65),
+            color: StudioColors.textBody, // #8FB5AB
             fontSize: 11.5,
           ),
         ),
@@ -819,8 +835,8 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
       children: [
         Text(
           title,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.85),
+          style: const TextStyle(
+            color: StudioColors.textPrimary, // #D9FBF3
             fontSize: 10.5,
             fontWeight: FontWeight.bold,
             letterSpacing: 1,
@@ -830,8 +846,8 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
         const SizedBox(width: 8),
         Text(
           count,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.4),
+          style: const TextStyle(
+            color: StudioColors.textMuted, // #7FA99F
             fontSize: 10,
             fontFamily: 'monospace',
           ),
@@ -859,11 +875,11 @@ class _IconSpecTile extends StatelessWidget {
       height: 104,
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F1E1E).withValues(alpha: 0.9),
+        color: StudioColors.bgCard, // #0A1815
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.06),
-          width: 0.5,
+          color: StudioColors.borderCard, // #16322C
+          width: 0.8,
         ),
       ),
       child: Column(
@@ -876,7 +892,7 @@ class _IconSpecTile extends StatelessWidget {
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              color: Colors.white,
+              color: StudioColors.textPrimary, // #D9FBF3
               fontSize: 10,
               fontWeight: FontWeight.w500,
             ),
@@ -886,8 +902,8 @@ class _IconSpecTile extends StatelessWidget {
             slug,
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.4),
+            style: const TextStyle(
+              color: StudioColors.textMuted, // #7FA99F
               fontSize: 8.5,
               fontFamily: 'monospace',
             ),
@@ -916,11 +932,11 @@ class _AppModuleSpecTile extends StatelessWidget {
       height: 116,
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F1E1E).withValues(alpha: 0.9),
+        color: StudioColors.bgCard, // #0A1815
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.06),
-          width: 0.5,
+          color: StudioColors.borderCard, // #16322C
+          width: 0.8,
         ),
       ),
       child: Column(
@@ -941,7 +957,7 @@ class _AppModuleSpecTile extends StatelessWidget {
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              color: Colors.white,
+              color: StudioColors.textPrimary, // #D9FBF3
               fontSize: 10,
               fontWeight: FontWeight.w600,
             ),
@@ -951,8 +967,8 @@ class _AppModuleSpecTile extends StatelessWidget {
             slug,
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.4),
+            style: const TextStyle(
+              color: StudioColors.textMuted, // #7FA99F
               fontSize: 8.5,
               fontFamily: 'monospace',
             ),

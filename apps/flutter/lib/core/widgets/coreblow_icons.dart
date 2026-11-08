@@ -80,8 +80,8 @@ class CoreBlowIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseColor = color ?? Colors.white.withValues(alpha: 0.92);
-    final accent = accentColor ?? StudioColors.accentCyan; // #2DD4BF
+    final baseColor = color ?? StudioColors.textSecondary; // #9CC4BA (sedang)
+    final accent = accentColor ?? StudioColors.accentTeal; // #2DD4BF (aksen)
 
     return SizedBox(
       width: size,

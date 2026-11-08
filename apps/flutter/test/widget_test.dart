@@ -8,7 +8,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:coreblow_flutter/core/widgets/coreblow_icons.dart';
 import 'package:coreblow_flutter/features/studio/views/corehub_view.dart';
 import 'package:coreblow_flutter/main.dart';
 
@@ -24,8 +23,8 @@ void main() {
     expect(find.text('What should we build?'), findsOneWidget);
     expect(find.text('CoreBlow'), findsOneWidget);
 
-    // Switch to CoreHub Store via NavRail package icon
-    final packageFinder = find.byType(CoreBlowIcon).at(2); // 3rd rail item is package
+    // Switch to CoreHub Store via NavRail package icon tooltip
+    final packageFinder = find.byTooltip('CoreHub Store');
     await tester.tap(packageFinder);
     await tester.pumpAndSettle();
 

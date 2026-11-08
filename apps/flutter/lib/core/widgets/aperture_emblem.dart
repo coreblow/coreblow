@@ -6,9 +6,11 @@ class ApertureEmblem extends StatelessWidget {
   const ApertureEmblem({
     super.key,
     this.size = 38.0,
+    this.showOuterRing = true,
   });
 
   final double size;
+  final bool showOuterRing;
 
   @override
   Widget build(BuildContext context) {
@@ -18,38 +20,38 @@ class ApertureEmblem extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Ambient soft glow
-          Container(
-            width: size * 1.3,
-            height: size * 1.3,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: StudioColors.accentCyan.withValues(alpha: 0.15),
-                  blurRadius: 12,
-                  spreadRadius: 2,
+          // Cincin luar samar 30% (#2DD4BF)
+          if (showOuterRing)
+            Container(
+              width: size * 1.15,
+              height: size * 1.15,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: StudioColors.accentTeal.withValues(alpha: 0.30),
+                  width: math.max(1.0, size * 0.03),
                 ),
-              ],
+              ),
             ),
-          ),
-          // Split Cybernetic Arcs
+
+          // Split Cybernetic Arcs / Ink: #D9FBF3
           CustomPaint(
             size: Size(size, size),
             painter: _ApertureArcsPainter(
-              strokeWidth: math.max(2.6, size * 0.085),
+              strokeWidth: math.max(2.4, size * 0.085),
             ),
           ),
-          // Glowing Center Mint Cyan Dot
+
+          // Glowing Center Dot / Inti: #2DD4BF
           Container(
-            width: math.max(8.0, size * 0.22),
-            height: math.max(8.0, size * 0.22),
+            width: math.max(7.0, size * 0.22),
+            height: math.max(7.0, size * 0.22),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: StudioColors.accentCyan,
+              color: StudioColors.accentTeal,
               boxShadow: [
                 BoxShadow(
-                  color: StudioColors.accentCyan.withValues(alpha: 0.75),
+                  color: StudioColors.accentTeal.withValues(alpha: 0.65),
                   blurRadius: 5,
                   spreadRadius: 1,
                 ),
@@ -73,7 +75,7 @@ class _ApertureArcsPainter extends CustomPainter {
     final radius = (size.width - strokeWidth) / 2;
 
     final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.95)
+      ..color = StudioColors.textPrimary // #D9FBF3
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
