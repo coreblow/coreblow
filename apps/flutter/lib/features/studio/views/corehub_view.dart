@@ -659,29 +659,7 @@ class _HorizontalModuleRowState extends State<_HorizontalModuleRow> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Left: 40x40 squircle module icon
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                item.assetPng,
-                width: 40,
-                height: 40,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  width: 40,
-                  height: 40,
-                  color: const Color(0xFF143F37),
-                  child: const Icon(
-                    Icons.apps_rounded,
-                    color: StudioColors.accentTeal,
-                    size: 20,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-
-            // Middle: Name + Tier + Slug (top) and Description (bottom)
+            // Details: Name + Tier + Slug (top) and Description (bottom)
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
