@@ -154,7 +154,7 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
               children: [
                 _buildHeader(),
                 Expanded(
-                  child: _showSpecSheet ? _buildSpecSheet() : _buildModulesGrid(),
+                  child: _showSpecSheet ? _buildSpecSheet() : _buildModulesList(),
                 ),
               ],
             ),
@@ -570,7 +570,7 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
     );
   }
 
-  Widget _buildModulesGrid() {
+  Widget _buildModulesList() {
     final filtered = kCoreHubModules.where((item) {
       if (_searchQuery.isNotEmpty) {
         return item.name.toLowerCase().contains(_searchQuery) ||
@@ -586,165 +586,14 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
       return true;
     }).toList();
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 380,
-        mainAxisExtent: 140,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
       itemCount: filtered.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final item = filtered[index];
-        return _buildModuleCard(item);
+        return _HorizontalModuleRow(item: item);
       },
-    );
-  }
-
-  Widget _buildModuleCard(CoreHubModuleItem item) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: StudioColors.bgCard, // #0A1815
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: item.hasUpdate
-              ? StudioColors.borderNavActive // #1F5148
-              : StudioColors.borderCard,     // #16322C
-          width: 0.8,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 44x44 Squircle Module Tile (Asset PNG)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(9),
-            child: Image.asset(
-              item.assetPng,
-              width: 44,
-              height: 44,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                width: 44,
-                height: 44,
-                color: const Color(0xFF143F37),
-                child: const Icon(Icons.apps_rounded, color: StudioColors.accentTeal),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Details & Action
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        item.name,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: StudioColors.textPrimary, // #D9FBF3
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                      decoration: BoxDecoration(
-                        color: StudioColors.bgChip, // #10261F
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: StudioColors.borderChip, // #1A3A33
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Text(
-                        item.tier,
-                        style: const TextStyle(
-                          color: StudioColors.textSecondary, // #9CC4BA
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  item.slug,
-                  style: const TextStyle(
-                    color: StudioColors.accentTeal, // #2DD4BF
-                    fontSize: 10,
-                    fontFamily: 'monospace',
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Expanded(
-                  child: Text(
-                    item.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: StudioColors.textBody, // #8FB5AB
-                      fontSize: 10.5,
-                      height: 1.25,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        item.statusText,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: item.hasUpdate
-                              ? StudioColors.accentTeal
-                              : StudioColors.textSecondary,
-                          fontSize: 9.5,
-                          fontWeight: item.hasUpdate ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                      decoration: BoxDecoration(
-                        color: item.hasUpdate
-                            ? StudioColors.accentTeal // #2DD4BF
-                            : StudioColors.bgChip,    // #10261F
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: item.hasUpdate
-                              ? StudioColors.accentTeal
-                              : StudioColors.borderChip, // #1A3A33
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Text(
-                        item.hasUpdate
-                            ? 'Perbarui'
-                            : (item.isInstalled ? 'Buka' : 'Pasang'),
-                        style: TextStyle(
-                          color: item.hasUpdate ? StudioColors.textDark : StudioColors.textPrimary, // #04201B / #D9FBF3
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -853,6 +702,200 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _HorizontalModuleRow extends StatefulWidget {
+  const _HorizontalModuleRow({required this.item});
+
+  final CoreHubModuleItem item;
+
+  @override
+  State<_HorizontalModuleRow> createState() => _HorizontalModuleRowState();
+}
+
+class _HorizontalModuleRowState extends State<_HorizontalModuleRow> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final item = widget.item;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: _isHovered
+              ? const Color(0xFF0D1F1B)
+              : StudioColors.bgCard, // #0A1815
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: _isHovered
+                ? const Color(0xFF1F5148)
+                : (item.hasUpdate
+                    ? StudioColors.borderNavActive // #1F5148
+                    : StudioColors.borderCard),     // #16322C
+            width: 0.8,
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Left: 40x40 squircle module icon
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                item.assetPng,
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 40,
+                  height: 40,
+                  color: const Color(0xFF143F37),
+                  child: const Icon(
+                    Icons.apps_rounded,
+                    color: StudioColors.accentTeal,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+
+            // Middle: Name + Tier + Slug (top) and Description (bottom)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          item.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: StudioColors.textPrimary, // #D9FBF3
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: StudioColors.bgChip, // #10261F
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: StudioColors.borderChip, // #1A3A33
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          item.tier,
+                          style: const TextStyle(
+                            color: StudioColors.textSecondary, // #9CC4BA
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          item.slug,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: StudioColors.accentTeal, // #2DD4BF
+                            fontSize: 10,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    item.description,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: StudioColors.textBody, // #8FB5AB
+                      fontSize: 11,
+                      height: 1.25,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+
+            // Right: Status dot + status text, and Action Button
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: item.hasUpdate
+                        ? StudioColors.accentTeal
+                        : (item.isInstalled
+                            ? const Color(0xFF28C840) // macOS green
+                            : StudioColors.textMuted),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  item.statusText,
+                  style: TextStyle(
+                    color: item.hasUpdate
+                        ? StudioColors.accentTeal
+                        : StudioColors.textSecondary,
+                    fontSize: 10.5,
+                    fontWeight: item.hasUpdate ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: item.hasUpdate
+                        ? StudioColors.accentTeal // #2DD4BF
+                        : StudioColors.bgChip,    // #10261F
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(
+                      color: item.hasUpdate
+                          ? StudioColors.accentTeal
+                          : StudioColors.borderChip, // #1A3A33
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Text(
+                    item.hasUpdate
+                        ? 'Perbarui'
+                        : (item.isInstalled ? 'Buka' : 'Pasang'),
+                    style: TextStyle(
+                      color: item.hasUpdate
+                          ? StudioColors.textDark     // #04201B
+                          : StudioColors.textPrimary, // #D9FBF3
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

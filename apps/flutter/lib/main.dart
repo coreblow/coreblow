@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'core/theme/colors.dart';
 import 'features/studio/models/studio_state.dart';
@@ -25,8 +26,9 @@ class _CoreBlowFlutterAppState extends State<CoreBlowFlutterApp> {
   void initState() {
     super.initState();
     _viewModel = StudioViewModel();
+    final runtimeTab = Platform.environment['STUDIO_TAB'] ?? '';
     const envTab = String.fromEnvironment('STUDIO_TAB', defaultValue: 'home');
-    if (envTab == 'corehub' || widget.initialTab == StudioNavTab.coreHub) {
+    if (runtimeTab == 'corehub' || envTab == 'corehub' || widget.initialTab == StudioNavTab.coreHub) {
       _viewModel.setNavTab(StudioNavTab.coreHub);
     }
   }
