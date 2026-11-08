@@ -190,7 +190,7 @@ class StudioViewModel extends ChangeNotifier {
   String geminiApiKey = '';
   String groqApiKey = '';
   String localOllamaUrl = 'http://127.0.0.1:11434';
-  String customEndpointUrl = 'http://127.0.0.1:18789/v1';
+  String customEndpointUrl = 'http://127.0.0.1:20128/v1';
   String get custom9RouterUrl => customEndpointUrl;
   set custom9RouterUrl(String val) => customEndpointUrl = val;
   String customApiKey = '';
@@ -515,8 +515,11 @@ class StudioViewModel extends ChangeNotifier {
         if (customApiKey.isNotEmpty) {
           request.headers.set('Authorization', 'Bearer $customApiKey');
         }
+        final chosenModel = customEndpointUrl.contains('20128')
+            ? 'supergratis'
+            : (_selectedModel == 'Coding' ? 'claude-3-7-sonnet' : 'deepseek-r1');
         request.write(jsonEncode({
-          'model': _selectedModel == 'Coding' ? 'claude-3-7-sonnet' : 'deepseek-r1',
+          'model': chosenModel,
           'messages': [
             {'role': 'user', 'content': text}
           ]
@@ -524,8 +527,25 @@ class StudioViewModel extends ChangeNotifier {
         final response = await request.close();
         if (response.statusCode == 200) {
           final body = await response.transform(utf8.decoder).join();
-          final json = jsonDecode(body);
-          replyContent = json['choices']?[0]?['message']?['content'] ?? json['reply'] ?? body;
+          if (body.contains('data: {')) {
+            final buffer = StringBuffer();
+            for (final line in body.split('\n')) {
+              final trimmed = line.trim();
+              if (trimmed.startsWith('data: ') && !trimmed.contains('[DONE]')) {
+                try {
+                  final chunk = jsonDecode(trimmed.substring(6));
+                  final piece = chunk['choices']?[0]?['delta']?['content'] ??
+                      chunk['choices']?[0]?['text'] ??
+                      '';
+                  buffer.write(piece);
+                } catch (_) {}
+              }
+            }
+            replyContent = buffer.isNotEmpty ? buffer.toString() : body;
+          } else {
+            final json = jsonDecode(body);
+            replyContent = json['choices']?[0]?['message']?['content'] ?? json['reply'] ?? body;
+          }
           traceInfo = 'Custom Gateway · ${stopwatch.elapsedMilliseconds}ms · 1 completion';
         } else {
           throw Exception('Custom endpoint returned ${response.statusCode}');
