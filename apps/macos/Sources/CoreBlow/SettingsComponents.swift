@@ -22,14 +22,16 @@ struct SettingsToggleRow: View {
         VStack(alignment: .leading, spacing: 6) {
             Toggle(isOn: self.$binding) {
                 Text(self.title)
-                    .font(.body)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.white)
             }
             .toggleStyle(.checkbox)
+            .tint(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
 
             if let subtitle, !subtitle.isEmpty {
                 Text(subtitle)
-                    .font(.footnote)
-                    .foregroundStyle(.tertiary)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.white.opacity(0.55))
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

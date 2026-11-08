@@ -73,8 +73,26 @@ struct GeneralSettings: View {
                 Spacer(minLength: 12)
                 HStack {
                     Spacer()
-                    Button("Quit CoreBlow") { NSApp.terminate(nil) }
-                        .buttonStyle(.borderedProminent)
+                    Button(action: { NSApp.terminate(nil) }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "power")
+                                .font(.system(size: 11, weight: .semibold))
+                            Text("Quit CoreBlow")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundStyle(Color(red: 255/255.0, green: 120/255.0, blue: 120/255.0))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color(red: 255/255.0, green: 70/255.0, blue: 70/255.0).opacity(0.12))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                        .stroke(Color(red: 255/255.0, green: 70/255.0, blue: 70/255.0).opacity(0.25), lineWidth: 0.5)
+                                )
+                        )
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -95,6 +113,7 @@ struct GeneralSettings: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("CoreBlow runs")
                 .font(.title3.weight(.semibold))
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Picker("Mode", selection: $appState.connectionMode) {
@@ -109,7 +128,7 @@ struct GeneralSettings: View {
             if appState.connectionMode == .unconfigured {
                 Text("Pick Local or Remote to start the Gateway.")
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.white.opacity(0.55))
                     .fixedSize(horizontal: false, vertical: true)
             }
 

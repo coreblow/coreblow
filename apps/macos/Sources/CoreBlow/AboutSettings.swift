@@ -54,8 +54,8 @@ struct AboutSettings: View {
                     title: "GitHub",
                     url: "https://github.com/coreblow/coreblow")
                 AboutLinkRow(icon: "globe", title: "Website", url: "https://coreblow.ai")
-                AboutLinkRow(icon: "bird", title: "Twitter", url: "https://twitter.com/steipete")
-                AboutLinkRow(icon: "envelope", title: "Email", url: "mailto:peter@steipete.me")
+                AboutLinkRow(icon: "book.fill", title: "Documentation", url: "https://docs.coreblow.com")
+                AboutLinkRow(icon: "envelope", title: "Support", url: "mailto:support@coreblow.ai")
             }
             .frame(maxWidth: .infinity)
             .multilineTextAlignment(.center)
