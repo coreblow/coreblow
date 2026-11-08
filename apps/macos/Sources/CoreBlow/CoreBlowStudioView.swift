@@ -31,10 +31,10 @@ public enum StudioNavRailTab: String, CaseIterable, Identifiable {
 
     public var icon: String {
         switch self {
-        case .chat: return "bubble.left.and.bubble.right.fill"
+        case .chat: return "house.fill"
         case .history: return "clock"
-        case .coreHub: return "square.grid.2x2"
-        case .warRoom: return "person.3"
+        case .coreHub: return "cube.fill"
+        case .warRoom: return "person.2"
         case .memoryWiki: return "book.closed"
         case .gitWorktree: return "arrow.triangle.branch"
         }
@@ -1238,11 +1238,7 @@ struct StudioNavRailView: View {
                     ZStack {
                         if self.viewModel.activeNavTab == tab {
                             RoundedRectangle(cornerRadius: StudioRadius.md, style: .continuous)
-                                .fill(Color(red: 26/255.0, green: 133/255.0, blue: 122/255.0).opacity(0.32))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: StudioRadius.md, style: .continuous)
-                                        .stroke(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.28), lineWidth: 0.5)
-                                )
+                                .fill(Color.white.opacity(0.12))
                                 .frame(width: 36, height: 36)
                         }
 
@@ -1250,8 +1246,8 @@ struct StudioNavRailView: View {
                             .font(.system(size: 16))
                             .foregroundStyle(
                                 self.viewModel.activeNavTab == tab
-                                    ? Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0)
-                                    : Color(white: 0.58)
+                                    ? Color.white
+                                    : Color(white: 0.55)
                             )
                     }
                     .frame(width: 36, height: 36)
@@ -1262,35 +1258,20 @@ struct StudioNavRailView: View {
 
             Spacer()
 
-            // User Profile Avatar Button (Anchored bottom-left button)
+            // User Profile Avatar Button (Solid mint circle with dark initials FE)
             Button(action: {
                 withAnimation(.easeInOut(duration: 0.15)) {
                     self.viewModel.isProfileMenuPresented.toggle()
                 }
             }) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: StudioRadius.md, style: .continuous)
-                        .fill(self.viewModel.isProfileMenuPresented ? Color(white: 0.24) : Color(white: 0.14))
-                        .frame(width: 36, height: 36)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: StudioRadius.md, style: .continuous)
-                                .stroke(
-                                    self.viewModel.isProfileMenuPresented
-                                        ? Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.45)
-                                        : Color.white.opacity(0.08),
-                                    lineWidth: 0.5
-                                )
-                        )
-
-                    Circle()
-                        .fill(Color(red: 0.10, green: 0.28, blue: 0.30))
-                        .frame(width: 26, height: 26)
-                        .overlay(
-                            Text(self.viewModel.userInitials)
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white)
-                        )
-                }
+                Circle()
+                    .fill(Color(red: 16/255.0, green: 185/255.0, blue: 129/255.0))
+                    .frame(width: 28, height: 28)
+                    .overlay(
+                        Text(self.viewModel.userInitials)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(Color(red: 3/255.0, green: 8/255.0, blue: 12/255.0))
+                    )
             }
             .buttonStyle(.plain)
             .help(self.isID ? "Akun & Pengaturan" : "Account & Settings")
@@ -1315,7 +1296,7 @@ struct StudioProjectSidebarView: View {
             // Sidebar Header (Unified 48pt Top Baseline)
             HStack(spacing: 8) {
                 HStack(spacing: 6) {
-                    Image(systemName: "brain.head.profile")
+                    Image(systemName: "circle.circle")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
                     Text("CoreBlow")
@@ -1567,39 +1548,6 @@ struct StudioProjectSidebarView: View {
                 }
                 .padding(.vertical, 4)
             }
-
-            // Bottom Quick Access: Toko Fitur & Plugin (CoreHub)
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    self.viewModel.activeNavTab = .coreHub
-                }
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "square.grid.2x2")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
-                    Text(self.isID ? "Toko Fitur & Plugin" : "Feature & Plugin Store")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color.white.opacity(0.85))
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 9))
-                        .foregroundStyle(Color.white.opacity(0.35))
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color.white.opacity(0.04))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .stroke(Color.white.opacity(0.06), lineWidth: 0.5)
-                        )
-                )
-            }
-            .buttonStyle(.plain)
-            .padding(.horizontal, 12)
-            .padding(.bottom, 12)
         }
     }
 }
@@ -1691,44 +1639,8 @@ struct StudioMainCanvasView: View {
 
                 Spacer()
 
-                // Top Right: Microkernel Status, PR Gates Pill & Inspector Toggle
+                // Top Right: Inspector Toggle
                 HStack(spacing: 10) {
-                    // Subtle 12-Service Microkernel Health Indicator
-                    HStack(spacing: 5) {
-                        Circle()
-                            .fill(Color(red: 90/255.0, green: 185/255.0, blue: 130/255.0))
-                            .frame(width: 6, height: 6)
-                        Text("12 Services")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(Color.white.opacity(0.6))
-                    }
-
-                    // PR Gates Inspector Shortcut Pill
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            self.viewModel.isInspectorVisible = true
-                            self.viewModel.selectedInspectorTab = .diffAndGate
-                        }
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "checklist.checked")
-                                .font(.system(size: 10))
-                            Text("PR Gates")
-                                .font(.system(size: 11, weight: .medium))
-                        }
-                        .foregroundStyle(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 4)
-                        .background(
-                            Capsule()
-                                .fill(Color(red: 10/255.0, green: 36/255.0, blue: 41/255.0).opacity(0.85))
-                                .overlay(Capsule().stroke(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.22), lineWidth: 0.5))
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .help("Open 5-Gate PR Scorecard")
-
-                    // Right Inspector Toggle Button
                     Button(action: {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             self.viewModel.isInspectorVisible.toggle()
@@ -1748,59 +1660,53 @@ struct StudioMainCanvasView: View {
 
             // Center Content: Clean Minimalist Hero State OR Conversation Stream
             if self.viewModel.messages.isEmpty {
-                VStack(spacing: 14) {
+                VStack(spacing: 16) {
                     Spacer()
 
-                    // Refined 64pt CoreBlow Neural Emblem
+                    // Cybernetic Aperture / Sonar Pulse Emblem
                     ZStack {
                         Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [
-                                        Color(red: 0.08, green: 0.28, blue: 0.30).opacity(0.40),
-                                        Color(red: 0.04, green: 0.14, blue: 0.16).opacity(0.15),
-                                        Color.clear
-                                    ],
-                                    center: .center,
-                                    startRadius: 8,
-                                    endRadius: 36
-                                )
-                            )
-                            .frame(width: 64, height: 64)
+                            .stroke(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0), lineWidth: 2.5)
+                            .frame(width: 34, height: 34)
 
-                        Image(systemName: "brain.head.profile")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 40, height: 40)
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.38, green: 0.85, blue: 0.80),
-                                        Color(red: 0.18, green: 0.55, blue: 0.52)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
+                        Circle()
+                            .fill(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
+                            .frame(width: 8, height: 8)
                     }
+                    .padding(.bottom, 2)
 
-                    // Clean 24pt Semibold Heading
+                    // Clean 28pt Bold Heading
                     Text(
                         self.viewModel.currentProjectName.isEmpty
                             ? (self.isID ? "Apa yang ingin kita bangun?" : "What should we build?")
                             : (self.isID ? "Apa yang ingin kita bangun di \(self.viewModel.currentProjectName)?" : "What should we build in \(self.viewModel.currentProjectName)?")
                     )
-                    .font(.system(size: 24, weight: .semibold))
+                    .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(.white)
 
-                    // Single Subtle Keyboard Hint (Zero Clutter)
-                    Text(
-                        self.isID
-                            ? "Tekan ⌘O untuk memilih repositori atau ketik perintah di bawah"
-                            : "Press ⌘O to select a repository or type a command below"
-                    )
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.white.opacity(0.42))
+                    // Keyboard Hint with ⌘O Keycap
+                    HStack(spacing: 5) {
+                        Text(self.isID ? "Tekan" : "Press")
+                            .foregroundStyle(Color.white.opacity(0.45))
+
+                        Text("⌘O")
+                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(Color.white.opacity(0.85))
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(
+                                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                    .fill(Color.white.opacity(0.12))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                            .stroke(Color.white.opacity(0.14), lineWidth: 0.5)
+                                    )
+                            )
+
+                        Text(self.isID ? "untuk memilih repositori atau ketik perintah di bawah" : "to select a repository or type a command below")
+                            .foregroundStyle(Color.white.opacity(0.45))
+                    }
+                    .font(.system(size: 13))
 
                     Spacer()
                 }
@@ -1823,7 +1729,7 @@ struct StudioMainCanvasView: View {
             VStack(spacing: 0) {
                 // Tier 1: Breathable Text Input Area
                 TextField(
-                    self.isID ? "Ketik perintah atau tanya apa saja..." : "Do anything",
+                    self.isID ? "Ketik apa saja..." : "Do anything",
                     text: self.$viewModel.inputPrompt,
                     axis: .vertical
                 )
@@ -1845,7 +1751,7 @@ struct StudioMainCanvasView: View {
                     }) {
                         HStack(spacing: 5) {
                             Image(systemName: "folder")
-                                .font(.system(size: 10))
+                                .font(.system(size: 11))
                             Text(self.viewModel.currentProjectName.isEmpty ? (self.isID ? "Pilih folder..." : "Select folder...") : self.viewModel.currentProjectName)
                                 .font(.system(size: 11, weight: .medium))
                                 .lineLimit(1)
@@ -1861,13 +1767,16 @@ struct StudioMainCanvasView: View {
                                     .lineLimit(1)
                             }
                         }
-                        .foregroundStyle(Color.white.opacity(0.82))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
+                        .foregroundStyle(Color.white.opacity(0.85))
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 5)
                         .background(
-                            Capsule()
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
                                 .fill(Color.white.opacity(0.08))
-                                .overlay(Capsule().stroke(Color.white.opacity(0.08), lineWidth: 0.5))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .stroke(Color.white.opacity(0.10), lineWidth: 0.5)
+                                )
                         )
                     }
                     .buttonStyle(.plain)
@@ -1880,13 +1789,16 @@ struct StudioMainCanvasView: View {
                         Button("Strict sandbox") { self.viewModel.executionProfile = "Strict sandbox" }
                     } label: {
                         HStack(spacing: 4) {
-                            Image(systemName: "shield.checkered")
+                            Image(systemName: "shield")
                                 .font(.system(size: 10))
                             Text(self.viewModel.executionProfile)
                                 .font(.system(size: 11, weight: .medium))
                                 .lineLimit(1)
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 8))
+                                .foregroundStyle(Color.white.opacity(0.4))
                         }
-                        .foregroundStyle(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
+                        .foregroundStyle(Color.white.opacity(0.75))
                     }
                     .menuStyle(.borderlessButton)
                     .fixedSize()
@@ -1895,10 +1807,10 @@ struct StudioMainCanvasView: View {
 
                     // Model Selector Dropdown (Codex Compact Display)
                     Menu {
-                        Button("6-Tier Router: Auto") { self.viewModel.selectedModel = "6-Tier Router: Auto" }
-                        Button("6-Tier Router: Coding") { self.viewModel.selectedModel = "6-Tier Router: Coding" }
-                        Button("6-Tier Router: Deep Reasoning") { self.viewModel.selectedModel = "6-Tier Router: Deep Reasoning" }
-                        Button("Local Ollama Engine") { self.viewModel.selectedModel = "Local Ollama Engine" }
+                        Button("Coding") { self.viewModel.selectedModel = "6-Tier Router: Coding" }
+                        Button("Deep Reasoning") { self.viewModel.selectedModel = "6-Tier Router: Deep Reasoning" }
+                        Button("Auto") { self.viewModel.selectedModel = "6-Tier Router: Auto" }
+                        Button("Local Engine") { self.viewModel.selectedModel = "Local Ollama Engine" }
                     } label: {
                         HStack(spacing: 3) {
                             Text(self.compactModelDisplay)
@@ -1907,7 +1819,7 @@ struct StudioMainCanvasView: View {
                                 .lineLimit(1)
                             Image(systemName: "chevron.down")
                                 .font(.system(size: 8))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.white.opacity(0.4))
                         }
                     }
                     .menuStyle(.borderlessButton)
@@ -1917,7 +1829,7 @@ struct StudioMainCanvasView: View {
                     Button(action: {
                         StudioCompanionBarController.shared.toggle()
                     }) {
-                        Image(systemName: "mic.fill")
+                        Image(systemName: "mic")
                             .font(.system(size: 12))
                             .foregroundStyle(Color(white: 0.6))
                             .frame(width: 22, height: 22)
@@ -3571,6 +3483,26 @@ public struct StudioCoreHubManagerView: View {
 // 6. Clean & Streamlined 3-Cluster Sovereign Profile Menu Popover (Option 1)
 // ============================================================================
 
+struct StudioKeycapBadge: View {
+    let key: String
+
+    var body: some View {
+        Text(key)
+            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+            .foregroundStyle(Color.white.opacity(0.80))
+            .frame(minWidth: 16, minHeight: 16)
+            .padding(.horizontal, 3)
+            .background(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(Color(white: 0.16))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .stroke(Color.white.opacity(0.12), lineWidth: 0.5)
+                    )
+            )
+    }
+}
+
 struct StudioAnchoredProfileMenuCard: View {
     @Bindable var viewModel: CoreBlowStudioViewModel
     @AppStorage("coreblow.studio.language") private var studioLanguage: String = "ID"
@@ -3578,54 +3510,45 @@ struct StudioAnchoredProfileMenuCard: View {
     // Option 1 Zero-Fatigue Palette
     private let darkObsidian = Color(red: 5/255.0, green: 13/255.0, blue: 18/255.0)    // #050D12
     private let darkSlate = Color(red: 8/255.0, green: 23/255.0, blue: 28/255.0)       // #08171C
-    private let deepMutedTeal = Color(red: 10/255.0, green: 36/255.0, blue: 41/255.0)  // #0A2429
-    private let mutedCyan = Color(red: 26/255.0, green: 133/255.0, blue: 122/255.0)    // #1A857A
     private let iceCyan = Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0)      // #60D9CC
-    private let sageGreen = Color(red: 90/255.0, green: 185/255.0, blue: 130/255.0)    // #5AB982
 
     private var isID: Bool { self.studioLanguage == "ID" }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // 1. Dynamic User Account & Local Microkernel Header
-            HStack(spacing: 10) {
+            // 1. Dynamic User Account & Local Mode Header
+            HStack(spacing: 12) {
                 Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [self.mutedCyan, self.deepMutedTeal],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 30, height: 30)
+                    .fill(Color(red: 16/255.0, green: 185/255.0, blue: 129/255.0))
+                    .frame(width: 36, height: 36)
                     .overlay(
                         Text(self.viewModel.userInitials)
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(.white)
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(Color(red: 3/255.0, green: 8/255.0, blue: 12/255.0))
                     )
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(NSFullUserName().isEmpty ? NSUserName() : NSFullUserName())
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 13, weight: .bold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
 
                     HStack(spacing: 5) {
                         Circle()
-                            .fill(self.sageGreen)
+                            .fill(Color(red: 16/255.0, green: 185/255.0, blue: 129/255.0))
                             .frame(width: 6, height: 6)
-                        Text(self.isID ? "Aktif · Mode Lokal" : "Online · Local Mode")
+                        Text(self.isID ? "Online · Mode Lokal" : "Online · Local Mode")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(Color.white.opacity(0.75))
+                            .foregroundStyle(Color.white.opacity(0.70))
                             .lineLimit(1)
                     }
                 }
 
                 Spacer()
             }
-            .padding(.horizontal, 10)
-            .padding(.top, 10)
-            .padding(.bottom, 8)
+            .padding(.horizontal, 8)
+            .padding(.top, 8)
+            .padding(.bottom, 6)
 
             self.hairlineDivider
 
@@ -3633,7 +3556,11 @@ struct StudioAnchoredProfileMenuCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 self.sectionLabel(self.isID ? "PENGATURAN & TAMPILAN" : "PREFERENCES & DISPLAY")
 
-                self.menuRow(icon: "gearshape", title: self.isID ? "Pengaturan..." : "Settings...", shortcut: "⌘,") {
+                self.menuRow(
+                    icon: "slider.horizontal.3",
+                    title: self.isID ? "Pengaturan..." : "Settings...",
+                    shortcuts: ["⌘", ","]
+                ) {
                     self.close()
                     SettingsTabRouter.open(tab: .general)
                     SettingsWindowOpener.shared.open()
@@ -3642,12 +3569,12 @@ struct StudioAnchoredProfileMenuCard: View {
                 // Language Selector Row (EN / ID)
                 HStack(spacing: 8) {
                     Image(systemName: "globe")
-                        .font(.system(size: 12))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(Color.white.opacity(0.75))
                         .frame(width: 20, height: 20, alignment: .center)
 
                     Text(self.isID ? "Bahasa" : "Language")
-                        .font(.system(size: 12))
+                        .font(.system(size: 12, weight: .regular))
                         .foregroundStyle(.white)
 
                     Spacer()
@@ -3661,9 +3588,9 @@ struct StudioAnchoredProfileMenuCard: View {
                             }) {
                                 Text(lang)
                                     .font(.system(size: 10, weight: self.studioLanguage == lang ? .bold : .medium))
-                                    .foregroundStyle(self.studioLanguage == lang ? Color.black : Color.white.opacity(0.65))
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
+                                    .foregroundStyle(self.studioLanguage == lang ? Color(red: 3/255.0, green: 8/255.0, blue: 12/255.0) : Color.white.opacity(0.65))
+                                    .padding(.horizontal, 7)
+                                    .padding(.vertical, 2.5)
                                     .background(
                                         Capsule()
                                             .fill(self.studioLanguage == lang ? self.iceCyan : Color.clear)
@@ -3676,16 +3603,16 @@ struct StudioAnchoredProfileMenuCard: View {
                     .background(
                         Capsule()
                             .fill(self.darkSlate)
-                            .overlay(Capsule().stroke(Color.white.opacity(0.1), lineWidth: 0.5))
+                            .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 0.5))
                     )
                 }
                 .padding(.horizontal, 8)
-                .padding(.vertical, 5)
+                .padding(.vertical, 4)
 
                 self.menuRow(
                     icon: "questionmark.circle",
                     title: self.isID ? "Panduan & Bantuan" : "Guides & Help",
-                    shortcut: "⇧⌘/"
+                    shortcuts: ["⇧", "⌘", "/"]
                 ) {
                     self.close()
                     if let url = URL(string: "https://docs.coreblow.com") {
@@ -3699,21 +3626,21 @@ struct StudioAnchoredProfileMenuCard: View {
 
             // 3. Cluster 2: FITUR & MODEL AI
             VStack(alignment: .leading, spacing: 2) {
-                self.sectionLabel(self.isID ? "FITUR & MODEL AI" : "EXTENSIONS & MODELS")
+                self.sectionLabel(self.isID ? "EKSTENSI & MODEL" : "EXTENSIONS & MODELS")
 
                 self.menuRow(
-                    icon: "puzzlepiece.extension",
+                    icon: "cube",
                     title: self.isID ? "Toko Fitur (CoreHub)" : "CoreHub Store",
-                    shortcut: "⌘P"
+                    shortcuts: ["⌘", "P"]
                 ) {
                     self.close()
                     self.viewModel.activeNavTab = .coreHub
                 }
 
                 self.menuRow(
-                    icon: "key.fill",
-                    title: self.isID ? "Kunci AI (API Keys)" : "AI Keys (Config)",
-                    shortcut: "⌘K"
+                    icon: "key",
+                    title: self.isID ? "Kunci AI (Config)" : "AI Keys (Config)",
+                    shortcuts: ["⌘", "K"]
                 ) {
                     self.close()
                     SettingsTabRouter.open(tab: .config)
@@ -3728,30 +3655,30 @@ struct StudioAnchoredProfileMenuCard: View {
         .background(
             ZStack {
                 VisualEffectView(material: .popover, blendingMode: .withinWindow)
-                self.darkObsidian.opacity(0.92)
+                Color(red: 6/255.0, green: 21/255.0, blue: 26/255.0).opacity(0.96) // #06151A
             }
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(self.darkSlate, lineWidth: 1)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.25), lineWidth: 0.8)
         )
-        .shadow(color: Color.black.opacity(0.55), radius: 18, x: 0, y: 8)
+        .shadow(color: Color.black.opacity(0.65), radius: 24, x: 0, y: 10)
     }
 
     private var hairlineDivider: some View {
         Rectangle()
-            .fill(Color.white.opacity(0.06))
+            .fill(Color.white.opacity(0.08))
             .frame(height: 0.5)
-            .padding(.vertical, 3)
+            .padding(.vertical, 4)
     }
 
     private func sectionLabel(_ text: String) -> some View {
         Text(text)
             .font(.system(size: 9, weight: .bold, design: .monospaced))
-            .foregroundStyle(Color.white.opacity(0.42))
+            .foregroundStyle(Color.white.opacity(0.40))
             .padding(.horizontal, 8)
-            .padding(.top, 3)
+            .padding(.top, 4)
             .padding(.bottom, 2)
     }
 
@@ -3761,20 +3688,20 @@ struct StudioAnchoredProfileMenuCard: View {
         }
     }
 
-    private func menuRow(icon: String, title: String, shortcut: String? = nil, action: @escaping () -> Void) -> some View {
-        StudioMenuRowButton(icon: icon, title: title, trailingText: shortcut, action: action)
+    private func menuRow(icon: String, title: String, shortcuts: [String]? = nil, trailingText: String? = nil, action: @escaping () -> Void) -> some View {
+        StudioMenuRowButton(icon: icon, title: title, shortcuts: shortcuts, trailingText: trailingText, action: action)
     }
 }
 
 struct StudioMenuRowButton: View {
     let icon: String
     let title: String
+    var shortcuts: [String]? = nil
     var trailingText: String? = nil
     let action: () -> Void
     @State private var isHovered: Bool = false
 
-    private let deepMutedTeal = Color(red: 10/255.0, green: 36/255.0, blue: 41/255.0) // #0A2429
-    private let iceCyan = Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0)      // #60D9CC
+    private let iceCyan = Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0) // #60D9CC
 
     var body: some View {
         Button(action: action) {
@@ -3792,7 +3719,13 @@ struct StudioMenuRowButton: View {
 
                 Spacer()
 
-                if let trailingText {
+                if let shortcuts, !shortcuts.isEmpty {
+                    HStack(spacing: 3) {
+                        ForEach(shortcuts, id: \.self) { key in
+                            StudioKeycapBadge(key: key)
+                        }
+                    }
+                } else if let trailingText {
                     Text(trailingText)
                         .font(.system(size: 11, weight: .regular))
                         .foregroundStyle(Color.white.opacity(0.45))
@@ -3801,8 +3734,8 @@ struct StudioMenuRowButton: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
             .background(
-                Capsule()
-                    .fill(self.isHovered ? self.deepMutedTeal.opacity(0.70) : Color.clear)
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(self.isHovered ? Color.white.opacity(0.06) : Color.clear)
             )
             .contentShape(Rectangle())
         }
