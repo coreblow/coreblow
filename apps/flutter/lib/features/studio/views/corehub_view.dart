@@ -501,9 +501,13 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
     }).toList();
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       itemCount: filtered.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      separatorBuilder: (context, index) => const Divider(
+        color: StudioColors.borderNavRail, // #12302A
+        height: 1,
+        thickness: 0.5,
+      ),
       itemBuilder: (context, index) {
         final item = filtered[index];
         return _HorizontalModuleRow(item: item);
@@ -641,20 +645,10 @@ class _HorizontalModuleRowState extends State<_HorizontalModuleRow> {
       cursor: SystemMouseCursors.click,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 140),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         decoration: BoxDecoration(
-          color: _isHovered
-              ? const Color(0xFF0D1F1B)
-              : StudioColors.bgCard, // #0A1815
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: _isHovered
-                ? const Color(0xFF1F5148)
-                : (item.hasUpdate
-                    ? StudioColors.borderNavActive // #1F5148
-                    : StudioColors.borderCard),     // #16322C
-            width: 0.8,
-          ),
+          color: _isHovered ? const Color(0xFF0C201C) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -679,23 +673,12 @@ class _HorizontalModuleRowState extends State<_HorizontalModuleRow> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                        decoration: BoxDecoration(
-                          color: StudioColors.bgChip, // #10261F
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: StudioColors.borderChip, // #1A3A33
-                            width: 0.8,
-                          ),
-                        ),
-                        child: Text(
-                          item.tier,
-                          style: const TextStyle(
-                            color: StudioColors.textSecondary, // #9CC4BA
-                            fontSize: 8.5,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      Text(
+                        item.tier,
+                        style: const TextStyle(
+                          color: StudioColors.textMuted, // #7FA99F
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(width: 8),
