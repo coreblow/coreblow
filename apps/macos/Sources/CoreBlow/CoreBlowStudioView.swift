@@ -2368,11 +2368,21 @@ public enum CoreHubPlatformFilter: String, CaseIterable, Identifiable {
     case web = "Web"
 
     public var id: String { self.rawValue }
+
+    public func localizedName(isID: Bool) -> String {
+        switch self {
+        case .all: return isID ? "Semua" : "All"
+        case .desktop: return "macOS"
+        case .mobile: return "Mobile"
+        case .web: return "Web"
+        }
+    }
 }
 
 public enum CoreHubCategory: String, CaseIterable, Identifiable {
     case allApps = "All Apps"
-    case updates = "Updates (3)"
+    case updates = "Updates"
+    case installed = "Installed"
     case autonomousAgents = "Autonomous Agents"
     case evoLoopSkills = "EvoLoop Skills"
     case devTools = "Dev Tools"
@@ -2383,8 +2393,22 @@ public enum CoreHubCategory: String, CaseIterable, Identifiable {
 
     public func localizedName(isID: Bool) -> String {
         switch self {
-        case .allApps: return isID ? "Semua Fitur" : "All Apps"
-        case .updates: return isID ? "Pembaruan (3)" : "Updates (3)"
+        case .allApps: return isID ? "Semua Fitur & Ekosistem" : "All Features & Ecosystem"
+        case .updates: return isID ? "Pembaruan Siap Pasang" : "Updates Ready to Install"
+        case .installed: return isID ? "Aplikasi & Modul Terpasang" : "Installed Apps & Modules"
+        case .autonomousAgents: return isID ? "Asisten & Agen AI" : "AI Assistants"
+        case .evoLoopSkills: return isID ? "Kemampuan Pintar & Sintesis" : "Smart Skills & Synthesis"
+        case .devTools: return isID ? "Alat Pengembang & Apple Silicon" : "Developer Tools & Apple Silicon"
+        case .mcpBridges: return isID ? "Integrasi & Jembatan MCP" : "MCP Integrations & Bridges"
+        case .memoryWiki: return isID ? "Memori Cory & Pengetahuan" : "Cory Memory & Knowledge"
+        }
+    }
+
+    public func sidebarTitle(isID: Bool) -> String {
+        switch self {
+        case .allApps: return isID ? "Semua Fitur" : "All Features"
+        case .updates: return isID ? "Pembaruan" : "Updates"
+        case .installed: return isID ? "Terpasang di Mac" : "Installed on Mac"
         case .autonomousAgents: return isID ? "Asisten & Agen AI" : "AI Assistants"
         case .evoLoopSkills: return isID ? "Kemampuan Pintar" : "Smart Skills"
         case .devTools: return isID ? "Alat Pengembang" : "Developer Tools"
@@ -2396,7 +2420,8 @@ public enum CoreHubCategory: String, CaseIterable, Identifiable {
     public var icon: String {
         switch self {
         case .allApps: return "square.grid.2x2"
-        case .updates: return "arrow.triangle.2.circlepath.circle"
+        case .updates: return "arrow.triangle.2.circlepath"
+        case .installed: return "checkmark.shield"
         case .autonomousAgents: return "person.2.badge.gearshape"
         case .evoLoopSkills: return "sparkles"
         case .devTools: return "wrench.and.screwdriver"
@@ -2492,14 +2517,14 @@ public struct StudioCoreHubManagerView: View {
     private let darkObsidian = Color(red: 5/255.0, green: 13/255.0, blue: 18/255.0)      // #050D12
     private let mutedCyan = Color(red: 26/255.0, green: 133/255.0, blue: 122/255.0)      // #1A857A
     private let iceCyan = Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0)        // #60D9CC
-    private let sageGreen = Color(red: 90/255.0, green: 185/255.0, blue: 130/255.0)      // Updated dot
+    private let sageGreen = Color(red: 90/255.0, green: 185/255.0, blue: 130/255.0)      // #5AB982
 
     // Installed Microkernel & Desktop Apps (Dynamic State)
     @State private var installedApps: [CoreHubInstalledAppItem] = [
         CoreHubInstalledAppItem(
             id: "app_studio",
             name: "CoreBlow Studio",
-            description: "Ruang kerja asisten AI interaktif dengan manajemen dokumen dan proyek",
+            description: "Ruang kerja asisten AI interaktif dengan manajemen dokumen, obrolan git, dan multi-pane visual.",
             version: "v2.0.0 GA",
             icon: "macwindow.on.rectangle",
             isUpdateAvailable: false,
@@ -2509,7 +2534,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubInstalledAppItem(
             id: "app_companion",
             name: "Companion Bar (⌥Space)",
-            description: "Bilah pintasan cepat mengambang di seluruh sistem macOS (⌥Space)",
+            description: "Bilah pintasan cepat mengambang di seluruh sistem macOS dengan deteksi konteks window aktif.",
             version: "v2.0.0 GA",
             icon: "command.square.fill",
             isUpdateAvailable: false,
@@ -2519,7 +2544,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubInstalledAppItem(
             id: "app_memory",
             name: "Cory 4-Layer Memory",
-            description: "Memori jangka panjang cerdas untuk mengingat preferensi dan konteks percakapan Anda",
+            description: "Memori jangka panjang cerdas SQLite WAL + FTS5 BM25 untuk mengingat preferensi dan konteks.",
             version: "v2.0.1",
             icon: "brain",
             isUpdateAvailable: true,
@@ -2529,7 +2554,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubInstalledAppItem(
             id: "app_evoloop",
             name: "EvoLoop Synthesizer",
-            description: "Penyempurnaan kemampuan AI otomatis berdasarkan hasil interaksi Anda",
+            description: "Penyempurnaan kemampuan AI otomatis berdasarkan hasil interaksi dan evaluasi loop tertutup.",
             version: "v2.0.0 GA",
             icon: "bolt.fill",
             isUpdateAvailable: false,
@@ -2539,7 +2564,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubInstalledAppItem(
             id: "app_war_room",
             name: "War Room Orchestrator",
-            description: "Kolaborasi multi-agen cerdas untuk menyelesaikan tugas besar secara paralel",
+            description: "Kolaborasi multi-agen cerdas untuk menyelesaikan tugas rekayasa besar secara paralel.",
             version: "v2.0.2",
             icon: "person.3.fill",
             isUpdateAvailable: true,
@@ -2549,7 +2574,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubInstalledAppItem(
             id: "app_mlx_voice",
             name: "Sovereign MLX Voice",
-            description: "Suara asisten alami berkecepatan tinggi yang diproses langsung di Apple Silicon",
+            description: "Sintesis suara alami berkecepatan tinggi yang diproses langsung di neural engine Apple Silicon.",
             version: "v2.0.0",
             icon: "waveform",
             isUpdateAvailable: true,
@@ -2563,7 +2588,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubPackageItem(
             id: "pkg_mcp",
             name: "@coreblow/mcp-bridge",
-            description: "Jembatan protokol Model Context Protocol untuk menghubungkan alat dan database eksternal",
+            description: "Jembatan protokol Model Context Protocol untuk menghubungkan alat dan database eksternal.",
             tierBadge: "Resmi",
             icon: "network",
             isLocked: false,
@@ -2575,7 +2600,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubPackageItem(
             id: "pkg_discord",
             name: "@coreblow/discord",
-            description: "Integrasi bot percakapan cerdas untuk Discord server, channel, dan webhook",
+            description: "Integrasi bot percakapan cerdas untuk Discord server, channel, dan webhook otomatis.",
             tierBadge: "Resmi",
             icon: "bubble.left.and.text.bubble.right.fill",
             isLocked: false,
@@ -2587,7 +2612,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubPackageItem(
             id: "pkg_telegram",
             name: "@coreblow/telegram",
-            description: "Integrasi bot Telegram langsung dengan pesan suara dan balasan cepat",
+            description: "Integrasi bot Telegram langsung dengan pesan suara dan balasan cepat.",
             tierBadge: "Resmi",
             icon: "paperplane.fill",
             isLocked: false,
@@ -2599,7 +2624,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubPackageItem(
             id: "pkg_git_supercharged",
             name: "skill/git-supercharged",
-            description: "Percepatan alur kerja Git, penyelesaian konflik kode, dan manajemen branch",
+            description: "Percepatan alur kerja Git, penyelesaian konflik kode otomatis, dan manajemen branch cerdas.",
             tierBadge: "Komunitas",
             icon: "arrow.triangle.branch",
             isLocked: true,
@@ -2611,7 +2636,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubPackageItem(
             id: "pkg_rust_advisor",
             name: "skill/rust-compiler-advisor",
-            description: "Asisten analisis error compiler Rust dan optimasi performa kode",
+            description: "Asisten analisis error compiler Rust dan optimasi performa kode.",
             tierBadge: "Komunitas",
             icon: "gearshape.2.fill",
             isLocked: true,
@@ -2623,7 +2648,7 @@ public struct StudioCoreHubManagerView: View {
         CoreHubPackageItem(
             id: "pkg_audit_guard",
             name: "skill/sovereign-audit-guard",
-            description: "Pemeriksaan keamanan kode otomatis dan pemindaian kebocoran kunci rahasia",
+            description: "Pemeriksaan keamanan kode otomatis dan pemindaian kebocoran kunci rahasia.",
             tierBadge: "Komunitas",
             icon: "shield.checkerboard",
             isLocked: true,
@@ -2644,6 +2669,8 @@ public struct StudioCoreHubManagerView: View {
             return self.installedApps.count + self.availablePackages.count
         case .updates:
             return self.updatesCount
+        case .installed:
+            return self.installedApps.count
         case .autonomousAgents:
             let installed = self.installedApps.filter { $0.category == .autonomousAgents }.count
             let available = self.availablePackages.filter { $0.category == .autonomousAgents }.count
@@ -2667,13 +2694,33 @@ public struct StudioCoreHubManagerView: View {
         }
     }
 
+    private var categorySubtitle: String {
+        switch self.selectedCategory {
+        case .allApps:
+            return self.isID ? "Kelola modul microkernel bawaan, saluran perpesanan, dan plugin kecerdasan." : "Manage built-in microkernel modules, messaging channels, and intelligence plugins."
+        case .updates:
+            return self.isID ? "Modul dan plugin dengan versi baru yang siap diperbarui." : "Modules and plugins with newer versions ready to be installed."
+        case .installed:
+            return self.isID ? "Semua aplikasi dan integrasi aktif di perangkat Mac ini." : "All applications and active integrations running on this Mac."
+        case .autonomousAgents:
+            return self.isID ? "Asisten mandiri dan orkestrator tugas multi-agen." : "Autonomous assistants and multi-agent task orchestrators."
+        case .evoLoopSkills:
+            return self.isID ? "Kemampuan pemikiran dan sintesis loop cerdas." : "Cognitive routines and closed-loop synthesis skills."
+        case .devTools:
+            return self.isID ? "Alat percepatan pengembang, debug, dan audio Apple Silicon." : "Developer acceleration, debugging tools, and Apple Silicon audio."
+        case .mcpBridges:
+            return self.isID ? "Protokol penghubung konteks model (Model Context Protocol)." : "Model Context Protocol bridges connecting external tools and databases."
+        case .memoryWiki:
+            return self.isID ? "Penyimpanan memori jangka panjang cerdas dan wiki pengetahuan." : "Long-term intelligent memory storage and knowledge wikis."
+        }
+    }
+
     private var filteredInstalledApps: [CoreHubInstalledAppItem] {
         self.installedApps.filter { app in
-            if self.selectedTopTab == .market {
-                return false
-            }
             if self.selectedCategory == .updates {
                 if !app.isUpdateAvailable { return false }
+            } else if self.selectedCategory == .installed {
+                // keep all installed apps
             } else if self.selectedCategory != .allApps {
                 if app.category != self.selectedCategory { return false }
             }
@@ -2695,17 +2742,15 @@ public struct StudioCoreHubManagerView: View {
     }
 
     private var filteredAvailablePackages: [CoreHubPackageItem] {
-        self.availablePackages.filter { pkg in
-            if self.selectedCategory == .updates {
-                return false
-            } else if self.selectedCategory != .allApps {
+        if self.selectedCategory == .installed || self.selectedCategory == .updates {
+            return []
+        }
+        return self.availablePackages.filter { pkg in
+            if self.selectedCategory != .allApps {
                 if pkg.category != self.selectedCategory { return false }
             }
             if self.selectedPlatform != .all {
                 if !pkg.platforms.contains(self.selectedPlatform) { return false }
-            }
-            if self.selectedTopTab == .yourWork {
-                if !pkg.isInstalled { return false }
             }
             let trimmedSearch = self.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmedSearch.isEmpty {
@@ -2751,6 +2796,21 @@ public struct StudioCoreHubManagerView: View {
             updated.insert(id)
             UserDefaults.standard.set(Array(updated), forKey: self.updatedAppIdsKey)
         }
+    }
+
+    private func updateAllApps() {
+        let updatingIds = self.installedApps.filter { $0.isUpdateAvailable }.map { $0.id }
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+            for idx in self.installedApps.indices {
+                if self.installedApps[idx].isUpdateAvailable {
+                    self.installedApps[idx].isUpdateAvailable = false
+                    self.installedApps[idx].version = "\(self.installedApps[idx].version) GA"
+                }
+            }
+        }
+        var updated = Set(UserDefaults.standard.stringArray(forKey: self.updatedAppIdsKey) ?? [])
+        updated.formUnion(updatingIds)
+        UserDefaults.standard.set(Array(updated), forKey: self.updatedAppIdsKey)
     }
 
     private func installPackage(id: String) {
@@ -2832,77 +2892,54 @@ public struct StudioCoreHubManagerView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            // a) Top Navigation Bar
-            topNavigationBar
+        HStack(spacing: 0) {
+            // Left Category Sidebar (240pt)
+            categorySidebar
+                .frame(width: 240)
+                .background(self.darkObsidian)
 
             Rectangle()
                 .fill(StudioSurfaces.borderSubtle)
-                .frame(height: 0.5)
+                .frame(width: 0.5)
 
-            // b) Platform Filter Sub-Header
-            platformFilterSubHeader
-
-            Rectangle()
-                .fill(StudioSurfaces.borderSubtle)
-                .frame(height: 0.5)
-
-            // Lower Split: c) Left Category Sidebar + d) Central Canvas
-            HStack(spacing: 0) {
-                // c) Left Category Sidebar
-                categorySidebar
-                    .frame(width: 220)
-                    .background(self.darkObsidian.opacity(0.65))
-
-                Rectangle()
-                    .fill(StudioSurfaces.borderSubtle)
-                    .frame(width: 0.5)
-
-                // d) Central Canvas
-                centralCanvas
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(self.darkSlate.opacity(0.45))
-            }
+            // Right Central Canvas
+            centralCanvas
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(self.darkSlate)
         }
         .onAppear {
             self.syncInstalledStatesFromDisk()
+            self.viewModel.isProfileMenuPresented = false
         }
     }
 
     // ========================================================================
-    // a) Top Navigation Bar
+    // Left Category Sidebar (240pt Option 1 Palette)
     // ========================================================================
-    private var topNavigationBar: some View {
-        HStack(spacing: 16) {
-            // Navigation Tabs
-            HStack(spacing: 4) {
-                ForEach(CoreHubTopNavTab.allCases) { tab in
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            self.selectedTopTab = tab
-                        }
-                    }) {
-                        Text(tab.rawValue)
-                            .font(.system(size: 13, weight: self.selectedTopTab == tab ? .semibold : .medium))
-                            .foregroundStyle(self.selectedTopTab == tab ? Color.white : Color.white.opacity(0.65))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .fill(self.selectedTopTab == tab ? self.mutedCyan.opacity(0.4) : Color.clear)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
+    private var categorySidebar: some View {
+        VStack(spacing: 0) {
+            // Sidebar Header
+            VStack(alignment: .leading, spacing: 3) {
+                Text("CoreHub Store")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(.white)
 
-            // Global Search Field
+                Text(self.isID ? "Pusat Ekosistem & Ekstensi" : "Ecosystem & Extensions Hub")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.white.opacity(0.45))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16)
+            .padding(.top, StudioSpacing.topbarHeight)
+            .padding(.bottom, 12)
+
+            // Embedded Search Box
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 12))
                     .foregroundStyle(Color.white.opacity(0.45))
 
-                TextField(self.isID ? "Cari fitur, plugin, atau kemampuan..." : "Search CoreHub...", text: self.$searchText)
+                TextField(self.isID ? "Cari plugin, skill, alat..." : "Search plugins, skills, tools...", text: self.$searchText)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12))
                     .foregroundStyle(.white)
@@ -2917,157 +2954,155 @@ public struct StudioCoreHubManagerView: View {
                 }
             }
             .padding(.horizontal, 10)
-            .padding(.vertical, 6)
+            .padding(.vertical, 7)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(self.darkObsidian.opacity(0.85))
+                    .fill(Color.white.opacity(0.05))
                     .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                )
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    )
             )
-            .frame(maxWidth: 320)
+            .padding(.horizontal, 12)
+            .padding(.bottom, 12)
 
-            Spacer()
+            // Scrollable Category Clusters
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Cluster 1: IKHTISAR
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(self.isID ? "IKHTISAR" : "OVERVIEW")
+                            .font(.system(size: 9.5, weight: .bold))
+                            .foregroundStyle(Color.white.opacity(0.4))
+                            .tracking(0.6)
+                            .padding(.horizontal, 8)
+                            .padding(.bottom, 2)
 
-            // Sync Status Indicator
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(self.sageGreen)
-                    .frame(width: 7, height: 7)
-                Text(self.isID ? "Layanan Siap" : "Gateway Synced")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.75))
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                Capsule()
-                    .fill(self.deepMutedTeal.opacity(0.6))
-                    .overlay(Capsule().stroke(self.mutedCyan.opacity(0.3), lineWidth: 1))
-            )
-
-            // Notification Bell with Badge (dynamic updates count)
-            ZStack(alignment: .topTrailing) {
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.15)) {
-                        self.selectedCategory = .updates
+                        categoryButton(category: .allApps, count: self.categoryCount(for: .allApps))
+                        categoryButton(category: .updates, count: self.updatesCount > 0 ? self.updatesCount : nil, badgeColor: self.iceCyan)
+                        categoryButton(category: .installed, count: self.installedApps.count)
                     }
-                }) {
-                    Image(systemName: "bell.fill")
-                        .font(.system(size: 14))
-                        .foregroundStyle(Color.white.opacity(0.8))
-                        .frame(width: 28, height: 28)
-                }
-                .buttonStyle(.plain)
 
-                if self.updatesCount > 0 {
-                    Text("\(self.updatesCount)")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(.black)
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 1)
-                        .background(Capsule().fill(self.iceCyan))
-                        .offset(x: 4, y: -2)
-                }
-            }
-        }
-        .padding(.horizontal, 18)
-        .padding(.top, StudioSpacing.topbarHeight)
-        .padding(.bottom, 10)
-        .background(self.darkObsidian.opacity(0.75))
-    }
+                    // Cluster 2: KATEGORI EKOSISTEM
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(self.isID ? "KATEGORI EKOSISTEM" : "ECOSYSTEM CATEGORIES")
+                            .font(.system(size: 9.5, weight: .bold))
+                            .foregroundStyle(Color.white.opacity(0.4))
+                            .tracking(0.6)
+                            .padding(.horizontal, 8)
+                            .padding(.bottom, 2)
 
-    // ========================================================================
-    // b) Platform Filter Sub-Header with Active Underline Indicator
-    // ========================================================================
-    private var platformFilterSubHeader: some View {
-        HStack(spacing: 20) {
-            ForEach(CoreHubPlatformFilter.allCases) { filter in
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.15)) {
-                        self.selectedPlatform = filter
+                        categoryButton(category: .autonomousAgents, count: self.categoryCount(for: .autonomousAgents))
+                        categoryButton(category: .evoLoopSkills, count: self.categoryCount(for: .evoLoopSkills))
+                        categoryButton(category: .devTools, count: self.categoryCount(for: .devTools))
+                        categoryButton(category: .mcpBridges, count: self.categoryCount(for: .mcpBridges))
+                        categoryButton(category: .memoryWiki, count: self.categoryCount(for: .memoryWiki))
                     }
-                }) {
-                    VStack(spacing: 6) {
-                        Text(filter.rawValue)
-                            .font(.system(size: 12, weight: self.selectedPlatform == filter ? .semibold : .regular))
-                            .foregroundStyle(self.selectedPlatform == filter ? self.iceCyan : Color.white.opacity(0.65))
 
-                        // Active Underline Indicator
-                        Rectangle()
-                            .fill(self.selectedPlatform == filter ? self.iceCyan : Color.clear)
-                            .frame(height: 2)
+                    // Cluster 3: PENGEMBANG PLUGIN
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(self.isID ? "PENGEMBANG PLUGIN" : "PLUGIN DEVELOPERS")
+                            .font(.system(size: 9.5, weight: .bold))
+                            .foregroundStyle(Color.white.opacity(0.4))
+                            .tracking(0.6)
+                            .padding(.horizontal, 8)
+                            .padding(.bottom, 2)
+
+                        Button(action: {
+                            if let url = URL(string: "https://docs.coreblow.com/plugins") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }) {
+                            HStack(spacing: 9) {
+                                Image(systemName: "doc.text")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color.white.opacity(0.65))
+                                    .frame(width: 16)
+
+                                Text(self.isID ? "Dokumentasi SDK" : "SDK Documentation")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color.white.opacity(0.8))
+
+                                Spacer()
+
+                                Image(systemName: "arrow.up.right")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(Color.white.opacity(0.35))
+                            }
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 7)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: {
+                            if let url = URL(string: "https://docs.coreblow.com/plugins/create") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }) {
+                            HStack(spacing: 9) {
+                                Image(systemName: "plus.circle")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color.white.opacity(0.65))
+                                    .frame(width: 16)
+
+                                Text(self.isID ? "Buat Plugin Baru..." : "Create New Plugin...")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color.white.opacity(0.8))
+
+                                Spacer()
+                            }
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 7)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .fixedSize(horizontal: true, vertical: false)
                 }
-                .buttonStyle(.plain)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
             }
 
-            Spacer()
+            Spacer(minLength: 0)
 
-            // Metrics Chip
-            HStack(spacing: 6) {
-                Image(systemName: "cpu")
-                    .font(.system(size: 10))
-                    .foregroundStyle(self.iceCyan)
-                Text(self.isID ? "\(self.installedApps.count) Terpasang • \(self.availablePackages.count) Tersedia • Sandbox Aman" : "\(self.installedApps.count) Installed • \(self.availablePackages.count) Available • Sandbox Protected")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.7))
-            }
-            .padding(.trailing, 8)
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 8)
-        .background(self.darkSlate.opacity(0.75))
-    }
+            // Sidebar Footer
+            Rectangle()
+                .fill(StudioSurfaces.borderSubtle)
+                .frame(height: 0.5)
 
-    // ========================================================================
-    // c) Left Category Sidebar
-    // ========================================================================
-    private var categorySidebar: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 4) {
-                // Section: Main Quick Links
-                categoryButton(category: .allApps, count: self.categoryCount(for: .allApps))
-                categoryButton(category: .updates, count: self.updatesCount > 0 ? self.updatesCount : nil, badgeColor: self.iceCyan)
-
-                Divider()
-                    .padding(.vertical, 8)
-
-                // Section: Modular CoreBlow Categories
-                Text(self.isID ? "KATEGORI FITUR" : "CATEGORIES")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(Color.white.opacity(0.45))
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 4)
-
-                categoryButton(category: .autonomousAgents, count: self.categoryCount(for: .autonomousAgents))
-                categoryButton(category: .evoLoopSkills, count: self.categoryCount(for: .evoLoopSkills))
-                categoryButton(category: .devTools, count: self.categoryCount(for: .devTools))
-                categoryButton(category: .mcpBridges, count: self.categoryCount(for: .mcpBridges))
-                categoryButton(category: .memoryWiki, count: self.categoryCount(for: .memoryWiki))
-
+            HStack {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(self.sageGreen)
+                        .frame(width: 7, height: 7)
+                    Text(self.isID ? "Microkernel Siap" : "Microkernel Ready")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.white.opacity(0.55))
+                }
                 Spacer()
+                Text("v2.0 GA")
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(Color.white.opacity(0.35))
             }
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 16)
             .padding(.vertical, 12)
+            .background(self.darkObsidian)
         }
     }
 
     private func categoryButton(category: CoreHubCategory, count: Int? = nil, badgeColor: Color? = nil) -> some View {
         Button(action: {
-            withAnimation(.easeInOut(duration: 0.15)) {
+            withAnimation(.easeInOut(duration: 0.12)) {
                 self.selectedCategory = category
             }
         }) {
-            HStack(spacing: 8) {
+            HStack(spacing: 9) {
                 Image(systemName: category.icon)
                     .font(.system(size: 12))
                     .foregroundStyle(self.selectedCategory == category ? self.iceCyan : Color.white.opacity(0.65))
                     .frame(width: 16)
 
-                Text(category.localizedName(isID: self.isID))
+                Text(category.sidebarTitle(isID: self.isID))
                     .font(.system(size: 12, weight: self.selectedCategory == category ? .semibold : .regular))
                     .foregroundStyle(self.selectedCategory == category ? Color.white : Color.white.opacity(0.8))
 
@@ -3078,168 +3113,148 @@ public struct StudioCoreHubManagerView: View {
                         .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(badgeColor != nil ? Color.black : Color.white.opacity(0.7))
                         .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
+                        .padding(.vertical, 1.5)
                         .background(
                             Capsule()
-                                .fill(badgeColor ?? Color.white.opacity(0.12))
+                                .fill(badgeColor ?? Color.white.opacity(0.1))
                         )
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 6.5)
             .background(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
                     .fill(self.selectedCategory == category ? self.mutedCyan.opacity(0.35) : Color.clear)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .stroke(self.selectedCategory == category ? self.iceCyan.opacity(0.3) : Color.clear, lineWidth: 0.5)
+                    )
             )
         }
         .buttonStyle(.plain)
     }
 
     // ========================================================================
-    // d) Central Canvas (Hero Banner + Installed + Available)
+    // Right Central Canvas (Ultra-Clean Typographic Layout)
     // ========================================================================
     private var centralCanvas: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                // 1. Hero Banner
-                heroBanner
-
-                // Empty Search / Filter State
-                if self.filteredInstalledApps.isEmpty && self.filteredAvailablePackages.isEmpty {
-                    emptyFilterStateView
-                } else {
-                    // 2. Installed Section
-                    if !self.filteredInstalledApps.isEmpty || self.selectedCategory == .allApps || self.selectedCategory == .updates {
-                        installedSection
-                    }
-
-                    // 3. Available CoreHub Plugins & Skills Section
-                    if !self.filteredAvailablePackages.isEmpty || self.selectedCategory == .allApps {
-                        availablePackagesSection
-                    }
-                }
-            }
-            .padding(20)
-        }
-    }
-
-    // 1. Hero Banner
-    private var heroBanner: some View {
-        ZStack(alignment: .leading) {
-            // Deep Muted Teal to Dark Slate Gradient Background
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [self.deepMutedTeal, self.darkSlate],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-
-            // Subtle Ice-Cyan Rim Highlight
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            self.iceCyan.opacity(0.45),
-                            self.mutedCyan.opacity(0.2),
-                            Color.clear
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-
-            HStack(alignment: .center, spacing: 20) {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 14))
-                            .foregroundStyle(self.iceCyan)
-
-                        Text(self.isID ? "PUSAT FITUR & PLUGIN ASISTEN AI" : "COREHUB APP & PLUGIN STORE")
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
-                            .foregroundStyle(self.iceCyan)
-                    }
-
-                    Text(self.isID ? "Perluas Kemampuan Asisten AI Anda" : "Extend Your AI Assistant Capabilities")
-                        .font(.system(size: 22, weight: .bold))
+        VStack(spacing: 0) {
+            // Canvas Top Header Bar
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(self.selectedCategory.localizedName(isID: self.isID))
+                        .font(.system(size: 19, weight: .bold))
                         .foregroundStyle(.white)
 
-                    Text(self.isID ? "Kelola integrasi aplikasi, saluran percakapan (WhatsApp, Telegram, Discord), serta kemampuan cerdas tambahan dalam satu pusat kendali yang aman." : "Manage app integrations, messaging channels (WhatsApp, Telegram, Discord), and smart assistant skills in one unified, secure cockpit.")
+                    Text(self.categorySubtitle)
                         .font(.system(size: 12))
-                        .foregroundStyle(Color.white.opacity(0.8))
-                        .lineLimit(2)
-
-                    HStack(spacing: 8) {
-                        heroPill(text: "CoreBlow v2.0 GA", icon: "checkmark.seal.fill")
-                        heroPill(text: self.isID ? "Integrasi Aktif" : "Integrations Active", icon: "checkmark.circle.fill")
-                        heroPill(text: self.isID ? "Ruang Sandbox Aman" : "Sandbox Protected", icon: "lock.shield.fill")
-                    }
-                    .padding(.top, 4)
+                        .foregroundStyle(Color.white.opacity(0.55))
                 }
 
                 Spacer()
 
-                // Decorative Holographic Emblem
-                ZStack {
-                    Circle()
-                        .fill(self.mutedCyan.opacity(0.25))
-                        .frame(width: 72, height: 72)
-                        .blur(radius: 8)
-
-                    Image(systemName: "square.grid.2x2.fill")
-                        .font(.system(size: 34))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [self.iceCyan, self.mutedCyan],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                HStack(spacing: 12) {
+                    // Platform Segmented Control
+                    HStack(spacing: 2) {
+                        ForEach(CoreHubPlatformFilter.allCases) { filter in
+                            Button(action: {
+                                withAnimation(.easeInOut(duration: 0.12)) {
+                                    self.selectedPlatform = filter
+                                }
+                            }) {
+                                Text(filter.localizedName(isID: self.isID))
+                                    .font(.system(size: 11.5, weight: self.selectedPlatform == filter ? .semibold : .medium))
+                                    .foregroundStyle(self.selectedPlatform == filter ? self.iceCyan : Color.white.opacity(0.6))
+                                    .lineLimit(1)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                            .fill(self.selectedPlatform == filter ? self.mutedCyan.opacity(0.4) : Color.clear)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(3)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(self.darkObsidian)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
                             )
-                        )
-                }
-                .padding(.trailing, 10)
-            }
-            .padding(20)
-        }
-    }
+                    )
 
-    private func heroPill(text: String, icon: String) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.system(size: 10))
-                .foregroundStyle(self.iceCyan)
-            Text(text)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(Color.white.opacity(0.85))
-                .fixedSize(horizontal: true, vertical: false)
+                    // Gateway Sync Pill
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(self.sageGreen)
+                            .frame(width: 6, height: 6)
+                        Text(self.isID ? "Layanan Terhubung" : "Gateway Synced")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Color.white.opacity(0.8))
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(
+                        Capsule()
+                            .fill(self.deepMutedTeal.opacity(0.8))
+                            .overlay(Capsule().stroke(self.iceCyan.opacity(0.25), lineWidth: 1))
+                    )
+                    .fixedSize(horizontal: true, vertical: false)
+                }
+            }
+            .padding(.horizontal, 28)
+            .padding(.top, StudioSpacing.topbarHeight)
+            .padding(.bottom, 14)
+            .background(self.darkSlate)
+
+            Rectangle()
+                .fill(StudioSurfaces.borderSubtle)
+                .frame(height: 0.5)
+
+            // Canvas Content Body
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    if self.filteredInstalledApps.isEmpty && self.filteredAvailablePackages.isEmpty {
+                        emptyFilterStateView
+                    } else {
+                        // Section 1: Installed Apps & Modules
+                        if !self.filteredInstalledApps.isEmpty {
+                            installedSection
+                        }
+
+                        // Section 2: Available Catalog
+                        if !self.filteredAvailablePackages.isEmpty {
+                            availablePackagesSection
+                        }
+                    }
+                }
+                .padding(.horizontal, 28)
+                .padding(.vertical, 24)
+            }
         }
-        .padding(.horizontal, 9)
-        .padding(.vertical, 4)
-        .background(
-            Capsule()
-                .fill(self.darkObsidian.opacity(0.6))
-                .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1))
-        )
-        .fixedSize(horizontal: true, vertical: false)
     }
 
     // Empty Filter State View
     private var emptyFilterStateView: some View {
         VStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 32))
+                .font(.system(size: 28))
                 .foregroundStyle(self.iceCyan.opacity(0.6))
                 .padding(.top, 36)
 
-            Text("No Matching Items Found")
-                .font(.system(size: 15, weight: .semibold))
+            Text(self.isID ? "Tidak Ada Item yang Cocok" : "No Matching Items Found")
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.white)
 
-            Text("No installed apps or community packages match '\(self.searchText.isEmpty ? self.selectedCategory.rawValue : self.searchText)' for platform '\(self.selectedPlatform.rawValue)'")
+            Text(self.isID ? "Tidak ada aplikasi atau plugin yang cocok dengan kriteria filter saat ini." : "No installed apps or packages match current filter criteria.")
                 .font(.system(size: 12))
-                .foregroundStyle(Color.white.opacity(0.6))
+                .foregroundStyle(Color.white.opacity(0.55))
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 380)
 
@@ -3248,10 +3263,9 @@ public struct StudioCoreHubManagerView: View {
                     self.searchText = ""
                     self.selectedCategory = .allApps
                     self.selectedPlatform = .all
-                    self.selectedTopTab = .apps
                 }
             }) {
-                Text("Reset Filters")
+                Text(self.isID ? "Reset Filter" : "Reset Filters")
                     .font(.system(size: 11, weight: .semibold))
                     .padding(.horizontal, 14)
                     .padding(.vertical, 6)
@@ -3265,333 +3279,291 @@ public struct StudioCoreHubManagerView: View {
             .padding(.top, 4)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
+        .padding(.vertical, 30)
     }
 
-    // 2. Installed Section
+    // 1. Installed Section
     private var installedSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(self.isID ? "APLIKASI & INTEGRASI TERPASANG" : "INSTALLED APPS & INTEGRATIONS")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(Color.white.opacity(0.85))
-
-                Text("(\(self.filteredInstalledApps.count))")
-                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(self.iceCyan)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center) {
+                Text(self.isID ? "APLIKASI & MODUL TERPASANG (\(self.filteredInstalledApps.count))" : "INSTALLED APPS & MODULES (\(self.filteredInstalledApps.count))")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Color.white.opacity(0.42))
+                    .tracking(0.6)
 
                 Spacer()
 
-                Text(self.isID ? "Pembaruan otomatis aktif" : "Auto-refresh active")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.white.opacity(0.45))
-            }
+                HStack(spacing: 12) {
+                    Text(self.isID ? "Pembaruan otomatis aktif" : "Auto-update active")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.white.opacity(0.4))
 
-            if self.filteredInstalledApps.isEmpty {
-                Text(self.selectedCategory == .updates ? (self.isID ? "Semua aplikasi dan integrasi Anda sudah dalam versi terbaru." : "All installed modules and apps are currently up to date.") : (self.isID ? "Tidak ada aplikasi yang cocok dengan kriteria filter saat ini." : "No installed apps match current filter criteria."))
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.white.opacity(0.5))
-                    .padding(.vertical, 8)
-            } else {
-                VStack(spacing: 8) {
-                    ForEach(self.filteredInstalledApps) { app in
-                        installedAppRow(app: app)
+                    if self.updatesCount > 0 {
+                        Button(action: {
+                            self.updateAllApps()
+                        }) {
+                            HStack(spacing: 5) {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .font(.system(size: 10, weight: .bold))
+                                Text(self.isID ? "Perbarui Semua (\(self.updatesCount))" : "Update All (\(self.updatesCount))")
+                                    .font(.system(size: 11, weight: .semibold))
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .foregroundStyle(.white)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .fill(self.mutedCyan)
+                            )
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
+
+            VStack(spacing: 0) {
+                ForEach(Array(self.filteredInstalledApps.enumerated()), id: \.element.id) { index, app in
+                    installedAppRow(app: app)
+
+                    if index < self.filteredInstalledApps.count - 1 {
+                        Rectangle()
+                            .fill(Color.white.opacity(0.04))
+                            .frame(height: 0.5)
+                    }
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(self.darkObsidian)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                    )
+            )
         }
     }
 
     private func installedAppRow(app: CoreHubInstalledAppItem) -> some View {
         HStack(spacing: 14) {
-            // App Icon
-            ZStack {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(self.deepMutedTeal.opacity(0.8))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .stroke(self.mutedCyan.opacity(0.35), lineWidth: 1)
-                    )
-                    .frame(width: 36, height: 36)
-
-                Image(systemName: app.icon)
-                    .font(.system(size: 16))
-                    .foregroundStyle(self.iceCyan)
-            }
-
-            // Title & Description
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 8) {
-                    Text(app.name)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.white)
-
-                    Text(app.version)
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(Color.white.opacity(0.5))
-                }
+            // Typography-First Meta: Title and Description (NO ICON BOX!)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(app.name)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
 
                 Text(app.description)
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.white.opacity(0.65))
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(Color.white.opacity(0.55))
                     .lineLimit(1)
             }
 
-            Spacer()
+            Spacer(minLength: 16)
 
-            // Status Dot + Text
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(app.isUpdateAvailable ? self.iceCyan : self.sageGreen)
-                    .frame(width: 7, height: 7)
-
-                Text(app.isUpdateAvailable ? "Update Available" : "Updated")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(app.isUpdateAvailable ? self.iceCyan : self.sageGreen)
-            }
-            .frame(width: 120, alignment: .leading)
-
-            // Action Buttons
-            if app.isUpdateAvailable {
-                // Filled Muted Cyan "Update this app" Button
-                Button(action: {
-                    self.updateApp(id: app.id)
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                            .font(.system(size: 10))
-                        Text("Update this app")
-                            .font(.system(size: 11, weight: .semibold))
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .foregroundStyle(.white)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(self.mutedCyan)
-                    )
-                }
-                .buttonStyle(.plain)
-            } else {
-                // Outline "Open" Button
-                Button(action: {
-                    self.openApp(id: app.id)
-                }) {
-                    Text("Open")
-                        .font(.system(size: 11, weight: .medium))
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 5)
-                        .foregroundStyle(Color.white.opacity(0.85))
-                        .background(
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .stroke(Color.white.opacity(0.25), lineWidth: 1)
-                        )
-                }
-                .buttonStyle(.plain)
-            }
-
-            // Overflow Menu Button (•••)
-            Menu {
-                Button("View Details") {}
-                Button("Inspect Manifest...") {}
-                Divider()
-                Button("Restart Service") {}
-                Button("Rollback to Previous Version") {}
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(Color.white.opacity(0.6))
-                    .frame(width: 24, height: 24)
-            }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .frame(width: 24)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(self.darkObsidian.opacity(0.55))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(Color.white.opacity(0.06), lineWidth: 1)
-                )
-        )
-    }
-
-    // 3. Available CoreHub Plugins & Skills Section
-    private var availablePackagesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(self.isID ? "PLUGIN & KEMAMPUAN TERSEDIA" : "AVAILABLE PLUGINS & SMART SKILLS")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(Color.white.opacity(0.85))
-
-                    Text(self.isID ? "TERVERIFIKASI & AMAN" : "VERIFIED & SAFE")
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                        .foregroundStyle(self.iceCyan)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(self.deepMutedTeal))
-
-                    Spacer()
-                }
-
-                Text(self.isID ? "Perluas kapabilitas asisten AI Anda dengan plugin saluran pesan dan kemampuan analisis cerdas yang aman terisolasi." : "Extend your AI assistant with messaging channel plugins and smart reasoning routines in a protected sandbox.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.white.opacity(0.6))
-            }
-
-            if self.filteredAvailablePackages.isEmpty {
-                Text(self.isID ? "Tidak ada plugin atau kemampuan yang cocok dengan filter saat ini." : "No available packages or skills match current filter criteria.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.white.opacity(0.5))
-                    .padding(.vertical, 8)
-            } else {
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                    ForEach(self.filteredAvailablePackages) { pkg in
-                        packageCard(pkg: pkg)
-                    }
-                }
-            }
-        }
-    }
-
-    private func packageCard(pkg: CoreHubPackageItem) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+            // Right Actions & Status
             HStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(self.deepMutedTeal.opacity(0.7))
-                        .frame(width: 30, height: 30)
+                // Status Dot + Text
+                HStack(spacing: 5) {
+                    Circle()
+                        .fill(app.isUpdateAvailable ? Color(red: 255/255.0, green: 189/255.0, blue: 46/255.0) : self.sageGreen)
+                        .frame(width: 6, height: 6)
 
-                    Image(systemName: pkg.icon)
-                        .font(.system(size: 14))
-                        .foregroundStyle(self.iceCyan)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(pkg.name)
-                        .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-
-                    HStack(spacing: 4) {
-                        // Tier Badge
-                        Text(pkg.tierBadge)
-                            .font(.system(size: 9, weight: .semibold))
-                            .foregroundStyle(pkg.tierBadge.contains("Tier A") ? self.iceCyan : self.sageGreen)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1)
-                            .background(
-                                Capsule()
-                                    .fill(pkg.tierBadge.contains("Tier A") ? self.deepMutedTeal : self.darkObsidian)
-                            )
-
-                        // 🔒 Locked Badge
-                        if pkg.isLocked {
-                            HStack(spacing: 2) {
-                                Image(systemName: "lock.fill")
-                                    .font(.system(size: 8))
-                                Text("Locked")
-                                    .font(.system(size: 9, weight: .medium))
-                            }
-                            .foregroundStyle(self.iceCyan)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1)
-                            .background(Capsule().fill(self.mutedCyan.opacity(0.35)))
-                        }
-
-                        // Wilson Score Badge (Strict Ergonomic Ice-Cyan)
-                        if let score = pkg.wilsonScore {
-                            HStack(spacing: 2) {
-                                Image(systemName: "star.fill")
-                                    .font(.system(size: 8))
-                                    .foregroundStyle(self.iceCyan)
-                                Text(String(format: "%.2f", score))
-                                    .font(.system(size: 9, weight: .bold))
-                                    .foregroundStyle(.white)
-                            }
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1)
-                            .background(Capsule().fill(Color.white.opacity(0.1)))
-                        }
-                    }
-                }
-
-                Spacer()
-            }
-
-            Text(pkg.description)
-                .font(.system(size: 11))
-                .foregroundStyle(Color.white.opacity(0.7))
-                .lineLimit(2)
-                .frame(minHeight: 30, alignment: .topLeading)
-
-            HStack {
-                Spacer()
-
-                if pkg.isInstalled {
-                    Text("Installed")
+                    Text(app.isUpdateAvailable ? (self.isID ? "Pembaruan \(app.version)" : "Update \(app.version)") : (self.isID ? "Terbaru" : "Updated"))
                         .font(.system(size: 11, weight: .medium))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .foregroundStyle(Color.white.opacity(0.6))
-                        .background(
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .stroke(Color.white.opacity(0.18), lineWidth: 1)
-                        )
-                } else if pkg.tierBadge.contains("Skill") {
+                        .foregroundStyle(app.isUpdateAvailable ? Color(red: 255/255.0, green: 189/255.0, blue: 46/255.0) : Color.white.opacity(0.65))
+                }
+                .frame(minWidth: 100, alignment: .trailing)
+
+                // Action Button
+                if app.isUpdateAvailable {
                     Button(action: {
-                        self.installPackage(id: pkg.id)
+                        self.updateApp(id: app.id)
                     }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.down.circle")
-                                .font(.system(size: 10))
-                            Text("Sync Skill")
-                                .font(.system(size: 11, weight: .semibold))
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .foregroundStyle(.white)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(self.mutedCyan.opacity(0.7))
-                        )
+                        Text(self.isID ? "Perbarui" : "Update")
+                            .font(.system(size: 11, weight: .semibold))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 5)
+                            .foregroundStyle(.white)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .fill(self.mutedCyan)
+                            )
                     }
                     .buttonStyle(.plain)
+                } else {
+                    Button(action: {
+                        self.openApp(id: app.id)
+                    }) {
+                        Text(self.isID ? "Buka" : "Open")
+                            .font(.system(size: 11, weight: .medium))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 5)
+                            .foregroundStyle(Color.white.opacity(0.85))
+                            .background(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                // Overflow Menu
+                Menu {
+                    Button(self.isID ? "Lihat Detail" : "View Details") {}
+                    Button(self.isID ? "Periksa Manifest..." : "Inspect Manifest...") {}
+                    Divider()
+                    Button(self.isID ? "Muat Ulang Layanan" : "Restart Service") {}
+                    Button(self.isID ? "Kembalikan ke Versi Sebelumnya" : "Rollback to Previous Version") {}
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Color.white.opacity(0.45))
+                        .frame(width: 24, height: 24)
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .frame(width: 24)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+    }
+
+    // 2. Available Catalog Section
+    private var availablePackagesSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(self.isID ? "PLUGIN & INTEGRASI TERSEDIA (KATALOG)" : "AVAILABLE PLUGINS & INTEGRATIONS (CATALOG)")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Color.white.opacity(0.42))
+                    .tracking(0.6)
+
+                Spacer()
+
+                Text(self.isID ? "Terverifikasi & Aman" : "Verified & Safe")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.white.opacity(0.4))
+            }
+
+            VStack(spacing: 0) {
+                ForEach(Array(self.filteredAvailablePackages.enumerated()), id: \.element.id) { index, pkg in
+                    availablePackageRow(pkg: pkg)
+
+                    if index < self.filteredAvailablePackages.count - 1 {
+                        Rectangle()
+                            .fill(Color.white.opacity(0.04))
+                            .frame(height: 0.5)
+                    }
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(self.darkObsidian)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                    )
+            )
+        }
+    }
+
+    private func availablePackageRow(pkg: CoreHubPackageItem) -> some View {
+        HStack(spacing: 14) {
+            // Typography-First Meta: Title and Description (NO ICON BOX!)
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 8) {
+                    Text(pkg.name)
+                        .font(.system(size: 13, weight: .semibold, design: pkg.name.hasPrefix("@") || pkg.name.hasPrefix("skill/") ? .monospaced : .default))
+                        .foregroundStyle(.white)
+
+                    // Only show badge if Community/Third-Party or has Wilson score! (NO redundant "Resmi" badge!)
+                    if pkg.tierBadge == "Komunitas" || pkg.wilsonScore != nil {
+                        HStack(spacing: 3) {
+                            Text(self.isID ? "Komunitas" : "Community")
+                                .font(.system(size: 9, weight: .medium))
+                            if let score = pkg.wilsonScore {
+                                Text("★ \(String(format: "%.2f", score))")
+                                    .font(.system(size: 9, weight: .bold))
+                            }
+                        }
+                        .foregroundStyle(Color.white.opacity(0.75))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 1.5)
+                        .background(
+                            Capsule()
+                                .fill(Color.white.opacity(0.08))
+                        )
+                    }
+                }
+
+                Text(pkg.description)
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(Color.white.opacity(0.55))
+                    .lineLimit(1)
+            }
+
+            Spacer(minLength: 16)
+
+            // Right Actions
+            HStack(spacing: 10) {
+                if pkg.isInstalled {
+                    Text(self.isID ? "Terpasang" : "Installed")
+                        .font(.system(size: 11, weight: .medium))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .foregroundStyle(Color.white.opacity(0.55))
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                        )
                 } else {
                     Button(action: {
                         self.installPackage(id: pkg.id)
                     }) {
                         HStack(spacing: 4) {
-                            Image(systemName: "plus.circle")
-                                .font(.system(size: 10))
-                            Text("Install")
+                            Text("+")
+                                .font(.system(size: 12, weight: .bold))
+                            Text(self.isID ? "Pasang" : "Install")
                                 .font(.system(size: 11, weight: .semibold))
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 5)
+                        .foregroundStyle(self.iceCyan)
                         .background(
                             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(self.mutedCyan)
+                                .fill(self.iceCyan.opacity(0.15))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .stroke(self.iceCyan.opacity(0.35), lineWidth: 1)
+                                )
                         )
                     }
                     .buttonStyle(.plain)
                 }
+
+                // Overflow Menu
+                Menu {
+                    Button(self.isID ? "Lihat Detail" : "View Details") {}
+                    Button(self.isID ? "Dokumentasi Plugin..." : "Plugin Documentation...") {}
+                    Divider()
+                    Button(self.isID ? "Salin Spesifikasi NPM" : "Copy NPM Spec") {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(pkg.name, forType: .string)
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Color.white.opacity(0.45))
+                        .frame(width: 24, height: 24)
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .frame(width: 24)
             }
         }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(self.darkObsidian.opacity(0.55))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                )
-        )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
     }
 }
 
