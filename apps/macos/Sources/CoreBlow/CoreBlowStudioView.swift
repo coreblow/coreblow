@@ -3630,7 +3630,6 @@ public struct StudioCoreHubManagerView: View {
 struct StudioAnchoredProfileMenuCard: View {
     @Bindable var viewModel: CoreBlowStudioViewModel
     @AppStorage("coreblow.studio.language") private var studioLanguage: String = "ID"
-    @State private var isRestartingMicrokernel: Bool = false
 
     // Option 1 Zero-Fatigue Palette
     private let darkObsidian = Color(red: 5/255.0, green: 13/255.0, blue: 18/255.0)    // #050D12
@@ -3669,9 +3668,9 @@ struct StudioAnchoredProfileMenuCard: View {
 
                     HStack(spacing: 5) {
                         Circle()
-                            .fill(self.isRestartingMicrokernel ? self.iceCyan : self.sageGreen)
+                            .fill(self.sageGreen)
                             .frame(width: 6, height: 6)
-                        Text(self.isRestartingMicrokernel ? (self.isID ? "Memuat ulang layanan..." : "Restarting service...") : (self.isID ? "CoreBlow Aktif · Siap Digunakan" : "CoreBlow Active · Online"))
+                        Text(self.isID ? "CoreBlow Aktif · Siap Digunakan" : "CoreBlow Active · Online")
                             .font(.system(size: 10, weight: .medium))
                             .foregroundStyle(Color.white.opacity(0.75))
                             .lineLimit(1)
@@ -3774,38 +3773,6 @@ struct StudioAnchoredProfileMenuCard: View {
                 ) {
                     self.close()
                     self.viewModel.showAPIKeysSheet = true
-                }
-            }
-            .padding(.vertical, 4)
-
-            self.hairlineDivider
-
-            // 4. Cluster 3: SESI & RUANG KERJA
-            VStack(alignment: .leading, spacing: 2) {
-                self.sectionLabel(self.isID ? "SESI & RUANG KERJA" : "SESSION & WORKSPACE")
-
-                self.menuRow(
-                    icon: "arrow.clockwise",
-                    title: self.isID ? "Muat Ulang Layanan AI" : "Reload AI Services"
-                ) {
-                    self.isRestartingMicrokernel = true
-                    Task {
-                        await GatewayConnection.shared.shutdown()
-                        try? await Task.sleep(nanoseconds: 450_000_000)
-                        await MainActor.run {
-                            self.isRestartingMicrokernel = false
-                            self.close()
-                        }
-                    }
-                }
-
-                self.menuRow(
-                    icon: "folder.badge.gearshape",
-                    title: self.isID ? "Buka Folder Kerja..." : "Open Workspace Folder...",
-                    shortcut: "⌘O"
-                ) {
-                    self.close()
-                    self.viewModel.openProjectFolderPicker()
                 }
             }
             .padding(.top, 4)
