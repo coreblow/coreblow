@@ -12,18 +12,23 @@ struct RootTabs: View {
 
     var body: some View {
         TabView(selection: self.$selectedTab) {
-            ScreenTab()
-                .tabItem { Label("Screen", systemImage: "rectangle.and.hand.point.up.left") }
+            CoryChatVoiceTab()
+                .tabItem { Label("Chat", systemImage: "message.fill") }
                 .tag(0)
 
-            VoiceTab()
-                .tabItem { Label("Voice", systemImage: "mic") }
+            WarRoomMonitorTab()
+                .tabItem { Label("War Room", systemImage: "person.3.fill") }
                 .tag(1)
 
-            SettingsTab()
-                .tabItem { Label("Settings", systemImage: "gearshape") }
+            PrGateApprovalTab()
+                .tabItem { Label("PR Approval", systemImage: "checkmark.shield.fill") }
                 .tag(2)
+
+            CoreHubGatewaySettingsTab()
+                .tabItem { Label("Settings", systemImage: "gearshape.fill") }
+                .tag(3)
         }
+        .tint(CoreBlowMobileTheme.iceCyan)
         .overlay(alignment: .topLeading) {
             StatusPill(
                 gateway: self.gatewayStatus,
@@ -33,7 +38,7 @@ struct RootTabs: View {
                     if self.gatewayStatus == .connected {
                         self.showGatewayActions = true
                     } else {
-                        self.selectedTab = 2
+                        self.selectedTab = 3
                     }
                 })
                 .padding(.leading, 10)
@@ -73,7 +78,7 @@ struct RootTabs: View {
         .gatewayActionsDialog(
             isPresented: self.$showGatewayActions,
             onDisconnect: { self.appModel.disconnectGateway() },
-            onOpenSettings: { self.selectedTab = 2 })
+            onOpenSettings: { self.selectedTab = 3 })
     }
 
     private var gatewayStatus: StatusPill.GatewayState {

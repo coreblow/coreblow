@@ -4,6 +4,7 @@ $(SRCROOT)/Sources/Components/*.swift
 $(SRCROOT)/Sources/ViewModels/*.swift
 $(SRCROOT)/Sources/Models/*.swift
 $(SRCROOT)/Sources/Services/*.swift
+$(SRCROOT)/Sources/Theme/*.swift
 $(SRCROOT)/Sources/Views/*.swift
 $(SRCROOT)/Sources/Coordinators/*.swift
 $(SRCROOT)/Sources/Extensions/*.swift

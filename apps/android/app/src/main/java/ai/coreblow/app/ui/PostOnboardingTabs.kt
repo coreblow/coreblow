@@ -20,10 +20,9 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ScreenShare
 import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -52,11 +51,10 @@ private enum class HomeTab(
   val label: String,
   val icon: ImageVector,
 ) {
-  Connect(label = "Connect", icon = Icons.Default.CheckCircle),
-  Chat(label = "Chat", icon = Icons.Default.ChatBubble),
-  Voice(label = "Voice", icon = Icons.Default.RecordVoiceOver),
-  Screen(label = "Screen", icon = Icons.AutoMirrored.Filled.ScreenShare),
-  Settings(label = "Settings", icon = Icons.Default.Settings),
+  Chat(label = "Cory Chat", icon = Icons.Default.ChatBubble),
+  WarRoom(label = "War Room", icon = Icons.Default.Group),
+  PrApproval(label = "PR Gate", icon = Icons.Default.CheckCircle),
+  Connect(label = "Gateway", icon = Icons.Default.Settings),
 }
 
 private enum class StatusVisual {
@@ -69,19 +67,14 @@ private enum class StatusVisual {
 
 @Composable
 fun PostOnboardingTabs(viewModel: MainViewModel, modifier: Modifier = Modifier) {
-  var activeTab by rememberSaveable { mutableStateOf(HomeTab.Connect) }
-  var chatTabStarted by rememberSaveable { mutableStateOf(false) }
-  var screenTabStarted by rememberSaveable { mutableStateOf(false) }
+  var activeTab by rememberSaveable { mutableStateOf(HomeTab.Chat) }
+  var chatTabStarted by rememberSaveable { mutableStateOf(true) }
 
-  // Stop TTS when user navigates away from voice tab, and lazily keep the Chat/Screen tabs
-  // alive after the first visit so repeated tab switches do not rebuild their UI trees.
+  // Lazily keep the Chat tab alive after the first visit so repeated tab switches do not rebuild its UI tree.
   LaunchedEffect(activeTab) {
-    viewModel.setVoiceScreenActive(activeTab == HomeTab.Voice)
+    viewModel.setVoiceScreenActive(false)
     if (activeTab == HomeTab.Chat) {
       chatTabStarted = true
-    }
-    if (activeTab == HomeTab.Screen) {
-      screenTabStarted = true
     }
   }
 
@@ -143,43 +136,13 @@ fun PostOnboardingTabs(viewModel: MainViewModel, modifier: Modifier = Modifier) 
         }
       }
 
-      if (screenTabStarted) {
-        ScreenTabScreen(
-          viewModel = viewModel,
-          visible = activeTab == HomeTab.Screen,
-          modifier =
-            Modifier
-              .matchParentSize()
-              .alpha(if (activeTab == HomeTab.Screen) 1f else 0f)
-              .zIndex(if (activeTab == HomeTab.Screen) 1f else 0f),
-        )
-      }
-
       when (activeTab) {
-        HomeTab.Connect -> ConnectTabScreen(viewModel = viewModel)
         HomeTab.Chat -> if (!chatTabStarted) ChatSheet(viewModel = viewModel)
-        HomeTab.Voice -> VoiceTabScreen(viewModel = viewModel)
-        HomeTab.Screen -> Unit
-        HomeTab.Settings -> SettingsSheet(viewModel = viewModel)
+        HomeTab.WarRoom -> WarRoomScreen(viewModel = viewModel)
+        HomeTab.PrApproval -> PrApprovalScreen(viewModel = viewModel)
+        HomeTab.Connect -> ConnectTabScreen(viewModel = viewModel)
       }
     }
-  }
-}
-
-@Composable
-private fun ScreenTabScreen(viewModel: MainViewModel, visible: Boolean, modifier: Modifier = Modifier) {
-  val isConnected by viewModel.isConnected.collectAsState()
-  var refreshedForCurrentConnection by rememberSaveable(isConnected) { mutableStateOf(false) }
-
-  LaunchedEffect(isConnected, visible, refreshedForCurrentConnection) {
-    if (visible && isConnected && !refreshedForCurrentConnection) {
-      viewModel.refreshHomeCanvasOverviewIfConnected()
-      refreshedForCurrentConnection = true
-    }
-  }
-
-  Box(modifier = modifier.fillMaxSize()) {
-    CanvasScreen(viewModel = viewModel, visible = visible, modifier = Modifier.fillMaxSize())
   }
 }
 
