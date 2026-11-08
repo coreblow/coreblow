@@ -2398,7 +2398,7 @@ public enum CoreHubCategory: String, CaseIterable, Identifiable {
         case .allApps: return "square.grid.2x2"
         case .updates: return "arrow.triangle.2.circlepath.circle"
         case .autonomousAgents: return "person.2.badge.gearshape"
-        case .evoLoopSkills: return "bolt.arrow.trianglehead.counterclockwise"
+        case .evoLoopSkills: return "sparkles"
         case .devTools: return "wrench.and.screwdriver"
         case .mcpBridges: return "network"
         case .memoryWiki: return "brain.head.profile"
@@ -2971,37 +2971,6 @@ public struct StudioCoreHubManagerView: View {
                         .offset(x: 4, y: -2)
                 }
             }
-
-            // Profile Avatar Chip (Toggles Anchored Profile Menu Card)
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    self.viewModel.isProfileMenuPresented.toggle()
-                }
-            }) {
-                ZStack(alignment: .bottomTrailing) {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [self.mutedCyan, self.deepMutedTeal],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 28, height: 28)
-                        .overlay(
-                            Text(self.viewModel.userInitials)
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white)
-                        )
-
-                    Circle()
-                        .fill(self.sageGreen)
-                        .frame(width: 7, height: 7)
-                        .overlay(Circle().stroke(self.darkObsidian, lineWidth: 1.5))
-                }
-            }
-            .buttonStyle(.plain)
-            .help("Account & Settings")
         }
         .padding(.horizontal, 18)
         .padding(.top, StudioSpacing.topbarHeight)
@@ -3244,6 +3213,7 @@ public struct StudioCoreHubManagerView: View {
             Text(text)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(Color.white.opacity(0.85))
+                .fixedSize(horizontal: true, vertical: false)
         }
         .padding(.horizontal, 9)
         .padding(.vertical, 4)
@@ -3252,6 +3222,7 @@ public struct StudioCoreHubManagerView: View {
                 .fill(self.darkObsidian.opacity(0.6))
                 .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 1))
         )
+        .fixedSize(horizontal: true, vertical: false)
     }
 
     // Empty Filter State View
@@ -3433,6 +3404,7 @@ public struct StudioCoreHubManagerView: View {
                     .frame(width: 24, height: 24)
             }
             .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
             .frame(width: 24)
         }
         .padding(.horizontal, 14)
@@ -3670,7 +3642,7 @@ struct StudioAnchoredProfileMenuCard: View {
                         Circle()
                             .fill(self.sageGreen)
                             .frame(width: 6, height: 6)
-                        Text(self.isID ? "CoreBlow Aktif · Siap Digunakan" : "CoreBlow Active · Online")
+                        Text(self.isID ? "Aktif · Mode Lokal" : "Online · Local Mode")
                             .font(.system(size: 10, weight: .medium))
                             .foregroundStyle(Color.white.opacity(0.75))
                             .lineLimit(1)
@@ -3689,7 +3661,7 @@ struct StudioAnchoredProfileMenuCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 self.sectionLabel(self.isID ? "PENGATURAN & TAMPILAN" : "PREFERENCES & DISPLAY")
 
-                self.menuRow(icon: "gearshape", title: "Settings...", shortcut: "⌘,") {
+                self.menuRow(icon: "gearshape", title: self.isID ? "Pengaturan..." : "Settings...", shortcut: "⌘,") {
                     self.close()
                     SettingsTabRouter.open(tab: .general)
                     SettingsWindowOpener.shared.open()
@@ -3702,7 +3674,7 @@ struct StudioAnchoredProfileMenuCard: View {
                         .foregroundStyle(Color.white.opacity(0.75))
                         .frame(width: 20, height: 20, alignment: .center)
 
-                    Text(self.isID ? "Bahasa / Language" : "Language")
+                    Text(self.isID ? "Bahasa" : "Language")
                         .font(.system(size: 12))
                         .foregroundStyle(.white)
 
@@ -3740,7 +3712,7 @@ struct StudioAnchoredProfileMenuCard: View {
 
                 self.menuRow(
                     icon: "questionmark.circle",
-                    title: self.isID ? "Panduan & Pintasan" : "Guides & Shortcuts",
+                    title: self.isID ? "Panduan & Bantuan" : "Guides & Help",
                     shortcut: "⇧⌘/"
                 ) {
                     self.close()
@@ -3759,7 +3731,7 @@ struct StudioAnchoredProfileMenuCard: View {
 
                 self.menuRow(
                     icon: "puzzlepiece.extension",
-                    title: self.isID ? "Toko Fitur & Plugin (CoreHub)" : "CoreHub Store (Plugins & Skills)",
+                    title: self.isID ? "Toko Fitur (CoreHub)" : "CoreHub Store",
                     shortcut: "⌘P"
                 ) {
                     self.close()
@@ -3768,18 +3740,19 @@ struct StudioAnchoredProfileMenuCard: View {
 
                 self.menuRow(
                     icon: "key.fill",
-                    title: self.isID ? "Kunci API Model AI" : "Provider API Keys",
+                    title: self.isID ? "Kunci AI (API Keys)" : "AI Keys (Config)",
                     shortcut: "⌘K"
                 ) {
                     self.close()
-                    self.viewModel.showAPIKeysSheet = true
+                    SettingsTabRouter.open(tab: .config)
+                    SettingsWindowOpener.shared.open()
                 }
             }
             .padding(.top, 4)
             .padding(.bottom, 6)
         }
         .padding(10)
-        .frame(width: 290)
+        .frame(width: 268)
         .background(
             ZStack {
                 VisualEffectView(material: .popover, blendingMode: .withinWindow)

@@ -11,73 +11,241 @@ import SwiftUI
 struct GeneralSettings: View {
     @State private var appState = AppStateStore.shared
     @AppStorage("coreblow.camera.enabled") private var cameraEnabled: Bool = false
+    @AppStorage("coreblow.studio.language") private var studioLanguage: String = "ID"
+    @AppStorage("coreblow.fullAccess") private var fullAccess: Bool = true
+    @AppStorage("coreblow.defaultWorkspacePerms") private var defaultWorkspacePerms: Bool = true
+    @State private var showAdvancedOptions: Bool = false
     @State private var gatewayStatus: GatewayStatusKind = .checking
     @State private var remoteStatus: RemoteTestStatus = .idle
     @State private var showRemoteAdvanced = false
 
     private let remoteLabelWidth: CGFloat = 88
+    private var isID: Bool { self.studioLanguage == "ID" }
 
     init(state _: AppState? = nil) {}
 
     var body: some View {
         ScrollView(.vertical) {
-            VStack(alignment: .leading, spacing: 18) {
-                VStack(alignment: .leading, spacing: 12) {
-                    SettingsToggleRow(
-                        title: "CoreBlow active",
-                        subtitle: "Pause to stop the CoreBlow gateway; no messages will be processed.",
-                        isOn: Binding(
-                            get: { !appState.isPaused },
-                            set: { appState.isPaused = !$0 }))
+            VStack(alignment: .leading, spacing: 20) {
+                // Card 1: STATUS & MODE LAYANAN (SERVICE MODE)
+                VStack(alignment: .leading, spacing: 6) {
+                    StudioSettingsCardHeader(self.isID ? "STATUS & MODE LAYANAN" : "SERVICE MODE")
+                    StudioSettingsCard {
+                        StudioSettingsRow(
+                            title: self.isID ? "CoreBlow Aktif" : "CoreBlow Active",
+                            subtitle: self.isID ? "Jeda layanan untuk menghentikan pemrosesan pesan." : "Pause to stop processing messages."
+                        ) {
+                            StudioToggleSwitch(
+                                isOn: Binding(
+                                    get: { !self.appState.isPaused },
+                                    set: { self.appState.isPaused = !$0 }
+                                )
+                            )
+                        }
 
-                    connectionSection
+                        StudioSettingsDivider()
 
-                    Divider()
+                        StudioSettingsRow(
+                            title: self.isID ? "Mode Layanan" : "Connection Mode",
+                            subtitle: self.isID ? "Pilih apakah CoreBlow berjalan mandiri di Mac ini (Lokal) atau terhubung ke server remote." : "Choose whether CoreBlow runs locally on this Mac or connects to a remote server."
+                        ) {
+                            Picker("Mode", selection: self.$appState.connectionMode) {
+                                Text(self.isID ? "Belum Dikonfigurasi" : "Not configured").tag(AppState.ConnectionMode.unconfigured)
+                                Text(self.isID ? "Lokal (Mac ini)" : "Local (this Mac)").tag(AppState.ConnectionMode.local)
+                                Text(self.isID ? "Remote (Server luar)" : "Remote (another host)").tag(AppState.ConnectionMode.remote)
+                            }
+                            .pickerStyle(.menu)
+                            .labelsHidden()
+                            .frame(width: 175)
+                        }
 
-                    SettingsToggleRow(
-                        title: "Launch at login",
-                        subtitle: "Automatically start CoreBlow after you sign in.",
-                        isOn: $appState.launchAtLogin)
+                        if self.appState.connectionMode == .unconfigured {
+                            StudioSettingsDivider()
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(self.isID ? "Layanan belum aktif" : "Service not started")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundStyle(Color(red: 255/255.0, green: 180/255.0, blue: 70/255.0))
+                                    Text(self.isID ? "Klik tombol di kanan untuk langsung mengaktifkan Mode Lokal di Mac ini." : "Click activate to immediately start CoreBlow in Local Mode on this Mac.")
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(Color.white.opacity(0.55))
+                                }
+                                Spacer()
+                                Button(self.isID ? "Aktifkan Mode Lokal" : "Activate Local Mode") {
+                                    self.appState.connectionMode = .local
+                                    Task {
+                                        await ConnectionModeCoordinator.shared.apply(mode: .local, paused: self.appState.isPaused)
+                                    }
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                        } else if self.appState.connectionMode == .local {
+                            StudioSettingsDivider()
+                            self.healthRow
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                        } else if self.appState.connectionMode == .remote {
+                            StudioSettingsDivider()
+                            self.remoteCard
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                        }
+                    }
+                }
 
-                    SettingsToggleRow(
-                        title: "Show Dock icon",
-                        subtitle: "Keep CoreBlow visible in the Dock instead of menu-bar-only mode.",
-                        isOn: $appState.showDockIcon)
+                // Card 2: IZIN KERJA ASISTEN (PERMISSIONS)
+                VStack(alignment: .leading, spacing: 6) {
+                    StudioSettingsCardHeader(self.isID ? "IZIN KERJA ASISTEN" : "PERMISSIONS")
+                    StudioSettingsCard {
+                        StudioSettingsRow(
+                            title: self.isID ? "Izin Standar Workspace" : "Default permissions",
+                            subtitle: self.isID ? "Secara default, asisten dapat membaca dan menyunting berkas di folder proyek yang Anda pilih." : "By default, CoreBlow can read and edit files in its workspace. It can ask for additional access when needed."
+                        ) {
+                            StudioToggleSwitch(isOn: self.$defaultWorkspacePerms)
+                        }
 
-                    SettingsToggleRow(
-                        title: "Play menu bar icon animations",
-                        subtitle: "Enable idle blinks and wiggles on the status icon.",
-                        isOn: $appState.iconAnimationsEnabled)
+                        StudioSettingsDivider()
 
-                    SettingsToggleRow(
-                        title: "Allow Canvas",
-                        subtitle: "Allow the agent to show and control the Canvas panel.",
-                        isOn: $appState.canvasEnabled)
+                        StudioSettingsRow(
+                            title: self.isID ? "Akses Penuh (Full access)" : "Full access",
+                            subtitle: self.isID ? "Mengizinkan eksekusi perintah terminal mandiri dan akses jaringan tanpa meminta persetujuan berulang." : "When CoreBlow runs with full access, it can edit files and run commands without repeated approval."
+                        ) {
+                            StudioToggleSwitch(isOn: self.$fullAccess)
+                        }
+                    }
+                }
 
-                    SettingsToggleRow(
-                        title: "Allow Camera",
-                        subtitle: "Allow the agent to capture a photo or short video via the built-in camera.",
-                        isOn: $cameraEnabled)
+                // Card 3: PREFERENSI UMUM (GENERAL PREFERENCES)
+                VStack(alignment: .leading, spacing: 6) {
+                    StudioSettingsCardHeader(self.isID ? "PREFERENSI UMUM" : "GENERAL PREFERENCES")
+                    StudioSettingsCard {
+                        StudioSettingsRow(
+                            title: self.isID ? "Lokasi Obrolan Bebas Proyek" : "Projectless chat folder",
+                            subtitle: self.isID ? "Lokasi penyimpanan riwayat percakapan harian yang dimulai di luar proyek." : "Where chats started outside of projects store their conversation data by default."
+                        ) {
+                            HStack(spacing: 8) {
+                                Text("~/.coreblow/chats")
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .foregroundStyle(Color.white.opacity(0.6))
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(RoundedRectangle(cornerRadius: 5).fill(Color.white.opacity(0.04)))
 
-                    SettingsToggleRow(
-                        title: "Enable Peekaboo Bridge",
-                        subtitle: "Allow signed tools (e.g. `peekaboo`) to drive UI automation via PeekabooBridge.",
-                        isOn: $appState.peekabooBridgeEnabled)
+                                Button(self.isID ? "Ubah" : "Change") {
+                                    let panel = NSOpenPanel()
+                                    panel.canChooseFiles = false
+                                    panel.canChooseDirectories = true
+                                    panel.allowsMultipleSelection = false
+                                    _ = panel.runModal()
+                                }
+                                .buttonStyle(.bordered)
+                                .font(.system(size: 11))
+                            }
+                        }
 
-                    SettingsToggleRow(
-                        title: "Enable debug tools",
-                        subtitle: "Show the Debug tab with development utilities.",
-                        isOn: $appState.debugPaneEnabled)
+                        StudioSettingsDivider()
+
+                        StudioSettingsRow(
+                            title: self.isID ? "Bahasa Antarmuka (Language)" : "Language",
+                            subtitle: self.isID ? "Pilih bahasa tampilan untuk antarmuka pengguna CoreBlow Studio." : "Language for the CoreBlow Studio user interface."
+                        ) {
+                            Picker("Language", selection: self.$studioLanguage) {
+                                Text("Bahasa Indonesia").tag("ID")
+                                Text("English").tag("EN")
+                            }
+                            .pickerStyle(.menu)
+                            .labelsHidden()
+                            .frame(width: 155)
+                        }
+
+                        StudioSettingsDivider()
+
+                        StudioSettingsRow(
+                            title: self.isID ? "Jalankan Otomatis saat Login" : "Launch at login",
+                            subtitle: self.isID ? "Otomatis memulai layanan CoreBlow setelah Anda masuk ke macOS." : "Automatically start CoreBlow after you sign in."
+                        ) {
+                            StudioToggleSwitch(isOn: self.$appState.launchAtLogin)
+                        }
+
+                        StudioSettingsDivider()
+
+                        StudioSettingsRow(
+                            title: self.isID ? "Tampilkan Ikon di Dock" : "Show Dock icon",
+                            subtitle: self.isID ? "Tampilkan ikon CoreBlow di Dock macOS (selain di Menu Bar)." : "Keep CoreBlow visible in the Dock instead of menu-bar-only mode."
+                        ) {
+                            StudioToggleSwitch(isOn: self.$appState.showDockIcon)
+                        }
+
+                        StudioSettingsDivider()
+
+                        StudioSettingsRow(
+                            title: self.isID ? "Animasi Ikon Menu Bar" : "Play menu bar icon animations",
+                            subtitle: self.isID ? "Aktifkan animasi kedipan halus pada ikon status bilah menu." : "Enable idle blinks and wiggles on the status icon."
+                        ) {
+                            StudioToggleSwitch(isOn: self.$appState.iconAnimationsEnabled)
+                        }
+                    }
+                }
+
+                // Card 4: PENGATURAN LANJUTAN (ADVANCED DEVELOPER OPTIONS)
+                VStack(alignment: .leading, spacing: 6) {
+                    DisclosureGroup(isExpanded: self.$showAdvancedOptions) {
+                        StudioSettingsCard {
+                            StudioSettingsRow(
+                                title: self.isID ? "Izinkan Canvas Panel" : "Allow Canvas",
+                                subtitle: self.isID ? "Izinkan asisten untuk menampilkan dan mengontrol kanvas visual interaktif." : "Allow the agent to show and control the Canvas panel."
+                            ) {
+                                StudioToggleSwitch(isOn: self.$appState.canvasEnabled)
+                            }
+
+                            StudioSettingsDivider()
+
+                            StudioSettingsRow(
+                                title: self.isID ? "Izinkan Kamera" : "Allow Camera",
+                                subtitle: self.isID ? "Izinkan asisten mengambil foto untuk analisis visual dengan kamera Mac." : "Allow the agent to capture a photo or short video via the built-in camera."
+                            ) {
+                                StudioToggleSwitch(isOn: self.$cameraEnabled)
+                            }
+
+                            StudioSettingsDivider()
+
+                            StudioSettingsRow(
+                                title: self.isID ? "Jembatan Otomasi UI (Peekaboo)" : "Enable Peekaboo Bridge",
+                                subtitle: self.isID ? "Izinkan alat otomatisasi antarmuka macOS untuk tugas operasional." : "Allow signed tools to drive UI automation via PeekabooBridge."
+                            ) {
+                                StudioToggleSwitch(isOn: self.$appState.peekabooBridgeEnabled)
+                            }
+
+                            StudioSettingsDivider()
+
+                            StudioSettingsRow(
+                                title: self.isID ? "Aktifkan Tab Debug" : "Enable debug tools",
+                                subtitle: self.isID ? "Tampilkan tab diagnostik dan inspeksi log developer di bilah pengaturan." : "Show the Debug tab with development utilities."
+                            ) {
+                                StudioToggleSwitch(isOn: self.$appState.debugPaneEnabled)
+                            }
+                        }
+                        .padding(.top, 4)
+                    } label: {
+                        Text(self.isID ? "PENGATURAN LANJUTAN (DEVELOPER OPTIONS)" : "ADVANCED DEVELOPER OPTIONS")
+                            .font(.system(size: 10.5, weight: .bold, design: .monospaced))
+                            .foregroundStyle(Color.white.opacity(0.42))
+                    }
                 }
 
                 Spacer(minLength: 12)
+
+                // Footer Quit Button
                 HStack {
                     Spacer()
                     Button(action: { NSApp.terminate(nil) }) {
                         HStack(spacing: 6) {
                             Image(systemName: "power")
                                 .font(.system(size: 11, weight: .semibold))
-                            Text("Quit CoreBlow")
+                            Text(self.isID ? "Keluar dari CoreBlow" : "Quit CoreBlow")
                                 .font(.system(size: 12, weight: .semibold))
                         }
                         .foregroundStyle(Color(red: 255/255.0, green: 120/255.0, blue: 120/255.0))
@@ -95,12 +263,11 @@ struct GeneralSettings: View {
                     .buttonStyle(.plain)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 22)
-            .padding(.bottom, 16)
+            .padding(.vertical, 16)
         }
-        .onAppear { refreshGatewayStatus() }
-        .onChange(of: appState.canvasEnabled) { _, enabled in
+        .onAppear { self.refreshGatewayStatus() }
+        .onChange(of: self.appState.canvasEnabled) { _, enabled in
             if !enabled {
                 CanvasManager.shared.hideAll()
             }

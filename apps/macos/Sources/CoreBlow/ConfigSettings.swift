@@ -1,7 +1,160 @@
 import SwiftUI
 import OSLog
 import CoreBlowKit
-import OSLog
+
+// MARK: - Sovereign Provider API Keys & Config View
+
+@MainActor
+struct StudioAPIKeysAndConfigView: View {
+    @Bindable var store: ChannelsStore
+    @AppStorage("coreblow.custom.url") private var customUrl: String = ""
+    @AppStorage("coreblow.custom.key") private var customKey: String = ""
+    @AppStorage("coreblow.anthropic.key") private var anthropicKey: String = ""
+    @AppStorage("coreblow.openai.key") private var openaiKey: String = ""
+    @AppStorage("coreblow.gemini.key") private var geminiKey: String = ""
+    @AppStorage("coreblow.groq.key") private var groqKey: String = ""
+    @AppStorage("coreblow.ollama.url") private var ollamaUrl: String = "http://127.0.0.1:11434"
+    @AppStorage("coreblow.studio.language") private var studioLanguage: String = "ID"
+    @State private var showAdvancedJson: Bool = false
+
+    private var isID: Bool { self.studioLanguage == "ID" }
+
+    init(store: ChannelsStore = .shared) {
+        self.store = store
+    }
+
+    var body: some View {
+        ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 20) {
+                // Card 1: PROVIDER API KEYS & LOCAL ENDPOINTS
+                VStack(alignment: .leading, spacing: 6) {
+                    StudioSettingsCardHeader(self.isID ? "KUNCI API PENYEDIA & ENDPOINT MODEL" : "PROVIDER API KEYS & ENDPOINTS")
+                    StudioSettingsCard {
+                        StudioSettingsRow(
+                            title: "Custom Base URL / 9Router Proxy",
+                            subtitle: self.isID ? "URL basis API kustom (OpenAI-compatible) atau endpoint proxy 9Router lokal." : "Custom OpenAI-compatible base URL or local 9Router proxy endpoint."
+                        ) {
+                            TextField("http://127.0.0.1:20128/v1", text: self.$customUrl)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 11, design: .monospaced))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.06)))
+                                .frame(width: 260)
+                        }
+
+                        StudioSettingsDivider()
+
+                        StudioSettingsRow(
+                            title: "Custom API Key / Bearer Token",
+                            subtitle: self.isID ? "Token autentikasi untuk base URL kustom atau endpoint proxy." : "Authorization token for custom base URL or proxy endpoint."
+                        ) {
+                            SecureField("sk-...", text: self.$customKey)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 11, design: .monospaced))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.06)))
+                                .frame(width: 260)
+                        }
+
+                        StudioSettingsDivider()
+
+                        StudioSettingsRow(
+                            title: "Anthropic Claude API Key",
+                            subtitle: self.isID ? "Digunakan untuk penalaran arsitektural Tier 1 (Claude 3.7 Sonnet / Opus)." : "Used for Tier 1 architectural reasoning (Claude 3.7 Sonnet / Opus)."
+                        ) {
+                            SecureField("sk-ant-...", text: self.$anthropicKey)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 11, design: .monospaced))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.06)))
+                                .frame(width: 260)
+                        }
+
+                        StudioSettingsDivider()
+
+                        StudioSettingsRow(
+                            title: "OpenAI GPT-4o / o1 API Key",
+                            subtitle: self.isID ? "Digunakan untuk Tier 2 coding dan penalaran logika." : "Used for Tier 2 coding and logic reasoning."
+                        ) {
+                            SecureField("sk-proj-...", text: self.$openaiKey)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 11, design: .monospaced))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.06)))
+                                .frame(width: 260)
+                        }
+
+                        StudioSettingsDivider()
+
+                        StudioSettingsRow(
+                            title: "Google Gemini 2.0 API Key",
+                            subtitle: self.isID ? "Digunakan untuk Tier 3 konteks panjang dan pemahaman multimodal." : "Used for Tier 3 long-context and multimodal understanding."
+                        ) {
+                            SecureField("AIzaSy...", text: self.$geminiKey)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 11, design: .monospaced))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.06)))
+                                .frame(width: 260)
+                        }
+
+                        StudioSettingsDivider()
+
+                        StudioSettingsRow(
+                            title: "Groq (Llama 3.3) API Key",
+                            subtitle: self.isID ? "Inference berkecepatan ultra-tinggi untuk respons cepat." : "Ultra fast inference for rapid micro-responses."
+                        ) {
+                            SecureField("gsk_...", text: self.$groqKey)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 11, design: .monospaced))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.06)))
+                                .frame(width: 260)
+                        }
+
+                        StudioSettingsDivider()
+
+                        StudioSettingsRow(
+                            title: "Ollama Local Engine URL",
+                            subtitle: self.isID ? "Endpoint model lokal di mesin ini tanpa memerlukan koneksi internet." : "Local engine endpoint on this machine without internet."
+                        ) {
+                            TextField("http://127.0.0.1:11434", text: self.$ollamaUrl)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 11, design: .monospaced))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.06)))
+                                .frame(width: 260)
+                        }
+                    }
+                }
+
+                // Card 2: ADVANCED JSON CONFIG EDITOR
+                VStack(alignment: .leading, spacing: 6) {
+                    DisclosureGroup(isExpanded: self.$showAdvancedJson) {
+                        ConfigSettings(store: self.store)
+                            .frame(minHeight: 400)
+                            .padding(.top, 6)
+                    } label: {
+                        Text(self.isID ? "EDITOR KONFIGURASI JSON TINGKAT LANJUT" : "ADVANCED JSON CONFIG EDITOR")
+                            .font(.system(size: 10.5, weight: .bold, design: .monospaced))
+                            .foregroundStyle(Color.white.opacity(0.42))
+                    }
+                }
+            }
+            .padding(.horizontal, 22)
+            .padding(.vertical, 16)
+        }
+    }
+}
+
+// MARK: - Legacy ConfigSettings
 
 @MainActor
 struct ConfigSettings: View {
