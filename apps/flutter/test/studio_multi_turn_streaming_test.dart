@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -263,6 +264,116 @@ void main() {
       viewModel.dispose();
     });
 
+    test('Thread switching during active stream updates background thread without losing messages or state', () async {
+      final oldOverrides = HttpOverrides.current;
+      HttpOverrides.global = null;
+      addTearDown(() => HttpOverrides.global = oldOverrides);
+
+      final allowDoneCompleter = Completer<void>();
+
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      server.listen((HttpRequest request) async {
+        await request.drain();
+        request.response.statusCode = HttpStatus.ok;
+        request.response.bufferOutput = false;
+        request.response.headers.contentType = ContentType('text', 'event-stream', charset: 'utf-8');
+        request.response.write('data: {"choices":[{"delta":{"content":"Chunk 1 "}}]}\n\n');
+        await request.response.flush();
+
+        await allowDoneCompleter.future;
+        request.response.write('data: {"choices":[{"delta":{"content":"Chunk 2"}}]}\n\n');
+        request.response.write('data: [DONE]\n\n');
+        await request.response.close();
+      });
+
+      addTearDown(() async {
+        await server.close(force: true);
+      });
+
+      final viewModel = StudioViewModel();
+      viewModel.customEndpointUrl = 'http://${server.address.host}:${server.port}/v1';
+      viewModel.customApiKey = 'mock-api-key'; // pragma: allowlist secret
+
+      final chunkCompleter = Completer<void>();
+      void chunkListener() {
+        if (viewModel.messages.isNotEmpty && viewModel.messages.last.content.contains('Chunk 1')) {
+          if (!chunkCompleter.isCompleted) chunkCompleter.complete();
+        }
+      }
+      viewModel.addListener(chunkListener);
+
+      // Thread A: Start streaming
+      viewModel.inputController.text = 'Task on Thread A';
+      final sendFuture = viewModel.sendMessage();
+      final threadAId = viewModel.activeThreadId!;
+
+      // Wait until Chunk 1 actually arrived and updated the UI
+      await chunkCompleter.future;
+      viewModel.removeListener(chunkListener);
+
+      expect(viewModel.messages.last.content, contains('Chunk 1'));
+      expect(viewModel.messages.last.isStreaming, isTrue);
+
+      // Now user switches to a brand new chat (Thread B) while Thread A is still streaming
+      viewModel.startNewChat();
+      expect(viewModel.activeThreadId, isNull);
+      expect(viewModel.messages.isEmpty, isTrue);
+
+      // Allow Thread A to complete in the background
+      allowDoneCompleter.complete();
+      await sendFuture;
+
+      // Verify thread A in _recentThreads received the complete message and finalized
+      final threadA = viewModel.recentThreads.firstWhere((t) => t.id == threadAId);
+      expect(threadA.messages.length, 2);
+      expect(threadA.messages[1].content, 'Chunk 1 Chunk 2');
+      expect(threadA.messages[1].isStreaming, isFalse);
+      expect(threadA.messages[1].trace, contains('Custom Gateway'));
+
+      // Switch back to Thread A and verify all content is present
+      viewModel.selectThread(threadAId);
+      expect(viewModel.messages.length, 2);
+      expect(viewModel.messages[1].content, 'Chunk 1 Chunk 2');
+      expect(viewModel.messages[1].isStreaming, isFalse);
+
+      viewModel.dispose();
+    });
+
+    test('reasoning_content in SSE chunk is streamed and decoded', () async {
+      final oldOverrides = HttpOverrides.current;
+      HttpOverrides.global = null;
+      addTearDown(() => HttpOverrides.global = oldOverrides);
+
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      server.listen((HttpRequest request) async {
+        request.response.statusCode = HttpStatus.ok;
+        request.response.headers.contentType = ContentType('text', 'event-stream', charset: 'utf-8');
+        request.response.write('data: {"choices":[{"delta":{"reasoning_content":"Thinking steps..."}}]}\n\n');
+        await request.response.flush();
+        request.response.write('data: {"choices":[{"delta":{"content":" Final answer."}}]}\n\n');
+        request.response.write('data: [DONE]\n\n');
+        await request.response.close();
+      });
+
+      addTearDown(() async {
+        await server.close(force: true);
+      });
+
+      final viewModel = StudioViewModel();
+      viewModel.customEndpointUrl = 'http://${server.address.host}:${server.port}/v1';
+      viewModel.customApiKey = 'mock-api-key'; // pragma: allowlist secret
+
+      viewModel.inputController.text = 'Solve puzzle';
+      await viewModel.sendMessage();
+
+      expect(viewModel.messages.length, 2);
+      expect(viewModel.messages[1].content, 'Thinking steps... Final answer.');
+      expect(viewModel.messages[1].isStreaming, isFalse);
+      expect(viewModel.messages[1].trace, contains('TTFT'));
+
+      viewModel.dispose();
+    });
+
     testWidgets('StudioCanvasView auto-scrolls to bottom when messages update or stream', (WidgetTester tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
@@ -293,6 +404,19 @@ void main() {
 
       expect(find.textContaining('CoreBlow Microkernel'), findsOneWidget);
       expect(find.textContaining('All 5 Pre-Flight Landing Gates are green'), findsOneWidget);
+
+      // Add multiple messages to force ListView overflow and test scroll position
+      for (int i = 0; i < 6; i++) {
+        viewModel.inputController.text = 'Overflow message $i with plenty of extra descriptive text lines to force layout expansion and scrolling.';
+        unawaited(viewModel.sendMessage());
+        await tester.pump(const Duration(milliseconds: 350));
+        await tester.pumpAndSettle();
+      }
+
+      final scrollableFinder = find.byType(Scrollable).first;
+      final scrollableState = tester.state<ScrollableState>(scrollableFinder);
+      expect(scrollableState.position.maxScrollExtent, greaterThan(0));
+      expect(scrollableState.position.pixels, closeTo(scrollableState.position.maxScrollExtent, 2.0));
 
       viewModel.dispose();
     });

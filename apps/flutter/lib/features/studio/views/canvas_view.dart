@@ -32,6 +32,9 @@ class _StudioCanvasViewState extends State<StudioCanvasView> {
         ? widget.viewModel.messages.last.content.length
         : 0;
     widget.viewModel.addListener(_onViewModelChanged);
+    if (widget.viewModel.messages.isNotEmpty) {
+      _jumpToBottom();
+    }
   }
 
   @override
@@ -65,14 +68,30 @@ class _StudioCanvasViewState extends State<StudioCanvasView> {
         : 0;
     final currentThreadId = widget.viewModel.activeThreadId;
 
-    if (currentCount != _lastMessageCount ||
-        currentContentLength != _lastContentLength ||
-        currentThreadId != _lastThreadId) {
+    final hasThreadSwitched = currentThreadId != _lastThreadId;
+    final hasMessageCountChanged = currentCount != _lastMessageCount;
+    final hasContentLengthChanged = currentContentLength != _lastContentLength;
+
+    if (hasThreadSwitched || hasMessageCountChanged || hasContentLengthChanged) {
       _lastMessageCount = currentCount;
       _lastContentLength = currentContentLength;
       _lastThreadId = currentThreadId;
-      _scrollToBottom();
+
+      if (hasThreadSwitched) {
+        _jumpToBottom();
+      } else {
+        _scrollToBottom();
+      }
     }
+  }
+
+  void _jumpToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      }
+    });
   }
 
   void _scrollToBottom() {
@@ -83,7 +102,7 @@ class _StudioCanvasViewState extends State<StudioCanvasView> {
         if ((_scrollController.position.pixels - maxScroll).abs() > 1.0) {
           _scrollController.animateTo(
             maxScroll,
-            duration: const Duration(milliseconds: 150),
+            duration: const Duration(milliseconds: 100),
             curve: Curves.easeOut,
           );
         }

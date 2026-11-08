@@ -170,6 +170,8 @@ class StudioViewModel extends ChangeNotifier {
 
   bool _isGenerating = false;
   bool get isGenerating => _isGenerating;
+  String? _generatingThreadId;
+  String? get generatingThreadId => _generatingThreadId;
 
   bool get canSendMessage => inputController.text.trim().isNotEmpty && !_isGenerating;
 
@@ -444,7 +446,9 @@ class StudioViewModel extends ChangeNotifier {
     if (thread.id.isNotEmpty) {
       _activeThreadId = thread.id;
       _messages.clear();
-      thread.messages.removeWhere((m) => m.isStreaming && m.content == '...');
+      if (_generatingThreadId != thread.id) {
+        thread.messages.removeWhere((m) => m.isStreaming && m.content == '...');
+      }
       _messages.addAll(thread.messages);
       _activeNavTab = StudioNavTab.home;
       _isSettingsOpen = false;
@@ -452,7 +456,10 @@ class StudioViewModel extends ChangeNotifier {
     }
   }
 
-  List<Map<String, String>> buildConversationPayload({String? currentAssistantMsgId}) {
+  List<Map<String, String>> buildConversationPayload({
+    String? currentAssistantMsgId,
+    String? threadId,
+  }) {
     final systemPrompt = [
       'You are CoreBlow Studio AI Assistant, an interactive software engineering assistant.',
       'Active Language: $_language',
@@ -470,11 +477,19 @@ class StudioViewModel extends ChangeNotifier {
       },
     ];
 
-    for (final msg in _messages) {
+    final messagesSource = threadId != null
+        ? (_recentThreads.firstWhere(
+            (t) => t.id == threadId,
+            orElse: () => StudioThread(id: '', title: '', createdAt: DateTime.now(), messages: _messages),
+          ).messages)
+        : _messages;
+
+    for (final msg in messagesSource) {
       if (currentAssistantMsgId != null && msg.id == currentAssistantMsgId) {
         continue;
       }
-      if (msg.isStreaming && msg.content == '...') {
+      final trimmedContent = msg.content.trim();
+      if (trimmedContent.isEmpty || trimmedContent == '...') {
         continue;
       }
       payload.add({
@@ -487,33 +502,63 @@ class StudioViewModel extends ChangeNotifier {
   }
 
   void _updateAssistantMessage({
+    required String targetThreadId,
     required String id,
     required String content,
     required String trace,
     required bool isStreaming,
   }) {
-    final idx = _messages.indexWhere((m) => m.id == id);
-    if (idx != -1) {
+    // 1. Always update the originating thread in _recentThreads
+    final threadIdx = _recentThreads.indexWhere((t) => t.id == targetThreadId);
+    if (threadIdx != -1) {
+      final targetThread = _recentThreads[threadIdx];
+      final tMsgIdx = targetThread.messages.indexWhere((m) => m.id == id);
+      final prevTimestamp = tMsgIdx != -1
+          ? targetThread.messages[tMsgIdx].timestamp
+          : DateTime.now();
       final updatedMsg = StudioMessage(
         id: id,
         sender: 'assistant',
         content: content,
-        timestamp: _messages[idx].timestamp,
+        timestamp: prevTimestamp,
         trace: trace,
         isStreaming: isStreaming,
       );
-      _messages[idx] = updatedMsg;
+      if (tMsgIdx != -1) {
+        targetThread.messages[tMsgIdx] = updatedMsg;
+      } else {
+        targetThread.messages.add(updatedMsg);
+      }
+    }
 
-      if (_activeThreadId != null) {
-        final threadIdx = _recentThreads.indexWhere((t) => t.id == _activeThreadId);
+    // 2. If the user is currently viewing targetThreadId, update _messages
+    if (_activeThreadId == targetThreadId) {
+      final idx = _messages.indexWhere((m) => m.id == id);
+      if (idx != -1) {
+        _messages[idx] = StudioMessage(
+          id: id,
+          sender: 'assistant',
+          content: content,
+          timestamp: _messages[idx].timestamp,
+          trace: trace,
+          isStreaming: isStreaming,
+        );
+      } else {
+        // Recover if user switched back to this generating thread
+        final threadIdx = _recentThreads.indexWhere((t) => t.id == targetThreadId);
         if (threadIdx != -1) {
-          final activeThread = _recentThreads[threadIdx];
-          final tMsgIdx = activeThread.messages.indexWhere((m) => m.id == id);
-          if (tMsgIdx != -1) {
-            activeThread.messages[tMsgIdx] = updatedMsg;
-          } else {
-            activeThread.messages.add(updatedMsg);
-          }
+          final tMsg = _recentThreads[threadIdx].messages.firstWhere(
+            (m) => m.id == id,
+            orElse: () => StudioMessage(
+              id: id,
+              sender: 'assistant',
+              content: content,
+              timestamp: DateTime.now(),
+              trace: trace,
+              isStreaming: isStreaming,
+            ),
+          );
+          _messages.add(tMsg);
         }
       }
     }
@@ -534,24 +579,27 @@ class StudioViewModel extends ChangeNotifier {
     inputController.clear();
 
     // Ensure thread exists
+    late final String currentThreadId;
     if (_activeThreadId == null) {
-      final threadId = DateTime.now().millisecondsSinceEpoch.toString();
+      currentThreadId = DateTime.now().millisecondsSinceEpoch.toString();
       final newThread = StudioThread(
-        id: threadId,
+        id: currentThreadId,
         title: text.length > 28 ? '${text.substring(0, 28)}...' : text,
         createdAt: DateTime.now(),
         messages: [userMsg],
       );
       _recentThreads.insert(0, newThread);
-      _activeThreadId = threadId;
+      _activeThreadId = currentThreadId;
     } else {
-      final active = _recentThreads.firstWhere((t) => t.id == _activeThreadId);
+      currentThreadId = _activeThreadId!;
+      final active = _recentThreads.firstWhere((t) => t.id == currentThreadId);
       if (!active.messages.any((m) => m.id == userMsg.id)) {
         active.messages.add(userMsg);
       }
     }
 
     _isGenerating = true;
+    _generatingThreadId = currentThreadId;
     notifyListeners();
 
     // Dispatch async assistant reply
@@ -564,18 +612,19 @@ class StudioViewModel extends ChangeNotifier {
       isStreaming: true,
     );
     _messages.add(placeholderMsg);
-    if (_activeThreadId != null) {
-      final threadIdx = _recentThreads.indexWhere((t) => t.id == _activeThreadId);
-      if (threadIdx != -1) {
-        final activeThread = _recentThreads[threadIdx];
-        if (!activeThread.messages.any((m) => m.id == assistantMsgId)) {
-          activeThread.messages.add(placeholderMsg);
-        }
+    final activeThreadIdx = _recentThreads.indexWhere((t) => t.id == currentThreadId);
+    if (activeThreadIdx != -1) {
+      final activeThread = _recentThreads[activeThreadIdx];
+      if (!activeThread.messages.any((m) => m.id == assistantMsgId)) {
+        activeThread.messages.add(placeholderMsg);
       }
     }
     notifyListeners();
 
-    final conversationPayload = buildConversationPayload(currentAssistantMsgId: assistantMsgId);
+    final conversationPayload = buildConversationPayload(
+      currentAssistantMsgId: assistantMsgId,
+      threadId: currentThreadId,
+    );
 
     final stopwatch = Stopwatch()..start();
 
@@ -585,8 +634,8 @@ class StudioViewModel extends ChangeNotifier {
     try {
       final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 2500);
 
-      // 1. If custom API key or external custom endpoint is configured, dispatch OpenAI-compatible call
-      if (customApiKey.isNotEmpty || (!customEndpointUrl.contains('127.0.0.1') && !customEndpointUrl.contains('localhost'))) {
+      // 1. If custom API key or custom endpoint (not microkernel 18789) is configured, dispatch OpenAI-compatible call
+      if (customApiKey.isNotEmpty || (customEndpointUrl.isNotEmpty && !customEndpointUrl.contains('18789'))) {
         final endpoint = customEndpointUrl.endsWith('/chat/completions')
             ? customEndpointUrl
             : (customEndpointUrl.endsWith('/') ? '${customEndpointUrl}chat/completions' : '$customEndpointUrl/chat/completions');
@@ -622,19 +671,35 @@ class StudioViewModel extends ChangeNotifier {
               if (dataStr == '[DONE]') {
                 break;
               }
+              if (dataStr.isEmpty) continue;
               try {
                 final chunk = jsonDecode(dataStr);
-                final piece = chunk['choices']?[0]?['delta']?['content'] ??
+                final rawContent = chunk['choices']?[0]?['delta']?['content'] ??
+                    chunk['choices']?[0]?['delta']?['reasoning_content'] ??
                     chunk['choices']?[0]?['text'] ??
-                    chunk['choices']?[0]?['message']?['content'] ??
-                    '';
-                if (piece is String && piece.isNotEmpty) {
+                    chunk['choices']?[0]?['message']?['content'];
+
+                String piece = '';
+                if (rawContent is String) {
+                  piece = rawContent;
+                } else if (rawContent is List) {
+                  for (final item in rawContent) {
+                    if (item is Map && item['text'] is String) {
+                      piece += item['text'] as String;
+                    } else if (item is String) {
+                      piece += item;
+                    }
+                  }
+                }
+
+                if (piece.isNotEmpty) {
                   ttftMs ??= stopwatch.elapsedMilliseconds;
                   streamBuffer.write(piece);
                   replyContent = streamBuffer.toString();
                   traceInfo = 'Custom Gateway · TTFT ${ttftMs}ms · Streaming...';
 
                   _updateAssistantMessage(
+                    targetThreadId: currentThreadId,
                     id: assistantMsgId,
                     content: replyContent,
                     trace: traceInfo,
@@ -709,18 +774,22 @@ class StudioViewModel extends ChangeNotifier {
       } else {
         traceInfo = 'Custom Gateway · ${stopwatch.elapsedMilliseconds}ms · Partial';
       }
+    } finally {
+      // Finalize assistant message
+      _updateAssistantMessage(
+        targetThreadId: currentThreadId,
+        id: assistantMsgId,
+        content: replyContent,
+        trace: traceInfo,
+        isStreaming: false,
+      );
+
+      if (_generatingThreadId == currentThreadId) {
+        _generatingThreadId = null;
+        _isGenerating = false;
+      }
+      notifyListeners();
     }
-
-    // Finalize assistant message
-    _updateAssistantMessage(
-      id: assistantMsgId,
-      content: replyContent,
-      trace: traceInfo,
-      isStreaming: false,
-    );
-
-    _isGenerating = false;
-    notifyListeners();
   }
 
   String _generateContextualReply(String prompt, String projectContext) {
@@ -1054,12 +1123,22 @@ class StudioViewModel extends ChangeNotifier {
   }
 
 
+  bool _isDisposed = false;
+
   void _onTextChanged() {
     notifyListeners();
   }
 
   @override
+  void notifyListeners() {
+    if (!_isDisposed) {
+      super.notifyListeners();
+    }
+  }
+
+  @override
   void dispose() {
+    _isDisposed = true;
     inputController.removeListener(_onTextChanged);
     inputController.dispose();
     super.dispose();
