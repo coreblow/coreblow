@@ -27,31 +27,55 @@ class StudioScreen extends StatelessWidget {
               // Main Window Layout
               Column(
                 children: [
-                  // Unified Window Topbar (height 32)
+                  // Unified Window Topbar (height 35, seamless shell background)
                   StudioTopbarView(viewModel: viewModel),
 
-                  // Top hairline divider
-                  Container(height: 0.5, color: StudioColors.borderSubtle),
-
-                  // Main Columns
+                  // Main Body: Nav Rail (left) + Nested Rounded Content Card (right)
                   Expanded(
                     child: Row(
                       children: [
-                        // 1. Far-left Nav Rail (40px)
+                        // 1. Far-left Nav Rail (40px) seamlessly unified with Topbar
                         StudioNavRailView(viewModel: viewModel),
 
-                        // Hairline divider
-                        Container(width: 0.5, color: StudioColors.borderSubtle),
-
-                        // 2. Collapsible Sidebar (188px)
-                        if (viewModel.isSidebarVisible) ...[
-                          StudioSidebarView(viewModel: viewModel),
-                          Container(width: 0.5, color: StudioColors.borderSubtle),
-                        ],
-
-                        // 3. Main Center Canvas
+                        // 2. Nested Rounded Content Card (Sidebar + Canvas) matching Image 2
                         Expanded(
-                          child: StudioCanvasView(viewModel: viewModel),
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(8),
+                            ),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: StudioColors.bgCanvas,
+                                border: Border(
+                                  top: BorderSide(
+                                    color: StudioColors.borderSubtle,
+                                    width: 0.5,
+                                  ),
+                                  left: BorderSide(
+                                    color: StudioColors.borderSubtle,
+                                    width: 0.5,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  // Collapsible Sidebar (188px)
+                                  if (viewModel.isSidebarVisible) ...[
+                                    StudioSidebarView(viewModel: viewModel),
+                                    Container(
+                                      width: 0.5,
+                                      color: StudioColors.borderSubtle,
+                                    ),
+                                  ],
+
+                                  // Main Center Canvas
+                                  Expanded(
+                                    child: StudioCanvasView(viewModel: viewModel),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),

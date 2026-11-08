@@ -13,7 +13,7 @@ class StudioTopbarView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 32,
+      height: 35,
       color: StudioColors.bgTopbar,
       child: Row(
         children: [
@@ -49,6 +49,36 @@ class StudioTopbarView extends StatelessWidget {
           ),
 
           const Spacer(),
+
+          // Status Badge (like ✦ Rejoin Plus in Image 2)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: StudioColors.accentMint.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.auto_awesome,
+                  size: 11,
+                  color: StudioColors.accentMint,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'CoreBlow Plus',
+                  style: TextStyle(
+                    color: StudioColors.accentMint,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 10),
 
           // Inspector Toggle Button
           _TopbarIconButton(

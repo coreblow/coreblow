@@ -1168,6 +1168,22 @@ struct StudioUnifiedTopbarView: View {
 
             Spacer()
 
+            // Status Badge (like ✦ Rejoin Plus in Image 2)
+            HStack(spacing: 4) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 10))
+                Text("CoreBlow Plus")
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .foregroundStyle(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(
+                Capsule()
+                    .fill(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.12))
+            )
+            .padding(.trailing, 10)
+
             // Inspector Toggle Button
             Button(action: {
                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -1183,8 +1199,8 @@ struct StudioUnifiedTopbarView: View {
             .help("Toggle Inspector")
             .padding(.trailing, 14)
         }
-        .frame(height: 32)
-        .background(Color(red: 30/255.0, green: 32/255.0, blue: 33/255.0)) // #1E2021
+        .frame(height: 35)
+        .background(StudioSurfaces.bgNavRail) // Seamlessly matches Nav Rail
     }
 }
 
@@ -1225,55 +1241,67 @@ public struct CoreBlowStudioView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Unified Window Topbar across full window
+                // Unified Window Topbar across full window (matches shell background)
                 StudioUnifiedTopbarView(viewModel: self.viewModel)
 
-                Rectangle()
-                    .fill(StudioSurfaces.borderSubtle)
-                    .frame(height: 0.5)
-
                 HStack(spacing: 0) {
-                    // 1. Far-Left Vertical Icon Dock (40pt Nav Rail)
+                    // 1. Far-Left Vertical Icon Dock (40pt Nav Rail) seamlessly unified with Topbar
                     StudioNavRailView(viewModel: self.viewModel)
                         .frame(width: 40)
                         .background(StudioSurfaces.bgNavRail)
 
-                    Rectangle()
-                        .fill(StudioSurfaces.borderSubtle)
-                        .frame(width: 0.5)
+                    // 2. Nested Rounded Content Card (Sidebar + Canvas) matching Image 2
+                    HStack(spacing: 0) {
+                        // Center Content: CoreHub Manager OR Studio Project Workspace
+                        if self.viewModel.activeNavTab == .coreHub {
+                            StudioCoreHubManagerView(viewModel: self.viewModel)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else {
+                            // 2. Collapsible Project & Threads Sidebar (188pt)
+                            if self.viewModel.isSidebarVisible {
+                                StudioProjectSidebarView(viewModel: self.viewModel)
+                                    .frame(width: 188)
+                                    .background(StudioSurfaces.bgSidebar)
 
-                    // Center Content: CoreHub Manager OR Studio Project Workspace
-                    if self.viewModel.activeNavTab == .coreHub {
-                        StudioCoreHubManagerView(viewModel: self.viewModel)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        // 2. Collapsible Project & Threads Sidebar (188pt)
-                        if self.viewModel.isSidebarVisible {
-                            StudioProjectSidebarView(viewModel: self.viewModel)
-                                .frame(width: 188)
-                                .background(StudioSurfaces.bgSidebar)
+                                Rectangle()
+                                    .fill(StudioSurfaces.borderSubtle)
+                                    .frame(width: 0.5)
+                            }
 
-                            Rectangle()
-                                .fill(StudioSurfaces.borderSubtle)
-                                .frame(width: 0.5)
-                        }
+                            // 3. Main Center Workspace Canvas
+                            StudioMainCanvasView(viewModel: self.viewModel)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .background(StudioSurfaces.bgCanvas)
 
-                        // 3. Main Center Workspace Canvas
-                        StudioMainCanvasView(viewModel: self.viewModel)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(StudioSurfaces.bgCanvas)
+                            // 4. Right Inspector (340pt)
+                            if self.viewModel.isInspectorVisible {
+                                Rectangle()
+                                    .fill(StudioSurfaces.borderSubtle)
+                                    .frame(width: 0.5)
 
-                        // 4. Right Inspector (340pt)
-                        if self.viewModel.isInspectorVisible {
-                            Rectangle()
-                                .fill(StudioSurfaces.borderSubtle)
-                                .frame(width: 0.5)
-
-                            StudioInspectorView(viewModel: self.viewModel)
-                                .frame(width: 340)
-                                .background(StudioSurfaces.bgInspector)
+                                StudioInspectorView(viewModel: self.viewModel)
+                                    .frame(width: 340)
+                                    .background(StudioSurfaces.bgInspector)
+                            }
                         }
                     }
+                    .clipShape(
+                        UnevenRoundedRectangle(
+                            topLeadingRadius: 8,
+                            bottomLeadingRadius: 0,
+                            bottomTrailingRadius: 0,
+                            topTrailingRadius: 0
+                        )
+                    )
+                    .overlay(
+                        UnevenRoundedRectangle(
+                            topLeadingRadius: 8,
+                            bottomLeadingRadius: 0,
+                            bottomTrailingRadius: 0,
+                            topTrailingRadius: 0
+                        )
+                        .stroke(StudioSurfaces.borderSubtle, lineWidth: 0.5)
+                    )
                 }
             }
         }
