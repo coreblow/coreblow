@@ -8,7 +8,7 @@ import 'package:coreblow_flutter/main.dart';
 
 void main() {
   testWidgets('CoreBlow Studio Flutter comprehensive integration test', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.physicalSize = const Size(1440, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
 
@@ -105,9 +105,14 @@ void main() {
     expect(find.text('Anthropic Claude API Key'), findsOneWidget);
     expect(find.text('Google Gemini API Key'), findsOneWidget);
     expect(find.text('Local Ollama Base URL'), findsOneWidget);
+    expect(find.text('Custom Base URL (OpenAI-Compatible)'), findsOneWidget);
+    expect(find.text('Custom API Key'), findsOneWidget);
+    expect(find.textContaining('9Router'), findsNothing);
 
     // Save API Keys
-    await tester.tap(find.text('Save & Apply'));
+    final saveButton = find.text('Save & Apply');
+    await tester.ensureVisible(saveButton);
+    await tester.tap(saveButton);
     await tester.pump();
     expect(find.text('Saved & Applied!'), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 1500));

@@ -190,7 +190,10 @@ class StudioViewModel extends ChangeNotifier {
   String geminiApiKey = '';
   String groqApiKey = '';
   String localOllamaUrl = 'http://127.0.0.1:11434';
-  String custom9RouterUrl = 'http://127.0.0.1:18789/v1';
+  String customEndpointUrl = 'http://127.0.0.1:18789/v1';
+  String get custom9RouterUrl => customEndpointUrl;
+  set custom9RouterUrl(String val) => customEndpointUrl = val;
+  String customApiKey = '';
 
   bool defaultFullAccess = true;
   bool launchAtLogin = false;
@@ -500,19 +503,47 @@ class StudioViewModel extends ChangeNotifier {
     String traceInfo = 'Microkernel Gateway · 24ms';
 
     try {
-      // Attempt microkernel local gateway quick-launch API
-      final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 1200);
-      final request = await client.postUrl(Uri.parse('http://127.0.0.1:18789/api/corehub/desktop/quick-launch'));
-      request.headers.contentType = ContentType.json;
-      request.write(jsonEncode({'prompt': text, 'project': _currentProjectName, 'branch': _currentBranch}));
-      final response = await request.close();
-      if (response.statusCode == 200) {
-        final body = await response.transform(utf8.decoder).join();
-        final json = jsonDecode(body);
-        replyContent = json['reply'] ?? json['message'] ?? body;
-        traceInfo = 'Microkernel Gateway · ${stopwatch.elapsedMilliseconds}ms · 1 tool call';
+      final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 2500);
+
+      // 1. If custom API key or external custom endpoint is configured, dispatch OpenAI-compatible call
+      if (customApiKey.isNotEmpty || (!customEndpointUrl.contains('127.0.0.1') && !customEndpointUrl.contains('localhost'))) {
+        final endpoint = customEndpointUrl.endsWith('/chat/completions')
+            ? customEndpointUrl
+            : (customEndpointUrl.endsWith('/') ? '${customEndpointUrl}chat/completions' : '$customEndpointUrl/chat/completions');
+        final request = await client.postUrl(Uri.parse(endpoint));
+        request.headers.contentType = ContentType.json;
+        if (customApiKey.isNotEmpty) {
+          request.headers.set('Authorization', 'Bearer $customApiKey');
+        }
+        request.write(jsonEncode({
+          'model': _selectedModel == 'Coding' ? 'claude-3-7-sonnet' : 'deepseek-r1',
+          'messages': [
+            {'role': 'user', 'content': text}
+          ]
+        }));
+        final response = await request.close();
+        if (response.statusCode == 200) {
+          final body = await response.transform(utf8.decoder).join();
+          final json = jsonDecode(body);
+          replyContent = json['choices']?[0]?['message']?['content'] ?? json['reply'] ?? body;
+          traceInfo = 'Custom Gateway · ${stopwatch.elapsedMilliseconds}ms · 1 completion';
+        } else {
+          throw Exception('Custom endpoint returned ${response.statusCode}');
+        }
       } else {
-        throw Exception('Gateway returned ${response.statusCode}');
+        // 2. Attempt local microkernel gateway quick-launch API
+        final request = await client.postUrl(Uri.parse('http://127.0.0.1:18789/api/corehub/desktop/quick-launch'));
+        request.headers.contentType = ContentType.json;
+        request.write(jsonEncode({'prompt': text, 'project': _currentProjectName, 'branch': _currentBranch}));
+        final response = await request.close();
+        if (response.statusCode == 200) {
+          final body = await response.transform(utf8.decoder).join();
+          final json = jsonDecode(body);
+          replyContent = json['reply'] ?? json['message'] ?? body;
+          traceInfo = 'Microkernel Gateway · ${stopwatch.elapsedMilliseconds}ms · 1 tool call';
+        } else {
+          throw Exception('Gateway returned ${response.statusCode}');
+        }
       }
     } catch (_) {
       // High-quality local assistant fallback response

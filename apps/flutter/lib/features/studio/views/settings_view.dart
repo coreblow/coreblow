@@ -22,6 +22,7 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
   late TextEditingController _groqController;
   late TextEditingController _ollamaUrlController;
   late TextEditingController _routerUrlController;
+  late TextEditingController _customApiKeyController;
   String _searchQuery = '';
   bool _savedFeedback = false;
   Timer? _feedbackTimer;
@@ -34,7 +35,8 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
     _geminiController = TextEditingController(text: widget.viewModel.geminiApiKey);
     _groqController = TextEditingController(text: widget.viewModel.groqApiKey);
     _ollamaUrlController = TextEditingController(text: widget.viewModel.localOllamaUrl);
-    _routerUrlController = TextEditingController(text: widget.viewModel.custom9RouterUrl);
+    _routerUrlController = TextEditingController(text: widget.viewModel.customEndpointUrl);
+    _customApiKeyController = TextEditingController(text: widget.viewModel.customApiKey);
   }
 
   @override
@@ -46,6 +48,7 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
     _groqController.dispose();
     _ollamaUrlController.dispose();
     _routerUrlController.dispose();
+    _customApiKeyController.dispose();
     super.dispose();
   }
 
@@ -55,7 +58,8 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
     widget.viewModel.geminiApiKey = _geminiController.text;
     widget.viewModel.groqApiKey = _groqController.text;
     widget.viewModel.localOllamaUrl = _ollamaUrlController.text;
-    widget.viewModel.custom9RouterUrl = _routerUrlController.text;
+    widget.viewModel.customEndpointUrl = _routerUrlController.text;
+    widget.viewModel.customApiKey = _customApiKeyController.text;
 
     setState(() => _savedFeedback = true);
     _feedbackTimer?.cancel();
@@ -411,11 +415,13 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
         const SizedBox(height: 16),
 
         _settingsCard(
-          title: 'Local & Self-Hosted Endpoints',
+          title: 'Local & Custom Endpoints',
           children: [
             _inputRow('Local Ollama Base URL', 'http://127.0.0.1:11434', _ollamaUrlController, isSecret: false),
             _divider(),
-            _inputRow('CoreBlow 9Router / Gateway URL', 'http://127.0.0.1:18789/v1', _routerUrlController, isSecret: false),
+            _inputRow('Custom Base URL (OpenAI-Compatible)', 'http://127.0.0.1:18789/v1 or https://...', _routerUrlController, isSecret: false),
+            _divider(),
+            _inputRow('Custom API Key', 'sk-... (optional for local proxy)', _customApiKeyController, isSecret: true),
           ],
         ),
 
