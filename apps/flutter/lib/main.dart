@@ -1,0 +1,51 @@
+import 'package:flutter/material.dart';
+import 'core/theme/colors.dart';
+import 'features/studio/view_models/studio_view_model.dart';
+import 'features/studio/views/studio_screen.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const CoreBlowFlutterApp());
+}
+
+class CoreBlowFlutterApp extends StatefulWidget {
+  const CoreBlowFlutterApp({super.key});
+
+  @override
+  State<CoreBlowFlutterApp> createState() => _CoreBlowFlutterAppState();
+}
+
+class _CoreBlowFlutterAppState extends State<CoreBlowFlutterApp> {
+  late final StudioViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = StudioViewModel();
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'CoreBlow Studio',
+      debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.dark,
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: StudioColors.bgWindow,
+        fontFamily: '.AppleSystemUIFont',
+        colorScheme: const ColorScheme.dark(
+          primary: StudioColors.accentMint,
+          surface: StudioColors.bgWindow,
+        ),
+      ),
+      home: StudioScreen(viewModel: _viewModel),
+    );
+  }
+}
