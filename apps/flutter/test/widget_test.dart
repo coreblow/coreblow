@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -171,6 +172,18 @@ void main() {
     expect(customRes.isSuccess, isTrue);
     expect(customRes.message, 'Active · 42ms');
     expect(customRes.latencyMs, 42);
+
+    // 4. Real live check against local gateway port 20128 without override
+    HttpOverrides.global = null;
+    viewModel.testConnectionOverride = null;
+    final liveRes = await viewModel.testConnection(
+      provider: 'custom',
+      endpointUrl: 'http://127.0.0.1:20128/v1',
+      apiKey: 'sk-96b0ddd1aa0881dd-m93qzq-690585f1',
+    );
+    expect(liveRes.isSuccess, isTrue);
+    expect(liveRes.message, contains('Active'));
+    expect(liveRes.message, contains('Active'));
 
     viewModel.dispose();
   });

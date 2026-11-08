@@ -689,6 +689,7 @@ class StudioViewModel extends ChangeNotifier {
 
     final client = HttpClient();
     client.connectionTimeout = const Duration(seconds: 4);
+    client.badCertificateCallback = (cert, host, port) => true;
     final stopwatch = Stopwatch()..start();
 
     try {
