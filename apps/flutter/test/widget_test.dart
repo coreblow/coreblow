@@ -39,15 +39,9 @@ void main() {
     expect(find.text('Discord Bot'), findsOneWidget);
     expect(find.text('Git Supercharged'), findsOneWidget);
 
-    // Toggle Spec Sheet
-    final toggleSpecBtn = find.text('Sistem Ikon');
-    expect(toggleSpecBtn, findsOneWidget);
-    await tester.tap(toggleSpecBtn);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Sistem Ikon (Quiet Instrument)'), findsOneWidget);
-    expect(find.text('RAIL NAVIGASI'), findsOneWidget);
-    expect(find.text('SIDEBAR'), findsOneWidget);
-    expect(find.text('MODUL APLIKASI'), findsOneWidget);
+    // Verify clean topbar & header (no 12 Services, no PR Gates, no Sistem Ikon button)
+    expect(find.text('12 Services'), findsNothing);
+    expect(find.text('PR Gates'), findsNothing);
+    expect(find.text('Sistem Ikon'), findsNothing);
   });
 }

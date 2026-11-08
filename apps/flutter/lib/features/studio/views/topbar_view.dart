@@ -1,6 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/colors.dart';
-import '../../../core/widgets/coreblow_icons.dart';
 import '../view_models/studio_view_model.dart';
 
 class StudioTopbarView extends StatelessWidget {
@@ -26,19 +26,23 @@ class StudioTopbarView extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Simulated macOS Window Controls (merah #FF5F57, kuning #FEBC2E, hijau #28C840)
-          const SizedBox(width: 12),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              _MacDot(color: StudioColors.macRed),
-              SizedBox(width: 8),
-              _MacDot(color: StudioColors.macYellow),
-              SizedBox(width: 8),
-              _MacDot(color: StudioColors.macGreen),
-            ],
-          ),
-          const SizedBox(width: 18),
+          // macOS native window controls safe spacer / fallback simulated controls
+          if (defaultTargetPlatform == TargetPlatform.macOS)
+            const SizedBox(width: 78)
+          else ...[
+            const SizedBox(width: 12),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                _MacDot(color: StudioColors.macRed),
+                SizedBox(width: 8),
+                _MacDot(color: StudioColors.macYellow),
+                SizedBox(width: 8),
+                _MacDot(color: StudioColors.macGreen),
+              ],
+            ),
+            const SizedBox(width: 18),
+          ],
 
           // Back & Forward history buttons (saat nonaktif #3D5E56)
           Row(
@@ -71,77 +75,6 @@ class StudioTopbarView extends StatelessWidget {
           ),
 
           const Spacer(),
-
-          // Pil “12 Services”: latar #0A1815, garis #16322C, teks #C4E4DC, titik #2DD4BF
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-            decoration: BoxDecoration(
-              color: StudioColors.bgCard, // #0A1815
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: StudioColors.borderCard, // #16322C
-                width: 0.8,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 5,
-                  height: 5,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: StudioColors.accentTeal, // #2DD4BF
-                  ),
-                ),
-                const SizedBox(width: 5),
-                const Text(
-                  '12 Services',
-                  style: TextStyle(
-                    color: StudioColors.textChip, // #C4E4DC
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 8),
-
-          // Pil “PR Gates” (aktif): latar #0F2B26, garis #1F5148, teks #D9FBF3, ikon aksen teal
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-            decoration: BoxDecoration(
-              color: StudioColors.bgNavActive, // #0F2B26
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: StudioColors.borderNavActive, // #1F5148
-                width: 0.8,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                CoreBlowIcon.branch(
-                  size: 11,
-                  color: StudioColors.textPrimary,
-                  accentColor: StudioColors.accentTeal,
-                ),
-                SizedBox(width: 4.5),
-                Text(
-                  'PR Gates',
-                  style: TextStyle(
-                    color: StudioColors.textPrimary, // #D9FBF3
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 8),
 
           // Inspector Toggle Button
           _TopbarIconButton(
