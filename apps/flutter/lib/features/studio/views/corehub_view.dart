@@ -653,47 +653,20 @@ class _HorizontalModuleRowState extends State<_HorizontalModuleRow> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Details: Name + Tier + Slug (top) and Description (bottom)
+            // Details: Name (top) and Description (bottom)
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          item.name,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: StudioColors.textPrimary, // #D9FBF3
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        item.tier,
-                        style: const TextStyle(
-                          color: StudioColors.textMuted, // #7FA99F
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          item.slug,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: StudioColors.accentTeal, // #2DD4BF
-                            fontSize: 10,
-                            fontFamily: 'monospace',
-                          ),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    item.name,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: StudioColors.textPrimary, // #D9FBF3
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 3),
                   Text(
