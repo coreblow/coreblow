@@ -1057,13 +1057,138 @@ enum StudioRadius {
 }
 
 enum StudioSurfaces {
-    static let borderSubtle = Color.white.opacity(0.04) // Ultra-clean 0.5pt hairline divider
-    static let borderCard   = Color.white.opacity(0.08)
-    static let bgNavRail    = Color.black.opacity(0.24)
-    static let bgSidebar    = Color.black.opacity(0.14)
-    static let bgCanvas     = Color.black.opacity(0.04)
-    static let bgInspector  = Color.black.opacity(0.18)
-    static let bgComposer   = Color(red: 8/255.0, green: 23/255.0, blue: 28/255.0).opacity(0.88)
+    static let borderSubtle = Color.white.opacity(0.05) // Ultra-clean 0.5pt hairline divider
+    static let borderCard   = Color(red: 16/255.0, green: 65/255.0, blue: 58/255.0).opacity(0.35)
+    static let bgNavRail    = Color(red: 39/255.0, green: 41/255.0, blue: 41/255.0) // #272929
+    static let bgSidebar    = Color(red: 9/255.0, green: 19/255.0, blue: 15/255.0)   // #09130F
+    static let bgCanvas     = Color(red: 9/255.0, green: 17/255.0, blue: 15/255.0)   // #09110F
+    static let bgInspector  = Color(red: 9/255.0, green: 19/255.0, blue: 15/255.0)   // #09130F
+    static let bgComposer   = Color(red: 11/255.0, green: 25/255.0, blue: 22/255.0)  // #0B1916
+}
+
+// ============================================================================
+// Cybernetic Aperture Split Ring Emblem
+// ============================================================================
+
+struct StudioApertureEmblemView: View {
+    var size: CGFloat = 36
+
+    var body: some View {
+        ZStack {
+            // Ambient soft glow
+            Circle()
+                .fill(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.12))
+                .frame(width: self.size * 1.5, height: self.size * 1.5)
+
+            // Outer subtle circle
+            Circle()
+                .stroke(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.35), lineWidth: 1.0)
+                .frame(width: self.size, height: self.size)
+
+            // Split cybernetic arcs (white/cyan with rounded caps)
+            Circle()
+                .trim(from: 0.08, to: 0.42)
+                .stroke(
+                    Color.white.opacity(0.92),
+                    style: StrokeStyle(lineWidth: max(1.5, self.size * 0.08), lineCap: .round)
+                )
+                .frame(width: self.size * 0.72, height: self.size * 0.72)
+
+            Circle()
+                .trim(from: 0.58, to: 0.92)
+                .stroke(
+                    Color.white.opacity(0.92),
+                    style: StrokeStyle(lineWidth: max(1.5, self.size * 0.08), lineCap: .round)
+                )
+                .frame(width: self.size * 0.72, height: self.size * 0.72)
+
+            // Core glowing cyan dot
+            Circle()
+                .fill(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
+                .frame(width: self.size * 0.26, height: self.size * 0.26)
+                .shadow(color: Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.8), radius: 4)
+        }
+        .frame(width: self.size, height: self.size)
+    }
+}
+
+// ============================================================================
+// Sovereign Window Unified Topbar
+// ============================================================================
+
+struct StudioUnifiedTopbarView: View {
+    @Bindable var viewModel: CoreBlowStudioViewModel
+
+    var body: some View {
+        HStack(spacing: 0) {
+            // macOS Traffic lights space (76pt)
+            Spacer()
+                .frame(width: 76)
+
+            // Back & Forward navigation buttons
+            HStack(spacing: 6) {
+                Button(action: {
+                    self.viewModel.navigateThread(forward: false)
+                }) {
+                    Image(systemName: "arrow.left")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.40))
+                        .frame(width: 20, height: 20)
+                }
+                .buttonStyle(.plain)
+                .disabled(self.viewModel.selectedThreadId == nil)
+                .opacity(self.viewModel.selectedThreadId == nil ? 0.35 : 1.0)
+                .help("Previous thread")
+
+                Button(action: {
+                    self.viewModel.navigateThread(forward: true)
+                }) {
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.40))
+                        .frame(width: 20, height: 20)
+                }
+                .buttonStyle(.plain)
+                .disabled(self.viewModel.selectedThreadId == nil)
+                .opacity(self.viewModel.selectedThreadId == nil ? 0.35 : 1.0)
+                .help("Next thread")
+            }
+            .padding(.trailing, 8)
+
+            // Sidebar Toggle Button
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    self.viewModel.isSidebarVisible.toggle()
+                }
+            }) {
+                Image(systemName: "sidebar.leading")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(self.viewModel.isSidebarVisible ? Color.white.opacity(0.75) : Color.white.opacity(0.40))
+                    .frame(width: 24, height: 24)
+            }
+            .buttonStyle(.plain)
+            .help("Toggle Sidebar (⇧⌘S)")
+
+            Spacer()
+
+            // Inspector Toggle Button
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    self.viewModel.isInspectorVisible.toggle()
+                }
+            }) {
+                Image(systemName: "sidebar.trailing")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(self.viewModel.isInspectorVisible ? Color.white.opacity(0.75) : Color.white.opacity(0.40))
+                    .frame(width: 24, height: 24)
+            }
+            .buttonStyle(.plain)
+            .help("Toggle Inspector")
+            .padding(.trailing, 14)
+        }
+        .frame(height: 38)
+        .background(Color(red: 24/255.0, green: 26/255.0, blue: 27/255.0)) // #181A1B
+    }
 }
 
 // ============================================================================
@@ -1086,62 +1211,71 @@ public struct CoreBlowStudioView: View {
 
     public var body: some View {
         ZStack {
-            // Live macOS Acrylic Frosted Glass Vibrancy Background
-            VisualEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
+            // Solid, opaque sovereign dark background (Zero-fatigue deep obsidian/teal)
+            Color(red: 9/255.0, green: 17/255.0, blue: 15/255.0)
                 .ignoresSafeArea()
 
-            // Translucent ambient glow bleeding through the glass canvas (Deep Muted Teal & Dark Slate)
-            LinearGradient(
+            // Subtle top-right ambient teal glow
+            RadialGradient(
                 colors: [
-                    Color(red: 0.04, green: 0.14, blue: 0.16).opacity(0.38), // Deep Muted Teal #0A2429
-                    Color(red: 0.03, green: 0.09, blue: 0.11).opacity(0.35), // Dark Slate #08171C
-                    Color(red: 0.02, green: 0.05, blue: 0.07).opacity(0.48)  // Dark Obsidian #050D12
+                    Color(red: 14/255.0, green: 55/255.0, blue: 48/255.0).opacity(0.40),
+                    Color.clear
                 ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                center: .topTrailing,
+                startRadius: 80,
+                endRadius: 700
             )
             .ignoresSafeArea()
 
-            HStack(spacing: 0) {
-                // 1. Far-Left Vertical Icon Dock (56pt Codex-Aligned Nav Rail)
-                StudioNavRailView(viewModel: self.viewModel)
-                    .frame(width: 56)
-                    .background(StudioSurfaces.bgNavRail)
+            VStack(spacing: 0) {
+                // Unified Window Topbar across full window
+                StudioUnifiedTopbarView(viewModel: self.viewModel)
 
                 Rectangle()
                     .fill(StudioSurfaces.borderSubtle)
-                    .frame(width: 0.5)
+                    .frame(height: 0.5)
 
-                // Center Content: CoreHub Manager OR Studio Project Workspace
-                if self.viewModel.activeNavTab == .coreHub {
-                    StudioCoreHubManagerView(viewModel: self.viewModel)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    // 2. Collapsible Project & Threads Sidebar (260pt)
-                    if self.viewModel.isSidebarVisible {
-                        StudioProjectSidebarView(viewModel: self.viewModel)
-                            .frame(width: 260)
-                            .background(StudioSurfaces.bgSidebar)
+                HStack(spacing: 0) {
+                    // 1. Far-Left Vertical Icon Dock (56pt Codex-Aligned Nav Rail)
+                    StudioNavRailView(viewModel: self.viewModel)
+                        .frame(width: 56)
+                        .background(StudioSurfaces.bgNavRail)
 
-                        Rectangle()
-                            .fill(StudioSurfaces.borderSubtle)
-                            .frame(width: 0.5)
-                    }
+                    Rectangle()
+                        .fill(StudioSurfaces.borderSubtle)
+                        .frame(width: 0.5)
 
-                    // 3. Main Center Workspace Canvas (Luminous Translucent Frosted Glass)
-                    StudioMainCanvasView(viewModel: self.viewModel)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(StudioSurfaces.bgCanvas)
+                    // Center Content: CoreHub Manager OR Studio Project Workspace
+                    if self.viewModel.activeNavTab == .coreHub {
+                        StudioCoreHubManagerView(viewModel: self.viewModel)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        // 2. Collapsible Project & Threads Sidebar (260pt)
+                        if self.viewModel.isSidebarVisible {
+                            StudioProjectSidebarView(viewModel: self.viewModel)
+                                .frame(width: 260)
+                                .background(StudioSurfaces.bgSidebar)
 
-                    // 4. Right Inspector (340pt Diff & PR Gate / Kanban / Wiki)
-                    if self.viewModel.isInspectorVisible {
-                        Rectangle()
-                            .fill(StudioSurfaces.borderSubtle)
-                            .frame(width: 0.5)
+                            Rectangle()
+                                .fill(StudioSurfaces.borderSubtle)
+                                .frame(width: 0.5)
+                        }
 
-                        StudioInspectorView(viewModel: self.viewModel)
-                            .frame(width: 340)
-                            .background(StudioSurfaces.bgInspector)
+                        // 3. Main Center Workspace Canvas
+                        StudioMainCanvasView(viewModel: self.viewModel)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(StudioSurfaces.bgCanvas)
+
+                        // 4. Right Inspector (340pt Diff & PR Gate / Kanban / Wiki)
+                        if self.viewModel.isInspectorVisible {
+                            Rectangle()
+                                .fill(StudioSurfaces.borderSubtle)
+                                .frame(width: 0.5)
+
+                            StudioInspectorView(viewModel: self.viewModel)
+                                .frame(width: 340)
+                                .background(StudioSurfaces.bgInspector)
+                        }
                     }
                 }
             }
@@ -1216,9 +1350,9 @@ struct StudioNavRailView: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            // Unified 48pt Window Traffic Light Safe Space
+            // Top spacing below unified topbar
             Spacer()
-                .frame(height: StudioSpacing.topbarHeight)
+                .frame(height: 8)
 
             // Navigation Icons (16pt icon inside 36x36pt hit target)
             ForEach(StudioNavRailTab.allCases) { tab in
@@ -1293,21 +1427,20 @@ struct StudioProjectSidebarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Sidebar Header (Unified 48pt Top Baseline)
+            // Sidebar Header
             HStack(spacing: 8) {
                 HStack(spacing: 6) {
-                    Image(systemName: "circle.circle")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
+                    StudioApertureEmblemView(size: 14)
+
                     Text("CoreBlow")
                         .font(.system(size: 13, weight: .bold))
                         .foregroundStyle(.white)
                     Text("v2.0")
                         .font(.system(size: 9, weight: .bold, design: .monospaced))
-                        .foregroundStyle(Color.white.opacity(0.45))
+                        .foregroundStyle(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
                         .padding(.horizontal, 4)
                         .padding(.vertical, 1.5)
-                        .background(Capsule().fill(Color.white.opacity(0.08)))
+                        .background(Capsule().fill(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.12)))
                 }
 
                 Spacer()
@@ -1320,10 +1453,10 @@ struct StudioProjectSidebarView: View {
                         .foregroundStyle(Color(white: 0.72))
                 }
                 .buttonStyle(.plain)
-                .help(self.isID ? "Buka folder proyek / dokumen (⌘O)" : "Open project folder (⌘O)")
+                .help(self.isID ? "Buka folder repositori (⌘O)" : "Open repository folder (⌘O)")
             }
             .padding(.horizontal, 14)
-            .padding(.top, StudioSpacing.topbarHeight)
+            .padding(.top, 10)
             .padding(.bottom, 8)
 
             // "New chat" Primary Button
@@ -1338,17 +1471,17 @@ struct StudioProjectSidebarView: View {
                     Spacer()
                     Text("⌘N")
                         .font(.system(size: 10, weight: .medium, design: .monospaced))
-                        .foregroundStyle(Color.white.opacity(0.35))
+                        .foregroundStyle(Color.white.opacity(0.40))
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color(white: 0.18))
+                        .fill(Color(red: 11/255.0, green: 28/255.0, blue: 24/255.0))
                         .overlay(
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
+                                .stroke(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0).opacity(0.15), lineWidth: 0.5)
                         )
                 )
             }
@@ -1575,105 +1708,36 @@ struct StudioMainCanvasView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Unified 48pt Top Bar (Codex-Aligned Baseline)
-            HStack(spacing: 12) {
-                // Sidebar Toggle Button
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        self.viewModel.isSidebarVisible.toggle()
-                    }
-                }) {
-                    Image(systemName: "sidebar.left")
-                        .font(.system(size: 14))
-                        .foregroundStyle(Color(white: 0.72))
+            // Optional Active Thread Breadcrumb (Only when a thread is active)
+            if let selectedId = self.viewModel.selectedThreadId {
+                let allThreads = self.viewModel.generalThreads + self.viewModel.projectFolders.flatMap { $0.threads }
+                let threadTitle = allThreads.first(where: { $0.id == selectedId })?.title ?? (self.isID ? "Obrolan Aktif" : "Active Thread")
+                HStack(spacing: 5) {
+                    Text(self.viewModel.currentProjectName.isEmpty ? "CoreBlow" : self.viewModel.currentProjectName)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color(white: 0.5))
+                    Text("/")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Color(white: 0.3))
+                    Text(threadTitle)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                    Spacer()
                 }
-                .buttonStyle(.plain)
-                .help("Toggle sidebar (⇧⌘S)")
-
-                // Back / Forward Thread Navigation Chevrons & Integrated Breadcrumb
-                HStack(spacing: 6) {
-                    Button(action: {
-                        self.viewModel.navigateThread(forward: false)
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(Color(white: 0.72))
-                            .frame(width: 22, height: 22)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(self.viewModel.selectedThreadId == nil)
-                    .opacity(self.viewModel.selectedThreadId == nil ? 0.25 : 1.0)
-                    .help("Previous thread")
-
-                    Button(action: {
-                        self.viewModel.navigateThread(forward: true)
-                    }) {
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(Color(white: 0.72))
-                            .frame(width: 22, height: 22)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(self.viewModel.selectedThreadId == nil)
-                    .opacity(self.viewModel.selectedThreadId == nil ? 0.25 : 1.0)
-                    .help("Next thread")
-
-                    if let selectedId = self.viewModel.selectedThreadId {
-                        let allThreads = self.viewModel.generalThreads + self.viewModel.projectFolders.flatMap { $0.threads }
-                        let threadTitle = allThreads.first(where: { $0.id == selectedId })?.title ?? (self.isID ? "Obrolan Aktif" : "Active Thread")
-                        HStack(spacing: 5) {
-                            Text(self.viewModel.currentProjectName.isEmpty ? "CoreBlow" : self.viewModel.currentProjectName)
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(Color(white: 0.6))
-                            Text("/")
-                                .font(.system(size: 11))
-                                .foregroundStyle(Color(white: 0.3))
-                            Text(threadTitle)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(.white)
-                                .lineLimit(1)
-                        }
-                        .padding(.leading, 4)
-                    }
-                }
-
-                Spacer()
-
-                // Top Right: Inspector Toggle
-                HStack(spacing: 10) {
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            self.viewModel.isInspectorVisible.toggle()
-                        }
-                    }) {
-                        Image(systemName: "sidebar.right")
-                            .font(.system(size: 14))
-                            .foregroundStyle(self.viewModel.isInspectorVisible ? Color.white : Color(white: 0.72))
-                    }
-                    .buttonStyle(.plain)
-                    .help("Toggle Inspector")
-                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, StudioSpacing.topbarHeight)
-            .padding(.bottom, 10)
 
             // Center Content: Clean Minimalist Hero State OR Conversation Stream
             if self.viewModel.messages.isEmpty {
                 VStack(spacing: 16) {
                     Spacer()
 
-                    // Cybernetic Aperture / Sonar Pulse Emblem
-                    ZStack {
-                        Circle()
-                            .stroke(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0), lineWidth: 2.5)
-                            .frame(width: 34, height: 34)
-
-                        Circle()
-                            .fill(Color(red: 96/255.0, green: 217/255.0, blue: 204/255.0))
-                            .frame(width: 8, height: 8)
-                    }
-                    .padding(.bottom, 2)
+                    // Cybernetic Aperture Split Ring Emblem
+                    StudioApertureEmblemView(size: 38)
+                        .padding(.bottom, 2)
 
                     // Clean 28pt Bold Heading
                     Text(
