@@ -61,39 +61,45 @@ class StudioProfilePopoverCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    viewModel.userName,
-                    style: const TextStyle(
-                      color: StudioColors.textPrimary, // #D9FBF3
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      viewModel.userName,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: StudioColors.textPrimary, // #D9FBF3
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Container(
-                        width: 5,
-                        height: 5,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: StudioColors.accentTeal, // #2DD4BF
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Container(
+                          width: 5,
+                          height: 5,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: StudioColors.accentTeal, // #2DD4BF
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 5),
-                      const Text(
-                        'Online · Local Mode',
-                        style: TextStyle(
-                          color: StudioColors.textSecondary, // #9CC4BA
-                          fontSize: 10.5,
+                        const SizedBox(width: 5),
+                        const Expanded(
+                          child: Text(
+                            'Online · Local Mode',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: StudioColors.textSecondary, // #9CC4BA
+                              fontSize: 10.5,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -107,7 +113,7 @@ class StudioProfilePopoverCard extends StatelessWidget {
             icon: Icons.tune_rounded,
             title: 'Settings...',
             shortcutKeys: ['⌘', ','],
-            onTap: () => viewModel.closeProfileMenu(),
+            onTap: () => viewModel.openSettings(section: 'general'),
           ),
           const SizedBox(height: 2),
 
@@ -186,9 +192,7 @@ class StudioProfilePopoverCard extends StatelessWidget {
             ),
             title: 'AI Keys (Config)',
             shortcutKeys: ['⌘', 'K'],
-            onTap: () {
-              viewModel.closeProfileMenu();
-            },
+            onTap: () => viewModel.openSettings(section: 'api_keys'),
           ),
         ],
       ),

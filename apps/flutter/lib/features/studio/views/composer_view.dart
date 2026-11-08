@@ -66,7 +66,7 @@ class StudioComposerView extends StatelessWidget {
               children: [
                 // Chip “Select folder...”: latar #10261F, garis #1A3A33, teks #C4E4DC
                 InkWell(
-                  onTap: () {},
+                  onTap: viewModel.pickProjectFolder,
                   borderRadius: BorderRadius.circular(6),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -90,7 +90,7 @@ class StudioComposerView extends StatelessWidget {
                         Text(
                           viewModel.currentProjectName.isEmpty
                               ? 'Select folder...'
-                              : viewModel.currentProjectName,
+                              : '${viewModel.currentProjectName} · ⎇ ${viewModel.currentBranch}',
                           style: const TextStyle(
                             color: StudioColors.textChip, // #C4E4DC
                             fontSize: 11,

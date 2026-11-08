@@ -45,7 +45,7 @@ class _StudioSidebarViewState extends State<StudioSidebarView> {
                 Expanded(
                   child: Row(
                     children: [
-                      // Simbol inti & orbit #D9FBF3 dengan titik inti #2DD4BF
+                      // Lambang inti & orbit #D9FBF3 dengan titik inti #2DD4BF
                       const ApertureEmblem(size: 14, showOuterRing: false),
                       const SizedBox(width: 6),
                       // Nama "CoreBlow" #D9FBF3
@@ -88,7 +88,7 @@ class _StudioSidebarViewState extends State<StudioSidebarView> {
                 Tooltip(
                   message: 'Open folder',
                   child: InkWell(
-                    onTap: () {},
+                    onTap: widget.viewModel.pickProjectFolder,
                     child: const Icon(
                       Icons.create_new_folder_outlined,
                       size: 13,
@@ -107,7 +107,7 @@ class _StudioSidebarViewState extends State<StudioSidebarView> {
               onEnter: (_) => setState(() => _isNewChatHovered = true),
               onExit: (_) => setState(() => _isNewChatHovered = false),
               child: InkWell(
-                onTap: () {},
+                onTap: widget.viewModel.startNewChat,
                 borderRadius: BorderRadius.circular(7),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6.5),
@@ -171,53 +171,97 @@ class _StudioSidebarViewState extends State<StudioSidebarView> {
                   ),
                 ),
 
-                // Kartu “Start a new chat”: latar #0A1815, garis #16322C, judul #D9FBF3, isi #8FB5AB
-                Container(
-                  padding: const EdgeInsets.all(9),
-                  decoration: BoxDecoration(
-                    color: StudioColors.bgCard, // #0A1815
-                    borderRadius: BorderRadius.circular(7),
-                    border: Border.all(
-                      color: StudioColors.borderCard, // #16322C
-                      width: 0.8,
+                if (widget.viewModel.recentThreads.isEmpty) ...[
+                  // Kartu “Start a new chat”: latar #0A1815, garis #16322C, judul #D9FBF3, isi #8FB5AB
+                  Container(
+                    padding: const EdgeInsets.all(9),
+                    decoration: BoxDecoration(
+                      color: StudioColors.bgCard, // #0A1815
+                      borderRadius: BorderRadius.circular(7),
+                      border: Border.all(
+                        color: StudioColors.borderCard, // #16322C
+                        width: 0.8,
+                      ),
                     ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: const [
-                          CoreBlowIcon.sparkle(
-                            size: 12,
-                            color: StudioColors.textPrimary,
-                            accentColor: StudioColors.accentTeal,
-                          ),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'Start a new chat',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: StudioColors.textPrimary, // #D9FBF3
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: const [
+                            CoreBlowIcon.sparkle(
+                              size: 12,
+                              color: StudioColors.textPrimary,
+                              accentColor: StudioColors.accentTeal,
+                            ),
+                            SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'Start a new chat',
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: StudioColors.textPrimary, // #D9FBF3
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Type anything below to ask questions, summarize notes, or brainstorm.',
+                          style: TextStyle(
+                            color: StudioColors.textBody, // #8FB5AB
+                            fontSize: 10.5,
+                            height: 1.3,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Type anything below to ask questions, summarize notes, or brainstorm.',
-                        style: TextStyle(
-                          color: StudioColors.textBody, // #8FB5AB
-                          fontSize: 10.5,
-                          height: 1.3,
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else ...[
+                  ...widget.viewModel.recentThreads.map((thread) {
+                    final isSelected = widget.viewModel.activeThreadId == thread.id;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 3),
+                      child: InkWell(
+                        onTap: () => widget.viewModel.selectThread(thread.id),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isSelected ? StudioColors.bgNavActive : Colors.transparent,
+                            borderRadius: BorderRadius.circular(6),
+                            border: isSelected
+                                ? Border.all(color: StudioColors.borderNavActive, width: 0.8)
+                                : null,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline_rounded,
+                                size: 12,
+                                color: isSelected ? StudioColors.accentTeal : StudioColors.textSecondary,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  thread.title,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: isSelected ? StudioColors.textPrimary : StudioColors.textSecondary,
+                                    fontSize: 11,
+                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
+                    );
+                  }),
+                ],
 
                 const SizedBox(height: 14),
 
@@ -245,10 +289,17 @@ class _StudioSidebarViewState extends State<StudioSidebarView> {
                           ),
                         ),
                       ),
-                      const Icon(
-                        Icons.add,
-                        size: 12,
-                        color: StudioColors.textSecondary,
+                      Tooltip(
+                        message: 'Add project folder',
+                        child: InkWell(
+                          onTap: widget.viewModel.pickProjectFolder,
+                          borderRadius: BorderRadius.circular(4),
+                          child: const Icon(
+                            Icons.add,
+                            size: 12,
+                            color: StudioColors.textSecondary,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -256,7 +307,7 @@ class _StudioSidebarViewState extends State<StudioSidebarView> {
 
                 // “Open repository folder...”: #9CC4BA
                 InkWell(
-                  onTap: () {},
+                  onTap: widget.viewModel.pickProjectFolder,
                   borderRadius: BorderRadius.circular(6),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
@@ -282,6 +333,30 @@ class _StudioSidebarViewState extends State<StudioSidebarView> {
                     ),
                   ),
                 ),
+
+                // Render current projects
+                if (widget.viewModel.projects.isNotEmpty) ...[
+                  ...widget.viewModel.projects.map((proj) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.folder_outlined, size: 12, color: StudioColors.accentTeal),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                proj.split('/').last,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: StudioColors.textPrimary,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
+                ],
               ],
             ),
           ),

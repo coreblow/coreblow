@@ -1,35 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/widgets/coreblow_icons.dart';
+import '../models/studio_state.dart';
 import '../view_models/studio_view_model.dart';
-
-class CoreHubModuleItem {
-  const CoreHubModuleItem({
-    required this.id,
-    required this.name,
-    required this.slug,
-    required this.description,
-    required this.assetPng,
-    required this.category,
-    required this.tier,
-    required this.statusText,
-    required this.isInstalled,
-    required this.hasUpdate,
-    this.score,
-  });
-
-  final String id;
-  final String name;
-  final String slug;
-  final String description;
-  final String assetPng;
-  final String category;
-  final String tier;
-  final String statusText;
-  final bool isInstalled;
-  final bool hasUpdate;
-  final double? score;
-}
 
 const List<CoreHubModuleItem> kCoreHubModules = [
   CoreHubModuleItem(
@@ -231,20 +204,22 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
                   id: 'all',
                   label: 'Semua Fitur',
                   icon: const CoreBlowIcon.grid(size: 14),
-                  count: kCoreHubModules.length,
+                  count: widget.viewModel.coreHubModules.length,
                 ),
                 _categoryItem(
                   id: 'updates',
                   label: 'Pembaruan',
                   icon: const CoreBlowIcon.refresh(size: 14),
-                  badgeText: '1',
+                  badgeText: widget.viewModel.coreHubModules.where((m) => m.hasUpdate).isEmpty
+                      ? null
+                      : '${widget.viewModel.coreHubModules.where((m) => m.hasUpdate).length}',
                   badgeColor: StudioColors.accentTeal,
                 ),
                 _categoryItem(
                   id: 'installed',
                   label: 'Terpasang di Mac',
                   icon: const CoreBlowIcon.shieldCheck(size: 14),
-                  count: 4,
+                  count: widget.viewModel.coreHubModules.where((m) => m.isInstalled).length,
                 ),
                 const SizedBox(height: 6),
                 const Padding(
@@ -485,7 +460,8 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
   }
 
   Widget _buildModulesList() {
-    final filtered = kCoreHubModules.where((item) {
+    final modules = widget.viewModel.coreHubModules;
+    final filtered = modules.where((item) {
       if (_searchQuery.isNotEmpty) {
         return item.name.toLowerCase().contains(_searchQuery) ||
             item.description.toLowerCase().contains(_searchQuery) ||
@@ -510,7 +486,18 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
       ),
       itemBuilder: (context, index) {
         final item = filtered[index];
-        return _HorizontalModuleRow(item: item);
+        return _HorizontalModuleRow(
+          item: item,
+          onAction: () {
+            if (item.hasUpdate) {
+              widget.viewModel.updateModule(item.slug);
+            } else if (!item.isInstalled) {
+              widget.viewModel.installModule(item.slug);
+            } else {
+              widget.viewModel.openModule(item.slug);
+            }
+          },
+        );
       },
     );
   }
@@ -625,9 +612,13 @@ class _StudioCoreHubViewState extends State<StudioCoreHubView> {
 }
 
 class _HorizontalModuleRow extends StatefulWidget {
-  const _HorizontalModuleRow({required this.item});
+  const _HorizontalModuleRow({
+    required this.item,
+    required this.onAction,
+  });
 
   final CoreHubModuleItem item;
+  final VoidCallback onAction;
 
   @override
   State<_HorizontalModuleRow> createState() => _HorizontalModuleRowState();
@@ -712,30 +703,34 @@ class _HorizontalModuleRowState extends State<_HorizontalModuleRow> {
                   ),
                 ),
                 const SizedBox(width: 14),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: item.hasUpdate
-                        ? StudioColors.accentTeal // #2DD4BF
-                        : StudioColors.bgChip,    // #10261F
-                    borderRadius: BorderRadius.circular(5),
-                    border: Border.all(
+                InkWell(
+                  onTap: widget.onAction,
+                  borderRadius: BorderRadius.circular(5),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                    decoration: BoxDecoration(
                       color: item.hasUpdate
-                          ? StudioColors.accentTeal
-                          : StudioColors.borderChip, // #1A3A33
-                      width: 0.8,
+                          ? StudioColors.accentTeal // #2DD4BF
+                          : StudioColors.bgChip,    // #10261F
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(
+                        color: item.hasUpdate
+                            ? StudioColors.accentTeal
+                            : StudioColors.borderChip, // #1A3A33
+                        width: 0.8,
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    item.hasUpdate
-                        ? 'Perbarui'
-                        : (item.isInstalled ? 'Buka' : 'Pasang'),
-                    style: TextStyle(
-                      color: item.hasUpdate
-                          ? StudioColors.textDark     // #04201B
-                          : StudioColors.textPrimary, // #D9FBF3
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.bold,
+                    child: Text(
+                      item.hasUpdate
+                          ? 'Perbarui'
+                          : (item.isInstalled ? 'Buka' : 'Pasang'),
+                      style: TextStyle(
+                        color: item.hasUpdate
+                            ? StudioColors.textDark     // #04201B
+                            : StudioColors.textPrimary, // #D9FBF3
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
