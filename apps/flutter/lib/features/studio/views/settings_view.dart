@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/theme/colors.dart';
+import '../models/studio_state.dart';
 import '../view_models/studio_view_model.dart';
 
 class StudioSettingsView extends StatefulWidget {
@@ -26,6 +27,8 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
   String _searchQuery = '';
   bool _savedFeedback = false;
   Timer? _feedbackTimer;
+  final Map<String, ConnectionTestResult> _testResults = {};
+  bool _isTestingAll = false;
 
   @override
   void initState() {
@@ -66,6 +69,83 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
     _feedbackTimer = Timer(const Duration(milliseconds: 1400), () {
       if (mounted) setState(() => _savedFeedback = false);
     });
+  }
+
+  Future<void> _testSingle(String provider) async {
+    setState(() {
+      _testResults[provider] = const ConnectionTestResult(
+        state: ConnectionTestState.testing,
+        message: 'Testing...',
+      );
+    });
+
+    String? key;
+    String? url;
+
+    switch (provider) {
+      case 'anthropic':
+        key = _anthropicController.text;
+        break;
+      case 'openai':
+        key = _openAiController.text;
+        break;
+      case 'gemini':
+        key = _geminiController.text;
+        break;
+      case 'groq':
+        key = _groqController.text;
+        break;
+      case 'ollama':
+        url = _ollamaUrlController.text;
+        break;
+      case 'custom_endpoint':
+      case 'custom_key':
+      case 'custom':
+        url = _routerUrlController.text;
+        key = _customApiKeyController.text;
+        break;
+    }
+
+    final result = await widget.viewModel.testConnection(
+      provider: provider,
+      apiKey: key,
+      endpointUrl: url,
+    );
+
+    if (mounted) {
+      setState(() {
+        _testResults[provider] = result;
+        if (provider == 'custom' || provider == 'custom_endpoint' || provider == 'custom_key') {
+          _testResults['custom_endpoint'] = result;
+          _testResults['custom_key'] = result;
+          _testResults['custom'] = result;
+        }
+      });
+    }
+  }
+
+  Future<void> _testAllConnections() async {
+    setState(() => _isTestingAll = true);
+
+    final targets = <String>[];
+    if (_anthropicController.text.trim().isNotEmpty) targets.add('anthropic');
+    if (_openAiController.text.trim().isNotEmpty) targets.add('openai');
+    if (_geminiController.text.trim().isNotEmpty) targets.add('gemini');
+    if (_groqController.text.trim().isNotEmpty) targets.add('groq');
+    if (_ollamaUrlController.text.trim().isNotEmpty) targets.add('ollama');
+    if (_routerUrlController.text.trim().isNotEmpty || _customApiKeyController.text.trim().isNotEmpty) {
+      targets.add('custom');
+    }
+
+    if (targets.isEmpty) {
+      targets.add('custom');
+    }
+
+    await Future.wait(targets.map((p) => _testSingle(p)));
+
+    if (mounted) {
+      setState(() => _isTestingAll = false);
+    }
   }
 
   @override
@@ -402,13 +482,37 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
         _settingsCard(
           title: 'Cloud AI Providers',
           children: [
-            _inputRow('Anthropic Claude API Key', 'sk-ant-api03-...', _anthropicController),
+            _inputRow(
+              'Anthropic Claude API Key',
+              'sk-ant-api03-...',
+              _anthropicController,
+              onTest: () => _testSingle('anthropic'),
+              status: _testResults['anthropic'],
+            ),
             _divider(),
-            _inputRow('OpenAI API Key', 'sk-proj-...', _openAiController),
+            _inputRow(
+              'OpenAI API Key',
+              'sk-proj-...',
+              _openAiController,
+              onTest: () => _testSingle('openai'),
+              status: _testResults['openai'],
+            ),
             _divider(),
-            _inputRow('Google Gemini API Key', 'AIzaSy...', _geminiController),
+            _inputRow(
+              'Google Gemini API Key',
+              'AIzaSy...',
+              _geminiController,
+              onTest: () => _testSingle('gemini'),
+              status: _testResults['gemini'],
+            ),
             _divider(),
-            _inputRow('Groq API Key', 'gsk_...', _groqController),
+            _inputRow(
+              'Groq API Key',
+              'gsk_...',
+              _groqController,
+              onTest: () => _testSingle('groq'),
+              status: _testResults['groq'],
+            ),
           ],
         ),
 
@@ -417,11 +521,32 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
         _settingsCard(
           title: 'Local & Custom Endpoints',
           children: [
-            _inputRow('Local Ollama Base URL', 'http://127.0.0.1:11434', _ollamaUrlController, isSecret: false),
+            _inputRow(
+              'Local Ollama Base URL',
+              'http://127.0.0.1:11434',
+              _ollamaUrlController,
+              isSecret: false,
+              onTest: () => _testSingle('ollama'),
+              status: _testResults['ollama'],
+            ),
             _divider(),
-            _inputRow('Custom Base URL (OpenAI-Compatible)', 'http://127.0.0.1:18789/v1 or https://...', _routerUrlController, isSecret: false),
+            _inputRow(
+              'Custom Base URL (OpenAI-Compatible)',
+              'http://127.0.0.1:18789/v1 or https://...',
+              _routerUrlController,
+              isSecret: false,
+              onTest: () => _testSingle('custom'),
+              status: _testResults['custom_endpoint'] ?? _testResults['custom'],
+            ),
             _divider(),
-            _inputRow('Custom API Key', 'sk-... (optional for local proxy)', _customApiKeyController, isSecret: true),
+            _inputRow(
+              'Custom API Key',
+              'sk-... (optional for local proxy)',
+              _customApiKeyController,
+              isSecret: true,
+              onTest: () => _testSingle('custom'),
+              status: _testResults['custom_key'] ?? _testResults['custom'],
+            ),
           ],
         ),
 
@@ -429,6 +554,33 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
 
         Row(
           children: [
+            OutlinedButton(
+              onPressed: _isTestingAll ? null : _testAllConnections,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: StudioColors.textPrimary,
+                side: const BorderSide(color: StudioColors.borderCard, width: 0.8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_isTestingAll)
+                    const SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(strokeWidth: 1.5, color: StudioColors.accentTeal),
+                    )
+                  else
+                    const Icon(Icons.wifi_tethering_rounded, size: 14, color: StudioColors.accentTeal),
+                  const SizedBox(width: 6),
+                  Text(
+                    _isTestingAll ? 'Testing...' : 'Test Connection',
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
             const Spacer(),
             ElevatedButton(
               onPressed: _saveApiKeys,
@@ -714,24 +866,129 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
     );
   }
 
+  Widget _buildStatusChip(ConnectionTestResult status) {
+    final (Color bg, Color fg, IconData icon) = switch (status.state) {
+      ConnectionTestState.success => (
+        const Color(0x1F28C840),
+        const Color(0xFF28C840),
+        Icons.check_circle_outline_rounded,
+      ),
+      ConnectionTestState.failed => (
+        const Color(0x1FFF453A),
+        const Color(0xFFFF453A),
+        Icons.error_outline_rounded,
+      ),
+      ConnectionTestState.testing => (
+        const Color(0x1F2DD4BF),
+        StudioColors.accentTeal,
+        Icons.sync_rounded,
+      ),
+      ConnectionTestState.idle => (
+        Colors.transparent,
+        StudioColors.textMuted,
+        Icons.circle_outlined,
+      ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: fg),
+          const SizedBox(width: 4),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 160),
+            child: Text(
+              status.message,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: fg,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _inputRow(
     String label,
     String placeholder,
     TextEditingController controller, {
     bool isSecret = true,
+    VoidCallback? onTest,
+    ConnectionTestResult? status,
   }) {
+    final isTesting = status?.state == ConnectionTestState.testing;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: StudioColors.textPrimary,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w500,
-            ),
+          Row(
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  color: StudioColors.textPrimary,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const Spacer(),
+              if (status != null && status.state != ConnectionTestState.idle) ...[
+                _buildStatusChip(status),
+                const SizedBox(width: 6),
+              ],
+              if (onTest != null)
+                InkWell(
+                  onTap: isTesting ? null : onTest,
+                  borderRadius: BorderRadius.circular(4),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: StudioColors.bgCard,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: StudioColors.borderCard,
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isTesting) ...[
+                          const SizedBox(
+                            width: 8,
+                            height: 8,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1.2,
+                              color: StudioColors.accentTeal,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+                        Text(
+                          isTesting ? 'Testing' : 'Test',
+                          style: const TextStyle(
+                            color: StudioColors.textSecondary,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 6),
           Container(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:coreblow_flutter/features/studio/models/studio_state.dart';
+import 'package:coreblow_flutter/features/studio/view_models/studio_view_model.dart';
 import 'package:coreblow_flutter/features/studio/views/corehub_view.dart';
 import 'package:coreblow_flutter/features/studio/views/inspector_view.dart';
 import 'package:coreblow_flutter/features/studio/views/settings_view.dart';
@@ -109,7 +111,16 @@ void main() {
     expect(find.text('Custom API Key'), findsOneWidget);
     expect(find.textContaining('9Router'), findsNothing);
 
-    // Save API Keys
+    // Test Connection Button Verification
+    final testConnectionButton = find.text('Test Connection');
+    expect(testConnectionButton, findsOneWidget);
+    await tester.ensureVisible(testConnectionButton);
+    await tester.tap(testConnectionButton);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+
+    // Verify Save API Keys
     final saveButton = find.text('Save & Apply');
     await tester.ensureVisible(saveButton);
     await tester.tap(saveButton);
@@ -122,5 +133,45 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(StudioSettingsView), findsNothing);
+  });
+
+  test('StudioViewModel testConnection endpoint checks and overrides', () async {
+    final viewModel = StudioViewModel();
+
+    // 1. Anthropic empty key check
+    viewModel.anthropicApiKey = '';
+    final anthropicRes = await viewModel.testConnection(provider: 'anthropic');
+    expect(anthropicRes.isFailed, isTrue);
+    expect(anthropicRes.message, 'Key is empty');
+
+    // 2. OpenAI empty key check
+    viewModel.openAiApiKey = '';
+    final openAiRes = await viewModel.testConnection(provider: 'openai');
+    expect(openAiRes.isFailed, isTrue);
+    expect(openAiRes.message, 'Key is empty');
+
+    // 3. Override hook test for custom endpoint
+    viewModel.testConnectionOverride = ({
+      required String provider,
+      String? apiKey,
+      String? endpointUrl,
+    }) async {
+      return const ConnectionTestResult(
+        state: ConnectionTestState.success,
+        message: 'Active · 42ms',
+        latencyMs: 42,
+      );
+    };
+
+    final customRes = await viewModel.testConnection(
+      provider: 'custom',
+      endpointUrl: 'http://127.0.0.1:18789/v1',
+      apiKey: 'sk-test',
+    );
+    expect(customRes.isSuccess, isTrue);
+    expect(customRes.message, 'Active · 42ms');
+    expect(customRes.latencyMs, 42);
+
+    viewModel.dispose();
   });
 }

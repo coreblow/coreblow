@@ -648,6 +648,266 @@ class StudioViewModel extends ChangeNotifier {
     }
   }
 
+  Future<ConnectionTestResult> Function({
+    required String provider,
+    String? apiKey,
+    String? endpointUrl,
+  })? testConnectionOverride;
+
+  Future<ConnectionTestResult> testConnection({
+    required String provider,
+    String? apiKey,
+    String? endpointUrl,
+  }) async {
+    if (testConnectionOverride != null) {
+      return testConnectionOverride!(
+        provider: provider,
+        apiKey: apiKey,
+        endpointUrl: endpointUrl,
+      );
+    }
+
+    final client = HttpClient();
+    client.connectionTimeout = const Duration(seconds: 4);
+    final stopwatch = Stopwatch()..start();
+
+    try {
+      switch (provider) {
+        case 'anthropic': {
+          final key = (apiKey ?? anthropicApiKey).trim();
+          if (key.isEmpty) {
+            return const ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'Key is empty',
+            );
+          }
+          final request = await client.getUrl(Uri.parse('https://api.anthropic.com/v1/models'));
+          request.headers.set('x-api-key', key);
+          request.headers.set('anthropic-version', '2023-06-01');
+          final response = await request.close().timeout(const Duration(seconds: 4));
+          stopwatch.stop();
+
+          if (response.statusCode == 200) {
+            return ConnectionTestResult(
+              state: ConnectionTestState.success,
+              message: 'Active · ${stopwatch.elapsedMilliseconds}ms',
+              latencyMs: stopwatch.elapsedMilliseconds,
+            );
+          } else if (response.statusCode == 401 || response.statusCode == 403) {
+            return ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'Invalid Key (${response.statusCode})',
+            );
+          } else {
+            return ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'HTTP ${response.statusCode}',
+            );
+          }
+        }
+
+        case 'openai': {
+          final key = (apiKey ?? openAiApiKey).trim();
+          if (key.isEmpty) {
+            return const ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'Key is empty',
+            );
+          }
+          final request = await client.getUrl(Uri.parse('https://api.openai.com/v1/models'));
+          request.headers.set('Authorization', 'Bearer $key');
+          final response = await request.close().timeout(const Duration(seconds: 4));
+          stopwatch.stop();
+
+          if (response.statusCode == 200) {
+            return ConnectionTestResult(
+              state: ConnectionTestState.success,
+              message: 'Active · ${stopwatch.elapsedMilliseconds}ms',
+              latencyMs: stopwatch.elapsedMilliseconds,
+            );
+          } else if (response.statusCode == 401 || response.statusCode == 403) {
+            return ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'Invalid Key (${response.statusCode})',
+            );
+          } else {
+            return ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'HTTP ${response.statusCode}',
+            );
+          }
+        }
+
+        case 'gemini': {
+          final key = (apiKey ?? geminiApiKey).trim();
+          if (key.isEmpty) {
+            return const ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'Key is empty',
+            );
+          }
+          final request = await client.getUrl(Uri.parse('https://generativelanguage.googleapis.com/v1beta/models?key=$key'));
+          final response = await request.close().timeout(const Duration(seconds: 4));
+          stopwatch.stop();
+
+          if (response.statusCode == 200) {
+            return ConnectionTestResult(
+              state: ConnectionTestState.success,
+              message: 'Active · ${stopwatch.elapsedMilliseconds}ms',
+              latencyMs: stopwatch.elapsedMilliseconds,
+            );
+          } else if (response.statusCode == 400 || response.statusCode == 403 || response.statusCode == 401) {
+            return ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'Invalid Key (${response.statusCode})',
+            );
+          } else {
+            return ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'HTTP ${response.statusCode}',
+            );
+          }
+        }
+
+        case 'groq': {
+          final key = (apiKey ?? groqApiKey).trim();
+          if (key.isEmpty) {
+            return const ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'Key is empty',
+            );
+          }
+          final request = await client.getUrl(Uri.parse('https://api.groq.com/openai/v1/models'));
+          request.headers.set('Authorization', 'Bearer $key');
+          final response = await request.close().timeout(const Duration(seconds: 4));
+          stopwatch.stop();
+
+          if (response.statusCode == 200) {
+            return ConnectionTestResult(
+              state: ConnectionTestState.success,
+              message: 'Active · ${stopwatch.elapsedMilliseconds}ms',
+              latencyMs: stopwatch.elapsedMilliseconds,
+            );
+          } else if (response.statusCode == 401 || response.statusCode == 403) {
+            return ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'Invalid Key (${response.statusCode})',
+            );
+          } else {
+            return ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'HTTP ${response.statusCode}',
+            );
+          }
+        }
+
+        case 'ollama': {
+          final urlStr = (endpointUrl ?? localOllamaUrl).trim();
+          if (urlStr.isEmpty) {
+            return const ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'URL is empty',
+            );
+          }
+          final cleanUrl = urlStr.endsWith('/') ? urlStr.substring(0, urlStr.length - 1) : urlStr;
+          final uri = Uri.parse('$cleanUrl/api/tags');
+          final request = await client.getUrl(uri);
+          final response = await request.close().timeout(const Duration(seconds: 4));
+          stopwatch.stop();
+
+          if (response.statusCode == 200) {
+            return ConnectionTestResult(
+              state: ConnectionTestState.success,
+              message: 'Active · ${stopwatch.elapsedMilliseconds}ms',
+              latencyMs: stopwatch.elapsedMilliseconds,
+            );
+          } else {
+            return ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'HTTP ${response.statusCode}',
+            );
+          }
+        }
+
+        case 'custom':
+        case 'custom_endpoint':
+        case 'custom_key': {
+          final urlStr = (endpointUrl ?? customEndpointUrl).trim();
+          if (urlStr.isEmpty) {
+            return const ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'URL is empty',
+            );
+          }
+          var cleanUrl = urlStr.endsWith('/') ? urlStr.substring(0, urlStr.length - 1) : urlStr;
+          if (cleanUrl.endsWith('/chat/completions')) {
+            cleanUrl = cleanUrl.substring(0, cleanUrl.length - '/chat/completions'.length);
+          }
+          final testUri = Uri.parse(cleanUrl.endsWith('/models') ? cleanUrl : '$cleanUrl/models');
+          final request = await client.getUrl(testUri);
+          final key = (apiKey ?? customApiKey).trim();
+          if (key.isNotEmpty) {
+            request.headers.set('Authorization', 'Bearer $key');
+          }
+          final response = await request.close().timeout(const Duration(seconds: 4));
+          stopwatch.stop();
+
+          if (response.statusCode == 200) {
+            return ConnectionTestResult(
+              state: ConnectionTestState.success,
+              message: 'Active · ${stopwatch.elapsedMilliseconds}ms',
+              latencyMs: stopwatch.elapsedMilliseconds,
+            );
+          } else if (response.statusCode == 401 || response.statusCode == 403) {
+            return ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'Unauthorized (${response.statusCode})',
+            );
+          } else if (response.statusCode == 404) {
+            return ConnectionTestResult(
+              state: ConnectionTestState.success,
+              message: 'Reachable · ${stopwatch.elapsedMilliseconds}ms',
+              latencyMs: stopwatch.elapsedMilliseconds,
+            );
+          } else {
+            return ConnectionTestResult(
+              state: ConnectionTestState.failed,
+              message: 'HTTP ${response.statusCode}',
+            );
+          }
+        }
+
+        default:
+          return const ConnectionTestResult(
+            state: ConnectionTestState.failed,
+            message: 'Unknown provider',
+          );
+      }
+    } on TimeoutException {
+      stopwatch.stop();
+      return const ConnectionTestResult(
+        state: ConnectionTestState.failed,
+        message: 'Timeout (>4s)',
+      );
+    } on SocketException catch (e) {
+      stopwatch.stop();
+      final msg = e.osError?.message ?? 'Unreachable';
+      return ConnectionTestResult(
+        state: ConnectionTestState.failed,
+        message: msg.contains('Connection refused') ? 'Connection refused' : 'Unreachable',
+      );
+    } catch (e) {
+      stopwatch.stop();
+      return ConnectionTestResult(
+        state: ConnectionTestState.failed,
+        message: 'Error: ${e.toString().split('\n').first}',
+      );
+    } finally {
+      client.close();
+    }
+  }
+
+
   void _onTextChanged() {
     notifyListeners();
   }

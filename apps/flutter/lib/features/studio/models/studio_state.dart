@@ -168,3 +168,27 @@ class MessagingChannelStatus {
   final bool isOnline;
   final int unread;
 }
+
+enum ConnectionTestState {
+  idle,
+  testing,
+  success,
+  failed,
+}
+
+class ConnectionTestResult {
+  const ConnectionTestResult({
+    required this.state,
+    this.message = '',
+    this.latencyMs,
+  });
+
+  final ConnectionTestState state;
+  final String message;
+  final int? latencyMs;
+
+  bool get isSuccess => state == ConnectionTestState.success;
+  bool get isFailed => state == ConnectionTestState.failed;
+  bool get isTesting => state == ConnectionTestState.testing;
+}
+
