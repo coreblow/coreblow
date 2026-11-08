@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#143F37"/>
+      <stop offset="1" stop-color="#06110F"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2DD4BF" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#2DD4BF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.03"/>
+      <stop offset="1" stop-color="#2DD4BF" stop-opacity="0.10"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="230" fill="url(#glow)"/>
+  <rect x="1.5" y="1.5" width="509" height="509" rx="114.5" fill="none" stroke="url(#rim)" stroke-width="3"/>
+  <g>
+  <path d="M165.14 219.29 A98 98 0 0 1 342.53 209.99" fill="none" stroke="#D9FBF3" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="1"/>
+  <path d="M342.53 209.99 L345.32 170.09" fill="none" stroke="#D9FBF3" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="1"/>
+  <path d="M342.53 209.99 L307.89 189.99" fill="none" stroke="#D9FBF3" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="1"/>
+  <path d="M346.86 292.71 A98 98 0 0 1 169.47 302.01" fill="none" stroke="#D9FBF3" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="1"/>
+  <path d="M169.47 302.01 L166.68 341.91" fill="none" stroke="#D9FBF3" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="1"/>
+  <path d="M169.47 302.01 L204.11 322.01" fill="none" stroke="#D9FBF3" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="1"/>
+  <path d="M256 226 L286 256 L256 286 L226 256 Z" fill="#2DD4BF" stroke="#2DD4BF" stroke-width="8" stroke-linejoin="round"/>
+</g>
+</svg>

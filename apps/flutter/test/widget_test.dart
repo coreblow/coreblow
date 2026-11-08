@@ -8,6 +8,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:coreblow_flutter/core/widgets/coreblow_icons.dart';
+import 'package:coreblow_flutter/features/studio/views/corehub_view.dart';
 import 'package:coreblow_flutter/main.dart';
 
 void main() {
@@ -21,5 +23,32 @@ void main() {
     // Verify heading text is rendered
     expect(find.text('What should we build?'), findsOneWidget);
     expect(find.text('CoreBlow'), findsOneWidget);
+
+    // Switch to CoreHub Store via NavRail package icon
+    final packageFinder = find.byType(CoreBlowIcon).at(2); // 3rd rail item is package
+    await tester.tap(packageFinder);
+    await tester.pumpAndSettle();
+
+    // Verify CoreHub view is now displayed
+    expect(find.byType(StudioCoreHubView), findsOneWidget);
+    expect(find.text('COREHUB STORE'), findsOneWidget);
+    expect(find.text('CoreBlow Studio'), findsOneWidget);
+    expect(find.text('Companion Bar'), findsOneWidget);
+    expect(find.text('Cory 4-Layer Memory'), findsOneWidget);
+    expect(find.text('EvoLoop Synthesizer'), findsOneWidget);
+    expect(find.text('MCP Bridge'), findsOneWidget);
+    expect(find.text('Discord Bot'), findsOneWidget);
+    expect(find.text('Git Supercharged'), findsOneWidget);
+
+    // Toggle Spec Sheet
+    final toggleSpecBtn = find.text('Sistem Ikon');
+    expect(toggleSpecBtn, findsOneWidget);
+    await tester.tap(toggleSpecBtn);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sistem Ikon (Quiet Instrument)'), findsOneWidget);
+    expect(find.text('RAIL NAVIGASI'), findsOneWidget);
+    expect(find.text('SIDEBAR'), findsOneWidget);
+    expect(find.text('MODUL APLIKASI'), findsOneWidget);
   });
 }

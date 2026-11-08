@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/widgets/coreblow_icons.dart';
+import '../models/studio_state.dart';
 import '../view_models/studio_view_model.dart';
 
 class StudioProfilePopoverCard extends StatelessWidget {
@@ -153,16 +155,17 @@ class StudioProfilePopoverCard extends StatelessWidget {
           _sectionLabel('EXTENSIONS & MODELS'),
           const SizedBox(height: 2),
           _menuRow(
-            icon: Icons.view_in_ar_rounded,
+            iconWidget: const CoreBlowIcon.package(size: 14),
             title: 'CoreHub Store',
             shortcutKeys: ['⌘', 'P'],
             onTap: () {
+              viewModel.setNavTab(StudioNavTab.coreHub);
               viewModel.closeProfileMenu();
             },
           ),
           const SizedBox(height: 2),
           _menuRow(
-            icon: Icons.key_rounded,
+            iconWidget: const CoreBlowIcon.code(size: 14),
             title: 'AI Keys (Config)',
             shortcutKeys: ['⌘', 'K'],
             onTap: () {
@@ -222,7 +225,8 @@ class StudioProfilePopoverCard extends StatelessWidget {
   }
 
   Widget _menuRow({
-    required IconData icon,
+    IconData? icon,
+    Widget? iconWidget,
     required String title,
     required List<String> shortcutKeys,
     required VoidCallback onTap,
@@ -234,11 +238,12 @@ class StudioProfilePopoverCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 13,
-              color: Colors.white.withValues(alpha: 0.70),
-            ),
+            iconWidget ??
+                Icon(
+                  icon,
+                  size: 13,
+                  color: Colors.white.withValues(alpha: 0.70),
+                ),
             const SizedBox(width: 8),
             Text(
               title,

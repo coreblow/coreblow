@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/theme/colors.dart';
+import 'features/studio/models/studio_state.dart';
 import 'features/studio/view_models/studio_view_model.dart';
 import 'features/studio/views/studio_screen.dart';
 
@@ -9,7 +10,9 @@ void main() {
 }
 
 class CoreBlowFlutterApp extends StatefulWidget {
-  const CoreBlowFlutterApp({super.key});
+  const CoreBlowFlutterApp({super.key, this.initialTab = StudioNavTab.home});
+
+  final StudioNavTab initialTab;
 
   @override
   State<CoreBlowFlutterApp> createState() => _CoreBlowFlutterAppState();
@@ -22,6 +25,10 @@ class _CoreBlowFlutterAppState extends State<CoreBlowFlutterApp> {
   void initState() {
     super.initState();
     _viewModel = StudioViewModel();
+    const envTab = String.fromEnvironment('STUDIO_TAB', defaultValue: 'home');
+    if (envTab == 'corehub' || widget.initialTab == StudioNavTab.coreHub) {
+      _viewModel.setNavTab(StudioNavTab.coreHub);
+    }
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/widgets/aperture_emblem.dart';
+import '../../../core/widgets/coreblow_icons.dart';
 import '../view_models/studio_view_model.dart';
 
 class StudioSidebarView extends StatelessWidget {
@@ -153,10 +154,10 @@ class StudioSidebarView extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(
-                            Icons.auto_awesome_rounded,
-                            size: 11,
+                          const CoreBlowIcon.sparkle(
+                            size: 13,
                             color: StudioColors.accentMint,
+                            accentColor: StudioColors.accentCyan,
                           ),
                           const SizedBox(width: 6),
                           Expanded(

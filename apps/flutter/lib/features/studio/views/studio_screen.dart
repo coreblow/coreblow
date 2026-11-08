@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/colors.dart';
+import '../models/studio_state.dart';
 import '../view_models/studio_view_model.dart';
 import 'canvas_view.dart';
+import 'corehub_view.dart';
 import 'nav_rail_view.dart';
 import 'profile_popover_card.dart';
 import 'sidebar_view.dart';
@@ -57,23 +59,28 @@ class StudioScreen extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              child: Row(
-                                children: [
-                                  // Collapsible Sidebar (188px)
-                                  if (viewModel.isSidebarVisible) ...[
-                                    StudioSidebarView(viewModel: viewModel),
-                                    Container(
-                                      width: 0.5,
-                                      color: StudioColors.borderSubtle,
-                                    ),
-                                  ],
+                              child: viewModel.activeNavTab == StudioNavTab.coreHub
+                                  ? StudioCoreHubView(
+                                      viewModel: viewModel,
+                                      initialShowSpecSheet: const bool.fromEnvironment('SHOW_SPEC', defaultValue: false),
+                                    )
+                                  : Row(
+                                      children: [
+                                        // Collapsible Sidebar (188px)
+                                        if (viewModel.isSidebarVisible) ...[
+                                          StudioSidebarView(viewModel: viewModel),
+                                          Container(
+                                            width: 0.5,
+                                            color: StudioColors.borderSubtle,
+                                          ),
+                                        ],
 
-                                  // Main Center Canvas
-                                  Expanded(
-                                    child: StudioCanvasView(viewModel: viewModel),
-                                  ),
-                                ],
-                              ),
+                                        // Main Center Canvas
+                                        Expanded(
+                                          child: StudioCanvasView(viewModel: viewModel),
+                                        ),
+                                      ],
+                                    ),
                             ),
                           ),
                         ),

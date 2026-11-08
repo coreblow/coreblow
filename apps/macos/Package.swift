@@ -58,6 +58,7 @@ let package = Package(
             resources: [
                 .copy("Resources/CoreBlow.icns"),
                 .copy("Resources/DeviceModels"),
+                .copy("Resources/icons"),
             ],
             swiftSettings: [
                 .enableUpcomingFeature("StrictConcurrency"),

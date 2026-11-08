@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/widgets/coreblow_icons.dart';
 import '../models/studio_state.dart';
 import '../view_models/studio_view_model.dart';
 
@@ -20,44 +21,62 @@ class StudioNavRailView extends StatelessWidget {
         children: [
           const SizedBox(height: 6),
 
-          // Nav tabs
+          // Nav tabs with Quiet Instrument Icon System (#2DD4BF accent)
           _NavRailItem(
-            icon: Icons.chat_bubble_outline_rounded,
+            icon: CoreBlowIcon.chat(
+              size: 16,
+              color: viewModel.activeNavTab == StudioNavTab.home ? Colors.white : Colors.white.withValues(alpha: 0.55),
+            ),
             tooltip: 'Home & Chat',
             isSelected: viewModel.activeNavTab == StudioNavTab.home,
             onTap: () => viewModel.setNavTab(StudioNavTab.home),
           ),
           const SizedBox(height: 4),
           _NavRailItem(
-            icon: Icons.access_time_rounded,
+            icon: CoreBlowIcon.history(
+              size: 16,
+              color: viewModel.activeNavTab == StudioNavTab.history ? Colors.white : Colors.white.withValues(alpha: 0.55),
+            ),
             tooltip: 'History',
             isSelected: viewModel.activeNavTab == StudioNavTab.history,
             onTap: () => viewModel.setNavTab(StudioNavTab.history),
           ),
           const SizedBox(height: 4),
           _NavRailItem(
-            icon: Icons.view_in_ar_rounded,
+            icon: CoreBlowIcon.package(
+              size: 16,
+              color: viewModel.activeNavTab == StudioNavTab.coreHub ? Colors.white : Colors.white.withValues(alpha: 0.55),
+            ),
             tooltip: 'CoreHub Store',
             isSelected: viewModel.activeNavTab == StudioNavTab.coreHub,
             onTap: () => viewModel.setNavTab(StudioNavTab.coreHub),
           ),
           const SizedBox(height: 4),
           _NavRailItem(
-            icon: Icons.people_outline_rounded,
+            icon: CoreBlowIcon.people(
+              size: 16,
+              color: viewModel.activeNavTab == StudioNavTab.team ? Colors.white : Colors.white.withValues(alpha: 0.55),
+            ),
             tooltip: 'Team & Agents',
             isSelected: viewModel.activeNavTab == StudioNavTab.team,
             onTap: () => viewModel.setNavTab(StudioNavTab.team),
           ),
           const SizedBox(height: 4),
           _NavRailItem(
-            icon: Icons.book_outlined,
+            icon: CoreBlowIcon.book(
+              size: 16,
+              color: viewModel.activeNavTab == StudioNavTab.docs ? Colors.white : Colors.white.withValues(alpha: 0.55),
+            ),
             tooltip: 'Documentation & Wiki',
             isSelected: viewModel.activeNavTab == StudioNavTab.docs,
             onTap: () => viewModel.setNavTab(StudioNavTab.docs),
           ),
           const SizedBox(height: 4),
           _NavRailItem(
-            icon: Icons.account_tree_outlined,
+            icon: CoreBlowIcon.branch(
+              size: 16,
+              color: viewModel.activeNavTab == StudioNavTab.git ? Colors.white : Colors.white.withValues(alpha: 0.55),
+            ),
             tooltip: 'Git & Worktrees',
             isSelected: viewModel.activeNavTab == StudioNavTab.git,
             onTap: () => viewModel.setNavTab(StudioNavTab.git),
@@ -106,7 +125,7 @@ class _NavRailItem extends StatelessWidget {
     required this.onTap,
   });
 
-  final IconData icon;
+  final Widget icon;
   final String tooltip;
   final bool isSelected;
   final VoidCallback onTap;
@@ -126,11 +145,7 @@ class _NavRailItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(6),
           ),
           child: Center(
-            child: Icon(
-              icon,
-              size: 13,
-              color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.55),
-            ),
+            child: icon,
           ),
         ),
       ),
