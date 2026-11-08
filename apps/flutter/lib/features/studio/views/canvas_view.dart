@@ -19,27 +19,76 @@ class StudioCanvasView extends StatefulWidget {
 
 class _StudioCanvasViewState extends State<StudioCanvasView> {
   final ScrollController _scrollController = ScrollController();
+  int _lastMessageCount = 0;
+  int _lastContentLength = 0;
+  String? _lastThreadId;
+
+  @override
+  void initState() {
+    super.initState();
+    _lastThreadId = widget.viewModel.activeThreadId;
+    _lastMessageCount = widget.viewModel.messages.length;
+    _lastContentLength = widget.viewModel.messages.isNotEmpty
+        ? widget.viewModel.messages.last.content.length
+        : 0;
+    widget.viewModel.addListener(_onViewModelChanged);
+  }
 
   @override
   void didUpdateWidget(StudioCanvasView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.viewModel.messages.length != oldWidget.viewModel.messages.length) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOut,
-          );
-        }
-      });
+    if (widget.viewModel != oldWidget.viewModel) {
+      oldWidget.viewModel.removeListener(_onViewModelChanged);
+      widget.viewModel.addListener(_onViewModelChanged);
+      _checkAndScroll();
     }
   }
 
   @override
   void dispose() {
+    widget.viewModel.removeListener(_onViewModelChanged);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+    _checkAndScroll();
+  }
+
+  void _checkAndScroll() {
+    final currentCount = widget.viewModel.messages.length;
+    final currentContentLength = widget.viewModel.messages.isNotEmpty
+        ? widget.viewModel.messages.last.content.length
+        : 0;
+    final currentThreadId = widget.viewModel.activeThreadId;
+
+    if (currentCount != _lastMessageCount ||
+        currentContentLength != _lastContentLength ||
+        currentThreadId != _lastThreadId) {
+      _lastMessageCount = currentCount;
+      _lastContentLength = currentContentLength;
+      _lastThreadId = currentThreadId;
+      _scrollToBottom();
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_scrollController.hasClients) {
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        if ((_scrollController.position.pixels - maxScroll).abs() > 1.0) {
+          _scrollController.animateTo(
+            maxScroll,
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+          );
+        }
+      }
+    });
   }
 
   @override

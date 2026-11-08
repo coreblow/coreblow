@@ -444,10 +444,78 @@ class StudioViewModel extends ChangeNotifier {
     if (thread.id.isNotEmpty) {
       _activeThreadId = thread.id;
       _messages.clear();
+      thread.messages.removeWhere((m) => m.isStreaming && m.content == '...');
       _messages.addAll(thread.messages);
       _activeNavTab = StudioNavTab.home;
       _isSettingsOpen = false;
       notifyListeners();
+    }
+  }
+
+  List<Map<String, String>> buildConversationPayload({String? currentAssistantMsgId}) {
+    final systemPrompt = [
+      'You are CoreBlow Studio AI Assistant, an interactive software engineering assistant.',
+      'Active Language: $_language',
+      'Active Project Directory: ${_currentProjectPath.isNotEmpty ? _currentProjectPath : "None"}',
+      'Active Project Name: ${_currentProjectName.isNotEmpty ? _currentProjectName : "None"}',
+      'Git Branch: $_currentBranch',
+      'Changed Files: ${_changedFiles.isEmpty ? "Clean" : _changedFiles.join(", ")}',
+      'Execution Profile: $_executionProfile',
+    ].join('\n');
+
+    final payload = <Map<String, String>>[
+      {
+        'role': 'system',
+        'content': systemPrompt,
+      },
+    ];
+
+    for (final msg in _messages) {
+      if (currentAssistantMsgId != null && msg.id == currentAssistantMsgId) {
+        continue;
+      }
+      if (msg.isStreaming && msg.content == '...') {
+        continue;
+      }
+      payload.add({
+        'role': msg.sender == 'user' ? 'user' : 'assistant',
+        'content': msg.content,
+      });
+    }
+
+    return payload;
+  }
+
+  void _updateAssistantMessage({
+    required String id,
+    required String content,
+    required String trace,
+    required bool isStreaming,
+  }) {
+    final idx = _messages.indexWhere((m) => m.id == id);
+    if (idx != -1) {
+      final updatedMsg = StudioMessage(
+        id: id,
+        sender: 'assistant',
+        content: content,
+        timestamp: _messages[idx].timestamp,
+        trace: trace,
+        isStreaming: isStreaming,
+      );
+      _messages[idx] = updatedMsg;
+
+      if (_activeThreadId != null) {
+        final threadIdx = _recentThreads.indexWhere((t) => t.id == _activeThreadId);
+        if (threadIdx != -1) {
+          final activeThread = _recentThreads[threadIdx];
+          final tMsgIdx = activeThread.messages.indexWhere((m) => m.id == id);
+          if (tMsgIdx != -1) {
+            activeThread.messages[tMsgIdx] = updatedMsg;
+          } else {
+            activeThread.messages.add(updatedMsg);
+          }
+        }
+      }
     }
   }
 
@@ -478,7 +546,9 @@ class StudioViewModel extends ChangeNotifier {
       _activeThreadId = threadId;
     } else {
       final active = _recentThreads.firstWhere((t) => t.id == _activeThreadId);
-      active.messages.add(userMsg);
+      if (!active.messages.any((m) => m.id == userMsg.id)) {
+        active.messages.add(userMsg);
+      }
     }
 
     _isGenerating = true;
@@ -486,16 +556,26 @@ class StudioViewModel extends ChangeNotifier {
 
     // Dispatch async assistant reply
     final assistantMsgId = '${DateTime.now().millisecondsSinceEpoch}-assistant';
-    _messages.add(
-      StudioMessage(
-        id: assistantMsgId,
-        sender: 'assistant',
-        content: '...',
-        timestamp: DateTime.now(),
-        isStreaming: true,
-      ),
+    final placeholderMsg = StudioMessage(
+      id: assistantMsgId,
+      sender: 'assistant',
+      content: '...',
+      timestamp: DateTime.now(),
+      isStreaming: true,
     );
+    _messages.add(placeholderMsg);
+    if (_activeThreadId != null) {
+      final threadIdx = _recentThreads.indexWhere((t) => t.id == _activeThreadId);
+      if (threadIdx != -1) {
+        final activeThread = _recentThreads[threadIdx];
+        if (!activeThread.messages.any((m) => m.id == assistantMsgId)) {
+          activeThread.messages.add(placeholderMsg);
+        }
+      }
+    }
     notifyListeners();
+
+    final conversationPayload = buildConversationPayload(currentAssistantMsgId: assistantMsgId);
 
     final stopwatch = Stopwatch()..start();
 
@@ -512,6 +592,7 @@ class StudioViewModel extends ChangeNotifier {
             : (customEndpointUrl.endsWith('/') ? '${customEndpointUrl}chat/completions' : '$customEndpointUrl/chat/completions');
         final request = await client.postUrl(Uri.parse(endpoint));
         request.headers.contentType = ContentType.json;
+        request.headers.set('Accept', 'text/event-stream, application/json');
         if (customApiKey.isNotEmpty) {
           request.headers.set('Authorization', 'Bearer $customApiKey');
         }
@@ -520,33 +601,79 @@ class StudioViewModel extends ChangeNotifier {
             : (_selectedModel == 'Coding' ? 'claude-3-7-sonnet' : 'deepseek-r1');
         request.write(jsonEncode({
           'model': chosenModel,
-          'messages': [
-            {'role': 'user', 'content': text}
-          ]
+          'stream': true,
+          'messages': conversationPayload,
         }));
         final response = await request.close();
         if (response.statusCode == 200) {
-          final body = await response.transform(utf8.decoder).join();
-          if (body.contains('data: {')) {
-            final buffer = StringBuffer();
-            for (final line in body.split('\n')) {
-              final trimmed = line.trim();
-              if (trimmed.startsWith('data: ') && !trimmed.contains('[DONE]')) {
-                try {
-                  final chunk = jsonDecode(trimmed.substring(6));
-                  final piece = chunk['choices']?[0]?['delta']?['content'] ??
-                      chunk['choices']?[0]?['text'] ??
-                      '';
-                  buffer.write(piece);
-                } catch (_) {}
+          int? ttftMs;
+          final streamBuffer = StringBuffer();
+          final nonSseLines = <String>[];
+          bool isSse = false;
+
+          await for (final rawLine in utf8.decoder.bind(response).transform(const LineSplitter())) {
+            final trimmed = rawLine.trim();
+            if (trimmed.isEmpty) continue;
+            if (trimmed.startsWith(':')) continue; // SSE comment / ping
+
+            if (trimmed.startsWith('data:')) {
+              isSse = true;
+              final dataStr = trimmed.substring(5).trim();
+              if (dataStr == '[DONE]') {
+                break;
               }
+              try {
+                final chunk = jsonDecode(dataStr);
+                final piece = chunk['choices']?[0]?['delta']?['content'] ??
+                    chunk['choices']?[0]?['text'] ??
+                    chunk['choices']?[0]?['message']?['content'] ??
+                    '';
+                if (piece is String && piece.isNotEmpty) {
+                  ttftMs ??= stopwatch.elapsedMilliseconds;
+                  streamBuffer.write(piece);
+                  replyContent = streamBuffer.toString();
+                  traceInfo = 'Custom Gateway · TTFT ${ttftMs}ms · Streaming...';
+
+                  _updateAssistantMessage(
+                    id: assistantMsgId,
+                    content: replyContent,
+                    trace: traceInfo,
+                    isStreaming: true,
+                  );
+                  notifyListeners();
+                }
+              } catch (_) {
+                // Ignore unparsable SSE line
+              }
+            } else {
+              nonSseLines.add(rawLine);
             }
-            replyContent = buffer.isNotEmpty ? buffer.toString() : body;
-          } else {
-            final json = jsonDecode(body);
-            replyContent = json['choices']?[0]?['message']?['content'] ?? json['reply'] ?? body;
           }
-          traceInfo = 'Custom Gateway · ${stopwatch.elapsedMilliseconds}ms · 1 completion';
+
+          if (!isSse && nonSseLines.isNotEmpty) {
+            final body = nonSseLines.join('\n').trim();
+            try {
+              final json = jsonDecode(body);
+              replyContent = json['choices']?[0]?['message']?['content'] ??
+                  json['choices']?[0]?['delta']?['content'] ??
+                  json['reply'] ??
+                  body;
+            } catch (_) {
+              replyContent = body;
+            }
+          } else if (streamBuffer.isNotEmpty) {
+            replyContent = streamBuffer.toString();
+          }
+
+          if (replyContent.isEmpty) {
+            throw Exception('Empty reply from custom gateway');
+          }
+
+          if (ttftMs != null) {
+            traceInfo = 'Custom Gateway · TTFT ${ttftMs}ms · Total ${stopwatch.elapsedMilliseconds}ms';
+          } else {
+            traceInfo = 'Custom Gateway · ${stopwatch.elapsedMilliseconds}ms · 1 completion';
+          }
         } else {
           throw Exception('Custom endpoint returned ${response.statusCode}');
         }
@@ -554,7 +681,12 @@ class StudioViewModel extends ChangeNotifier {
         // 2. Attempt local microkernel gateway quick-launch API
         final request = await client.postUrl(Uri.parse('http://127.0.0.1:18789/api/corehub/desktop/quick-launch'));
         request.headers.contentType = ContentType.json;
-        request.write(jsonEncode({'prompt': text, 'project': _currentProjectName, 'branch': _currentBranch}));
+        request.write(jsonEncode({
+          'prompt': text,
+          'project': _currentProjectName,
+          'branch': _currentBranch,
+          'messages': conversationPayload,
+        }));
         final response = await request.close();
         if (response.statusCode == 200) {
           final body = await response.transform(utf8.decoder).join();
@@ -566,33 +698,26 @@ class StudioViewModel extends ChangeNotifier {
         }
       }
     } catch (_) {
-      // High-quality local assistant fallback response
-      await Future.delayed(const Duration(milliseconds: 250));
-      stopwatch.stop();
+      if (replyContent.isEmpty) {
+        // High-quality local assistant fallback response
+        await Future.delayed(const Duration(milliseconds: 250));
+        stopwatch.stop();
 
-      final projDesc = _currentProjectName.isNotEmpty ? ' in repo `$_currentProjectName` (branch `$_currentBranch`)' : '';
-      replyContent = _generateContextualReply(text, projDesc);
-      traceInfo = 'CoreBlow Microkernel · ${stopwatch.elapsedMilliseconds}ms · Local Mode';
-    }
-
-    // Update assistant message
-    final idx = _messages.indexWhere((m) => m.id == assistantMsgId);
-    if (idx != -1) {
-      _messages[idx] = StudioMessage(
-        id: assistantMsgId,
-        sender: 'assistant',
-        content: replyContent,
-        timestamp: DateTime.now(),
-        trace: traceInfo,
-        isStreaming: false,
-      );
-
-      // Keep thread in sync
-      if (_activeThreadId != null) {
-        final active = _recentThreads.firstWhere((t) => t.id == _activeThreadId);
-        active.messages.add(_messages[idx]);
+        final projDesc = _currentProjectName.isNotEmpty ? ' in repo `$_currentProjectName` (branch `$_currentBranch`)' : '';
+        replyContent = _generateContextualReply(text, projDesc);
+        traceInfo = 'CoreBlow Microkernel · ${stopwatch.elapsedMilliseconds}ms · Local Mode';
+      } else {
+        traceInfo = 'Custom Gateway · ${stopwatch.elapsedMilliseconds}ms · Partial';
       }
     }
+
+    // Finalize assistant message
+    _updateAssistantMessage(
+      id: assistantMsgId,
+      content: replyContent,
+      trace: traceInfo,
+      isStreaming: false,
+    );
 
     _isGenerating = false;
     notifyListeners();
