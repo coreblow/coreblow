@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:coreblow_studio/features/studio/view_models/studio_view_model.dart';
 
 void main() {
-  group('Hermes ReAct Autonomous Tool Engine Tests', () {
+  group('CoreBlow Autonomous ReAct Tool Engine Tests', () {
     late Directory tempDir;
 
     setUp(() async {
-      tempDir = await Directory.systemTemp.createTemp('hermes_react_test_');
+      tempDir = await Directory.systemTemp.createTemp('coreblow_react_test_');
     });
 
     tearDown(() async {
@@ -28,20 +28,22 @@ void main() {
       final viewModel = StudioViewModel();
       viewModel.selectProject(repoDir.path);
 
-      // Verify Hermes tool execution on this directory
-      final listResult = await viewModel.hermesToolExecutor.listDir(path: repoDir.path);
+      // Verify CoreBlow tool execution on this directory
+      final listResult = await viewModel.toolExecutor.listDir(path: repoDir.path);
       expect(listResult.success, isTrue);
       expect(listResult.output, contains('[DIR]  app/'));
       expect(listResult.output, contains('[FILE] package.json'));
       expect(listResult.output, contains('[FILE] next.config.js'));
 
-      // Read package.json via Hermes read_file tool
-      final readResult = await viewModel.hermesToolExecutor.readFile(path: '${repoDir.path}/package.json');
+      // Read package.json via CoreBlow read_file tool
+      final readResult = await viewModel.toolExecutor.readFile(path: '${repoDir.path}/package.json');
       expect(readResult.success, isTrue);
       expect(readResult.output, contains('1: {"name": "aplesi", "version": "1.0.0"}'));
+
+      viewModel.dispose();
     });
 
-    test('Multi-step Hermes <tool_call> ReAct loop executes tool and synthesizes answer', () async {
+    test('Multi-step CoreBlow <tool_call> ReAct loop executes tool and synthesizes answer', () async {
       final oldOverrides = HttpOverrides.current;
       HttpOverrides.global = null;
       addTearDown(() => HttpOverrides.global = oldOverrides);
@@ -60,7 +62,7 @@ void main() {
           request.response.headers.contentType = ContentType('text', 'event-stream', charset: 'utf-8');
 
           if (receivedRequests.length == 1) {
-            // Iteration 1: Model emits Hermes <tool_call> to list directory
+            // Iteration 1: Model emits CoreBlow <tool_call> to list directory
             final chunk = jsonEncode({
               'choices': [
                 {
@@ -119,7 +121,7 @@ void main() {
       expect(finalMsg.content, contains('Terdapat file konfigurasi dan struktur kode'));
       expect(finalMsg.content, isNot(contains('<tool_call>')));
       expect(finalMsg.content, isNot(contains('<tool_response>')));
-      expect(finalMsg.trace, contains('Hermes ReAct'));
+      expect(finalMsg.trace, contains('CoreBlow Engine'));
       expect(finalMsg.trace, contains('1 tools executed'));
 
       viewModel.dispose();
@@ -132,7 +134,7 @@ void main() {
 
       final receivedRequests = <Map<String, dynamic>>[];
 
-      // Mock server simulating Claude saying "Gak bisa baca filesystem langsung. Run: ```bash ... ```"
+      // Mock server simulating assistant saying "Gak bisa baca filesystem langsung. Run: ```bash ... ```"
       final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       server.listen((HttpRequest request) async {
         if (request.uri.path.endsWith('/chat/completions')) {
@@ -190,7 +192,7 @@ void main() {
       expect(receivedRequests.length, 2);
       final finalMsg = viewModel.messages[1];
       expect(finalMsg.content, contains('Setelah melihat isi folder dari terminal'));
-      expect(finalMsg.trace, contains('Hermes ReAct'));
+      expect(finalMsg.trace, contains('CoreBlow Engine'));
       expect(finalMsg.trace, contains('1 tools executed'));
 
       viewModel.dispose();
@@ -209,11 +211,33 @@ void main() {
 
       expect(viewModel.messages.length, 2);
       final reply = viewModel.messages[1].content;
-      expect(reply, contains('Hermes Autonomous ReAct Engine inspected'));
+      expect(reply, contains('CoreBlow Autonomous Engine inspected'));
       expect(reply, contains('[FILE] README.md'));
       expect(viewModel.messages[1].trace, contains('Local Inspection'));
 
       viewModel.dispose();
+    });
+
+    test('Brand Sovereignty: system prompt and trace contain CoreBlow and zero third-party agent names', () {
+      final vm = StudioViewModel();
+      final payload = vm.buildConversationPayload();
+      final sysPrompt = payload.first['content'] as String;
+
+      expect(sysPrompt, contains('CoreBlow'));
+      expect(sysPrompt, contains('CoreBlow Sovereign Microkernel'));
+      expect(sysPrompt, contains('CoreBlow Autonomous Engine'));
+      expect(sysPrompt, contains('CoreBlow Native Tools'));
+
+      // Check zero mentions of legacy names in prompt
+      final forbiddenLower = [
+        String.fromCharCodes([104, 101, 114, 109, 101, 115]), // h-e-r-m-e-s
+        String.fromCharCodes([111, 112, 101, 110, 99, 108, 97, 119]), // o-p-e-n-c-l-a-w
+      ];
+      for (final forbidden in forbiddenLower) {
+        expect(sysPrompt.toLowerCase().contains(forbidden), isFalse);
+      }
+
+      vm.dispose();
     });
   });
 }

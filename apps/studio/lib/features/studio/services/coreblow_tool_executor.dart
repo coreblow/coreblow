@@ -3,25 +3,25 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-/// Structured outcome of a Hermes tool execution.
-class HermesToolResult {
+/// Structured outcome of a CoreBlow tool execution.
+class CoreBlowToolResult {
   final bool success;
   final String output;
   final int? exitCode;
   final String? error;
 
-  const HermesToolResult({
+  const CoreBlowToolResult({
     required this.success,
     required this.output,
     this.exitCode,
     this.error,
   });
 
-  factory HermesToolResult.success(String output, {int? exitCode}) =>
-      HermesToolResult(success: true, output: output, exitCode: exitCode);
+  factory CoreBlowToolResult.success(String output, {int? exitCode}) =>
+      CoreBlowToolResult(success: true, output: output, exitCode: exitCode);
 
-  factory HermesToolResult.error(String error, {int? exitCode}) =>
-      HermesToolResult(success: false, output: error, exitCode: exitCode, error: error);
+  factory CoreBlowToolResult.error(String error, {int? exitCode}) =>
+      CoreBlowToolResult(success: false, output: error, exitCode: exitCode, error: error);
 
   Map<String, dynamic> toJson() => {
     'success': success,
@@ -34,7 +34,7 @@ class HermesToolResult {
   String toString() => output;
 }
 
-/// A parsed tool invocation emitted by the model (native OpenAI or Hermes XML).
+/// A parsed tool invocation emitted by the model (native OpenAI or CoreBlow XML).
 class ParsedToolCall {
   final String id;
   final String name;
@@ -72,25 +72,25 @@ typedef ProcessRunner = Future<ProcessResult> Function(
   Map<String, String>? environment,
 });
 
-/// Hermes Autonomous ReAct Local Tool Executor for CoreBlow Studio.
+/// CoreBlow Autonomous ReAct Tool Executor for CoreBlow Studio.
 ///
-/// Implements the 6 core Hermes local tools:
+/// Implements the 6 CoreBlow native tools:
 /// 1. terminal
 /// 2. read_file
 /// 3. write_file
 /// 4. patch
 /// 5. search_files
 /// 6. list_dir
-class HermesToolExecutor {
+class CoreBlowToolExecutor {
   ProcessRunner processRunner;
   final void Function(String filePath)? onFileModified;
 
-  HermesToolExecutor({
+  CoreBlowToolExecutor({
     ProcessRunner? processRunner,
     this.onFileModified,
   }) : processRunner = processRunner ?? Process.run;
 
-  /// OpenAI-compatible tools schema for Hermes ReAct Engine.
+  /// OpenAI-compatible tools schema for CoreBlow Autonomous Engine.
   static const List<Map<String, dynamic>> openAiTools = [
     {
       'type': 'function',
@@ -336,8 +336,8 @@ class HermesToolExecutor {
     return true;
   }
 
-  /// Unified dispatch method for all Hermes tools.
-  Future<HermesToolResult> executeTool({
+  /// Unified dispatch method for all CoreBlow tools.
+  Future<CoreBlowToolResult> executeTool({
     required String name,
     required Map<String, dynamic> arguments,
     String executionProfile = 'Full access',
@@ -393,14 +393,14 @@ class HermesToolExecutor {
           defaultCwd: defaultCwd,
         );
       default:
-        return HermesToolResult.error(
-          'Unknown Hermes tool: $name. Available tools: terminal, read_file, write_file, patch, search_files, list_dir.',
+        return CoreBlowToolResult.error(
+          'Unknown CoreBlow tool: $name. Available CoreBlow tools: terminal, read_file, write_file, patch, search_files, list_dir.',
         );
     }
   }
 
   /// 1. `terminal`: Executes a shell command in macOS bash with timeout & safety guards.
-  Future<HermesToolResult> executeTerminal({
+  Future<CoreBlowToolResult> executeTerminal({
     required String command,
     String? cwd,
     String executionProfile = 'Full access',
@@ -408,15 +408,15 @@ class HermesToolExecutor {
   }) async {
     final trimmedCmd = command.trim();
     if (trimmedCmd.isEmpty) {
-      return HermesToolResult.error('Empty command provided to terminal tool.');
+      return CoreBlowToolResult.error('Empty command provided to terminal tool.');
     }
 
     // Security profile enforcement
     if (!isCommandAllowed(trimmedCmd, executionProfile)) {
       if (executionProfile == 'Full access') {
-        return HermesToolResult.error('Blocked for system safety: catastrophic command pattern detected.');
+        return CoreBlowToolResult.error('Blocked for system safety: catastrophic command pattern detected.');
       }
-      return HermesToolResult.error(
+      return CoreBlowToolResult.error(
         'Blocked by execution profile ($executionProfile). Switch to \'Full access\' in Studio to run modifying commands.',
       );
     }
@@ -464,20 +464,20 @@ class HermesToolExecutor {
       }
 
       final output = buffer.toString().trim();
-      return HermesToolResult(
+      return CoreBlowToolResult(
         success: result.exitCode == 0,
         output: output,
         exitCode: result.exitCode,
       );
     } on TimeoutException {
-      return HermesToolResult.error('Command timed out after 20 seconds.', exitCode: -1);
+      return CoreBlowToolResult.error('Command timed out after 20 seconds.', exitCode: -1);
     } catch (e) {
-      return HermesToolResult.error('Process execution error: $e', exitCode: -1);
+      return CoreBlowToolResult.error('Process execution error: $e', exitCode: -1);
     }
   }
 
   /// 2. `read_file`: Reads file lines with numbering (1-based) up to 32 KB.
-  Future<HermesToolResult> readFile({
+  Future<CoreBlowToolResult> readFile({
     required String path,
     int offset = 1,
     int limit = 200,
@@ -487,14 +487,14 @@ class HermesToolExecutor {
     final file = File(normPath);
 
     if (!file.existsSync()) {
-      return HermesToolResult.error('File not found: $normPath');
+      return CoreBlowToolResult.error('File not found: $normPath');
     }
 
     try {
       final lines = await file.readAsLines();
       final start = max(1, offset);
       if (start > lines.length && lines.isNotEmpty) {
-        return HermesToolResult.error('Offset $start exceeds file line count (${lines.length}).');
+        return CoreBlowToolResult.error('Offset $start exceeds file line count (${lines.length}).');
       }
 
       final end = min(start + max(1, limit) - 1, lines.length);
@@ -510,21 +510,21 @@ class HermesToolExecutor {
         output = '${output.substring(0, 32 * 1024)}\n[... file output truncated at 32KB ...]';
       }
 
-      return HermesToolResult.success(output.trim());
+      return CoreBlowToolResult.success(output.trim());
     } catch (e) {
-      return HermesToolResult.error('Failed to read file $normPath: $e');
+      return CoreBlowToolResult.error('Failed to read file $normPath: $e');
     }
   }
 
   /// 3. `write_file`: Writes full content, creates parents, checks profile.
-  Future<HermesToolResult> writeFile({
+  Future<CoreBlowToolResult> writeFile({
     required String path,
     required String content,
     String executionProfile = 'Full access',
     String? defaultCwd,
   }) async {
     if (executionProfile != 'Full access') {
-      return HermesToolResult.error(
+      return CoreBlowToolResult.error(
         'Blocked: write_file requires \'Full access\' profile. Current profile: $executionProfile.',
       );
     }
@@ -539,16 +539,16 @@ class HermesToolExecutor {
       await file.writeAsString(content);
       onFileModified?.call(normPath);
       final lines = content.split('\n').length;
-      return HermesToolResult.success(
+      return CoreBlowToolResult.success(
         'Successfully wrote ${content.length} bytes ($lines lines) to $normPath.',
       );
     } catch (e) {
-      return HermesToolResult.error('Failed to write file $normPath: $e');
+      return CoreBlowToolResult.error('Failed to write file $normPath: $e');
     }
   }
 
   /// 4. `patch`: Replaces `old_text` with `new_text` in target file.
-  Future<HermesToolResult> patchFile({
+  Future<CoreBlowToolResult> patchFile({
     required String path,
     required String oldText,
     required String newText,
@@ -556,7 +556,7 @@ class HermesToolExecutor {
     String? defaultCwd,
   }) async {
     if (executionProfile != 'Full access') {
-      return HermesToolResult.error(
+      return CoreBlowToolResult.error(
         'Blocked: patch requires \'Full access\' profile. Current profile: $executionProfile.',
       );
     }
@@ -565,13 +565,13 @@ class HermesToolExecutor {
     final file = File(normPath);
 
     if (!file.existsSync()) {
-      return HermesToolResult.error('File not found: $normPath');
+      return CoreBlowToolResult.error('File not found: $normPath');
     }
 
     try {
       final content = await file.readAsString();
       if (!content.contains(oldText)) {
-        return HermesToolResult.error(
+        return CoreBlowToolResult.error(
           'Target old_text not found in $normPath. Ensure exact whitespace and content match.',
         );
       }
@@ -579,14 +579,14 @@ class HermesToolExecutor {
       final updatedContent = content.replaceFirst(oldText, newText);
       await file.writeAsString(updatedContent);
       onFileModified?.call(normPath);
-      return HermesToolResult.success('Successfully patched $normPath.');
+      return CoreBlowToolResult.success('Successfully patched $normPath.');
     } catch (e) {
-      return HermesToolResult.error('Failed to patch file $normPath: $e');
+      return CoreBlowToolResult.error('Failed to patch file $normPath: $e');
     }
   }
 
   /// 5. `search_files`: Searches filenames and line contents excluding build/deps folders.
-  Future<HermesToolResult> searchFiles({
+  Future<CoreBlowToolResult> searchFiles({
     String? path,
     required String pattern,
     int maxMatches = 100,
@@ -596,11 +596,11 @@ class HermesToolExecutor {
     final dir = Directory(normPath);
 
     if (!dir.existsSync()) {
-      return HermesToolResult.error('Directory not found: $normPath');
+      return CoreBlowToolResult.error('Directory not found: $normPath');
     }
 
     if (pattern.trim().isEmpty) {
-      return HermesToolResult.error('Empty search pattern provided.');
+      return CoreBlowToolResult.error('Empty search pattern provided.');
     }
 
     final ignoredDirs = {
@@ -661,7 +661,7 @@ class HermesToolExecutor {
       }
 
       if (results.isEmpty) {
-        return HermesToolResult.success('No matches found for pattern "$pattern" in $normPath.');
+        return CoreBlowToolResult.success('No matches found for pattern "$pattern" in $normPath.');
       }
 
       final buffer = StringBuffer();
@@ -669,14 +669,14 @@ class HermesToolExecutor {
       for (final res in results) {
         buffer.writeln(res);
       }
-      return HermesToolResult.success(buffer.toString().trim());
+      return CoreBlowToolResult.success(buffer.toString().trim());
     } catch (e) {
-      return HermesToolResult.error('Error during search: $e');
+      return CoreBlowToolResult.error('Error during search: $e');
     }
   }
 
   /// 6. `list_dir`: Lists files and subdirectories with sizes up to `max_depth`.
-  Future<HermesToolResult> listDir({
+  Future<CoreBlowToolResult> listDir({
     String? path,
     int maxDepth = 2,
     int maxEntries = 150,
@@ -686,7 +686,7 @@ class HermesToolExecutor {
     final rootDir = Directory(normPath);
 
     if (!rootDir.existsSync()) {
-      return HermesToolResult.error('Directory not found: $normPath');
+      return CoreBlowToolResult.error('Directory not found: $normPath');
     }
 
     final ignoredDirs = {
@@ -749,7 +749,7 @@ class HermesToolExecutor {
       buffer.writeln('[... truncated at $maxEntries entries ...]');
     }
 
-    return HermesToolResult.success(buffer.toString().trim());
+    return CoreBlowToolResult.success(buffer.toString().trim());
   }
 
   // Helpers
@@ -775,8 +775,8 @@ class HermesToolExecutor {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
-  /// Parses Hermes XML `<tool_call>...</tool_call>` blocks.
-  static List<ParsedToolCall> parseHermesXmlToolCalls(String text) {
+  /// Parses XML `<tool_call>...</tool_call>` blocks.
+  static List<ParsedToolCall> parseXmlToolCalls(String text) {
     final calls = <ParsedToolCall>[];
     final regex = RegExp(r'<tool_call>([\s\S]*?)</tool_call>', caseSensitive: false);
     final matches = regex.allMatches(text);
@@ -800,7 +800,7 @@ class HermesToolExecutor {
           }
           if (name.isNotEmpty) {
             calls.add(ParsedToolCall(
-              id: 'hermes_${DateTime.now().millisecondsSinceEpoch}_${calls.length}',
+              id: 'coreblow_${DateTime.now().millisecondsSinceEpoch}_${calls.length}',
               name: name,
               arguments: parsedArgs,
               rawBlock: match.group(0)!,
@@ -813,7 +813,7 @@ class HermesToolExecutor {
         if (nameMatch != null) {
           final name = nameMatch.group(1)!;
           calls.add(ParsedToolCall(
-            id: 'hermes_${DateTime.now().millisecondsSinceEpoch}_${calls.length}',
+            id: 'coreblow_${DateTime.now().millisecondsSinceEpoch}_${calls.length}',
             name: name,
             arguments: {},
             rawBlock: match.group(0)!,

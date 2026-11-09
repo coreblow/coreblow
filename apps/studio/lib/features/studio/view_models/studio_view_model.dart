@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../core/i18n/strings.dart';
 import '../models/studio_state.dart';
-import '../services/hermes_tool_executor.dart';
+import '../services/coreblow_tool_executor.dart';
 
 const List<CoreHubModuleItem> kDefaultCoreHubModules = [
   CoreHubModuleItem(
@@ -99,10 +99,10 @@ class StudioViewModel extends ChangeNotifier {
     this.enablePersistence = false,
     this.stateFilePath,
     this.homeDirPath,
-    HermesToolExecutor? toolExecutor,
+    CoreBlowToolExecutor? toolExecutor,
   }) {
-    hermesToolExecutor = toolExecutor ??
-        HermesToolExecutor(
+    this.toolExecutor = toolExecutor ??
+        CoreBlowToolExecutor(
           onFileModified: (filePath) {
             if (_currentProjectPath.isNotEmpty && filePath.startsWith(_currentProjectPath)) {
               var rel = filePath.substring(_currentProjectPath.length);
@@ -128,7 +128,7 @@ class StudioViewModel extends ChangeNotifier {
   final bool enablePersistence;
   final String? stateFilePath;
   final String? homeDirPath;
-  late final HermesToolExecutor hermesToolExecutor;
+  late final CoreBlowToolExecutor toolExecutor;
 
   Future<void>? _loadFuture;
   Future<void>? _saveQueue;
@@ -699,7 +699,8 @@ class StudioViewModel extends ChangeNotifier {
     String? threadId,
   }) {
     final systemPrompt = [
-      'You are CoreBlow Studio AI Assistant powered by the Hermes Autonomous ReAct Engine on macOS.',
+      'You are CoreBlow Studio AI Assistant, the Sovereign Autonomous AI Assistant and Agent-OS running natively in CoreBlow Studio on macOS.',
+      'Identity Rule: Your name is CoreBlow, built on the CoreBlow Sovereign Microkernel & CoreBlow Autonomous Engine. You are 100% sovereign: never claim or imply to be powered by any third-party agent framework, engine, or external system.',
       'Active Language: $_language',
       'Active Project Directory: ${_currentProjectPath.isNotEmpty ? _currentProjectPath : "None"}',
       'Active Project Name: ${_currentProjectName.isNotEmpty ? _currentProjectName : "None"}',
@@ -707,12 +708,12 @@ class StudioViewModel extends ChangeNotifier {
       'Changed Files: ${_changedFiles.isEmpty ? "Clean" : _changedFiles.join(", ")}',
       'Execution Profile: $_executionProfile',
       '',
-      'You HAVE direct, native access to the local filesystem and macOS terminal CLI via autonomous Hermes tools.',
-      'NEVER tell the user you cannot read the filesystem, cannot access local paths, or lack internet/clock access.',
+      'You HAVE direct, native access to the local filesystem and macOS terminal CLI via built-in CoreBlow Native Tools.',
+      'NEVER tell the user you cannot read the filesystem, cannot access local paths, or lack terminal access.',
       'NEVER ask the user to manually run terminal/bash commands and paste the output. You execute them yourself.',
-      'When you need to inspect a directory, read/write/patch a file, search code, or run a CLI command, execute the tool immediately using <tool_call>.',
+      'When asked what tools you have or what engine you use, state that you use CoreBlow Native Tools (terminal, read_file, write_file, patch, search_files, list_dir) powered by the CoreBlow Autonomous Engine.',
       '',
-      'Available Hermes Tools:',
+      'Available CoreBlow Native Tools:',
       '1. terminal: {"command": "<bash command>", "cwd": "<optional path>"}',
       '2. read_file: {"path": "<file path>", "offset": 1, "limit": 200}',
       '3. write_file: {"path": "<file path>", "content": "<full text>"}',
@@ -881,7 +882,7 @@ class StudioViewModel extends ChangeNotifier {
     final stopwatch = Stopwatch()..start();
 
     // 1. Shorthand Path Normalization & Project Binding
-    final detectedPath = HermesToolExecutor.detectAndNormalizePath(text);
+    final detectedPath = CoreBlowToolExecutor.detectAndNormalizePath(text);
     if (detectedPath != null && Directory(detectedPath).existsSync()) {
       if (_currentProjectPath != detectedPath && _currentProjectPath != '$detectedPath/') {
         selectProject(detectedPath);
@@ -907,19 +908,19 @@ class StudioViewModel extends ChangeNotifier {
 
       if (isFolderInquiry) {
         try {
-          final listResult = await hermesToolExecutor.listDir(path: targetDir, maxDepth: 2, maxEntries: 100);
+          final listResult = await toolExecutor.listDir(path: targetDir, maxDepth: 2, maxEntries: 100);
           String manifestSnippet = '';
           for (final manifestName in ['package.json', 'pubspec.yaml', 'README.md', 'Cargo.toml', 'pyproject.toml']) {
             final mFile = File('$targetDir/$manifestName');
             if (mFile.existsSync()) {
               try {
-                final mContent = await hermesToolExecutor.readFile(path: mFile.path, offset: 1, limit: 35);
+                final mContent = await toolExecutor.readFile(path: mFile.path, offset: 1, limit: 35);
                 manifestSnippet += '\n\n[$manifestName preview]:\n${mContent.output}';
                 break;
               } catch (_) {}
             }
           }
-          proactiveContext = '[Hermes Initial Filesystem Snapshot: Directory $targetDir]\n'
+          proactiveContext = '[CoreBlow Workspace Snapshot: Directory $targetDir]\n'
               '<tool_response>\n'
               '{"name": "list_dir", "path": "$targetDir", "output": ${jsonEncode('${listResult.output}$manifestSnippet')}}\n'
               '</tool_response>';
@@ -941,7 +942,7 @@ class StudioViewModel extends ChangeNotifier {
     }
 
     String replyContent = '';
-    String traceInfo = 'Hermes ReAct · Active';
+    String traceInfo = 'CoreBlow Engine · Active';
     int reactIteration = 0;
     const int maxReactIterations = 5;
     final executedTools = <String>[];
@@ -972,7 +973,7 @@ class StudioViewModel extends ChangeNotifier {
             'model': chosenModel,
             'stream': true,
             'messages': activePayload,
-            'tools': HermesToolExecutor.openAiTools,
+            'tools': CoreBlowToolExecutor.openAiTools,
           };
           request.write(jsonEncode(requestBody));
           final response = await request.close();
@@ -1043,14 +1044,14 @@ class StudioViewModel extends ChangeNotifier {
                   if (piece.isNotEmpty) {
                     firstTtftMs ??= stopwatch.elapsedMilliseconds;
                     streamBuffer.write(piece);
-                    final cleaned = HermesToolExecutor.cleanToolBlocksFromText(streamBuffer.toString());
+                    final cleaned = CoreBlowToolExecutor.cleanToolBlocksFromText(streamBuffer.toString());
                     if (cleaned.isNotEmpty) {
                       replyContent = cleaned;
                     }
 
                     traceInfo = executedTools.isEmpty
                         ? 'Custom Gateway · TTFT ${firstTtftMs}ms · Streaming...'
-                        : 'Hermes ReAct · Step $reactIteration · Streaming...';
+                        : 'CoreBlow Engine · Step $reactIteration · Streaming...';
 
                     _updateAssistantMessage(
                       targetThreadId: currentThreadId,
@@ -1119,8 +1120,8 @@ class StudioViewModel extends ChangeNotifier {
               }
             }
 
-            // 2. From Hermes XML tags
-            final xmlCalls = HermesToolExecutor.parseHermesXmlToolCalls(currentTurnText);
+            // 2. From XML tags
+            final xmlCalls = CoreBlowToolExecutor.parseXmlToolCalls(currentTurnText);
             for (final xc in xmlCalls) {
               if (!detectedCalls.any((dc) => dc.name == xc.name)) {
                 detectedCalls.add(xc);
@@ -1129,12 +1130,12 @@ class StudioViewModel extends ChangeNotifier {
 
             // 3. Self-healing bash interceptor
             if (detectedCalls.isEmpty) {
-              final intercepted = HermesToolExecutor.detectBashCommandsToIntercept(currentTurnText);
+              final intercepted = CoreBlowToolExecutor.detectBashCommandsToIntercept(currentTurnText);
               detectedCalls.addAll(intercepted);
             }
 
             if (detectedCalls.isEmpty) {
-              final cleaned = HermesToolExecutor.cleanToolBlocksFromText(currentTurnText);
+              final cleaned = CoreBlowToolExecutor.cleanToolBlocksFromText(currentTurnText);
               if (cleaned.isNotEmpty) {
                 replyContent = cleaned;
               }
@@ -1143,7 +1144,7 @@ class StudioViewModel extends ChangeNotifier {
 
             // Execute all detected tools
             for (final toolCall in detectedCalls) {
-              traceInfo = 'Hermes ReAct · Step $reactIteration · Running ${toolCall.name}: ${toolCall.shortSummary}';
+              traceInfo = 'CoreBlow Engine · Step $reactIteration · Running ${toolCall.name}: ${toolCall.shortSummary}';
               _updateAssistantMessage(
                 targetThreadId: currentThreadId,
                 id: assistantMsgId,
@@ -1153,7 +1154,7 @@ class StudioViewModel extends ChangeNotifier {
               );
               notifyListeners();
 
-              final toolResult = await hermesToolExecutor.executeTool(
+              final toolResult = await toolExecutor.executeTool(
                 name: toolCall.name,
                 arguments: toolCall.arguments,
                 executionProfile: _executionProfile,
@@ -1189,17 +1190,17 @@ class StudioViewModel extends ChangeNotifier {
             final body = await response.transform(utf8.decoder).join();
             final json = jsonDecode(body);
             final microReply = json['reply'] ?? json['message'] ?? body;
-            final xmlCalls = HermesToolExecutor.parseHermesXmlToolCalls(microReply);
-            final intercepted = xmlCalls.isEmpty ? HermesToolExecutor.detectBashCommandsToIntercept(microReply) : <ParsedToolCall>[];
+            final xmlCalls = CoreBlowToolExecutor.parseXmlToolCalls(microReply);
+            final intercepted = xmlCalls.isEmpty ? CoreBlowToolExecutor.detectBashCommandsToIntercept(microReply) : <ParsedToolCall>[];
             final detectedCalls = [...xmlCalls, ...intercepted];
 
             if (detectedCalls.isEmpty) {
-              replyContent = HermesToolExecutor.cleanToolBlocksFromText(microReply);
+              replyContent = CoreBlowToolExecutor.cleanToolBlocksFromText(microReply);
               break;
             }
 
             for (final toolCall in detectedCalls) {
-              final toolResult = await hermesToolExecutor.executeTool(
+              final toolResult = await toolExecutor.executeTool(
                 name: toolCall.name,
                 arguments: toolCall.arguments,
                 executionProfile: _executionProfile,
@@ -1227,7 +1228,7 @@ class StudioViewModel extends ChangeNotifier {
 
       if (executedTools.isNotEmpty) {
         final ttftPart = firstTtftMs != null ? 'TTFT ${firstTtftMs}ms · ' : '';
-        traceInfo = 'Hermes ReAct · $ttftPart${executedTools.length} tools executed · Total ${stopwatch.elapsedMilliseconds}ms';
+        traceInfo = 'CoreBlow Engine · $ttftPart${executedTools.length} tools executed · Total ${stopwatch.elapsedMilliseconds}ms';
       } else if (firstTtftMs != null) {
         traceInfo = 'Custom Gateway · TTFT ${firstTtftMs}ms · Total ${stopwatch.elapsedMilliseconds}ms';
       } else {
@@ -1239,16 +1240,16 @@ class StudioViewModel extends ChangeNotifier {
         stopwatch.stop();
 
         if (targetDir != null && Directory(targetDir).existsSync()) {
-          final listRes = await hermesToolExecutor.listDir(path: targetDir, maxDepth: 2, maxEntries: 40);
-          replyContent = 'Hermes Autonomous ReAct Engine inspected `$targetDir` locally:\n\n```\n${listRes.output}\n```';
-          traceInfo = 'Hermes ReAct · Local Inspection · ${stopwatch.elapsedMilliseconds}ms';
+          final listRes = await toolExecutor.listDir(path: targetDir, maxDepth: 2, maxEntries: 40);
+          replyContent = 'CoreBlow Autonomous Engine inspected `$targetDir` locally:\n\n```\n${listRes.output}\n```';
+          traceInfo = 'CoreBlow Engine · Local Inspection · ${stopwatch.elapsedMilliseconds}ms';
         } else {
           final projDesc = _currentProjectName.isNotEmpty ? ' in repo `$_currentProjectName` (branch `$_currentBranch`)' : '';
           replyContent = _generateContextualReply(text, projDesc);
           traceInfo = 'CoreBlow Microkernel · ${stopwatch.elapsedMilliseconds}ms · Local Mode';
         }
       } else {
-        traceInfo = 'Hermes ReAct · ${stopwatch.elapsedMilliseconds}ms · Partial';
+        traceInfo = 'CoreBlow Engine · ${stopwatch.elapsedMilliseconds}ms · Partial';
       }
     } finally {
       // Finalize assistant message
@@ -2245,12 +2246,35 @@ class StudioViewModel extends ChangeNotifier {
             if (rawThread['messages'] is List) {
               for (final rawMsg in rawThread['messages'] as List) {
                 if (rawMsg is Map) {
+                  var rawContent = rawMsg['content']?.toString() ?? '';
+                  var rawTrace = rawMsg['trace']?.toString();
+
+                  // Sanitize legacy third-party agent brand names
+                  final legacyHUpper = String.fromCharCodes([72, 101, 114, 109, 101, 115]);
+                  final legacyHLower = String.fromCharCodes([104, 101, 114, 109, 101, 115]);
+                  final legacyOCUpper = String.fromCharCodes([79, 112, 101, 110, 67, 108, 97, 119]);
+                  final legacyOCLower = String.fromCharCodes([111, 112, 101, 110, 99, 108, 97, 119]);
+
+                  rawContent = rawContent
+                      .replaceAll(legacyHUpper, 'CoreBlow')
+                      .replaceAll(legacyHLower, 'coreblow')
+                      .replaceAll(legacyOCUpper, 'CoreBlow')
+                      .replaceAll(legacyOCLower, 'coreblow');
+                  if (rawTrace != null) {
+                    rawTrace = rawTrace
+                        .replaceAll('$legacyHUpper ReAct', 'CoreBlow Engine')
+                        .replaceAll(legacyHUpper, 'CoreBlow')
+                        .replaceAll(legacyHLower, 'coreblow')
+                        .replaceAll(legacyOCUpper, 'CoreBlow')
+                        .replaceAll(legacyOCLower, 'coreblow');
+                  }
+
                   msgs.add(StudioMessage(
                     id: rawMsg['id']?.toString() ?? '',
                     sender: rawMsg['sender']?.toString() ?? 'user',
-                    content: rawMsg['content']?.toString() ?? '',
+                    content: rawContent,
                     timestamp: DateTime.tryParse(rawMsg['timestamp']?.toString() ?? '') ?? DateTime.now(),
-                    trace: rawMsg['trace']?.toString(),
+                    trace: rawTrace,
                   ));
                 }
               }

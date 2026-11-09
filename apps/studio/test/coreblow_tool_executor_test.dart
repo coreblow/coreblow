@@ -1,15 +1,15 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:coreblow_studio/features/studio/services/hermes_tool_executor.dart';
+import 'package:coreblow_studio/features/studio/services/coreblow_tool_executor.dart';
 
 void main() {
-  group('HermesToolExecutor Unit Tests', () {
+  group('CoreBlowToolExecutor Unit Tests', () {
     late Directory tempDir;
-    late HermesToolExecutor executor;
+    late CoreBlowToolExecutor executor;
 
     setUp(() async {
-      tempDir = await Directory.systemTemp.createTemp('hermes_test_');
-      executor = HermesToolExecutor();
+      tempDir = await Directory.systemTemp.createTemp('coreblow_test_');
+      executor = CoreBlowToolExecutor();
     });
 
     tearDown(() async {
@@ -22,50 +22,50 @@ void main() {
       final home = Platform.environment['HOME'] ?? '';
 
       expect(
-        HermesToolExecutor.normalizePath('user/febrinanda/aplesi'),
+        CoreBlowToolExecutor.normalizePath('user/febrinanda/aplesi'),
         '/Users/febrinanda/aplesi',
       );
       expect(
-        HermesToolExecutor.normalizePath('users/febrinanda/aplesi/'),
+        CoreBlowToolExecutor.normalizePath('users/febrinanda/aplesi/'),
         '/Users/febrinanda/aplesi',
       );
       expect(
-        HermesToolExecutor.normalizePath('~/projects'),
+        CoreBlowToolExecutor.normalizePath('~/projects'),
         '$home/projects',
       );
       expect(
-        HermesToolExecutor.normalizePath('src/main.dart', defaultCwd: '/Users/test/repo'),
+        CoreBlowToolExecutor.normalizePath('src/main.dart', defaultCwd: '/Users/test/repo'),
         '/Users/test/repo/src/main.dart',
       );
     });
 
     test('detectAndNormalizePath finds path in sentences', () {
       expect(
-        HermesToolExecutor.detectAndNormalizePath('tolong cek folder user/febrinanda/aplesi sekarang'),
+        CoreBlowToolExecutor.detectAndNormalizePath('tolong cek folder user/febrinanda/aplesi sekarang'),
         '/Users/febrinanda/aplesi',
       );
       expect(
-        HermesToolExecutor.detectAndNormalizePath('baca file /Users/febrinanda/aplesi/package.json'),
+        CoreBlowToolExecutor.detectAndNormalizePath('baca file /Users/febrinanda/aplesi/package.json'),
         '/Users/febrinanda/aplesi/package.json',
       );
       expect(
-        HermesToolExecutor.detectAndNormalizePath('lihat ~/documents/notes.txt'),
+        CoreBlowToolExecutor.detectAndNormalizePath('lihat ~/documents/notes.txt'),
         '${Platform.environment['HOME']}/documents/notes.txt',
       );
     });
 
     test('terminal tool execution safety rules', () {
       // Catastrophic commands blocked in all profiles
-      expect(HermesToolExecutor.isCommandAllowed('rm -rf /', 'Full access'), isFalse);
-      expect(HermesToolExecutor.isCommandAllowed('rm -rf /*', 'Full access'), isFalse);
-      expect(HermesToolExecutor.isCommandAllowed('mkfs.ext4 /dev/sda1', 'Full access'), isFalse);
+      expect(CoreBlowToolExecutor.isCommandAllowed('rm -rf /', 'Full access'), isFalse);
+      expect(CoreBlowToolExecutor.isCommandAllowed('rm -rf /*', 'Full access'), isFalse);
+      expect(CoreBlowToolExecutor.isCommandAllowed('mkfs.ext4 /dev/sda1', 'Full access'), isFalse);
 
       // Read-only profile blocks mutating commands
-      expect(HermesToolExecutor.isCommandAllowed('ls -la', 'Read-only'), isTrue);
-      expect(HermesToolExecutor.isCommandAllowed('find . -type f', 'Read-only'), isTrue);
-      expect(HermesToolExecutor.isCommandAllowed('cat package.json', 'Read-only'), isTrue);
-      expect(HermesToolExecutor.isCommandAllowed('rm file.txt', 'Read-only'), isFalse);
-      expect(HermesToolExecutor.isCommandAllowed('git push origin main', 'Read-only'), isFalse);
+      expect(CoreBlowToolExecutor.isCommandAllowed('ls -la', 'Read-only'), isTrue);
+      expect(CoreBlowToolExecutor.isCommandAllowed('find . -type f', 'Read-only'), isTrue);
+      expect(CoreBlowToolExecutor.isCommandAllowed('cat package.json', 'Read-only'), isTrue);
+      expect(CoreBlowToolExecutor.isCommandAllowed('rm file.txt', 'Read-only'), isFalse);
+      expect(CoreBlowToolExecutor.isCommandAllowed('git push origin main', 'Read-only'), isFalse);
     });
 
     test('write_file and read_file roundtrip with line numbers', () async {
@@ -139,7 +139,7 @@ void main() {
       expect(searchRes.output, contains('config.yaml:2: port: 8080'));
     });
 
-    test('parseHermesXmlToolCalls parses <tool_call> tags', () {
+    test('parseXmlToolCalls parses <tool_call> tags', () {
       const xml = '''
 Thinking about directory...
 <tool_call>
@@ -147,7 +147,7 @@ Thinking about directory...
 </tool_call>
 Done thinking.
 ''';
-      final calls = HermesToolExecutor.parseHermesXmlToolCalls(xml);
+      final calls = CoreBlowToolExecutor.parseXmlToolCalls(xml);
       expect(calls.length, 1);
       expect(calls.first.name, 'list_dir');
       expect(calls.first.arguments['path'], '/Users/febrinanda/aplesi');
@@ -167,7 +167,7 @@ atau
 ls -la /Users/febrinanda/aplesi
 ```
 ''';
-      final intercepted = HermesToolExecutor.detectBashCommandsToIntercept(denialText);
+      final intercepted = CoreBlowToolExecutor.detectBashCommandsToIntercept(denialText);
       expect(intercepted.isNotEmpty, isTrue);
       expect(intercepted.first.name, 'terminal');
       expect(intercepted.first.arguments['command'], contains('find /Users/febrinanda/aplesi'));
@@ -184,7 +184,7 @@ Here is the result:
 </tool_response>
 The directory contains 5 files.
 ''';
-      final cleaned = HermesToolExecutor.cleanToolBlocksFromText(raw);
+      final cleaned = CoreBlowToolExecutor.cleanToolBlocksFromText(raw);
       expect(cleaned, contains('Here is the result:'));
       expect(cleaned, contains('The directory contains 5 files.'));
       expect(cleaned, isNot(contains('<tool_call>')));
