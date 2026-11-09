@@ -1483,7 +1483,7 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
       // 4. Create blocked draft (failing tests)
       const {
         req: failReq,
-        res: failRes,
+        res: failureResponse,
         getResult: getFailResult,
       } = createMockReqRes({
         method: "POST",
@@ -1500,7 +1500,7 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
           testPassed: false,
         },
       });
-      await handleCoreHubRoute(failReq, failRes, microkernel, { auth: testAuth });
+      await handleCoreHubRoute(failReq, failureResponse, microkernel, { auth: testAuth });
       const failResult = await getFailResult();
       expect(failResult.statusCode).toBe(201);
       expect(failResult.data.draft.status).toBe("blocked");
@@ -1807,6 +1807,38 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
       expect(result.statusCode).toBe(200);
       expect(result.data.ok).toBe(true);
       expect(result.data.manifest.allGatesPassed).toBe(true);
+
+      await microkernel.registry.stopAll();
+    });
+
+    it("handles POST /api/corehub/chat/react endpoint", async () => {
+      const microkernel = createMicrokernelServiceRegistry({
+        stateDir: testDir,
+        coryDir,
+      });
+      await microkernel.registry.startAll();
+
+      const { req, res, getResult } = createMockReqRes({
+        method: "POST",
+        url: "/api/corehub/chat/react",
+        headers: {
+          authorization: "Bearer test-admin-secret-token",
+          "x-coreblow-scopes": "operator.admin",
+        },
+        body: {
+          prompt: "Echo test",
+          executionProfile: "Read-only",
+          providerUrl: "http://127.0.0.1:99999/v1", // mock unreachable endpoint
+        },
+      });
+
+      const handled = await handleCoreHubRoute(req, res, microkernel, { auth: testAuth });
+      expect(handled).toBe(true);
+
+      const result = await getResult();
+      expect(result.statusCode).toBe(200);
+      expect(result.data.ok).toBe(false); // fails cleanly due to unreachable mock endpoint
+      expect(result.data.reply).toContain("Network connection error");
 
       await microkernel.registry.stopAll();
     });

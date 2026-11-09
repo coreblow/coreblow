@@ -47,6 +47,11 @@ import {
   type PairedDesktopAppContext,
 } from "./macos-codex-companion-bridge.js";
 import {
+  runCoreBlowReActLoop,
+  autoDiscoverRuntimeEndpoints,
+  type ExecutionProfile,
+} from "../agents/coreblow-react-engine.js";
+import {
   buildStorefrontCatalogView,
   BUILTIN_KERNEL_CAPABILITY_ENTRIES,
   type StorefrontAppCard,
@@ -651,6 +656,8 @@ export async function handleCoreHubRoute(
     normalizedPath = "/api/corehub/desktop/quick-launch";
   } else if (normalizedPath === "/diff-inspector" || normalizedPath === "/api/corehub/diff-inspector") {
     normalizedPath = "/api/corehub/desktop/diff-inspector";
+  } else if (normalizedPath === "/chat/react" || normalizedPath === "/api/corehub/chat/react") {
+    normalizedPath = "/api/corehub/chat/react";
   } else if (
     normalizedPath === "/desktop/state" ||
     normalizedPath === "/state" ||
@@ -682,7 +689,8 @@ export async function handleCoreHubRoute(
     pathname === "/api/corehub/pr-workflow/approve" ||
     pathname === "/api/corehub/chat-views/render" ||
     pathname === "/api/corehub/desktop/quick-launch" ||
-    pathname === "/api/corehub/desktop/diff-inspector";
+    pathname === "/api/corehub/desktop/diff-inspector" ||
+    pathname === "/api/corehub/chat/react";
   const cfg = options.cfg ?? loadConfig();
 
   // Validate browser origin for CORS / cross-origin protection
@@ -1675,6 +1683,55 @@ export async function handleCoreHubRoute(
             spawnWarRoom,
           },
         );
+
+        let reActResult = undefined;
+        if (body.autonomousReAct === true || body.react === true) {
+          reActResult = await runCoreBlowReActLoop({
+            prompt,
+            executionProfile: (typeof body.executionProfile === "string"
+              ? body.executionProfile
+              : "Full access") as ExecutionProfile,
+            defaultCwd: typeof body.cwd === "string" ? body.cwd : undefined,
+          });
+        }
+
+        sendJson(res, 200, { ...result, ...(reActResult ? { reActResult } : {}) });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/chat/react
+    if (pathname === "/api/corehub/chat/react") {
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
+        if (!prompt) {
+          sendJson(res, 400, { ok: false, error: "Missing required 'prompt' field." });
+          return true;
+        }
+        const executionProfile =
+          typeof body.executionProfile === "string"
+            ? (body.executionProfile as ExecutionProfile)
+            : "Full access";
+        const defaultCwd = typeof body.cwd === "string" ? body.cwd : undefined;
+        const model = typeof body.model === "string" ? body.model : undefined;
+        const providerUrl = typeof body.providerUrl === "string" ? body.providerUrl : undefined;
+        const apiKey = typeof body.apiKey === "string" ? body.apiKey : undefined;
+        const maxTurns = typeof body.maxTurns === "number" ? body.maxTurns : undefined;
+
+        const result = await runCoreBlowReActLoop({
+          prompt,
+          executionProfile,
+          defaultCwd,
+          model,
+          providerUrl,
+          apiKey,
+          maxTurns,
+        });
+
         sendJson(res, 200, result);
         return true;
       } catch (err) {

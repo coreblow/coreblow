@@ -3,6 +3,8 @@ import { generateUUID } from "./uuid.ts";
 
 // ─── Types ───────────────────────────────────────────────────────
 
+export type ExecutionProfile = "Full access" | "Workspace" | "Guarded" | "Read-only";
+
 export type ChatMessage = {
    id: string;
    role: "user" | "assistant" | "system";
@@ -10,6 +12,9 @@ export type ChatMessage = {
    ts: number;
    streaming?: boolean;
    toolCalls?: ToolStreamEntry[];
+   toolSteps?: string[];
+   executionProfile?: string;
+   cwd?: string;
 };
 
 export type ToolStreamEntry = {
@@ -22,6 +27,17 @@ export type ToolStreamEntry = {
    startedAt: number;
 };
 
+export type ChatSessionEntry = {
+   id: string;
+   title: string;
+   updatedAt: number;
+};
+
+export type SendChatOptions = {
+   executionProfile?: ExecutionProfile;
+   cwd?: string;
+};
+
 export type ChatEventPayload = {
    state: "delta" | "final" | "error" | "aborted";
    sessionKey?: string;
@@ -31,6 +47,7 @@ export type ChatEventPayload = {
    turnNumber?: number;
    durationMs?: number;
    ts?: number;
+   toolSteps?: string[];
 };
 
 export type AgentEventPayload = {
@@ -59,24 +76,100 @@ export class ChatController {
    chatSending = false;
    toolStream = new Map<string, ToolStreamEntry>();
    toolStreamOrder: string[] = [];
+   recentSessions: ChatSessionEntry[] = [];
 
    constructor(private app: CoreBlowApp) {
       // Restore session from settings
       this.sessionKey = this.app.settings.sessionKey || "";
+      this.loadRecentSessions();
+      if (this.sessionKey && !this.recentSessions.some(s => s.id === this.sessionKey)) {
+         this.recentSessions.unshift({
+            id: this.sessionKey,
+            title: `Session ${this.sessionKey.slice(0, 8)}`,
+            updatedAt: Date.now(),
+         });
+      }
    }
 
    get isBusy(): boolean {
       return this.chatSending || Boolean(this.chatRunId);
    }
 
+   private loadRecentSessions() {
+      try {
+         const raw = localStorage.getItem("coreblow_recent_chat_sessions");
+         if (raw) {
+            this.recentSessions = JSON.parse(raw);
+         }
+      } catch {
+         this.recentSessions = [];
+      }
+   }
+
+   private saveRecentSessions() {
+      try {
+         localStorage.setItem("coreblow_recent_chat_sessions", JSON.stringify(this.recentSessions));
+      } catch {
+         // ignore
+      }
+   }
+
+   recordSession(sessionKey: string, firstMessage: string) {
+      if (!sessionKey) return;
+      const title = firstMessage.length > 36 ? `${firstMessage.slice(0, 36)}...` : firstMessage;
+      const existing = this.recentSessions.find(s => s.id === sessionKey);
+      if (existing) {
+         existing.updatedAt = Date.now();
+      } else {
+         this.recentSessions = [
+            { id: sessionKey, title, updatedAt: Date.now() },
+            ...this.recentSessions.slice(0, 24),
+         ];
+      }
+      this.saveRecentSessions();
+   }
+
+   deleteSession(sessionKey: string) {
+      this.recentSessions = this.recentSessions.filter(s => s.id !== sessionKey);
+      this.saveRecentSessions();
+      if (this.sessionKey === sessionKey) {
+         this.newSession();
+      } else {
+         this.app.requestUpdate();
+      }
+   }
+
+   selectSession(sessionKey: string) {
+      if (this.sessionKey === sessionKey) return;
+      this.sessionKey = sessionKey;
+      this.clear();
+      this.app.applySettings({ ...this.app.settings, sessionKey });
+      const client = this.app.gateway.getClient();
+      if (client?.connected) {
+         client.request<{ messages?: ChatMessage[] }>("chat.history", { sessionKey }).then((res) => {
+            if (res?.messages && Array.isArray(res.messages)) {
+               this.messages = res.messages;
+               this.app.requestUpdate();
+            }
+         }).catch(() => {});
+      }
+   }
+
    // ─── Send Message ─────────────────────────────────────────────
 
-   async send(text: string) {
+   async send(text: string, options?: SendChatOptions) {
       const trimmed = text.trim();
       if (!trimmed || this.isBusy) return;
 
       // Add user message
-      const userMsg: ChatMessage = { id: generateUUID(), role: "user", content: trimmed, ts: Date.now() };
+      const userMsg: ChatMessage = {
+         id: generateUUID(),
+         role: "user",
+         content: trimmed,
+         ts: Date.now(),
+         executionProfile: options?.executionProfile,
+         cwd: options?.cwd,
+      };
       this.messages = [...this.messages, userMsg];
       this.app.requestUpdate();
 
@@ -99,15 +192,20 @@ export class ChatController {
       this.app.requestUpdate();
 
       try {
-         const res = await client.request<{ status: string; runId: string; sessionId: string }>(
-            "chat.send", { sessionKey: this.sessionKey || undefined, message: trimmed }
+         const res = await client.request<{ status: string; runId: string; sessionId: string; toolSteps?: string[] }>(
+            "chat.send", {
+               sessionKey: this.sessionKey || undefined,
+               message: trimmed,
+               executionProfile: options?.executionProfile,
+               cwd: options?.cwd,
+            }
          );
 
          if (res?.runId) {
             this.chatRunId = res.runId;
             this.sessionKey = res.sessionId ?? this.sessionKey;
-            // Persist session key
             this.app.applySettings({ ...this.app.settings, sessionKey: this.sessionKey });
+            this.recordSession(this.sessionKey, trimmed);
          }
 
          this.chatSending = false;
@@ -135,7 +233,7 @@ export class ChatController {
       }
    }
 
-   // ─── Handle Gateway Events (CoreBlow pattern) ─────────────────
+   // ─── Handle Gateway Events ────────────────────────────────────
 
    handleChatEvent(payload: ChatEventPayload) {
       if (!payload) return;
@@ -157,8 +255,12 @@ export class ChatController {
          if (finalText) {
             const toolCalls = this.collectToolCalls();
             this.messages = [...this.messages, {
-               id: generateUUID(), role: "assistant", content: finalText, ts: Date.now(),
+               id: generateUUID(),
+               role: "assistant",
+               content: finalText,
+               ts: Date.now(),
                toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+               toolSteps: payload.toolSteps,
             }];
          }
          this.resetStreamState();
@@ -223,16 +325,13 @@ export class ChatController {
    // ─── Helpers ──────────────────────────────────────────────────
 
    private extractFinalText(payload: ChatEventPayload): string {
-      // Try content array first (CoreBlow format)
       if (payload.message?.content && Array.isArray(payload.message.content)) {
          return payload.message.content
             .filter(c => c.type === 'text')
             .map(c => c.text ?? '')
             .join('');
       }
-      // Fallback to text field
       if (payload.message?.text) return payload.message.text;
-      // Fallback to streamed text
       return this.chatStream?.trim() ?? "";
    }
 
