@@ -94,12 +94,24 @@ const List<CoreHubModuleItem> kDefaultCoreHubModules = [
 ];
 
 class StudioViewModel extends ChangeNotifier {
-  StudioViewModel() {
+  StudioViewModel({
+    this.enablePersistence = false,
+    this.stateFilePath,
+  }) {
     inputController.addListener(_onTextChanged);
     _coreHubModules = List.from(kDefaultCoreHubModules);
     _initDefaultGates();
     _initDefaultChannels();
+    if (enablePersistence) {
+      loadPersistedState();
+    }
   }
+
+  final bool enablePersistence;
+  final String? stateFilePath;
+
+  Future<void>? _loadFuture;
+  Future<void>? _saveQueue;
 
   final TextEditingController inputController = TextEditingController();
 
@@ -201,6 +213,54 @@ class StudioViewModel extends ChangeNotifier {
   bool launchAtLogin = false;
   String defaultTerminalLocation = 'Bottom';
 
+  // Scheduled Automations / Cron State
+  final Map<String, bool> _cronTasks = {
+    'daily_health': true,
+    'memory_compaction': true,
+    'log_pruning': false,
+    'evoloop_synthesis': true,
+  };
+  Map<String, bool> get cronTasks => Map.unmodifiable(_cronTasks);
+
+  bool isCronTaskEnabled(String key) => _cronTasks[key] ?? false;
+
+  void setCronTaskEnabled(String key, bool enabled) {
+    _cronTasks[key] = enabled;
+    savePersistedState();
+    notifyListeners();
+  }
+
+  // Remote Nodes State
+  String _remoteNodeHost = '100.84.12.92:18789';
+  String get remoteNodeHost => _remoteNodeHost;
+  set remoteNodeHost(String val) {
+    if (_remoteNodeHost != val) {
+      _remoteNodeHost = val;
+      savePersistedState();
+      notifyListeners();
+    }
+  }
+
+  String _remoteNodeAuthToken = '';
+  String get remoteNodeAuthToken => _remoteNodeAuthToken;
+  set remoteNodeAuthToken(String val) {
+    if (_remoteNodeAuthToken != val) {
+      _remoteNodeAuthToken = val;
+      savePersistedState();
+      notifyListeners();
+    }
+  }
+
+  bool _remoteNodeAutoFallback = true;
+  bool get remoteNodeAutoFallback => _remoteNodeAutoFallback;
+  set remoteNodeAutoFallback(bool val) {
+    if (_remoteNodeAutoFallback != val) {
+      _remoteNodeAutoFallback = val;
+      savePersistedState();
+      notifyListeners();
+    }
+  }
+
   String tr(String key, {Map<String, String>? params}) =>
       StudioStrings.get(key, _language, params: params);
 
@@ -235,9 +295,9 @@ class StudioViewModel extends ChangeNotifier {
         duration: '890ms',
       ),
       PreFlightGate(
-        name: 'OpenClaw Parity Matrix',
-        command: 'pnpm parity:check',
-        description: '100% Phase 4 parity assertions met',
+        name: 'Sovereign Security & Secret Scan',
+        command: 'pnpm security:audit',
+        description: 'Zero raw API keys or forbidden paths in worktree',
         status: PreFlightStatus.pass,
         duration: '180ms',
       ),
@@ -354,23 +414,48 @@ class StudioViewModel extends ChangeNotifier {
   }
 
   void setExecutionProfile(String profile) {
-    _executionProfile = profile;
-    notifyListeners();
+    if (_executionProfile != profile) {
+      _executionProfile = profile;
+      savePersistedState();
+      notifyListeners();
+    }
   }
 
   void setSelectedModel(String model) {
-    _selectedModel = model;
-    notifyListeners();
+    if (_selectedModel != model) {
+      _selectedModel = model;
+      savePersistedState();
+      notifyListeners();
+    }
   }
 
   void setLanguage(String lang) {
-    _language = lang;
-    notifyListeners();
+    if (_language != lang) {
+      _language = lang;
+      savePersistedState();
+      notifyListeners();
+    }
   }
 
-  void selectProject(String name, {String branch = 'main'}) {
-    _currentProjectName = name;
+  void selectProject(String nameOrPath, {String branch = 'main'}) {
+    if (nameOrPath.contains('/')) {
+      _currentProjectPath = nameOrPath;
+      _currentProjectName = nameOrPath.split('/').where((s) => s.isNotEmpty).last;
+    } else {
+      _currentProjectName = nameOrPath;
+      final match = _projects.firstWhere(
+        (p) => p.endsWith('/$nameOrPath') || p == nameOrPath,
+        orElse: () => '',
+      );
+      if (match.isNotEmpty) {
+        _currentProjectPath = match;
+      }
+    }
     _currentBranch = branch;
+    if (_currentProjectPath.isNotEmpty && !_projects.contains(_currentProjectPath)) {
+      _projects.add(_currentProjectPath);
+    }
+    savePersistedState();
     notifyListeners();
   }
 
@@ -412,6 +497,7 @@ class StudioViewModel extends ChangeNotifier {
             _changedFiles.clear();
           }
 
+          savePersistedState();
           notifyListeners();
         }
       } else {
@@ -422,6 +508,7 @@ class StudioViewModel extends ChangeNotifier {
         if (!_projects.contains(_currentProjectPath)) {
           _projects.add(_currentProjectPath);
         }
+        savePersistedState();
         notifyListeners();
       }
     } catch (_) {
@@ -435,6 +522,7 @@ class StudioViewModel extends ChangeNotifier {
     inputController.clear();
     _activeNavTab = StudioNavTab.home;
     _isSettingsOpen = false;
+    savePersistedState();
     notifyListeners();
   }
 
@@ -452,8 +540,27 @@ class StudioViewModel extends ChangeNotifier {
       _messages.addAll(thread.messages);
       _activeNavTab = StudioNavTab.home;
       _isSettingsOpen = false;
+      savePersistedState();
       notifyListeners();
     }
+  }
+
+  void addThread(StudioThread thread) {
+    _recentThreads.add(thread);
+    savePersistedState();
+    notifyListeners();
+  }
+
+  void addMessage(StudioMessage message) {
+    _messages.add(message);
+    if (_activeThreadId != null) {
+      final threadIdx = _recentThreads.indexWhere((t) => t.id == _activeThreadId);
+      if (threadIdx != -1) {
+        _recentThreads[threadIdx].messages.add(message);
+      }
+    }
+    savePersistedState();
+    notifyListeners();
   }
 
   List<Map<String, String>> buildConversationPayload({
@@ -788,6 +895,7 @@ class StudioViewModel extends ChangeNotifier {
         _generatingThreadId = null;
         _isGenerating = false;
       }
+      savePersistedState();
       notifyListeners();
     }
   }
@@ -1122,6 +1230,223 @@ class StudioViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> saveSettings({
+    String? anthropic,
+    String? openAi,
+    String? gemini,
+    String? groq,
+    String? ollamaUrl,
+    String? customUrl,
+    String? customKey,
+    String? remoteHost,
+    String? remoteToken,
+    bool? remoteAutoFallback,
+  }) async {
+    if (anthropic != null) anthropicApiKey = anthropic;
+    if (openAi != null) openAiApiKey = openAi;
+    if (gemini != null) geminiApiKey = gemini;
+    if (groq != null) groqApiKey = groq;
+    if (ollamaUrl != null) localOllamaUrl = ollamaUrl;
+    if (customUrl != null) customEndpointUrl = customUrl;
+    if (customKey != null) customApiKey = customKey;
+    if (remoteHost != null) _remoteNodeHost = remoteHost;
+    if (remoteToken != null) _remoteNodeAuthToken = remoteToken;
+    if (remoteAutoFallback != null) _remoteNodeAutoFallback = remoteAutoFallback;
+    await savePersistedState();
+    notifyListeners();
+  }
+
+  File _getStateFile() {
+    if (stateFilePath != null && stateFilePath!.isNotEmpty) {
+      return File(stateFilePath!);
+    }
+    final home = Platform.environment['HOME'] ?? '';
+    if (home.isEmpty) {
+      return File('.coreblow/studio-state.json');
+    }
+    return File('$home/.coreblow/studio-state.json');
+  }
+
+  Future<void> loadPersistedState({bool forceReload = false}) {
+    if (forceReload || _loadFuture == null) {
+      _loadFuture = _loadPersistedStateInternal();
+    }
+    return _loadFuture!;
+  }
+
+  Future<void> _loadPersistedStateInternal() async {
+    try {
+      final file = _getStateFile();
+      if (!await file.exists()) return;
+      final content = await file.readAsString();
+      if (content.trim().isEmpty) return;
+      final Map<String, dynamic> data = jsonDecode(content) as Map<String, dynamic>;
+
+      if (data['language'] is String) _language = data['language'] as String;
+      if (data['executionProfile'] is String) _executionProfile = data['executionProfile'] as String;
+      if (data['selectedModel'] is String) _selectedModel = data['selectedModel'] as String;
+      if (data['currentProjectPath'] is String) _currentProjectPath = data['currentProjectPath'] as String;
+      if (data['currentProjectName'] is String) _currentProjectName = data['currentProjectName'] as String;
+      if (data['currentBranch'] is String) _currentBranch = data['currentBranch'] as String;
+      if (data['projects'] is List) {
+        _projects.clear();
+        _projects.addAll((data['projects'] as List).map((e) => e.toString()));
+      }
+      if (data['anthropicApiKey'] is String) anthropicApiKey = data['anthropicApiKey'] as String;
+      if (data['openAiApiKey'] is String) openAiApiKey = data['openAiApiKey'] as String;
+      if (data['geminiApiKey'] is String) geminiApiKey = data['geminiApiKey'] as String;
+      if (data['groqApiKey'] is String) groqApiKey = data['groqApiKey'] as String;
+      if (data['localOllamaUrl'] is String) localOllamaUrl = data['localOllamaUrl'] as String;
+      if (data['customEndpointUrl'] is String) customEndpointUrl = data['customEndpointUrl'] as String;
+      if (data['customApiKey'] is String) customApiKey = data['customApiKey'] as String;
+      if (data['defaultFullAccess'] is bool) defaultFullAccess = data['defaultFullAccess'] as bool;
+      if (data['launchAtLogin'] is bool) launchAtLogin = data['launchAtLogin'] as bool;
+      if (data['defaultTerminalLocation'] is String) defaultTerminalLocation = data['defaultTerminalLocation'] as String;
+      if (data['remoteNodeHost'] is String) _remoteNodeHost = data['remoteNodeHost'] as String;
+      if (data['remoteNodeAuthToken'] is String) _remoteNodeAuthToken = data['remoteNodeAuthToken'] as String;
+      if (data['remoteNodeAutoFallback'] is bool) _remoteNodeAutoFallback = data['remoteNodeAutoFallback'] as bool;
+
+      if (data['cronTasks'] is Map) {
+        (data['cronTasks'] as Map).forEach((k, v) {
+          if (v is bool) _cronTasks[k.toString()] = v;
+        });
+      }
+
+      if (data['recentThreads'] is List) {
+        _recentThreads.clear();
+        for (final rawThread in data['recentThreads'] as List) {
+          if (rawThread is Map) {
+            final id = rawThread['id']?.toString() ?? '';
+            final title = rawThread['title']?.toString() ?? '';
+            final createdAt = DateTime.tryParse(rawThread['createdAt']?.toString() ?? '') ?? DateTime.now();
+            final msgs = <StudioMessage>[];
+            if (rawThread['messages'] is List) {
+              for (final rawMsg in rawThread['messages'] as List) {
+                if (rawMsg is Map) {
+                  msgs.add(StudioMessage(
+                    id: rawMsg['id']?.toString() ?? '',
+                    sender: rawMsg['sender']?.toString() ?? 'user',
+                    content: rawMsg['content']?.toString() ?? '',
+                    timestamp: DateTime.tryParse(rawMsg['timestamp']?.toString() ?? '') ?? DateTime.now(),
+                    trace: rawMsg['trace']?.toString(),
+                  ));
+                }
+              }
+            }
+            if (id.isNotEmpty) {
+              _recentThreads.add(StudioThread(
+                id: id,
+                title: title,
+                createdAt: createdAt,
+                messages: msgs,
+              ));
+            }
+          }
+        }
+      }
+
+      final activeId = data['activeThreadId']?.toString();
+      if (activeId != null && _recentThreads.any((t) => t.id == activeId)) {
+        _activeThreadId = activeId;
+        _messages.clear();
+        _messages.addAll(_recentThreads.firstWhere((t) => t.id == activeId).messages);
+      } else if (_recentThreads.isNotEmpty && _activeThreadId == null) {
+        _activeThreadId = _recentThreads.first.id;
+        _messages.clear();
+        _messages.addAll(_recentThreads.first.messages);
+      }
+
+      notifyListeners();
+    } catch (_) {
+      // Non-fatal if JSON is corrupt or unreadable
+    }
+  }
+
+  Future<void> savePersistedState() async {
+    if (!enablePersistence) return;
+
+    // Ensure initial state load completes before persisting to prevent wiping disk state
+    if (_loadFuture != null) {
+      await _loadFuture;
+    }
+
+    final currentOp = _saveQueue;
+    final completer = Completer<void>();
+    _saveQueue = completer.future;
+
+    if (currentOp != null) {
+      try {
+        await currentOp;
+      } catch (_) {}
+    }
+
+    try {
+      await _writePersistedStateToDisk();
+    } finally {
+      completer.complete();
+    }
+  }
+
+  Future<void> _writePersistedStateToDisk() async {
+    try {
+      final file = _getStateFile();
+      final parentDir = file.parent;
+      if (!await parentDir.exists()) {
+        await parentDir.create(recursive: true);
+      }
+
+      final threadsData = _recentThreads.map((t) => {
+        'id': t.id,
+        'title': t.title,
+        'createdAt': t.createdAt.toIso8601String(),
+        'messages': t.messages
+            .where((m) => !m.isStreaming || m.content != '...')
+            .map((m) => {
+              'id': m.id,
+              'sender': m.sender,
+              'content': m.content,
+              'timestamp': m.timestamp.toIso8601String(),
+              if (m.trace != null) 'trace': m.trace,
+            })
+            .toList(),
+      }).toList();
+
+      final data = <String, dynamic>{
+        'version': 1,
+        'language': _language,
+        'executionProfile': _executionProfile,
+        'selectedModel': _selectedModel,
+        'currentProjectPath': _currentProjectPath,
+        'currentProjectName': _currentProjectName,
+        'currentBranch': _currentBranch,
+        'projects': _projects,
+        'anthropicApiKey': anthropicApiKey,
+        'openAiApiKey': openAiApiKey,
+        'geminiApiKey': geminiApiKey,
+        'groqApiKey': groqApiKey,
+        'localOllamaUrl': localOllamaUrl,
+        'customEndpointUrl': customEndpointUrl,
+        'customApiKey': customApiKey,
+        'defaultFullAccess': defaultFullAccess,
+        'launchAtLogin': launchAtLogin,
+        'defaultTerminalLocation': defaultTerminalLocation,
+        'cronTasks': _cronTasks,
+        'remoteNodeHost': _remoteNodeHost,
+        'remoteNodeAuthToken': _remoteNodeAuthToken,
+        'remoteNodeAutoFallback': _remoteNodeAutoFallback,
+        'activeThreadId': _activeThreadId,
+        'recentThreads': threadsData,
+      };
+
+      final jsonContent = const JsonEncoder.withIndent('  ').convert(data);
+
+      final tempFile = File('${file.path}.tmp');
+      await tempFile.writeAsString(jsonContent, flush: true);
+      await tempFile.rename(file.path);
+    } catch (_) {
+      // Non-fatal if persistence write fails
+    }
+  }
 
   bool _isDisposed = false;
 

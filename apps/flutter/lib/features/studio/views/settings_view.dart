@@ -24,6 +24,8 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
   late TextEditingController _ollamaUrlController;
   late TextEditingController _routerUrlController;
   late TextEditingController _customApiKeyController;
+  late TextEditingController _remoteHostController;
+  late TextEditingController _remoteTokenController;
   String _searchQuery = '';
   bool _savedFeedback = false;
   Timer? _feedbackTimer;
@@ -40,6 +42,8 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
     _ollamaUrlController = TextEditingController(text: widget.viewModel.localOllamaUrl);
     _routerUrlController = TextEditingController(text: widget.viewModel.customEndpointUrl);
     _customApiKeyController = TextEditingController(text: widget.viewModel.customApiKey);
+    _remoteHostController = TextEditingController(text: widget.viewModel.remoteNodeHost);
+    _remoteTokenController = TextEditingController(text: widget.viewModel.remoteNodeAuthToken);
   }
 
   @override
@@ -52,17 +56,23 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
     _ollamaUrlController.dispose();
     _routerUrlController.dispose();
     _customApiKeyController.dispose();
+    _remoteHostController.dispose();
+    _remoteTokenController.dispose();
     super.dispose();
   }
 
   void _saveApiKeys() {
-    widget.viewModel.anthropicApiKey = _anthropicController.text;
-    widget.viewModel.openAiApiKey = _openAiController.text;
-    widget.viewModel.geminiApiKey = _geminiController.text;
-    widget.viewModel.groqApiKey = _groqController.text;
-    widget.viewModel.localOllamaUrl = _ollamaUrlController.text;
-    widget.viewModel.customEndpointUrl = _routerUrlController.text;
-    widget.viewModel.customApiKey = _customApiKeyController.text;
+    widget.viewModel.saveSettings(
+      anthropic: _anthropicController.text,
+      openAi: _openAiController.text,
+      gemini: _geminiController.text,
+      groq: _groqController.text,
+      ollamaUrl: _ollamaUrlController.text,
+      customUrl: _routerUrlController.text,
+      customKey: _customApiKeyController.text,
+      remoteHost: _remoteHostController.text,
+      remoteToken: _remoteTokenController.text,
+    );
 
     setState(() => _savedFeedback = true);
     _feedbackTimer?.cancel();
@@ -372,11 +382,13 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
         switch (widget.viewModel.activeSettingsSection) {
           'api_keys' => _buildApiKeysSection(),
           'channels' => _buildChannelsSection(),
+          'remote_nodes' => _buildRemoteNodesSection(),
           'general' => _buildGeneralSection(),
           'voice' => _buildVoiceSection(),
           'permissions' => _buildPermissionsSection(),
           'storage' => _buildStorageSection(),
           'skills' => _buildSkillsSection(),
+          'cron' => _buildCronSection(),
           'about' => _buildAboutSection(),
           _ => _buildGeneralSection(),
         },
@@ -742,6 +754,301 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
                 value: true,
                 activeTrackColor: StudioColors.accentTeal,
                 onChanged: (_) {},
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // 9. REMOTE NODES & TAILSCALE GATEWAYS
+  Widget _buildRemoteNodesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _contentHeader(
+          'Remote Nodes & Mesh Gateways',
+          'Manage local daemon instance and remote headless SSH or Tailscale nodes.',
+        ),
+        const SizedBox(height: 16),
+
+        _settingsCard(
+          title: 'Active Nodes',
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: StudioColors.bgChip,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: StudioColors.borderChip, width: 0.8),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFF28C840),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'MacBook Local Host · 127.0.0.1:18789 · Active',
+                          style: TextStyle(
+                            color: StudioColors.textPrimary,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Primary Microkernel Daemon · Darwin arm64 · Latency < 1ms',
+                          style: TextStyle(
+                            color: StudioColors.textBody,
+                            fontSize: 10.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F2B26),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: StudioColors.borderNavActive, width: 0.8),
+                    ),
+                    child: const Text(
+                      'Primary',
+                      style: TextStyle(
+                        color: StudioColors.accentTeal,
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        _settingsCard(
+          title: 'Remote SSH / Tailscale Gateway',
+          children: [
+            const Text(
+              'Route execution and tool evaluations through a remote daemon via Tailscale MagicDNS or SSH tunnel.',
+              style: TextStyle(
+                color: StudioColors.textBody,
+                fontSize: 11,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _toggleRow(
+              title: 'Remote Gateway Host',
+              subtitle: 'Tailscale MagicDNS address or IP:port (e.g. 100.84.12.92:18789)',
+              trailing: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 220),
+                child: Container(
+                  height: 28,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: StudioColors.bgComposer,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: StudioColors.borderComposer, width: 0.8),
+                  ),
+                  child: TextField(
+                    controller: _remoteHostController,
+                    style: const TextStyle(
+                      color: StudioColors.textPrimary,
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                    ),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.only(bottom: 4),
+                    ),
+                    onChanged: (val) {
+                      widget.viewModel.remoteNodeHost = val;
+                    },
+                  ),
+                ),
+              ),
+            ),
+            _divider(),
+            _toggleRow(
+              title: 'Gateway Auth Token',
+              subtitle: 'Pre-shared bearer token for remote daemon authentication',
+              trailing: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 220),
+                child: Container(
+                  height: 28,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: StudioColors.bgComposer,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: StudioColors.borderComposer, width: 0.8),
+                  ),
+                  child: TextField(
+                    controller: _remoteTokenController,
+                    obscureText: true,
+                    style: const TextStyle(
+                      color: StudioColors.textPrimary,
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                    ),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      hintText: '••••••••',
+                      hintStyle: TextStyle(color: StudioColors.textMuted),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.only(bottom: 4),
+                    ),
+                    onChanged: (val) {
+                      widget.viewModel.remoteNodeAuthToken = val;
+                    },
+                  ),
+                ),
+              ),
+            ),
+            _divider(),
+            _toggleRow(
+              title: 'Auto-fallback to local daemon',
+              subtitle: 'Silently fall back to 127.0.0.1:18789 if remote node is unreachable',
+              trailing: Switch.adaptive(
+                value: widget.viewModel.remoteNodeAutoFallback,
+                activeTrackColor: StudioColors.accentTeal,
+                onChanged: (val) {
+                  setState(() {
+                    widget.viewModel.remoteNodeAutoFallback = val;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // 10. AUTOMATIONS & CRON
+  Widget _buildCronSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _contentHeader(
+          'Automations & Scheduled Tasks',
+          'Configure background daemon jobs, repository maintenance, and memory indexing.',
+        ),
+        const SizedBox(height: 16),
+
+        _settingsCard(
+          title: 'Scheduled Automation Tasks',
+          children: [
+            _toggleRow(
+              title: 'Daily Repository Health Check',
+              subtitle: 'Runs oxlint, test suite, and landing gates every midnight (00:00)',
+              trailing: Switch.adaptive(
+                value: widget.viewModel.isCronTaskEnabled('daily_health'),
+                activeTrackColor: StudioColors.accentTeal,
+                onChanged: (val) {
+                  setState(() {
+                    widget.viewModel.setCronTaskEnabled('daily_health', val);
+                  });
+                },
+              ),
+            ),
+            _divider(),
+            _toggleRow(
+              title: 'Cory Memory Compaction',
+              subtitle: 'Vacuum SQLite WAL, re-index BM25 embeddings, and prune redundant semantic nodes every 6 hours',
+              trailing: Switch.adaptive(
+                value: widget.viewModel.isCronTaskEnabled('memory_compaction'),
+                activeTrackColor: StudioColors.accentTeal,
+                onChanged: (val) {
+                  setState(() {
+                    widget.viewModel.setCronTaskEnabled('memory_compaction', val);
+                  });
+                },
+              ),
+            ),
+            _divider(),
+            _toggleRow(
+              title: 'Weekly Log Pruning',
+              subtitle: 'Archive gateway execution traces older than 14 days every Sunday at 02:00',
+              trailing: Switch.adaptive(
+                value: widget.viewModel.isCronTaskEnabled('log_pruning'),
+                activeTrackColor: StudioColors.accentTeal,
+                onChanged: (val) {
+                  setState(() {
+                    widget.viewModel.setCronTaskEnabled('log_pruning', val);
+                  });
+                },
+              ),
+            ),
+            _divider(),
+            _toggleRow(
+              title: 'Autonomous EvoLoop Synthesis',
+              subtitle: 'Synthesize and evaluate new skills from conversation patterns twice weekly',
+              trailing: Switch.adaptive(
+                value: widget.viewModel.isCronTaskEnabled('evoloop_synthesis'),
+                activeTrackColor: StudioColors.accentTeal,
+                onChanged: (val) {
+                  setState(() {
+                    widget.viewModel.setCronTaskEnabled('evoloop_synthesis', val);
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        _settingsCard(
+          title: 'Daemon Cron Runner Status',
+          children: [
+            _toggleRow(
+              title: 'Cron Daemon Process',
+              subtitle: 'CoreBlow background daemon scheduler (PID: 18790)',
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F2B26),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: StudioColors.borderNavActive, width: 0.8),
+                ),
+                child: const Text(
+                  'Running · Active',
+                  style: TextStyle(
+                    color: StudioColors.accentTeal,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            _divider(),
+            _toggleRow(
+              title: 'Next Scheduled Trigger',
+              subtitle: 'Daily Repository Health Check',
+              trailing: const Text(
+                '00:00 (in 3h 14m)',
+                style: TextStyle(
+                  color: StudioColors.textPrimary,
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                ),
               ),
             ),
           ],

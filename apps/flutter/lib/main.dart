@@ -25,7 +25,7 @@ class _CoreBlowFlutterAppState extends State<CoreBlowFlutterApp> {
   @override
   void initState() {
     super.initState();
-    _viewModel = StudioViewModel();
+    _viewModel = StudioViewModel(enablePersistence: true);
     final runtimeTab = Platform.environment['STUDIO_TAB'] ?? '';
     const envTab = String.fromEnvironment('STUDIO_TAB', defaultValue: 'home');
     if (runtimeTab == 'corehub' || envTab == 'corehub' || widget.initialTab == StudioNavTab.coreHub) {

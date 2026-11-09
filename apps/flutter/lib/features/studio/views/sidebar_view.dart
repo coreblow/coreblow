@@ -336,24 +336,31 @@ class _StudioSidebarViewState extends State<StudioSidebarView> {
 
                 // Render current projects
                 if (widget.viewModel.projects.isNotEmpty) ...[
-                  ...widget.viewModel.projects.map((proj) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.folder_outlined, size: 12, color: StudioColors.accentTeal),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                proj.split('/').last,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: StudioColors.textPrimary,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
+                  ...widget.viewModel.projects.map((proj) => InkWell(
+                        onTap: () => widget.viewModel.selectProject(proj),
+                        borderRadius: BorderRadius.circular(4),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.folder_outlined, size: 12, color: StudioColors.accentTeal),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  proj.split('/').last,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: (widget.viewModel.currentProjectPath == proj ||
+                                            widget.viewModel.currentProjectName == proj.split('/').last)
+                                        ? StudioColors.accentTeal
+                                        : StudioColors.textPrimary,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       )),
                 ],

@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/widgets/aperture_emblem.dart';
 import '../models/studio_state.dart';
@@ -293,24 +295,20 @@ class _StudioCanvasViewState extends State<StudioCanvasView> {
             ),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                message.content,
-                style: const TextStyle(
-                  color: StudioColors.textPrimary, // #D9FBF3
-                  fontSize: 13,
-                  height: 1.35,
-                ),
-              ),
+              _buildMessageContent(message.content, isUser: true),
               const SizedBox(height: 4),
-              Text(
-                timeStr,
-                style: const TextStyle(
-                  color: StudioColors.textMuted, // #7FA99F
-                  fontSize: 9.5,
-                  fontFamily: 'monospace',
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  timeStr,
+                  style: const TextStyle(
+                    color: StudioColors.textMuted, // #7FA99F
+                    fontSize: 9.5,
+                    fontFamily: 'monospace',
+                  ),
                 ),
               ),
             ],
@@ -384,28 +382,381 @@ class _StudioCanvasViewState extends State<StudioCanvasView> {
                         ),
                       ),
                     ],
-                    Text(
-                      message.content,
-                      style: const TextStyle(
-                        color: StudioColors.textPrimary, // #D9FBF3
-                        fontSize: 13,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      timeStr,
-                      style: const TextStyle(
-                        color: StudioColors.textMuted, // #7FA99F
-                        fontSize: 9.5,
-                        fontFamily: 'monospace',
-                      ),
+                    _buildMessageContent(message.content, isUser: false),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Text(
+                          timeStr,
+                          style: const TextStyle(
+                            color: StudioColors.textMuted, // #7FA99F
+                            fontSize: 9.5,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                        if (message.content.trim().isNotEmpty && message.content != '...') ...[
+                          const Spacer(),
+                          _AssistantCopyButton(text: message.content),
+                        ],
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageContent(String content, {required bool isUser}) {
+    final segments = _parseMessageSegments(content);
+    if (segments.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final baseStyle = TextStyle(
+      color: StudioColors.textPrimary,
+      fontSize: 13,
+      height: isUser ? 1.35 : 1.4,
+    );
+
+    if (segments.length == 1 && !segments.first.isCode) {
+      final prose = segments.first.content;
+      if (!prose.contains('`') && !prose.contains('**')) {
+        return SelectableText(prose, style: baseStyle);
+      }
+      return SelectableText.rich(_buildProseSpan(prose, baseStyle));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int i = 0; i < segments.length; i++) ...[
+          if (i > 0) const SizedBox(height: 6),
+          if (segments[i].isCode)
+            _FencedCodeBlock(
+              code: segments[i].content,
+              language: segments[i].language,
+            )
+          else
+            SelectableText.rich(
+              _buildProseSpan(segments[i].content, baseStyle),
+            ),
+        ],
+      ],
+    );
+  }
+}
+
+class _ContentSegment {
+  const _ContentSegment.prose(this.content)
+      : isCode = false,
+        language = '';
+
+  const _ContentSegment.code(this.content, {this.language = ''})
+      : isCode = true;
+
+  final bool isCode;
+  final String content;
+  final String language;
+}
+
+List<_ContentSegment> _parseMessageSegments(String text) {
+  final segments = <_ContentSegment>[];
+  if (text.isEmpty) return segments;
+
+  final regex = RegExp(r'```([^\r\n]*)(?:\r?\n([\s\S]*?)(?:```|$)|$)');
+  int lastEnd = 0;
+
+  for (final match in regex.allMatches(text)) {
+    if (match.start > lastEnd) {
+      var prose = text.substring(lastEnd, match.start);
+      if (prose.endsWith('\r\n')) {
+        prose = prose.substring(0, prose.length - 2);
+      } else if (prose.endsWith('\n')) {
+        prose = prose.substring(0, prose.length - 1);
+      }
+      if (prose.trim().isNotEmpty) {
+        segments.add(_ContentSegment.prose(prose));
+      }
+    }
+    final lang = (match.group(1) ?? '').trim();
+    var code = match.group(2) ?? '';
+    if (code.endsWith('\r\n')) {
+      code = code.substring(0, code.length - 2);
+    } else if (code.endsWith('\n')) {
+      code = code.substring(0, code.length - 1);
+    }
+    segments.add(_ContentSegment.code(code, language: lang));
+    lastEnd = match.end;
+  }
+
+  if (lastEnd < text.length) {
+    var remaining = text.substring(lastEnd);
+    if (lastEnd > 0) {
+      if (remaining.startsWith('\r\n')) {
+        remaining = remaining.substring(2);
+      } else if (remaining.startsWith('\n')) {
+        remaining = remaining.substring(1);
+      }
+    }
+    if (remaining.trim().isNotEmpty) {
+      segments.add(_ContentSegment.prose(remaining));
+    }
+  }
+
+  return segments;
+}
+
+TextSpan _buildProseSpan(String prose, TextStyle baseStyle) {
+  final spans = <InlineSpan>[];
+  final regex = RegExp(r'(`[^`]+`|\*\*[^*]+\*\*)');
+  int lastEnd = 0;
+
+  for (final match in regex.allMatches(prose)) {
+    if (match.start > lastEnd) {
+      spans.add(TextSpan(
+        text: prose.substring(lastEnd, match.start),
+        style: baseStyle,
+      ));
+    }
+
+    final matched = match.group(0)!;
+    if (matched.startsWith('`') && matched.endsWith('`') && matched.length >= 2) {
+      final codeText = matched.substring(1, matched.length - 1);
+      spans.add(TextSpan(
+        text: codeText,
+        style: baseStyle.copyWith(
+          fontFamily: 'monospace',
+          fontSize: (baseStyle.fontSize ?? 13) - 1,
+          backgroundColor: const Color(0xFF10261F),
+          color: StudioColors.accentMint,
+        ),
+      ));
+    } else if (matched.startsWith('**') && matched.endsWith('**') && matched.length >= 4) {
+      final boldText = matched.substring(2, matched.length - 2);
+      spans.add(TextSpan(
+        text: boldText,
+        style: baseStyle.copyWith(
+          fontWeight: FontWeight.bold,
+          color: StudioColors.textPrimary,
+        ),
+      ));
+    } else {
+      spans.add(TextSpan(
+        text: matched,
+        style: baseStyle,
+      ));
+    }
+
+    lastEnd = match.end;
+  }
+
+  if (lastEnd < prose.length) {
+    spans.add(TextSpan(
+      text: prose.substring(lastEnd),
+      style: baseStyle,
+    ));
+  }
+
+  return TextSpan(children: spans);
+}
+
+class _FencedCodeBlock extends StatefulWidget {
+  const _FencedCodeBlock({
+    required this.code,
+    required this.language,
+  });
+
+  final String code;
+  final String language;
+
+  @override
+  State<_FencedCodeBlock> createState() => _FencedCodeBlockState();
+}
+
+class _FencedCodeBlockState extends State<_FencedCodeBlock> {
+  bool _copied = false;
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _copy() {
+    Clipboard.setData(ClipboardData(text: widget.code));
+    setState(() => _copied = true);
+    _timer?.cancel();
+    _timer = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        setState(() => _copied = false);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final langTag = widget.language.trim().isNotEmpty ? widget.language.trim() : 'code';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF07100E),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: const Color(0xFF16322C),
+          width: 0.8,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header Bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: const BoxDecoration(
+              color: Color(0xFF0A1815),
+              border: Border(
+                bottom: BorderSide(
+                  color: Color(0xFF16322C),
+                  width: 0.8,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  langTag,
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 10.5,
+                    color: StudioColors.accentTeal,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Spacer(),
+                InkWell(
+                  onTap: _copy,
+                  borderRadius: BorderRadius.circular(4),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: _copied ? StudioColors.bgChip : Colors.transparent,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _copied ? Icons.check_rounded : Icons.copy_rounded,
+                          size: 11,
+                          color: _copied ? StudioColors.accentMint : StudioColors.textMuted,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _copied ? 'Copied ✓' : 'Copy',
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 10,
+                            color: _copied ? StudioColors.accentMint : StudioColors.textMuted,
+                            fontWeight: _copied ? FontWeight.bold : FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Code Text Area
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SelectableText(
+                widget.code,
+                style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 12,
+                  color: StudioColors.textPrimary,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AssistantCopyButton extends StatefulWidget {
+  const _AssistantCopyButton({required this.text});
+
+  final String text;
+
+  @override
+  State<_AssistantCopyButton> createState() => _AssistantCopyButtonState();
+}
+
+class _AssistantCopyButtonState extends State<_AssistantCopyButton> {
+  bool _copied = false;
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _copy() {
+    Clipboard.setData(ClipboardData(text: widget.text));
+    setState(() => _copied = true);
+    _timer?.cancel();
+    _timer = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        setState(() => _copied = false);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: _copy,
+      borderRadius: BorderRadius.circular(4),
+      child: Tooltip(
+        message: _copied ? 'Copied to clipboard' : 'Copy response',
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _copied ? Icons.check_rounded : Icons.copy_rounded,
+                size: 11,
+                color: _copied ? StudioColors.accentMint : StudioColors.textMuted,
+              ),
+              const SizedBox(width: 3),
+              Text(
+                _copied ? 'Copied ✓' : 'Copy',
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 9.5,
+                  color: _copied ? StudioColors.accentMint : StudioColors.textMuted,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
