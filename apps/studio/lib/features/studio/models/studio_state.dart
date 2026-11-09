@@ -23,6 +23,7 @@ class StudioMessage {
     required this.timestamp,
     this.trace,
     this.isStreaming = false,
+    this.toolSteps = const [],
   });
 
   final String id;
@@ -31,6 +32,7 @@ class StudioMessage {
   final DateTime timestamp;
   final String? trace;
   final bool isStreaming;
+  final List<String> toolSteps;
 
   StudioMessage copyWith({
     String? id,
@@ -39,6 +41,7 @@ class StudioMessage {
     DateTime? timestamp,
     String? trace,
     bool? isStreaming,
+    List<String>? toolSteps,
   }) {
     return StudioMessage(
       id: id ?? this.id,
@@ -47,6 +50,31 @@ class StudioMessage {
       timestamp: timestamp ?? this.timestamp,
       trace: trace ?? this.trace,
       isStreaming: isStreaming ?? this.isStreaming,
+      toolSteps: toolSteps ?? this.toolSteps,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'sender': sender,
+    'content': content,
+    'timestamp': timestamp.toIso8601String(),
+    if (trace != null) 'trace': trace,
+    'isStreaming': isStreaming,
+    if (toolSteps.isNotEmpty) 'toolSteps': toolSteps,
+  };
+
+  factory StudioMessage.fromJson(Map<String, dynamic> json) {
+    final rawSteps = json['toolSteps'];
+    final steps = rawSteps is List ? rawSteps.map((e) => e.toString()).toList() : const <String>[];
+    return StudioMessage(
+      id: json['id']?.toString() ?? '',
+      sender: json['sender']?.toString() ?? 'user',
+      content: json['content']?.toString() ?? '',
+      timestamp: DateTime.tryParse(json['timestamp']?.toString() ?? '') ?? DateTime.now(),
+      trace: json['trace']?.toString(),
+      isStreaming: json['isStreaming'] == true,
+      toolSteps: steps,
     );
   }
 }
@@ -209,4 +237,3 @@ class MemoryWikiEntry {
   final int sizeBytes;
   final String sizeFormatted;
 }
-

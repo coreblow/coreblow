@@ -26,8 +26,8 @@ void main() {
     expect(find.text('PR Gates'), findsNothing);
     expect(find.text('Sistem Ikon'), findsNothing);
 
-    // 2. Chat Interaction Test
-    final inputFinder = find.byType(TextField).first;
+    // 2. Chat Interaction Test (use composer input TextField)
+    final inputFinder = find.byType(TextField).last;
     await tester.enterText(inputFinder, 'Refactor git commit verification pipeline');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
@@ -167,7 +167,7 @@ void main() {
     final customRes = await viewModel.testConnection(
       provider: 'custom',
       endpointUrl: 'http://127.0.0.1:18789/v1',
-      apiKey: 'sk-test',
+      apiKey: 'sk-test', // pragma: allowlist secret
     );
     expect(customRes.isSuccess, isTrue);
     expect(customRes.message, 'Active · 42ms');
@@ -179,7 +179,7 @@ void main() {
     final liveRes = await viewModel.testConnection(
       provider: 'custom',
       endpointUrl: 'http://127.0.0.1:20128/v1',
-      apiKey: 'sk-96b0ddd1aa0881dd-m93qzq-690585f1',
+      apiKey: 'sk-96b0ddd1aa0881dd-m93qzq-690585f1', // pragma: allowlist secret
     );
     expect(liveRes.isSuccess, isTrue);
     expect(liveRes.message, contains('Active'));

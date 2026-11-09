@@ -144,7 +144,7 @@ class StudioComposerView extends StatelessWidget {
                   icon: Icons.shield_outlined,
                   label: viewModel.executionProfile,
                   onSelected: viewModel.setExecutionProfile,
-                  options: const ['Full access', 'Review required', 'Strict sandbox'],
+                  options: const ['Full access', 'Workspace', 'Guarded', 'Read-only'],
                 ),
 
                 const Spacer(),
@@ -177,11 +177,12 @@ class StudioComposerView extends StatelessWidget {
 
                 const SizedBox(width: 6),
 
-                // Tombol kirim (nonaktif): latar #12302A, garis #1F5148, panah #5E8F84
-                // Tombol kirim (aktif): latar #2DD4BF, huruf #04201B
+                // Tombol kirim / stop
                 _SendButton(
                   canSend: viewModel.canSendMessage,
+                  isGenerating: viewModel.isGenerating,
                   onTap: viewModel.sendMessage,
+                  onStop: viewModel.stopGeneration,
                 ),
               ],
             ),
@@ -281,14 +282,46 @@ class _HoverChipButtonState extends State<_HoverChipButton> {
 class _SendButton extends StatelessWidget {
   const _SendButton({
     required this.canSend,
+    this.isGenerating = false,
     required this.onTap,
+    this.onStop,
   });
 
   final bool canSend;
+  final bool isGenerating;
   final VoidCallback onTap;
+  final VoidCallback? onStop;
 
   @override
   Widget build(BuildContext context) {
+    if (isGenerating) {
+      return Tooltip(
+        message: 'Stop generation',
+        child: InkWell(
+          onTap: onStop,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF16322C), // #16322C
+              border: Border.all(
+                color: StudioColors.accentTeal, // #2DD4BF
+                width: 1.0,
+              ),
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.stop_rounded,
+              size: 13,
+              color: StudioColors.accentTeal,
+            ),
+          ),
+        ),
+      );
+    }
+
     if (canSend) {
       return InkWell(
         onTap: onTap,

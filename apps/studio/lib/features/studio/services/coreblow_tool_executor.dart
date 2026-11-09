@@ -286,8 +286,21 @@ class CoreBlowToolExecutor {
     return null;
   }
 
+  /// Checks whether [path] is inside the active project directory [defaultCwd].
+  static bool isPathInWorkspace(String path, String? defaultCwd) {
+    if (defaultCwd == null || defaultCwd.trim().isEmpty) return false;
+    final normPath = normalizePath(path, defaultCwd: defaultCwd);
+    final normWorkspace = normalizePath(defaultCwd);
+    return normPath == normWorkspace || normPath.startsWith('$normWorkspace/');
+  }
+
   /// Validates whether a terminal command is allowed under the current execution profile.
-  static bool isCommandAllowed(String command, String executionProfile) {
+  static bool isCommandAllowed(
+    String command,
+    String executionProfile, {
+    String? defaultCwd,
+    String? cwd,
+  }) {
     final trimmed = command.trim();
     if (trimmed.isEmpty) return false;
 
@@ -309,7 +322,14 @@ class CoreBlowToolExecutor {
       return true;
     }
 
-    // In restricted/read-only mode, only allow safe inspection commands
+    if (executionProfile == 'Workspace') {
+      final effectiveDir = normalizePath(cwd ?? defaultCwd ?? '');
+      if (isPathInWorkspace(effectiveDir, defaultCwd)) {
+        return true;
+      }
+    }
+
+    // In 'Guarded', 'Read-only', or 'Workspace' outside workspace: only allow safe inspection commands
     const allowedPrefixes = [
       'ls', 'find', 'cat', 'head', 'tail', 'grep', 'rg', 'git status',
       'git log', 'git diff', 'git branch', 'git show', 'pwd', 'stat',
@@ -412,12 +432,12 @@ class CoreBlowToolExecutor {
     }
 
     // Security profile enforcement
-    if (!isCommandAllowed(trimmedCmd, executionProfile)) {
+    if (!isCommandAllowed(trimmedCmd, executionProfile, defaultCwd: defaultCwd, cwd: cwd)) {
       if (executionProfile == 'Full access') {
         return CoreBlowToolResult.error('Blocked for system safety: catastrophic command pattern detected.');
       }
       return CoreBlowToolResult.error(
-        'Blocked by execution profile ($executionProfile). Switch to \'Full access\' in Studio to run modifying commands.',
+        'Blocked by execution profile ($executionProfile). Switch to \'Full access\' or \'Workspace\' in Studio to run modifying commands.',
       );
     }
 
@@ -523,13 +543,21 @@ class CoreBlowToolExecutor {
     String executionProfile = 'Full access',
     String? defaultCwd,
   }) async {
-    if (executionProfile != 'Full access') {
+    final normPath = normalizePath(path, defaultCwd: defaultCwd);
+    if (executionProfile == 'Full access') {
+      // Allowed anywhere on host
+    } else if (executionProfile == 'Workspace') {
+      if (!isPathInWorkspace(normPath, defaultCwd)) {
+        return CoreBlowToolResult.error(
+          'Blocked: write_file outside active workspace is not permitted under \'Workspace\' profile ($normPath).',
+        );
+      }
+    } else {
       return CoreBlowToolResult.error(
-        'Blocked: write_file requires \'Full access\' profile. Current profile: $executionProfile.',
+        'Blocked: write_file requires \'Full access\' or \'Workspace\' profile. Current profile: $executionProfile.',
       );
     }
 
-    final normPath = normalizePath(path, defaultCwd: defaultCwd);
     final file = File(normPath);
 
     try {
@@ -555,13 +583,21 @@ class CoreBlowToolExecutor {
     String executionProfile = 'Full access',
     String? defaultCwd,
   }) async {
-    if (executionProfile != 'Full access') {
+    final normPath = normalizePath(path, defaultCwd: defaultCwd);
+    if (executionProfile == 'Full access') {
+      // Allowed anywhere on host
+    } else if (executionProfile == 'Workspace') {
+      if (!isPathInWorkspace(normPath, defaultCwd)) {
+        return CoreBlowToolResult.error(
+          'Blocked: patch outside active workspace is not permitted under \'Workspace\' profile ($normPath).',
+        );
+      }
+    } else {
       return CoreBlowToolResult.error(
-        'Blocked: patch requires \'Full access\' profile. Current profile: $executionProfile.',
+        'Blocked: patch requires \'Full access\' or \'Workspace\' profile. Current profile: $executionProfile.',
       );
     }
 
-    final normPath = normalizePath(path, defaultCwd: defaultCwd);
     final file = File(normPath);
 
     if (!file.existsSync()) {

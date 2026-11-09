@@ -20,6 +20,19 @@ class StudioSidebarView extends StatefulWidget {
 class _StudioSidebarViewState extends State<StudioSidebarView> {
   bool _isNewChatHovered = false;
   bool _isStoreBtnHovered = false;
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController(text: widget.viewModel.threadSearchQuery);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +115,7 @@ class _StudioSidebarViewState extends State<StudioSidebarView> {
 
           // Tombol New chat: latar #0D1F1B, garis #1A3A33, teks #D9FBF3, ikon aksen teal. Saat disorot jadi #12302A
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 2, 10, 10),
+            padding: const EdgeInsets.fromLTRB(10, 2, 10, 8),
             child: MouseRegion(
               onEnter: (_) => setState(() => _isNewChatHovered = true),
               onExit: (_) => setState(() => _isNewChatHovered = false),
@@ -151,6 +164,71 @@ class _StudioSidebarViewState extends State<StudioSidebarView> {
             ),
           ),
 
+          // Quiet Instrument Search Field: height 26, #0A1815 bg, 0.8px #16322C border
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+            child: Container(
+              height: 26,
+              decoration: BoxDecoration(
+                color: StudioColors.bgCard, // #0A1815
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: StudioColors.borderCard, // #16322C
+                  width: 0.8,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 7),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.search_rounded,
+                    size: 12,
+                    color: StudioColors.textMuted,
+                  ),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (val) {
+                        setState(() {});
+                        widget.viewModel.setThreadSearchQuery(val);
+                      },
+                      style: const TextStyle(
+                        color: StudioColors.textPrimary,
+                        fontSize: 11,
+                      ),
+                      cursorColor: StudioColors.accentTeal,
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        hintText: 'Search chats...',
+                        hintStyle: TextStyle(
+                          color: StudioColors.textMuted,
+                          fontSize: 10.5,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ),
+                  if (_searchController.text.isNotEmpty)
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          _searchController.clear();
+                        });
+                        widget.viewModel.setThreadSearchQuery('');
+                      },
+                      child: const Icon(
+                        Icons.close_rounded,
+                        size: 11,
+                        color: StudioColors.textMuted,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+
           // Scrollable Sidebar Sections
           Expanded(
             child: ListView(
@@ -171,56 +249,70 @@ class _StudioSidebarViewState extends State<StudioSidebarView> {
                   ),
                 ),
 
-                if (widget.viewModel.recentThreads.isEmpty) ...[
-                  // Kartu “Start a new chat”: latar #0A1815, garis #16322C, judul #D9FBF3, isi #8FB5AB
-                  Container(
-                    padding: const EdgeInsets.all(9),
-                    decoration: BoxDecoration(
-                      color: StudioColors.bgCard, // #0A1815
-                      borderRadius: BorderRadius.circular(7),
-                      border: Border.all(
-                        color: StudioColors.borderCard, // #16322C
-                        width: 0.8,
+                if (widget.viewModel.filteredThreads.isEmpty) ...[
+                  if (widget.viewModel.threadSearchQuery.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                      child: Text(
+                        'No chats match "${widget.viewModel.threadSearchQuery}"',
+                        style: const TextStyle(
+                          color: StudioColors.textMuted,
+                          fontSize: 10,
+                          fontFamily: 'monospace',
+                        ),
                       ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: const [
-                            CoreBlowIcon.sparkle(
-                              size: 12,
-                              color: StudioColors.textPrimary,
-                              accentColor: StudioColors.accentTeal,
-                            ),
-                            SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                'Start a new chat',
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: StudioColors.textPrimary, // #D9FBF3
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
+                  ] else ...[
+                    // Kartu “Start a new chat”: latar #0A1815, garis #16322C, judul #D9FBF3, isi #8FB5AB
+                    Container(
+                      padding: const EdgeInsets.all(9),
+                      decoration: BoxDecoration(
+                        color: StudioColors.bgCard, // #0A1815
+                        borderRadius: BorderRadius.circular(7),
+                        border: Border.all(
+                          color: StudioColors.borderCard, // #16322C
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: const [
+                              CoreBlowIcon.sparkle(
+                                size: 12,
+                                color: StudioColors.textPrimary,
+                                accentColor: StudioColors.accentTeal,
+                              ),
+                              SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Start a new chat',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: StudioColors.textPrimary, // #D9FBF3
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Type anything below to ask questions, summarize notes, or brainstorm.',
-                          style: TextStyle(
-                            color: StudioColors.textBody, // #8FB5AB
-                            fontSize: 10.5,
-                            height: 1.3,
+                            ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Type anything below to ask questions, summarize notes, or brainstorm.',
+                            style: TextStyle(
+                              color: StudioColors.textBody, // #8FB5AB
+                              fontSize: 10.5,
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ] else ...[
-                  ...widget.viewModel.recentThreads.map((thread) {
+                  ...widget.viewModel.filteredThreads.map((thread) {
                     final isSelected = widget.viewModel.activeThreadId == thread.id;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 3),
@@ -252,6 +344,21 @@ class _StudioSidebarViewState extends State<StudioSidebarView> {
                                     color: isSelected ? StudioColors.textPrimary : StudioColors.textSecondary,
                                     fontSize: 11,
                                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                              Tooltip(
+                                message: 'Delete chat',
+                                child: InkWell(
+                                  onTap: () => widget.viewModel.deleteThread(thread.id),
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(2),
+                                    child: Icon(
+                                      Icons.close_rounded,
+                                      size: 11,
+                                      color: StudioColors.textMuted,
+                                    ),
                                   ),
                                 ),
                               ),

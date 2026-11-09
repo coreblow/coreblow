@@ -382,6 +382,71 @@ class _StudioCanvasViewState extends State<StudioCanvasView> {
                         ),
                       ),
                     ],
+                    if (message.toolSteps.isNotEmpty) ...[
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF07100E),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: StudioColors.borderCard, // #16322C
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.terminal_rounded,
+                                  size: 11,
+                                  color: StudioColors.accentTeal,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  'CoreBlow Execution Steps (${message.toolSteps.length})',
+                                  style: const TextStyle(
+                                    color: StudioColors.accentTeal,
+                                    fontSize: 9.5,
+                                    fontFamily: 'monospace',
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            for (final step in message.toolSteps) ...[
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 1.5),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(
+                                      Icons.check_circle_rounded,
+                                      size: 10,
+                                      color: StudioColors.accentTeal,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Expanded(
+                                      child: Text(
+                                        step,
+                                        style: const TextStyle(
+                                          color: StudioColors.textSecondary,
+                                          fontSize: 9.5,
+                                          fontFamily: 'monospace',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
                     _buildMessageContent(message.content, isUser: false),
                     const SizedBox(height: 6),
                     Row(

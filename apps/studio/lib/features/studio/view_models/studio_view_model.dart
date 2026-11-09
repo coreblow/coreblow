@@ -197,6 +197,24 @@ class StudioViewModel extends ChangeNotifier {
   final List<StudioThread> _recentThreads = [];
   List<StudioThread> get recentThreads => List.unmodifiable(_recentThreads);
 
+  String _threadSearchQuery = '';
+  String get threadSearchQuery => _threadSearchQuery;
+  void setThreadSearchQuery(String query) {
+    _threadSearchQuery = query;
+    notifyListeners();
+  }
+
+  List<StudioThread> get filteredThreads {
+    final q = _threadSearchQuery.trim().toLowerCase();
+    if (q.isEmpty) {
+      return List.unmodifiable(_recentThreads);
+    }
+    return _recentThreads.where((thread) {
+      if (thread.title.toLowerCase().contains(q)) return true;
+      return thread.messages.any((m) => m.content.toLowerCase().contains(q));
+    }).toList();
+  }
+
   String? _activeThreadId;
   String? get activeThreadId => _activeThreadId;
 
@@ -204,6 +222,8 @@ class StudioViewModel extends ChangeNotifier {
   bool get isGenerating => _isGenerating;
   String? _generatingThreadId;
   String? get generatingThreadId => _generatingThreadId;
+  bool _cancelRequested = false;
+  HttpClient? _activeHttpClient;
 
   bool get canSendMessage => inputController.text.trim().isNotEmpty && !_isGenerating;
 
@@ -682,6 +702,61 @@ class StudioViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void deleteThread(String threadId) {
+    final idx = _recentThreads.indexWhere((t) => t.id == threadId);
+    if (idx != -1) {
+      _recentThreads.removeAt(idx);
+    }
+    if (_activeThreadId == threadId) {
+      _activeThreadId = _recentThreads.isNotEmpty ? _recentThreads.first.id : null;
+      _messages.clear();
+      if (_activeThreadId != null) {
+        final nextThread = _recentThreads.firstWhere((t) => t.id == _activeThreadId);
+        _messages.addAll(nextThread.messages);
+      }
+    }
+    savePersistedState();
+    notifyListeners();
+  }
+
+  void stopGeneration() {
+    if (!_isGenerating) return;
+    _cancelRequested = true;
+    try {
+      _activeHttpClient?.close(force: true);
+    } catch (_) {}
+    _activeHttpClient = null;
+
+    final targetThreadId = _generatingThreadId ?? _activeThreadId;
+    if (targetThreadId != null) {
+      final threadIdx = _recentThreads.indexWhere((t) => t.id == targetThreadId);
+      if (threadIdx != -1) {
+        final thread = _recentThreads[threadIdx];
+        final streamingIdx = thread.messages.indexWhere((m) => m.isStreaming);
+        if (streamingIdx != -1) {
+          final current = thread.messages[streamingIdx];
+          final stoppedMsg = current.copyWith(
+            content: current.content == '...' ? 'Generation stopped.' : current.content,
+            trace: 'CoreBlow Engine · Stopped by operator',
+            isStreaming: false,
+          );
+          thread.messages[streamingIdx] = stoppedMsg;
+          if (_activeThreadId == targetThreadId) {
+            final msgIdx = _messages.indexWhere((m) => m.id == current.id);
+            if (msgIdx != -1) {
+              _messages[msgIdx] = stoppedMsg;
+            }
+          }
+        }
+      }
+    }
+
+    _isGenerating = false;
+    _generatingThreadId = null;
+    savePersistedState();
+    notifyListeners();
+  }
+
   void addMessage(StudioMessage message) {
     _messages.add(message);
     if (_activeThreadId != null) {
@@ -765,6 +840,7 @@ class StudioViewModel extends ChangeNotifier {
     required String content,
     required String trace,
     required bool isStreaming,
+    List<String> toolSteps = const [],
   }) {
     // 1. Always update the originating thread in _recentThreads
     final threadIdx = _recentThreads.indexWhere((t) => t.id == targetThreadId);
@@ -781,6 +857,7 @@ class StudioViewModel extends ChangeNotifier {
         timestamp: prevTimestamp,
         trace: trace,
         isStreaming: isStreaming,
+        toolSteps: toolSteps,
       );
       if (tMsgIdx != -1) {
         targetThread.messages[tMsgIdx] = updatedMsg;
@@ -800,6 +877,7 @@ class StudioViewModel extends ChangeNotifier {
           timestamp: _messages[idx].timestamp,
           trace: trace,
           isStreaming: isStreaming,
+          toolSteps: toolSteps,
         );
       } else {
         // Recover if user switched back to this generating thread
@@ -814,6 +892,7 @@ class StudioViewModel extends ChangeNotifier {
               timestamp: DateTime.now(),
               trace: trace,
               isStreaming: isStreaming,
+              toolSteps: toolSteps,
             ),
           );
           _messages.add(tMsg);
@@ -856,6 +935,7 @@ class StudioViewModel extends ChangeNotifier {
       }
     }
 
+    _cancelRequested = false;
     _isGenerating = true;
     _generatingThreadId = currentThreadId;
     notifyListeners();
@@ -950,8 +1030,10 @@ class StudioViewModel extends ChangeNotifier {
 
     try {
       final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 3000);
+      _activeHttpClient = client;
 
       while (reactIteration < maxReactIterations) {
+        if (_cancelRequested) break;
         reactIteration++;
 
         // A. Custom Gateway (e.g. 20128)
@@ -984,6 +1066,7 @@ class StudioViewModel extends ChangeNotifier {
             bool isSse = false;
 
             await for (final rawLine in utf8.decoder.bind(response).transform(const LineSplitter())) {
+              if (_cancelRequested) break;
               final trimmed = rawLine.trim();
               if (trimmed.isEmpty) continue;
               if (trimmed.startsWith(':')) continue;
@@ -1059,6 +1142,7 @@ class StudioViewModel extends ChangeNotifier {
                       content: replyContent.isNotEmpty ? replyContent : '...',
                       trace: traceInfo,
                       isStreaming: true,
+                      toolSteps: List.from(executedTools),
                     );
                     notifyListeners();
                   }
@@ -1144,6 +1228,7 @@ class StudioViewModel extends ChangeNotifier {
 
             // Execute all detected tools
             for (final toolCall in detectedCalls) {
+              if (_cancelRequested) break;
               traceInfo = 'CoreBlow Engine · Step $reactIteration · Running ${toolCall.name}: ${toolCall.shortSummary}';
               _updateAssistantMessage(
                 targetThreadId: currentThreadId,
@@ -1151,6 +1236,7 @@ class StudioViewModel extends ChangeNotifier {
                 content: replyContent.isNotEmpty ? replyContent : 'Executing ${toolCall.name}...',
                 trace: traceInfo,
                 isStreaming: true,
+                toolSteps: List.from(executedTools),
               );
               notifyListeners();
 
@@ -1161,7 +1247,7 @@ class StudioViewModel extends ChangeNotifier {
                 defaultCwd: _currentProjectPath,
               );
 
-              executedTools.add('${toolCall.name} (${toolCall.shortSummary})');
+              executedTools.add('✓ ${toolCall.name} · ${toolCall.shortSummary}');
 
               activePayload.add({
                 'role': 'assistant',
@@ -1200,13 +1286,14 @@ class StudioViewModel extends ChangeNotifier {
             }
 
             for (final toolCall in detectedCalls) {
+              if (_cancelRequested) break;
               final toolResult = await toolExecutor.executeTool(
                 name: toolCall.name,
                 arguments: toolCall.arguments,
                 executionProfile: _executionProfile,
                 defaultCwd: _currentProjectPath,
               );
-              executedTools.add('${toolCall.name} (${toolCall.shortSummary})');
+              executedTools.add('✓ ${toolCall.name} · ${toolCall.shortSummary}');
               activePayload.add({
                 'role': 'assistant',
                 'content': '<tool_call>\n${jsonEncode({"name": toolCall.name, "arguments": toolCall.arguments})}\n</tool_call>',
@@ -1252,6 +1339,13 @@ class StudioViewModel extends ChangeNotifier {
         traceInfo = 'CoreBlow Engine · ${stopwatch.elapsedMilliseconds}ms · Partial';
       }
     } finally {
+      if (_cancelRequested) {
+        traceInfo = 'CoreBlow Engine · Stopped by operator';
+        if (replyContent.isEmpty || replyContent == '...') {
+          replyContent = 'Generation stopped.';
+        }
+      }
+
       // Finalize assistant message
       _updateAssistantMessage(
         targetThreadId: currentThreadId,
@@ -1259,7 +1353,13 @@ class StudioViewModel extends ChangeNotifier {
         content: replyContent,
         trace: traceInfo,
         isStreaming: false,
+        toolSteps: List.from(executedTools),
       );
+
+      try {
+        _activeHttpClient?.close(force: true);
+      } catch (_) {}
+      _activeHttpClient = null;
 
       if (_generatingThreadId == currentThreadId) {
         _generatingThreadId = null;
@@ -2269,12 +2369,20 @@ class StudioViewModel extends ChangeNotifier {
                         .replaceAll(legacyOCLower, 'coreblow');
                   }
 
+                  final toolSteps = <String>[];
+                  if (rawMsg['toolSteps'] is List) {
+                    for (final s in rawMsg['toolSteps'] as List) {
+                      if (s != null) toolSteps.add(s.toString());
+                    }
+                  }
+
                   msgs.add(StudioMessage(
                     id: rawMsg['id']?.toString() ?? '',
                     sender: rawMsg['sender']?.toString() ?? 'user',
                     content: rawContent,
                     timestamp: DateTime.tryParse(rawMsg['timestamp']?.toString() ?? '') ?? DateTime.now(),
                     trace: rawTrace,
+                    toolSteps: toolSteps,
                   ));
                 }
               }
@@ -2303,6 +2411,10 @@ class StudioViewModel extends ChangeNotifier {
       }
 
       notifyListeners();
+
+      if (enablePersistence) {
+        await autoDiscoverProviders();
+      }
     } catch (_) {
       // Non-fatal if JSON is corrupt or unreadable
     }
@@ -2353,6 +2465,7 @@ class StudioViewModel extends ChangeNotifier {
               'content': m.content,
               'timestamp': m.timestamp.toIso8601String(),
               if (m.trace != null) 'trace': m.trace,
+              if (m.toolSteps.isNotEmpty) 'toolSteps': m.toolSteps,
             })
             .toList(),
       }).toList();
@@ -2392,6 +2505,78 @@ class StudioViewModel extends ChangeNotifier {
     } catch (_) {
       // Non-fatal if persistence write fails
     }
+  }
+
+  /// Zero-config startup auto-discovery of local and environment AI providers.
+  Future<void> autoDiscoverProviders() async {
+    // 1. Environment variable auto-discovery
+    final env = Platform.environment;
+    if (anthropicApiKey.isEmpty && (env['ANTHROPIC_API_KEY']?.isNotEmpty ?? false)) {
+      anthropicApiKey = env['ANTHROPIC_API_KEY']!;
+    }
+    if (openAiApiKey.isEmpty && (env['OPENAI_API_KEY']?.isNotEmpty ?? false)) {
+      openAiApiKey = env['OPENAI_API_KEY']!;
+    }
+    if (geminiApiKey.isEmpty && (env['GEMINI_API_KEY']?.isNotEmpty ?? false)) {
+      geminiApiKey = env['GEMINI_API_KEY']!;
+    }
+    if (groqApiKey.isEmpty && (env['GROQ_API_KEY']?.isNotEmpty ?? false)) {
+      groqApiKey = env['GROQ_API_KEY']!;
+    }
+
+    // 2. Fast 400ms socket checks for local gateways and Ollama
+    bool port20128Active = false;
+    bool port18789Active = false;
+    bool port11434Active = false;
+
+    try {
+      final s1 = await Socket.connect('127.0.0.1', 20128, timeout: const Duration(milliseconds: 400));
+      await s1.close();
+      port20128Active = true;
+    } catch (_) {}
+
+    try {
+      final s2 = await Socket.connect('127.0.0.1', 18789, timeout: const Duration(milliseconds: 400));
+      await s2.close();
+      port18789Active = true;
+    } catch (_) {}
+
+    try {
+      final s3 = await Socket.connect('127.0.0.1', 11434, timeout: const Duration(milliseconds: 400));
+      await s3.close();
+      port11434Active = true;
+    } catch (_) {}
+
+    if (port11434Active && localOllamaUrl.isEmpty) {
+      localOllamaUrl = 'http://127.0.0.1:11434';
+    }
+
+    final isGatewayOnline = port20128Active || port18789Active;
+    _channels = [
+      MessagingChannelStatus(
+        name: 'WhatsApp Web',
+        protocol: 'Baileys Multi-Device',
+        status: isGatewayOnline ? 'Connected' : 'Offline',
+        isOnline: isGatewayOnline,
+        unread: 0,
+      ),
+      MessagingChannelStatus(
+        name: 'Telegram Bot',
+        protocol: 'Long-polling MTProto',
+        status: isGatewayOnline ? 'Polling active' : 'Offline',
+        isOnline: isGatewayOnline,
+        unread: 0,
+      ),
+      MessagingChannelStatus(
+        name: 'Discord Gateway',
+        protocol: 'Gateway v10 Shard 0',
+        status: isGatewayOnline ? 'Heartbeat ACK' : 'Offline',
+        isOnline: isGatewayOnline,
+        unread: 0,
+      ),
+    ];
+
+    notifyListeners();
   }
 
   bool _isDisposed = false;

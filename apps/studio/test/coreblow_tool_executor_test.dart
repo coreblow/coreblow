@@ -92,7 +92,7 @@ void main() {
         executionProfile: 'Read-only',
       );
       expect(writeRes.success, isFalse);
-      expect(writeRes.output, contains('requires \'Full access\' profile'));
+      expect(writeRes.output, contains('requires \'Full access\' or \'Workspace\' profile'));
     });
 
     test('patch replaces old_text with new_text', () async {
