@@ -73,4 +73,27 @@ describe("ExtensionTierPolicy", () => {
     policy.registerExtensionTier("custom-channel", "corehub_on_demand");
     expect(policy.isCoreHubOnDemand("custom-channel")).toBe(true);
   });
+  it("enforces on-disk existence invariant for all bundled core plugins and on-demand extensions", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const extensionsDir = path.resolve(process.cwd(), "extensions");
+
+    // 1. Every bundled core plugin must exist on disk in extensions/
+    for (const pluginId of policy.listBundledCorePlugins()) {
+      const exists = fs.existsSync(path.join(extensionsDir, pluginId));
+      expect(exists, `Bundled core plugin ${pluginId} missing from extensions/`).toBe(true);
+    }
+
+    // 2. Kernel capabilities are distinguished from on-disk plugins
+    for (const capId of policy.listKernelCapabilities()) {
+      expect(policy.isKernelCapability(capId)).toBe(true);
+      expect(policy.isCoreTier(capId)).toBe(true);
+    }
+
+    // 3. Every declared on-demand extension must exist on disk in extensions/
+    for (const onDemandId of policy.listOnDemandExtensions()) {
+      const exists = fs.existsSync(path.join(extensionsDir, onDemandId));
+      expect(exists, `On-demand extension ${onDemandId} missing from extensions/`).toBe(true);
+    }
+  });
 });

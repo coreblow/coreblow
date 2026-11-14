@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * flows/flow-engine.ts
  * Conversation flow engine — run multi-step interactive dialogs.
@@ -18,7 +17,7 @@ export class FlowEngine {
         const instance: FlowInstance = {
             id: `flow_${randomUUID().replace(/-/g, '').slice(0, 12)}`,
             definition,
-            currentStep: definition.initialStep,
+            currentStep: definition.initialStep ?? (definition.steps[0]?.id ?? 'start'),
             state: 'active',
             data: {},
             startedAt: Date.now(),
@@ -57,8 +56,9 @@ export class FlowEngine {
 
         // Transform & store
         const value = step.transform ? step.transform(input) : input;
-        instance.data[step.id] = value;
-        instance.history.push({ step: step.id, input: value, at: Date.now() });
+        const stepId = step.id ?? instance.currentStep;
+        instance.data[stepId] = value;
+        instance.history.push({ step: stepId, input: value, at: Date.now() });
         instance.lastActivityAt = Date.now();
 
         // Exit current step
@@ -159,7 +159,7 @@ export class FlowEngine {
     }
 
     private getStep(instance: FlowInstance): FlowStep | undefined {
-        return instance.definition.steps.find((s: FlowStep) => s.id === instance.currentStep);
+        return (instance.definition.steps as any[]).find((s: any) => s.id === instance.currentStep);
     }
 
     get activeCount(): number { return this.flows.size; }

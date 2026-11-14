@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { AgentTool } from "@mariozechner/pi-agent-core";
 import { resolveSessionAgentIds } from "../../agents/agent-scope.js";
 import { resolveBootstrapContextForRun } from "../../agents/bootstrap-files.js";
@@ -32,8 +31,6 @@ export async function resolveCommandsSystemPromptBundle(
   const { bootstrapFiles, contextFiles: injectedFiles } = await resolveBootstrapContextForRun({
     workspaceDir,
     config: params.cfg,
-    sessionKey: params.sessionKey,
-    sessionId: params.sessionEntry?.sessionId,
   });
   const skillsSnapshot = (() => {
     try {
@@ -122,8 +119,6 @@ export async function resolveCommandsSystemPromptBundle(
     toolSummaries,
     modelAliasLines: [],
     userTimezone,
-    userTime,
-    userTimeFormat,
     contextFiles: injectedFiles,
     skillsPrompt,
     heartbeatPrompt: undefined,
@@ -131,7 +126,10 @@ export async function resolveCommandsSystemPromptBundle(
     acpEnabled: params.cfg?.acp?.enabled !== false,
     runtimeInfo,
     sandboxInfo,
-    memoryCitationsMode: params.cfg?.memory?.citations,
+    memoryCitationsMode:
+      params.cfg?.memory?.citations === "auto" || params.cfg?.memory?.citations === "on"
+        ? "inline"
+        : (params.cfg?.memory?.citations as any),
   });
 
   return { systemPrompt, tools, skillsPrompt, bootstrapFiles, injectedFiles, sandboxRuntime };

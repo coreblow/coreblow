@@ -173,22 +173,24 @@ void main() {
     expect(customRes.message, 'Active · 42ms');
     expect(customRes.latencyMs, 42);
 
-    // 4. Real live check against local gateway port 18789 without override
+    // 4. Real live check against local gateway endpoint without override
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    server.listen((HttpRequest request) {
+      request.response.statusCode = 200;
+      request.response.write('{"data":[]}');
+      request.response.close();
+    });
+    addTearDown(() => server.close(force: true));
+
     HttpOverrides.global = null;
     viewModel.testConnectionOverride = null;
-    try {
-      final socket = await Socket.connect('127.0.0.1', 18789, timeout: const Duration(milliseconds: 300));
-      await socket.close();
-      final liveRes = await viewModel.testConnection(
-        provider: 'custom',
-        endpointUrl: 'http://127.0.0.1:18789',
-        apiKey: 'sk-96b0ddd1aa0881dd-m93qzq-690585f1', // pragma: allowlist secret
-      );
-      expect(liveRes.isSuccess, isTrue);
-      expect(liveRes.message, contains('Active'));
-    } catch (_) {
-      // Gateway port 18789 not active in this test environment
-    }
+    final liveRes = await viewModel.testConnection(
+      provider: 'custom',
+      endpointUrl: 'http://127.0.0.1:${server.port}',
+      apiKey: 'sk-96b0ddd1aa0881dd-m93qzq-690585f1', // pragma: allowlist secret
+    );
+    expect(liveRes.isSuccess, isTrue);
+    expect(liveRes.message, contains('Active'));
 
     viewModel.dispose();
   });

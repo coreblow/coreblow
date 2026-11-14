@@ -404,3 +404,12 @@ export class WalSessionLedger implements GatewayService {
     return createHash("sha256").update(raw).digest("hex");
   }
 }
+
+let globalWalLedger: WalSessionLedger | null = null;
+
+export function getGlobalWalSessionLedger(options?: WalSessionLedgerOptions): WalSessionLedger {
+  if (!globalWalLedger) {
+    globalWalLedger = new WalSessionLedger(options);
+  }
+  return globalWalLedger;
+}

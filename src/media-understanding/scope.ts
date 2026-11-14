@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * media-understanding/scope.ts
  * Media scope resolution and validation.

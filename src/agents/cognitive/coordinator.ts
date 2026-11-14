@@ -34,6 +34,8 @@ import {
   type SubagentRouteTier,
 } from "../../providers/decision-router.js";
 import { createChildLogger } from "../../utils/logger.js";
+import { getGlobalAuditLogger } from "../../security/audit-logger.js";
+import { getGlobalWalSessionLedger } from "../../infra/storage/wal-session-ledger.js";
 
 const log = createChildLogger("cognitive-coordinator");
 
@@ -197,6 +199,15 @@ export class CognitiveCoordinator {
         tier,
       });
 
+      // Audit logging (T7.10)
+      try {
+        getGlobalAuditLogger().commandExecuted(
+          params.sessionId,
+          `turn-start:${params.runId}`,
+          true,
+        );
+      } catch {}
+
       // 1. War Room Escalation Gate (TB2.4)
       let warRoomEscalated = false;
       let warRoomId: string | undefined;
@@ -353,11 +364,20 @@ export class CognitiveCoordinator {
     trustZone?: string;
     activeConstraints?: readonly string[];
   }): EvaluatePreLlmCallHookResult {
-    return evaluatePreLlmCallHook({
+    const result = evaluatePreLlmCallHook({
       prompt: params.prompt,
       trustZone: params.trustZone,
       activeConstraints: params.activeConstraints,
     });
+    if (!result.allowed) {
+      try {
+        getGlobalAuditLogger().accessDenied("agent", "preLlmCall", {
+          reason: result.blockedReason,
+          trustZone: params.trustZone,
+        });
+      } catch {}
+    }
+    return result;
   }
 
   /**
@@ -383,6 +403,29 @@ export class CognitiveCoordinator {
       userCorrectionText: params.userCorrectionText,
       timestampMs: Date.now(),
     };
+
+    // Audit logging (T7.10)
+    try {
+      getGlobalAuditLogger().commandExecuted(
+        params.sessionId,
+        `turn-end:${params.runId}:${params.finalOutcome}`,
+        params.finalOutcome === "success",
+      );
+    } catch {}
+
+    // WAL Session Ledger append (T7.11)
+    try {
+      void getGlobalWalSessionLedger().append(params.sessionId, {
+        eventType: "turn",
+        agentId: params.userScope ?? "main",
+        payload: {
+          runId: params.runId,
+          userGoal: params.userGoal,
+          toolStepsCount: params.steps.length,
+          finalOutcome: params.finalOutcome,
+        },
+      });
+    } catch {}
 
     // Spawn bounded background task
     this.enqueueTask(async () => {
@@ -479,6 +522,10 @@ export class CognitiveCoordinator {
 
     const tasks = Array.from(this.inFlightTasks);
     log.info(`Draining ${tasks.length} cognitive background task(s) (timeout: ${timeoutMs}ms)...`);
+
+    try {
+      await getGlobalWalSessionLedger().flush();
+    } catch {}
 
     await Promise.race([
       Promise.allSettled(tasks),

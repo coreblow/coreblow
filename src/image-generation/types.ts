@@ -4,6 +4,10 @@ import type { SsrFPolicy } from "../infra/net/ssrf.js";
 
 export type GeneratedImageAsset = {
   buffer: Buffer;
+  url?: string;
+  base64?: string;
+  width?: number;
+  height?: number;
   mimeType: string;
   fileName?: string;
   revisedPrompt?: string;
@@ -53,6 +57,7 @@ export type ImageGenerationRequest = {
   model: string;
   prompt: string;
   negativePrompt?: string;
+  style?: string;
   cfg: CoreBlowConfig;
   agentDir?: string;
   authStore?: AuthProfileStore;
@@ -71,7 +76,9 @@ export type ImageGenerationRequest = {
 export type ImageGenerationResult = {
   images: GeneratedImageAsset[];
   model?: string;
+  provider?: string;
   metadata?: Record<string, unknown>;
+  [key: string]: unknown;
 };
 
 export type ImageGenerationModeCapabilities = {
@@ -103,20 +110,29 @@ export type ImageGenerationProviderCapabilities = {
   edit: ImageGenerationEditCapabilities;
   geometry?: ImageGenerationGeometryCapabilities;
   output?: ImageGenerationOutputCapabilities;
+  sizes?: string[];
+  aspectRatios?: string[];
+  maxCount?: number;
+  negativePrompt?: boolean;
+  styles?: string[];
+  qualities?: ImageGenerationQuality[];
+  [key: string]: unknown;
 };
 
 export type ImageGenerationProvider = {
   id: string;
   aliases?: string[];
   label?: string;
+  name?: string;
   defaultModel?: string;
   models?: string[];
-  capabilities: ImageGenerationProviderCapabilities;
+  capabilities: ImageGenerationProviderCapabilities | any;
   isConfigured?: (ctx: { cfg?: CoreBlowConfig; agentDir?: string }) => boolean;
   generateImage: (req: ImageGenerationRequest) => Promise<ImageGenerationResult>;
+  [key: string]: unknown;
 };
 
 export type ImageGenerationProviderOptions = Record<string, unknown>;
 
-// Stub exports — used by providers
-export type ImageGenerationCapabilities = { models: string[]; maxImages: number };
+// Capabilities interface matching provider implementations
+export type ImageGenerationCapabilities = ImageGenerationProviderCapabilities;

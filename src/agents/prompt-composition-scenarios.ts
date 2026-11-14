@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from "node:fs/promises";
 import path from "node:path";
 import { buildGroupChatContext, buildGroupIntro } from "../auto-reply/reply/groups.js";
@@ -87,8 +86,6 @@ function buildSystemPrompt(params: {
     extraSystemPrompt: params.extraSystemPrompt,
     runtimeInfo,
     userTimezone,
-    userTime,
-    userTimeFormat,
     toolNames,
     toolSummaries,
     modelAliasLines: [],

@@ -54,3 +54,39 @@ export function sortFlowContributionsByLabel<T extends FlowContribution>(
       left.option.value.localeCompare(right.option.value),
   );
 }
+
+// ─── Interactive Dialog Flow Types (used by flow-engine.ts) ──────
+
+export type FlowState = 'active' | 'waiting_input' | 'completed' | 'cancelled';
+
+export interface FlowStep {
+  id?: string;
+  prompt?: string;
+  validator?: (input: string) => { valid: boolean; error?: string };
+  transform?: (input: string) => any;
+  onEnter?: () => Promise<void> | void;
+  onExit?: () => Promise<void> | void;
+  next?: string | ((value: any) => string | undefined);
+  [key: string]: any;
+}
+
+export interface FlowDefinition {
+  name: string;
+  initialStep?: string;
+  steps: FlowStep[] | Array<Record<string, any>>;
+  timeoutMs?: number;
+  onComplete?: (data: Record<string, any>) => Promise<void> | void;
+  onCancel?: () => Promise<void> | void;
+  [key: string]: any;
+}
+
+export interface FlowInstance {
+  id: string;
+  definition: FlowDefinition;
+  currentStep: string;
+  state: FlowState;
+  data: Record<string, any>;
+  startedAt: number;
+  lastActivityAt: number;
+  history: Array<{ step: string; input: any; at: number }>;
+}

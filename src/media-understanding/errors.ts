@@ -22,8 +22,18 @@ export function isMediaUnderstandingSkipError(err: unknown): err is MediaUnderst
 
 // Stub error classes — referenced by audio.ts, image-analysis.ts etc.
 export class MediaSizeExceededError extends Error {
-  constructor(msg: string) { super(msg); this.name = 'MediaSizeExceededError'; }
+  constructor(mediaTypeOrMessage: string, actualBytes?: number, maxBytes?: number) {
+    const msg = actualBytes && maxBytes
+      ? `${mediaTypeOrMessage} size (${actualBytes} bytes) exceeds maximum allowed (${maxBytes} bytes)`
+      : mediaTypeOrMessage;
+    super(msg);
+    this.name = 'MediaSizeExceededError';
+  }
 }
 export class MediaFormatError extends Error {
-  constructor(msg: string) { super(msg); this.name = 'MediaFormatError'; }
+  constructor(mediaTypeOrMessage: string, format?: string) {
+    const msg = format ? `Unsupported ${mediaTypeOrMessage} format: ${format}` : mediaTypeOrMessage;
+    super(msg);
+    this.name = 'MediaFormatError';
+  }
 }

@@ -95,6 +95,7 @@ export type ImageDescriptionRequest = {
   mime?: string;
   prompt?: string;
   maxTokens?: number;
+  detail?: string;
   timeoutMs: number;
   profile?: string;
   preferredProfile?: string;
@@ -176,7 +177,7 @@ export type StructuredExtractionResult = { text: string; value?: unknown; model?
 // Stub types — used by audio.ts, image-analysis.ts, video.ts, resolve.ts etc.
 // CoreBlow extension — not part of pi-agent-core upstream.
 export type MediaSource = {
-  kind: 'url' | 'buffer' | 'path' | 'data';
+  kind: 'url' | 'buffer' | 'path' | 'data' | 'file' | 'base64';
   url?: string;
   path?: string;
   buffer?: Buffer;
@@ -186,4 +187,12 @@ export type MediaSource = {
 
 // Additional stubs — used by scope.ts
 export type MediaType = 'image' | 'audio' | 'video' | 'document';
-export type MediaUnderstandingScope = { enabled: boolean; allow: MediaType[] };
+export type MediaUnderstandingScope = {
+  enabled?: boolean;
+  allow?: MediaType[];
+  allowedTypes: MediaType[];
+  maxFileSizeBytes: number;
+  maxImageDimensionPx: number;
+  maxVideoDurationSec: number;
+  maxAudioDurationSec: number;
+};

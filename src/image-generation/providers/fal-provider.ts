@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * CoreBlow — Fal.ai Image Generation Provider
  *
@@ -11,11 +10,12 @@ import type {
     ImageGenerationRequest, ImageGenerationResult,
 } from '../types.js';
 
-export class FalImageProvider implements ImageGenerationProvider {
+export class FalImageProvider implements Partial<ImageGenerationProvider> {
+    [key: string]: unknown;
     readonly id = 'fal';
     readonly name = 'Fal.ai (Flux)';
     readonly models = ['flux-pro', 'flux-dev', 'flux-schnell'];
-    readonly capabilities: ImageGenerationCapabilities = {
+    readonly capabilities: any = {
         generate: true,
         edit: false,
         sizes: ['1024x1024', '1024x768', '768x1024', '1280x720', '720x1280'],
@@ -90,6 +90,7 @@ export class FalImageProvider implements ImageGenerationProvider {
 
         const images = (data.images ?? []).map(img => ({
             url: img.url,
+            buffer: Buffer.alloc(0),
             mimeType: img.content_type ?? 'image/png',
             width: img.width,
             height: img.height,

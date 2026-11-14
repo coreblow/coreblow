@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { isRouteBinding, listRouteBindings } from "../config/bindings.js";
 import { writeConfigFile } from "../config/config.js";

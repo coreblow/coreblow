@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { MsgContext } from "../auto-reply/templating.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import type {
@@ -27,7 +26,7 @@ export function resolvePrompt(
   prompt?: string,
   maxChars?: number,
 ): string {
-  const base = prompt?.trim() || DEFAULT_PROMPT[capability];
+  const base = prompt?.trim() || DEFAULT_PROMPT;
   if (!maxChars || capability === "audio") {
     return base;
   }
@@ -62,7 +61,7 @@ export function resolveMaxBytes(params: {
   if (typeof configured === "number") {
     return configured;
   }
-  return DEFAULT_MAX_BYTES[params.capability];
+  return DEFAULT_MAX_BYTES;
 }
 
 export function resolveCapabilityConfig(

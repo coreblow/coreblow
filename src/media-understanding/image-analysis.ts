@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * media-understanding/image-analysis.ts
  * Image analysis engine.
@@ -15,11 +14,14 @@ const MAX_IMAGE_BASE64_SIZE = 20 * 1024 * 1024;
 
 export async function resolveImagePayload(source: MediaSource): Promise<{ data: string; mimeType: string }> {
     switch (source.kind) {
+        case 'data':
         case 'base64':
-            return { data: source.data, mimeType: source.mimeType };
+            return { data: source.data ?? '', mimeType: source.mimeType ?? 'image/png' };
         case 'buffer':
-            return { data: source.buffer.toString('base64'), mimeType: source.mimeType };
+            return { data: (source.buffer ?? Buffer.alloc(0)).toString('base64'), mimeType: source.mimeType ?? 'image/png' };
+        case 'path':
         case 'file': {
+            if (!source.path) throw new Error('Path required for image source');
             const buf = fs.readFileSync(source.path);
             if (buf.length > MAX_IMAGE_BASE64_SIZE) throw new MediaSizeExceededError('image', buf.length, MAX_IMAGE_BASE64_SIZE);
             const ext = source.path.split('.').pop()?.toLowerCase() ?? 'png';
@@ -27,13 +29,13 @@ export async function resolveImagePayload(source: MediaSource): Promise<{ data: 
             return { data: buf.toString('base64'), mimeType: mime };
         }
         case 'url':
-            return { data: source.url, mimeType: 'image/url' };
+            return { data: source.url ?? '', mimeType: source.mimeType ?? 'image/url' };
         default:
             throw new Error('Unknown media source kind');
     }
 }
 
-export function buildImageDescriptionParams(request: ImageDescriptionRequest, cfg?: Record<string, unknown>) {
+export function buildImageDescriptionParams(request: Partial<ImageDescriptionRequest>, cfg?: Record<string, unknown>) {
     const prompt = resolveMediaPrompt({ type: 'image', customPrompt: request.prompt, cfg });
     const model = request.model ?? resolveMediaModel('image', cfg);
     const maxTokens = resolveMediaMaxTokens(undefined, request.maxTokens);

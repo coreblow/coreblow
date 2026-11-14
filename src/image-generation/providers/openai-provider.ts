@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * CoreBlow — OpenAI Image Generation Provider
  *
@@ -11,11 +10,12 @@ import type {
     ImageGenerationRequest, ImageGenerationResult,
 } from '../types.js';
 
-export class OpenAIImageProvider implements ImageGenerationProvider {
+export class OpenAIImageProvider implements Partial<ImageGenerationProvider> {
+    [key: string]: unknown;
     readonly id = 'openai';
     readonly name = 'OpenAI (DALL-E / GPT Image)';
     readonly models = ['dall-e-3', 'dall-e-2', 'gpt-image-1'];
-    readonly capabilities: ImageGenerationCapabilities = {
+    readonly capabilities: any = {
         generate: true,
         edit: true,
         sizes: ['256x256', '512x512', '1024x1024', '1024x1792', '1792x1024'],
@@ -81,6 +81,7 @@ export class OpenAIImageProvider implements ImageGenerationProvider {
         return {
             images: data.data.map(img => ({
                 base64: img.b64_json,
+            buffer: img.b64_json ? Buffer.from(img.b64_json, 'base64') : Buffer.alloc(0),
                 url: img.url,
                 revisedPrompt: img.revised_prompt,
                 mimeType: 'image/png',

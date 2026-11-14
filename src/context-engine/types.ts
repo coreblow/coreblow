@@ -239,8 +239,9 @@ export type ContextWindow = {
   entries: ContextEntry[];
   totalTokens: number;
   maxTokens: number;
-  systemPrompt?: string;
+  systemPrompt?: string | ContextEntry | null;
   currentTokens?: number;
+  model?: string;
 };
 export type ContextStrategy = {
   name: string;

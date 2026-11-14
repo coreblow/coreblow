@@ -6,6 +6,11 @@
  * and sensitive operations with structured, tamper-evident records.
  */
 
+import * as crypto from "node:crypto";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as os from "node:os";
+
 /** Audit event severity */
 export type AuditSeverity = 'info' | 'warning' | 'critical';
 
@@ -163,15 +168,78 @@ export class AuditLogger {
 
     // === Private ===
 
+    /**
+     * Enable persistent append-only logging to disk with strict 0o600 permissions (T7.10).
+     */
+    enableFilePersistence(logFilePath?: string): string {
+        const filePath = logFilePath ?? path.join(
+            process.env.COREBLOW_STATE_DIR ?? path.join(os.homedir(), ".coreblow"),
+            "audit.log",
+        );
+        const dir = path.dirname(filePath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+        }
+        if (!fs.existsSync(filePath)) {
+            fs.writeFileSync(filePath, "", { mode: 0o600, flag: "a" });
+        } else {
+            try {
+                fs.chmodSync(filePath, 0o600);
+            } catch {
+                // Ignore permission update failure in non-POSIX environments
+            }
+        }
+
+        this.setSink((event) => {
+            try {
+                const line = JSON.stringify(event) + "\n";
+                fs.appendFileSync(filePath, line, { mode: 0o600, encoding: "utf8" });
+            } catch {
+                // Best-effort append never crashes runtime
+            }
+        });
+
+        return filePath;
+    }
+
+    /**
+     * Verify the cryptographic hash chain of an on-disk audit log file (T7.10).
+     */
+    static verifyFileIntegrity(filePath: string): { valid: boolean; brokenAt?: number; count: number } {
+        if (!fs.existsSync(filePath)) {
+            return { valid: true, count: 0 };
+        }
+        const lines = fs.readFileSync(filePath, "utf8").split("\n").filter((l) => l.trim().length > 0);
+        let prevHash = "0";
+        for (let i = 0; i < lines.length; i++) {
+            try {
+                const event = JSON.parse(lines[i]) as AuditEvent;
+                if (event.prevHash !== prevHash) {
+                    return { valid: false, brokenAt: i, count: lines.length };
+                }
+                const data = `${event.id}|${event.timestamp}|${event.category}|${event.action}|${event.actor ?? ""}|${event.success}`;
+                prevHash = crypto.createHash("sha256").update(data).digest("hex").slice(0, 16);
+            } catch {
+                return { valid: false, brokenAt: i, count: lines.length };
+            }
+        }
+        return { valid: true, count: lines.length };
+    }
+
+    // === Private ===
+
     private hash(event: AuditEvent): string {
         const data = `${event.id}|${event.timestamp}|${event.category}|${event.action}|${event.actor ?? ''}|${event.success}`;
-        // Simple hash for tamper evidence (not cryptographic)
-        let hash = 0;
-        for (let i = 0; i < data.length; i++) {
-            const char = data.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash |= 0;
-        }
-        return hash.toString(16);
+        return crypto.createHash("sha256").update(data).digest("hex").slice(0, 16);
     }
+}
+
+let globalAuditLogger: AuditLogger | null = null;
+
+export function getGlobalAuditLogger(): AuditLogger {
+    if (!globalAuditLogger) {
+        globalAuditLogger = new AuditLogger();
+        globalAuditLogger.enableFilePersistence();
+    }
+    return globalAuditLogger;
 }

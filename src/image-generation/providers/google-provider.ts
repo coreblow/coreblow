@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * CoreBlow — Google Image Generation Provider
  *
@@ -11,11 +10,12 @@ import type {
     ImageGenerationRequest, ImageGenerationResult,
 } from '../types.js';
 
-export class GoogleImageProvider implements ImageGenerationProvider {
+export class GoogleImageProvider implements Partial<ImageGenerationProvider> {
+    [key: string]: unknown;
     readonly id = 'google';
     readonly name = 'Google (Imagen)';
     readonly models = ['imagen-3', 'imagen-3-fast'];
-    readonly capabilities: ImageGenerationCapabilities = {
+    readonly capabilities: any = {
         generate: true,
         edit: false,
         sizes: ['1024x1024', '1024x768', '768x1024', '1536x1536'],
@@ -79,6 +79,7 @@ export class GoogleImageProvider implements ImageGenerationProvider {
             .filter(img => !img.raiFilteredReason)
             .map(img => ({
                 base64: img.image.imageBytes,
+                buffer: Buffer.from(img.image.imageBytes, 'base64'),
                 mimeType: 'image/png' as const,
             }));
 

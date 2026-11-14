@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { type Mock, vi } from "vitest";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import type {
@@ -115,11 +114,11 @@ export const mockedDescribeFailoverError = vi.fn(
 export const mockedResolveFailoverStatus: Mock = vi.fn();
 
 export const mockedLog: {
-  debug: Mock<unknown[], void>;
-  info: Mock<unknown[], void>;
-  warn: Mock<unknown[], void>;
-  error: Mock<unknown[], void>;
-  isEnabled: Mock<[level?: string], boolean>;
+  debug: Mock<any>;
+  info: Mock<any>;
+  warn: Mock<any>;
+  error: Mock<any>;
+  isEnabled: Mock<any>;
 } = {
   debug: vi.fn(),
   info: vi.fn(),
@@ -169,7 +168,7 @@ export const mockedResolveContextWindowInfo = vi.fn(() => ({
 }));
 export const mockedGetApiKeyForModel = vi.fn(
   async ({ profileId }: { profileId?: string } = {}) => ({
-    apiKey: "test-key",
+    apiKey: "test-key", // pragma: allowlist secret
     profileId: profileId ?? "test-profile",
     source: "test",
     mode: "api-key" as const,
@@ -300,7 +299,7 @@ export function resetRunOverflowCompactionHarnessMocks(): void {
   mockedGetApiKeyForModel.mockReset();
   mockedGetApiKeyForModel.mockImplementation(
     async ({ profileId }: { profileId?: string } = {}) => ({
-      apiKey: "test-key",
+      apiKey: "test-key", // pragma: allowlist secret
       profileId: profileId ?? "test-profile",
       source: "test",
       mode: "api-key",

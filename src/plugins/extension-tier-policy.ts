@@ -11,37 +11,51 @@ export class ExtensionTierPolicy implements GatewayService {
   public readonly name = "extension-tier-policy";
   private isRunning = false;
 
-  private readonly coreExtensions = new Set<string>([
-    "telegram",
-    "whatsapp",
-    "slack",
-    "webhooks",
+  /**
+   * Real bundled workspace plugins residing on disk in extensions/
+   */
+  public static readonly BUNDLED_CORE_PLUGIN_IDS: readonly string[] = Object.freeze([
+    "acp",
+    "anthropic",
     "browser",
-    "browser-runtime",
+    "deepseek",
+    "google",
+    "groq",
     "memory-core",
+    "ollama",
+    "openai",
+    "openrouter",
+    "slack",
+    "telegram",
+    "vllm",
+    "webhooks",
+    "whatsapp",
+    "xai",
+  ]);
+
+  /**
+   * Native microkernel services provided directly by the gateway kernel (not on-disk plugins).
+   */
+  public static readonly KERNEL_CAPABILITY_IDS: readonly string[] = Object.freeze([
+    "browser-runtime",
     "cory",
     "cory-memory",
     "cory-skill-synthesizer",
     "cory-knowledge-scribe",
-    "war-room-orchestrator",
     "pr-workflow-orchestrator",
+    "provider-runtime",
     "rag",
     "rag-runtime",
-    "tools",
     "tool-runtime",
+    "tools",
     "voice",
     "voice-runtime",
-    "provider-runtime",
-    "openai",
-    "anthropic",
-    "google",
-    "ollama",
-    "vllm",
-    "xai",
-    "deepseek",
-    "groq",
-    "openrouter",
-    "acp",
+    "war-room-orchestrator",
+  ]);
+
+  private readonly coreExtensions = new Set<string>([
+    ...ExtensionTierPolicy.BUNDLED_CORE_PLUGIN_IDS,
+    ...ExtensionTierPolicy.KERNEL_CAPABILITY_IDS,
   ]);
 
   private readonly onDemandExtensions = new Set<string>([
@@ -154,6 +168,19 @@ export class ExtensionTierPolicy implements GatewayService {
 
   public isCoreHubOnDemand(extensionId: string): boolean {
     return this.getExtensionTier(extensionId) === "corehub_on_demand";
+  }
+
+  public isKernelCapability(id: string): boolean {
+    const normalized = id.toLowerCase().trim().replace(/^extensions\//, "");
+    return ExtensionTierPolicy.KERNEL_CAPABILITY_IDS.includes(normalized);
+  }
+
+  public listBundledCorePlugins(): string[] {
+    return Array.from(ExtensionTierPolicy.BUNDLED_CORE_PLUGIN_IDS);
+  }
+
+  public listKernelCapabilities(): string[] {
+    return Array.from(ExtensionTierPolicy.KERNEL_CAPABILITY_IDS);
   }
 
   public registerExtensionTier(extensionId: string, tier: ExtensionTier): void {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * context-engine/context-window.ts
  * Context window manager — sliding window over conversation history.
@@ -18,6 +17,7 @@ export class ContextWindowManager {
             entries: [],
             systemPrompt: null,
             maxTokens,
+            totalTokens: 0,
             currentTokens: 0,
             model,
         };
@@ -41,7 +41,9 @@ export class ContextWindowManager {
             window.entries.push(entry);
         }
 
-        window.currentTokens += entry.tokens;
+        const tokens = entry.tokens ?? 0;
+        window.currentTokens = (window.currentTokens ?? 0) + tokens;
+        window.totalTokens = window.currentTokens;
 
         // Auto-compact if over limit
         if (window.currentTokens > window.maxTokens * 0.9) {
@@ -54,12 +56,14 @@ export class ContextWindowManager {
         const window = this.windows.get(sessionId);
         if (!window) return;
 
-        const strat = strategy ?? slidingWindowStrategy;
-        const kept = strat.compact(window);
+        const activeStrategy = strategy ?? slidingWindowStrategy;
+        const kept = activeStrategy.compact(window);
 
         window.entries = kept;
-        window.currentTokens = kept.reduce((sum: any, e: any) => sum + e.tokens, 0)
-            + (window.systemPrompt?.tokens ?? 0);
+        const sysTokens = (typeof window.systemPrompt === "object" && window.systemPrompt ? (window.systemPrompt as ContextEntry).tokens : 0) ?? 0;
+        const keptTokens = kept.reduce((sum: number, e: ContextEntry) => sum + (e.tokens ?? 0), 0);
+        window.currentTokens = keptTokens + sysTokens;
+        window.totalTokens = window.currentTokens;
 
         log.debug({ sessionId, tokens: window.currentTokens, entries: kept.length }, 'Context compacted');
     }
@@ -70,7 +74,13 @@ export class ContextWindowManager {
         if (!window) return [];
 
         const messages: ContextEntry[] = [];
-        if (window.systemPrompt) messages.push(window.systemPrompt);
+        if (window.systemPrompt) {
+            if (typeof window.systemPrompt === "object") {
+                messages.push(window.systemPrompt as ContextEntry);
+            } else {
+                messages.push({ role: 'system', content: String(window.systemPrompt) });
+            }
+        }
         messages.push(...window.entries);
         return messages;
     }
@@ -94,16 +104,18 @@ export class ContextWindowManager {
 /** Keep most recent entries within budget. Always keeps system prompt + last N. */
 const slidingWindowStrategy: ContextStrategy = {
     name: 'sliding-window',
-    compact: (window: any) => {
+    compact: (window: ContextWindow) => {
         const budget = window.maxTokens * 0.75;
-        let totalTokens = window.systemPrompt?.tokens ?? 0;
+        const sysTokens = (typeof window.systemPrompt === "object" && window.systemPrompt ? (window.systemPrompt as ContextEntry).tokens : 0) ?? 0;
+        let totalTokens = sysTokens;
         const kept: ContextEntry[] = [];
 
         // Work backwards
         for (let i = window.entries.length - 1; i >= 0; i--) {
             const entry = window.entries[i];
-            if (totalTokens + entry.tokens > budget) break;
-            totalTokens += entry.tokens;
+            const tokens = entry.tokens ?? 0;
+            if (totalTokens + tokens > budget) break;
+            totalTokens += tokens;
             kept.unshift(entry);
         }
 
@@ -114,7 +126,7 @@ const slidingWindowStrategy: ContextStrategy = {
 /** Keep first + last entries, summarize middle. */
 export const firstLastStrategy: ContextStrategy = {
     name: 'first-last',
-    compact: (window: any) => {
+    compact: (window: ContextWindow) => {
         if (window.entries.length <= 4) return window.entries;
         const first2 = window.entries.slice(0, 2);
         const last2 = window.entries.slice(-2);

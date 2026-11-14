@@ -155,4 +155,47 @@ describe('AuditLogger', () => {
             expect(logger.verifyIntegrity().brokenAt).toBe(1);
         });
     });
+    describe('persistence and tamper-evidence on disk (T7.10)', () => {
+        it('persists hash-chained records with 0o600 permissions and detects file tampering', async () => {
+            const fs = await import('node:fs');
+            const path = await import('node:path');
+            const os = await import('node:os');
+
+            const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'coreblow-audit-test-'));
+            const logPath = path.join(tempDir, 'audit.log');
+
+            try {
+                logger.enableFilePersistence(logPath);
+                logger.authSuccess('alice', { role: 'admin' });
+                logger.commandExecuted('alice', 'git status', true);
+                logger.accessDenied('eve', '/secret/keys');
+
+                expect(fs.existsSync(logPath)).toBe(true);
+
+                // Verify permissions on POSIX
+                if (process.platform !== 'win32') {
+                    const stat = fs.statSync(logPath);
+                    expect(stat.mode & 0o777).toBe(0o600);
+                }
+
+                // Verify file integrity
+                const verification = AuditLogger.verifyFileIntegrity(logPath);
+                expect(verification.valid).toBe(true);
+                expect(verification.count).toBe(3);
+
+                // Tamper with record 1
+                const lines = fs.readFileSync(logPath, 'utf8').split('\n');
+                const tampered = JSON.parse(lines[1]);
+                tampered.action = 'malicious-action';
+                lines[1] = JSON.stringify(tampered);
+                fs.writeFileSync(logPath, lines.join('\n'), 'utf8');
+
+                const tamperedVerification = AuditLogger.verifyFileIntegrity(logPath);
+                expect(tamperedVerification.valid).toBe(false);
+                expect(tamperedVerification.brokenAt).toBe(2);
+            } finally {
+                fs.rmSync(tempDir, { recursive: true, force: true });
+            }
+        });
+    });
 });

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * media-understanding/audio.ts
  * Audio transcription engine.
@@ -19,20 +18,24 @@ const MAX_AUDIO_SIZE = 25 * 1024 * 1024; // 25MB (OpenAI whisper limit)
  */
 export async function resolveAudioPayload(source: MediaSource): Promise<{ buffer: Buffer; filename: string }> {
     switch (source.kind) {
+        case 'path':
         case 'file': {
+            if (!source.path) throw new Error('Path is required for file audio source');
             const buf = fs.readFileSync(source.path);
             if (buf.length > MAX_AUDIO_SIZE) throw new MediaSizeExceededError('audio', buf.length, MAX_AUDIO_SIZE);
             return { buffer: buf, filename: path.basename(source.path) };
         }
         case 'buffer': {
-            if (source.buffer.length > MAX_AUDIO_SIZE) throw new MediaSizeExceededError('audio', source.buffer.length, MAX_AUDIO_SIZE);
-            const ext = source.mimeType.split('/').pop() ?? 'mp3';
-            return { buffer: source.buffer, filename: `audio.${ext}` };
-        }
-        case 'base64': {
-            const buf = Buffer.from(source.data, 'base64');
+            const buf = source.buffer ?? Buffer.alloc(0);
             if (buf.length > MAX_AUDIO_SIZE) throw new MediaSizeExceededError('audio', buf.length, MAX_AUDIO_SIZE);
-            const ext = source.mimeType.split('/').pop() ?? 'mp3';
+            const ext = (source.mimeType ?? 'audio/mp3').split('/').pop() ?? 'mp3';
+            return { buffer: buf, filename: `audio.${ext}` };
+        }
+        case 'data':
+        case 'base64': {
+            const buf = Buffer.from(source.data ?? '', 'base64');
+            if (buf.length > MAX_AUDIO_SIZE) throw new MediaSizeExceededError('audio', buf.length, MAX_AUDIO_SIZE);
+            const ext = (source.mimeType ?? 'audio/mp3').split('/').pop() ?? 'mp3';
             return { buffer: buf, filename: `audio.${ext}` };
         }
         default:
