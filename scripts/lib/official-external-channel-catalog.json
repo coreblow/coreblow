@@ -1,127 +1,6 @@
 {
   "entries": [
     {
-      "name": "@wecom/wecom-openclaw-plugin",
-      "description": "OpenClaw WeCom channel plugin by the Tencent WeCom team.",
-      "source": "external",
-      "kind": "channel",
-      "openclaw": {
-        "plugin": {
-          "id": "wecom-openclaw-plugin",
-          "label": "WeCom"
-        },
-        "contracts": {
-          "tools": ["wecom_mcp"]
-        },
-        "channel": {
-          "id": "wecom",
-          "label": "WeCom",
-          "selectionLabel": "WeCom（企业微信）",
-          "detailLabel": "WeCom",
-          "docsPath": "/plugins/community#wecom",
-          "docsLabel": "wecom",
-          "blurb": "Enterprise messaging and documents, scheduling, task tools.",
-          "aliases": ["qywx", "wework", "enterprise-wechat"],
-          "order": 45
-        },
-        "channelConfigs": {
-          "wecom": {
-            "label": "WeCom",
-            "description": "Enterprise WeChat conversation channel.",
-            "schema": {
-              "type": "object",
-              "additionalProperties": true
-            }
-          }
-        },
-        "install": {
-          "npmSpec": "@wecom/wecom-openclaw-plugin@2026.5.7",
-          "defaultChoice": "npm",
-          "expectedIntegrity": "sha512-TCkP9as00WfEhgFWG8YL/rcmaWGIshAki2HQh83nTRccGfVBCoGjrEboTTqq3yDmK9koWTV11zi8u8A4dNtvug=="
-        }
-      }
-    },
-    {
-      "name": "openclaw-plugin-yuanbao",
-      "description": "OpenClaw Yuanbao channel plugin by the Tencent Yuanbao team.",
-      "source": "external",
-      "kind": "channel",
-      "openclaw": {
-        "plugin": {
-          "id": "openclaw-plugin-yuanbao",
-          "label": "Yuanbao"
-        },
-        "contracts": {
-          "tools": ["query_group_info", "query_session_members", "yuanbao_remind"]
-        },
-        "channel": {
-          "id": "yuanbao",
-          "label": "Yuanbao",
-          "selectionLabel": "Yuanbao (元宝)",
-          "detailLabel": "Yuanbao",
-          "docsPath": "/plugins/community#yuanbao",
-          "docsLabel": "yuanbao",
-          "blurb": "Tencent Yuanbao AI assistant conversation channel.",
-          "aliases": ["yuanbao", "yb", "tencent-yuanbao", "元宝"],
-          "order": 85
-        },
-        "channelConfigs": {
-          "yuanbao": {
-            "label": "Yuanbao",
-            "description": "Tencent Yuanbao AI assistant channel.",
-            "schema": {
-              "type": "object",
-              "additionalProperties": true
-            }
-          }
-        },
-        "install": {
-          "npmSpec": "openclaw-plugin-yuanbao@2.13.1",
-          "defaultChoice": "npm",
-          "expectedIntegrity": "sha512-lH2I9/nsmrg7l0YJJSQhOSpWMEFBAa6FwKbZcRLDFHDT2+mOZkHa44XE+8KYN4VmorlUdAxHzpZQmVr7C98IuA=="
-        }
-      }
-    },
-    {
-      "name": "@tencent-weixin/openclaw-weixin",
-      "description": "OpenClaw Weixin channel plugin by the Tencent Weixin team.",
-      "source": "external",
-      "kind": "channel",
-      "openclaw": {
-        "plugin": {
-          "id": "openclaw-weixin",
-          "label": "Weixin"
-        },
-        "channel": {
-          "id": "openclaw-weixin",
-          "label": "Weixin",
-          "selectionLabel": "Weixin（微信）",
-          "detailLabel": "Weixin",
-          "docsPath": "/channels/wechat",
-          "docsLabel": "weixin",
-          "blurb": "Personal WeChat messaging via QR-code login.",
-          "aliases": ["weixin", "wechat", "微信"],
-          "order": 75
-        },
-        "channelConfigs": {
-          "openclaw-weixin": {
-            "label": "Weixin",
-            "description": "Personal WeChat conversation channel.",
-            "schema": {
-              "type": "object",
-              "additionalProperties": true
-            }
-          }
-        },
-        "install": {
-          "npmSpec": "@tencent-weixin/openclaw-weixin@2.4.3",
-          "defaultChoice": "npm",
-          "expectedIntegrity": "sha512-dPQbidUNWigC6V10vGW4i+GLH09x+6zUhafZRjuxkJ9GDu8o62WBsnUTojp4KqUH756hz+t2v9khiCRSi0dBDw==",
-          "minHostVersion": ">=2026.3.22"
-        }
-      }
-    },
-    {
       "name": "@coreblow/discord",
       "description": "CoreBlow Discord channel plugin",
       "source": "official",
@@ -157,11 +36,13 @@
         "channel": {
           "id": "feishu",
           "label": "Feishu",
-          "selectionLabel": "Feishu/Lark (飞书)",
+          "selectionLabel": "Feishu/Lark (\u98de\u4e66)",
           "docsPath": "/channels/feishu",
           "docsLabel": "feishu",
-          "blurb": "飞书/Lark enterprise messaging with doc/wiki/drive tools.",
-          "aliases": ["lark"],
+          "blurb": "\u98de\u4e66/Lark enterprise messaging with doc/wiki/drive tools.",
+          "aliases": [
+            "lark"
+          ],
           "order": 35,
           "quickstartAllowFrom": true
         },
@@ -187,7 +68,10 @@
           "docsPath": "/channels/googlechat",
           "docsLabel": "googlechat",
           "blurb": "Google Workspace Chat app with HTTP webhook.",
-          "aliases": ["gchat", "google-chat"],
+          "aliases": [
+            "gchat",
+            "google-chat"
+          ],
           "order": 55,
           "systemImage": "message.badge",
           "markdownCapable": true,
@@ -238,7 +122,9 @@
           "docsPath": "/channels/irc",
           "docsLabel": "irc",
           "blurb": "Classic Internet Relay Chat network connector.",
-          "aliases": ["internet-relay-chat"],
+          "aliases": [
+            "internet-relay-chat"
+          ],
           "order": 95,
           "quickstartAllowFrom": true
         },
@@ -343,7 +229,9 @@
           "docsPath": "/channels/mattermost",
           "docsLabel": "mattermost",
           "blurb": "Self-hosted team messaging via Mattermost bot.",
-          "aliases": ["mm"],
+          "aliases": [
+            "mm"
+          ],
           "order": 68,
           "quickstartAllowFrom": true
         },
@@ -368,7 +256,9 @@
           "docsPath": "/channels/msteams",
           "docsLabel": "msteams",
           "blurb": "Teams SDK; enterprise support.",
-          "aliases": ["teams"],
+          "aliases": [
+            "teams"
+          ],
           "order": 60
         },
         "install": {
@@ -392,7 +282,10 @@
           "docsPath": "/channels/nextcloud-talk",
           "docsLabel": "nextcloud-talk",
           "blurb": "Self-hosted chat via Nextcloud Talk webhook bots.",
-          "aliases": ["nc-talk", "nc"],
+          "aliases": [
+            "nc-talk",
+            "nc"
+          ],
           "order": 65,
           "quickstartAllowFrom": true
         },
@@ -537,7 +430,9 @@
           "selectionLabel": "Twitch (Chat)",
           "docsPath": "/channels/twitch",
           "blurb": "Twitch chat integration",
-          "aliases": ["twitch-chat"]
+          "aliases": [
+            "twitch-chat"
+          ]
         },
         "install": {
           "corehubSpec": "corehub:@coreblow/twitch",
@@ -584,7 +479,9 @@
           "docsPath": "/channels/zalo",
           "docsLabel": "zalo",
           "blurb": "Vietnam-focused messaging platform with Bot API.",
-          "aliases": ["zl"],
+          "aliases": [
+            "zl"
+          ],
           "order": 80,
           "quickstartAllowFrom": true
         },
@@ -609,7 +506,9 @@
           "docsPath": "/channels/zalouser",
           "docsLabel": "zalouser",
           "blurb": "Zalo personal account via QR code login.",
-          "aliases": ["zlu"],
+          "aliases": [
+            "zlu"
+          ],
           "order": 85,
           "quickstartAllowFrom": false
         },

@@ -21,20 +21,15 @@ function expectCatalogEntry(id: string): OfficialExternalPluginCatalogEntry {
 }
 
 describe("official external plugin catalog", () => {
-  it("resolves third-party channel lookup aliases to published plugin ids", () => {
-    const wecomByChannel = expectCatalogEntry("wecom");
-    const wecomByPlugin = expectCatalogEntry("wecom-openclaw-plugin");
-    const yuanbaoByChannel = expectCatalogEntry("yuanbao");
+  it("resolves channel lookup aliases to published plugin ids", () => {
+    const discordByChannel = expectCatalogEntry("discord");
+    const feishuByChannel = expectCatalogEntry("feishu");
 
-    expect(resolveOfficialExternalPluginId(wecomByChannel)).toBe("wecom-openclaw-plugin");
-    expect(resolveOfficialExternalPluginId(wecomByPlugin)).toBe("wecom-openclaw-plugin");
-    expect(resolveOfficialExternalPluginInstall(wecomByChannel)?.npmSpec).toBe(
-      "@wecom/wecom-openclaw-plugin@2026.5.7",
+    expect(resolveOfficialExternalPluginId(discordByChannel)).toBe("discord");
+    expect(resolveOfficialExternalPluginInstall(discordByChannel)?.npmSpec).toBe(
+      "@coreblow/discord",
     );
-    expect(resolveOfficialExternalPluginId(yuanbaoByChannel)).toBe("openclaw-plugin-yuanbao");
-    expect(resolveOfficialExternalPluginInstall(yuanbaoByChannel)?.npmSpec).toBe(
-      "openclaw-plugin-yuanbao@2.13.1",
-    );
+    expect(resolveOfficialExternalPluginId(feishuByChannel)).toBe("feishu");
   });
 
   it("keeps official launch package specs on the production package names", () => {

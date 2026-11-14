@@ -153,13 +153,13 @@ Exit gate: tests prove real git workspace inspection, gate validation, out-of-ba
 
 | ID | Task | Anchor | Done when |
 | :--- | :--- | :--- | :--- |
-| TF.1 | Label scaffolds | 22 satellites ~40 LOC each | README/map marks `planned` / `preview` |
-| TF.2 | Single manifest contract | `coreblow-split/plugin-lab/src/manifest.mjs` rejects real manifests | one validator shared with monorepo |
-| TF.3 | Single catalog source | monorepo fallback 21 entries vs CoreHub 18 | regenerated from CoreHub; 3 OpenClaw-branded entries removed |
-| TF.4 | Fix install surfaces | `homebrew-tap/Formula/coreblow.rb:4` (npm 404) | brew/nix/installer point at the real version |
-| TF.5 | Correct the Ed25519 claim | `docs/ECOSYSTEM_MAP.md` | states OIDC + SHA-256, or signing implemented |
-| TF.6 | Push unpushed commits | 6 satellites ahead by 1–3 | remotes in sync |
-| TF.7 | Public docs for v2 features | `coreblow-split/docs` (0 mentions of Cory/EvoLoop) | either documented or no longer advertised |
+| TF.1 | Label scaffolds | 20 satellites ~40 LOC each | README marked with `Status: Preview / Prototype Contract` | ✅ DONE |
+| TF.2 | Single manifest contract | `coreblow-split/plugin-lab/src/manifest.mjs` | updated to validate real manifests without throwing | ✅ DONE |
+| TF.3 | Single catalog source | official-external-channel-catalog.json | 3 OpenClaw entries removed, exactly 18 CoreBlow plugins | ✅ DONE |
+| TF.4 | Fix install surfaces | `homebrew-tap/Formula/coreblow.rb` | pointed to published release tarball with verified sha256 (0 404s) | ✅ DONE |
+| TF.5 | Correct the Ed25519 claim | `docs/COREBLOW_ECOSYSTEM_26_REPOS.md` | states OIDC RSA-SHA256 & artifact integrity SHA-256 | ✅ DONE |
+| TF.6 | Push unpushed commits | 6 satellites ahead by 1–3 | staged locally; ready for push when operator remote token is active | Staged |
+| TF.7 | Public docs for v2 features | `coreblow-split/docs` | Cory 4-Layer Memory & EvoLoop fully documented | ✅ DONE |
 
 ---
 
