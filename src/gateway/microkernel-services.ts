@@ -386,6 +386,20 @@ export interface MicrokernelServicesResult {
 
 export type MicrokernelServiceRegistry = MicrokernelServicesResult;
 
+let activeMicrokernel: MicrokernelServicesResult | null = null;
+
+/** Bind the microkernel booted by the gateway so HTTP routes and shutdown can reach it. */
+export function setActiveMicrokernel(
+  microkernel: MicrokernelServicesResult | null,
+): void {
+  activeMicrokernel = microkernel;
+}
+
+/** Return the microkernel bound to the running gateway, or null when none booted. */
+export function getActiveMicrokernel(): MicrokernelServicesResult | null {
+  return activeMicrokernel;
+}
+
 /**
  * Creates and configures the microkernel services in the Gateway ServiceRegistry.
  * Maintains topological dependency ordering and strictly guards native capabilities as kernel-tier.
@@ -394,7 +408,8 @@ export function createMicrokernelServiceRegistry(
   options: MicrokernelServiceRegistryOptions = {},
 ): MicrokernelServicesResult {
   const registry = new ServiceRegistry();
-  const stateDir = options.stateDir ?? path.join(os.homedir(), ".coreblow");
+  const stateDir =
+    options.stateDir ?? process.env.COREBLOW_STATE_DIR ?? path.join(os.homedir(), ".coreblow");
   const coryDir = options.coryDir ?? path.join(stateDir, "memory");
 
   const provider = new NativeProviderRuntimeService({

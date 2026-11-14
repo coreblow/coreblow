@@ -35,6 +35,7 @@ import {
   type ControlUiRootState,
 } from "./control-ui.js";
 import { handleCoreHubAdminProxyRequest } from "./corehub-admin-proxy.js";
+import { getActiveMicrokernel, handleCoreHubRoute } from "./microkernel-services.js";
 import { handleOpenAiEmbeddingsHttpRequest } from "./embeddings-http.js";
 import { applyHookMappings } from "./hooks-mapping.js";
 import {
@@ -819,6 +820,29 @@ export function createGatewayHttpServer(opts: {
         req.url = scopedCanvas.rewrittenUrl;
       }
       const requestPath = new URL(req.url ?? "/", "http://localhost").pathname;
+
+      const activeMicrokernel = getActiveMicrokernel();
+      if (
+        activeMicrokernel &&
+        (requestPath.startsWith("/api/corehub") ||
+          requestPath === "/quick-launch" ||
+          requestPath === "/diff-inspector" ||
+          requestPath === "/chat/react" ||
+          requestPath === "/desktop/state" ||
+          requestPath === "/state")
+      ) {
+        if (
+          await handleCoreHubRoute(req, res, activeMicrokernel, {
+            auth: resolvedAuth,
+            cfg: configSnapshot,
+            trustedProxies,
+            allowRealIpFallback,
+            rateLimiter,
+          })
+        ) {
+          return;
+        }
+      }
       const mattermostSlashCallbackPaths = resolveMattermostSlashCallbackPaths(configSnapshot);
       const pluginPathContext = handlePluginRequest
         ? resolvePluginRoutePathContext(requestPath)

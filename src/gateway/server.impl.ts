@@ -1,6 +1,11 @@
 import path from "node:path";
 import { clamp } from "../utils.js";
 import { getGatewayRegistry, registerInfraServices } from "./gateway-services.js";
+import {
+  createMicrokernelServiceRegistry,
+  getActiveMicrokernel,
+  setActiveMicrokernel,
+} from "./microkernel-services.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { getActiveEmbeddedRunCount } from "../agents/pi-embedded-runner/runs.js";
 import { registerSkillsChangeListener } from "../agents/skills/refresh.js";
@@ -773,6 +778,16 @@ export async function startGatewayServer(
     stopModelPricingRefresh();
     channelHealthMonitor?.stop();
     clearSecretsRuntimeSnapshot();
+    const startupMicrokernel = getActiveMicrokernel();
+    if (startupMicrokernel) {
+      try {
+        await startupMicrokernel.registry.stopAll();
+      } catch (err) {
+        log.warn(`gateway: cognitive microkernel stop on startup failure failed: ${String(err)}`);
+      } finally {
+        setActiveMicrokernel(null);
+      }
+    }
     await createGatewayCloseHandler({
       bonjourStop,
       tailscaleCleanup,
@@ -1447,6 +1462,24 @@ export async function startGatewayServer(
       if (registryResult.failed.length > 0) {
         log.warn(`gateway: some Tier-2 services failed to start: ${registryResult.failed.join(', ')}`);
       }
+
+      // Cognitive microkernel services boot
+      try {
+        const effectiveStateDir = process.env.COREBLOW_STATE_DIR;
+        const microkernel = createMicrokernelServiceRegistry({
+          stateDir: effectiveStateDir,
+          coryDir: effectiveStateDir ? path.join(effectiveStateDir, "memory") : undefined,
+        });
+        const cognitiveResult = await microkernel.registry.startAll();
+        if (cognitiveResult.failed.length > 0) {
+          log.warn(
+            `gateway: some cognitive microkernel services failed to start: ${cognitiveResult.failed.join(", ")}`,
+          );
+        }
+        setActiveMicrokernel(microkernel);
+      } catch (err) {
+        log.warn(`gateway: cognitive microkernel boot failed: ${String(err)}`);
+      }
     }
   } catch (err) {
     await closeOnStartupFailure();
@@ -1504,6 +1537,17 @@ export async function startGatewayServer(
       stopModelPricingRefresh();
       channelHealthMonitor?.stop();
       clearSecretsRuntimeSnapshot();
+      // Stop all cognitive microkernel services before infra services
+      const microkernel = getActiveMicrokernel();
+      if (microkernel) {
+        try {
+          await microkernel.registry.stopAll();
+        } catch (err) {
+          log.warn(`gateway: cognitive microkernel stop failed: ${String(err)}`);
+        } finally {
+          setActiveMicrokernel(null);
+        }
+      }
       // Stop all Tier-2 services via the ServiceRegistry (reverse dep order).
       try {
         await getGatewayRegistry().stopAll();
