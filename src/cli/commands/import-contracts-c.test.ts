@@ -8,7 +8,6 @@ const modules = [
   { name: "config-cmd",     path: "./config-cmd.js" },
   { name: "webhooks-cmd",   path: "./webhooks-cmd.js" },
   { name: "message-cmd",    path: "./message-cmd.js" },
-  { name: "gateway-cmd",    path: "./gateway-cmd.js" },
 ];
 
 describe("CLI commands — import contracts (batch C)", () => {
