@@ -1537,6 +1537,15 @@ export async function startGatewayServer(
       stopModelPricingRefresh();
       channelHealthMonitor?.stop();
       clearSecretsRuntimeSnapshot();
+      // Drain background cognitive tasks before stopping microkernel services
+      try {
+        const { getCognitiveCoordinator } = await import(
+          "../agents/cognitive/coordinator.js"
+        );
+        await getCognitiveCoordinator().drain({ timeoutMs: 2500 });
+      } catch (err) {
+        log.warn(`gateway: cognitive coordinator drain failed: ${String(err)}`);
+      }
       // Stop all cognitive microkernel services before infra services
       const microkernel = getActiveMicrokernel();
       if (microkernel) {

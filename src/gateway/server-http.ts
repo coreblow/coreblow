@@ -825,6 +825,7 @@ export function createGatewayHttpServer(opts: {
       if (
         activeMicrokernel &&
         (requestPath.startsWith("/api/corehub") ||
+          requestPath.startsWith("/api/cory") ||
           requestPath === "/quick-launch" ||
           requestPath === "/diff-inspector" ||
           requestPath === "/chat/react" ||

@@ -31,7 +31,11 @@ import {
   type SkillLifecycleStatus,
   type TurnTrajectoryRecord,
 } from "../learning/index.js";
-import { CoryBootstrapService, CoryKnowledgeScribeService } from "../memory/index.js";
+import {
+  CoryBootstrapService,
+  CoryKnowledgeScribeService,
+  type CoryMemoryLayer,
+} from "../memory/index.js";
 import { UniversalAgentImporterService, type ExternalAgentSource } from "../migration/index.js";
 import {
   isCoreHubCapability,
@@ -679,11 +683,13 @@ export async function handleCoreHubRoute(
     normalizedPath === "/api/corehub/state"
   ) {
     normalizedPath = "/api/corehub/desktop/state";
+  } else if (normalizedPath.startsWith("/api/corehub/cory/")) {
+    normalizedPath = "/api/cory/" + normalizedPath.slice("/api/corehub/cory/".length);
   }
   const pathname = normalizedPath;
   const method = (req.method ?? "GET").toUpperCase();
 
-  if (!pathname.startsWith("/api/corehub/")) {
+  if (!pathname.startsWith("/api/corehub/") && !pathname.startsWith("/api/cory/")) {
     return false;
   }
 
@@ -1031,6 +1037,92 @@ export async function handleCoreHubRoute(
       ok: true,
       pages: snapshot.pages,
       auditPanel: snapshot.auditPanel,
+    });
+    return true;
+  }
+
+  // GET /api/cory/search (and /api/corehub/cory/search)
+  if (method === "GET" && (pathname === "/api/cory/search" || pathname === "/api/corehub/cory/search")) {
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "doctor.memory.status",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+
+    const query = url.searchParams.get("q") ?? url.searchParams.get("query") ?? "";
+    const topKParam = url.searchParams.get("topK") ?? url.searchParams.get("limit");
+    const topK = topKParam ? Math.max(1, parseInt(topKParam, 10)) : 8;
+    const workspaceId = url.searchParams.get("workspaceId") ?? undefined;
+    const userScope = url.searchParams.get("userScope") ?? undefined;
+    const scope = workspaceId || userScope ? { workspaceId, userScope } : undefined;
+
+    const result = await services.cory.retriever.retrieve({
+      query,
+      scope,
+      topK,
+    });
+
+    sendJson(res, 200, {
+      ok: true,
+      hits: result.hits,
+      degraded: result.degraded,
+      semanticUsed: result.semanticUsed,
+      count: result.hits.length,
+    });
+    return true;
+  }
+
+  // GET /api/cory/layers (and /api/corehub/cory/layers)
+  if (method === "GET" && (pathname === "/api/cory/layers" || pathname === "/api/corehub/cory/layers")) {
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "doctor.memory.status",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+
+    const layer = url.searchParams.get("layer") as CoryMemoryLayer | null;
+    const workspaceId = url.searchParams.get("workspaceId") ?? undefined;
+    const userScope = url.searchParams.get("userScope") ?? undefined;
+    const scope = workspaceId || userScope ? { workspaceId, userScope } : undefined;
+
+    const items = layer
+      ? services.cory.memoryStore.listLayerItems(layer, scope)
+      : services.cory.memoryStore.loadAllCanonicalItems();
+
+    sendJson(res, 200, {
+      ok: true,
+      count: items.length,
+      items,
     });
     return true;
   }

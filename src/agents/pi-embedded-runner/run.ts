@@ -66,6 +66,7 @@ import { runContextEngineMaintenance } from "./context-engine-maintenance.js";
 import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
 import { resolveModelAsync } from "./model.js";
+import { getCognitiveCoordinator } from "../cognitive/coordinator.js";
 import { runEmbeddedAttempt } from "./run/attempt.js";
 import { createEmbeddedRunAuthController } from "./run/auth-controller.js";
 import { createFailoverDecisionLogger } from "./run/failover-observation.js";
@@ -166,6 +167,24 @@ export async function runEmbeddedPiAgent(
       provider = hookSelection.provider;
       modelId = hookSelection.modelId;
       const legacyBeforeAgentStartResult = hookSelection.legacyBeforeAgentStartResult;
+
+      // Single-Brain Cognitive Coordinator: onTurnStart (model routing & telemetry)
+      try {
+        const cognitiveTurn = await getCognitiveCoordinator().onTurnStart({
+          runId: params.runId,
+          sessionId: params.sessionId,
+          sessionKey: params.sessionKey,
+          prompt: typeof params.prompt === "string" ? params.prompt : "",
+          requestedProvider: provider,
+          requestedModel: modelId,
+          config: params.config,
+          workspaceDir: resolvedWorkspace,
+        });
+        provider = cognitiveTurn.effectiveProvider;
+        modelId = cognitiveTurn.effectiveModel;
+      } catch (err) {
+        log.warn(`cognitive turn start routing skipped: ${String(err)}`);
+      }
 
       const { model, error, authStorage, modelRegistry } = await resolveModelAsync(
         provider,

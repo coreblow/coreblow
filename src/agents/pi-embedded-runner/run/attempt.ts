@@ -51,6 +51,7 @@ import {
 } from "../../channel-tools.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../../defaults.js";
 import { resolveCoreBlowDocsPath } from "../../docs-path.js";
+import { getCognitiveCoordinator } from "../../cognitive/coordinator.js";
 import { isTimeoutError } from "../../failover-error.js";
 import { resolveImageSanitizationLimits } from "../../image-sanitization.js";
 import { buildModelAliasLines } from "../../model-alias-lines.js";
@@ -646,6 +647,29 @@ export async function runEmbeddedAttempt(
     });
     const systemPromptOverride = createSystemPromptOverride(appendPrompt);
     let systemPromptText = systemPromptOverride();
+
+    // Single-Brain Cognitive Coordinator: onContextAssembly (Cory memory & EvoLoop skills)
+    let cognitiveContext:
+      | Awaited<ReturnType<ReturnType<typeof getCognitiveCoordinator>["onContextAssembly"]>>
+      | undefined;
+    try {
+      const coordinator = getCognitiveCoordinator();
+      cognitiveContext = await coordinator.onContextAssembly({
+        prompt: typeof params.prompt === "string" ? params.prompt : "",
+        sessionKey: params.sessionKey,
+        workspaceDir: effectiveWorkspace,
+        userScope: (params as any).userScope,
+        trustZone: (params as any).trustZone,
+      });
+      if (cognitiveContext.memoryBlock) {
+        systemPromptText = `${systemPromptText}\n\n${cognitiveContext.memoryBlock}`;
+      }
+      if (cognitiveContext.skillsBlock) {
+        systemPromptText = `${systemPromptText}\n\n${cognitiveContext.skillsBlock}`;
+      }
+    } catch (err) {
+      log.warn(`cognitive context assembly skipped: ${String(err)}`);
+    }
 
     const sessionLock = await acquireSessionWriteLock({
       sessionFile: params.sessionFile,
@@ -1480,6 +1504,28 @@ export async function runEmbeddedAttempt(
             inFlightPrompt: effectivePrompt,
           });
 
+          // Single-Brain Cognitive Coordinator: preLlmCall security & budget gate
+          try {
+            const preLlmCheck = getCognitiveCoordinator().preLlmCall({
+              prompt: effectivePrompt,
+              trustZone: (params as any).trustZone,
+              activeConstraints: cognitiveContext?.activeConstraints,
+            });
+            if (!preLlmCheck.allowed) {
+              throw new Error(
+                `PRE_LLM_GATE_BLOCKED: ${preLlmCheck.blockedReason ?? "Prompt rejected by security gate"}`,
+              );
+            }
+            if (preLlmCheck.sanitizedPrompt) {
+              effectivePrompt = preLlmCheck.sanitizedPrompt;
+            }
+          } catch (gateErr) {
+            if (String(gateErr).includes("PRE_LLM_GATE_BLOCKED")) {
+              throw gateErr;
+            }
+            log.warn(`preLlmCall check skipped: ${String(gateErr)}`);
+          }
+
           // Only pass images option if there are actually images to pass
           // This avoids potential issues with models that don't expect the images parameter
           if (imageResult.images.length > 0) {
@@ -1738,6 +1784,69 @@ export async function runEmbeddedAttempt(
             typeof entry.toolName === "string" && entry.toolName.trim().length > 0,
         )
         .map((entry) => ({ toolName: entry.toolName, meta: entry.meta }));
+
+      // Single-Brain Cognitive Coordinator: onTurnEnd trajectory & learning digestion
+      try {
+        const trajectorySteps: Array<{
+          toolName: string;
+          input: Record<string, unknown>;
+          output: Record<string, unknown> | string;
+          isError: boolean;
+        }> = [];
+
+        for (const msg of messagesSnapshot) {
+          if (msg.role === "toolResult") {
+            const m = msg as any;
+            const textContent = Array.isArray(m.content)
+              ? m.content.map((c: any) => c.text ?? "").join("\n")
+              : String(m.content ?? "");
+            trajectorySteps.push({
+              toolName: m.toolName ?? "tool",
+              input: {},
+              output: textContent,
+              isError: Boolean(m.isError),
+            });
+          }
+        }
+
+        // Correlate with toolCall arguments if present on assistant messages
+        for (const msg of messagesSnapshot) {
+          if (msg.role === "assistant") {
+            const m = msg as any;
+            const parts = Array.isArray(m.content) ? m.content : [];
+            for (const p of parts) {
+              if (p?.type === "toolCall") {
+                const target = trajectorySteps.find(
+                  (s) => s.toolName === p.name && Object.keys(s.input).length === 0,
+                );
+                if (target && p.arguments && typeof p.arguments === "object") {
+                  target.input = p.arguments;
+                }
+              }
+            }
+          }
+        }
+
+        const finalOutcome: "success" | "failure" | "aborted" = aborted || yieldAborted
+          ? "aborted"
+          : promptError || Boolean(getLastToolError())
+            ? "failure"
+            : "success";
+
+        void getCognitiveCoordinator().onTurnEnd({
+          runId: params.runId,
+          sessionId: params.sessionId,
+          userGoal: typeof params.prompt === "string" ? params.prompt : "",
+          steps: trajectorySteps,
+          finalOutcome,
+          trustZone: (params as any).trustZone,
+          workspaceId: effectiveWorkspace,
+          userScope: (params as any).userScope,
+          skillsInvoked: cognitiveContext?.matchedSkills?.map((s) => s.id),
+        });
+      } catch (err) {
+        log.warn(`cognitive turn end processing skipped: ${String(err)}`);
+      }
 
       if (hookRunner?.hasHooks("llm_output")) {
         hookRunner
