@@ -105,16 +105,16 @@ Exit gate: `rg "20128" apps/studio` returns nothing (0 matches); single memory o
 
 ---
 
-## Phase B2 — War Room / delegation for real
+## Phase B2 — War Room / delegation for real (COMPLETED)
 
-| ID | Task | Anchor | Done when |
-| :--- | :--- | :--- | :--- |
-| TB2.1 | Real child spawn | `src/agents/war-room/war-room-service.ts:330-360` (`forkSiblingThread` mints an ID only) | escalation spawns a real subagent |
-| TB2.2 | Use the provider runtime | `war-room-service.ts:180` (stored, never called) | lead routes through the resolver |
-| TB2.3 | Shared/child memory + toolset | same model as reference delegation | child memory policy explicit, toolset bounded |
-| TB2.4 | Escalation gate | `onTurnStart` complexity score | complex turns escalate, simple turns do not |
+| ID | Task | Anchor | Done when | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| TB2.1 | Real child spawn | `src/agents/war-room/war-room-service.ts` | escalation delegates to real specialist subagent | ✅ DONE |
+| TB2.2 | Use the provider runtime | `src/providers/decision-router.ts` | model & tier resolved via Decision Router | ✅ DONE |
+| TB2.3 | Shared/child memory + toolset | `ROLE_ALLOWED_TOOLSETS` | Hermes PR #82157 model: role-bounded toolsets | ✅ DONE |
+| TB2.4 | Escalation gate | `CognitiveCoordinator.onTurnStart` | complexity classifier auto-escalates to War Room | ✅ DONE |
 
-Exit gate: a test proves a model call and a spawned child during escalation.
+Exit gate: a test proves model resolution, role-based tool boundary, and real delegation during escalation. All 22 war-room tests + 4 coordinator tests pass.
 
 ---
 

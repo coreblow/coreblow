@@ -2,6 +2,8 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { ROLE_ALLOWED_TOOLSETS, WarRoomOrchestratorService } from "../war-room/war-room-service.js";
+import { isComplexMultiAgentTask } from "./coordinator.js";
 import { createMicrokernelServiceRegistry, setActiveMicrokernel } from "../../gateway/microkernel-services.js";
 import { startGatewayServer } from "../../gateway/server.impl.js";
 import { getFreePort, installGatewayTestHooks } from "../../gateway/test-helpers.server.js";
@@ -189,6 +191,100 @@ describe("CognitiveCoordinator — Single-Brain Cognitive Lifecycle", () => {
         process.env.COREBLOW_TEST_MINIMAL_GATEWAY = prevMinimal;
       }
       await fs.rm(testStateDir, { recursive: true, force: true });
+    }
+  });
+
+  it("pure DOP complexity classifier identifies multi-agent tasks for War Room escalation", () => {
+    // Complex prompts
+    expect(isComplexMultiAgentTask("War Room: architectural refactor across memory and gateway")).toBe(true);
+    expect(isComplexMultiAgentTask("Perform comprehensive security audit and vulnerability assessment")).toBe(true);
+    expect(isComplexMultiAgentTask("Coordinate specialist to audit and fix memory leak")).toBe(true);
+    expect(isComplexMultiAgentTask("multi-file refactor of plugin system")).toBe(true);
+
+    // Simple single-agent prompts
+    expect(isComplexMultiAgentTask("What is the current time?")).toBe(false);
+    expect(isComplexMultiAgentTask("Write a helper function to add two numbers in TypeScript")).toBe(false);
+    expect(isComplexMultiAgentTask("Explain how async/await works")).toBe(false);
+  });
+
+  it("evaluates War Room escalation in onTurnStart and delegates with role-based toolsets", async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-warroom-test-"));
+    const microkernel = createMicrokernelServiceRegistry({ stateDir: tempDir });
+    await microkernel.registry.startAll();
+    setActiveMicrokernel(microkernel);
+
+    const coordinator = getCognitiveCoordinator();
+    const initialEscalated = coordinator.getCounters().warroomEscalated;
+
+    try {
+      // 1. Complex prompt triggers War Room escalation
+      const turnResult = await coordinator.onTurnStart({
+        runId: "run_complex_001",
+        sessionId: "sess_complex_001",
+        prompt: "War Room: perform architectural refactor and patch the memory router",
+        requestedProvider: "anthropic",
+        requestedModel: "claude-3-7-sonnet",
+        workspaceDir: tempDir,
+        executeWarRoom: true,
+      });
+
+      expect(turnResult.warRoomEscalated).toBe(true);
+      expect(turnResult.warRoomId).toBeDefined();
+      expect(turnResult.delegatedAgentId).toBeDefined();
+      expect(coordinator.getCounters().warroomEscalated).toBe(initialEscalated + 1);
+
+      // Verify the War Room session and Kanban state
+      const room = microkernel.warRoom.getWarRoom(turnResult.warRoomId!);
+      expect(room).toBeDefined();
+      expect(room!.kanbanBoard.length).toBeGreaterThan(0);
+      const card = room!.kanbanBoard[0];
+      // Since executeWarRoom was true, card transitioned to 'done'
+      expect(card.column).toBe("done");
+
+      // 2. Direct delegateTask verification with role-based toolset boundary (TB2.3)
+      const auditResult = await microkernel.warRoom.delegateTask(
+        turnResult.warRoomId!,
+        "Perform deep security audit of auth tokens",
+        { execute: true, role: "auditor" },
+      );
+
+      expect(auditResult.role).toBe("auditor");
+      expect(auditResult.routeTier).toBe("deep");
+      expect(auditResult.providerId).toBe("anthropic");
+      expect(auditResult.modelId).toBe("claude-3-7-sonnet");
+      expect(auditResult.allowedTools).toEqual(ROLE_ALLOWED_TOOLSETS.auditor);
+      // Auditor cannot execute terminal commands or write files
+      expect(auditResult.allowedTools.includes("terminal")).toBe(false);
+      expect(auditResult.allowedTools.includes("write_file")).toBe(false);
+      expect(auditResult.allowedTools.includes("read_file")).toBe(true);
+      expect(auditResult.executionResult?.output).toContain("Completed task");
+
+      // 3. Coding specialist delegation
+      const codeResult = await microkernel.warRoom.delegateTask(
+        turnResult.warRoomId!,
+        "Implement patch for memory index",
+        { execute: true, role: "coder" },
+      );
+      expect(codeResult.role).toBe("coder");
+      expect(codeResult.routeTier).toBe("coding");
+      expect(codeResult.allowedTools).toEqual(ROLE_ALLOWED_TOOLSETS.coder);
+      expect(codeResult.allowedTools.includes("patch")).toBe(true);
+      expect(codeResult.allowedTools.includes("terminal")).toBe(true);
+
+      // 4. Sibling thread forking with execution
+      const fork = microkernel.warRoom.forkSiblingThread(
+        turnResult.warRoomId!,
+        "Secondary thread: Verification passes",
+        { prompt: "Verify all tests pass", execute: true },
+      );
+      expect(fork.forkedThreadId).toBeDefined();
+      expect(fork.executionPromise).toBeDefined();
+      const forkResult = await fork.executionPromise;
+      expect(forkResult?.kanbanCard.column).toBe("done");
+    } finally {
+      await microkernel.registry.stopAll();
+      setActiveMicrokernel(null);
+      await fs.rm(tempDir, { recursive: true, force: true });
     }
   });
 });

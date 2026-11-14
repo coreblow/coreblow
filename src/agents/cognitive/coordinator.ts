@@ -53,6 +53,7 @@ export interface CognitiveTelemetryCounters {
   evoloopOutcomes: number;
   scribeNotes: number;
   compactionsPrepared: number;
+  warroomEscalated: number;
   decisionRouterTiers: Record<SubagentRouteTier, number>;
   degradedErrors: number;
 }
@@ -69,6 +70,7 @@ export interface CognitiveTurnStartParams {
   readonly config?: CoreBlowConfig;
   readonly trustZone?: string;
   readonly workspaceDir?: string;
+  readonly executeWarRoom?: boolean;
 }
 
 export interface CognitiveTurnStartResult {
@@ -77,6 +79,9 @@ export interface CognitiveTurnStartResult {
   readonly tier: SubagentRouteTier;
   readonly daybreakSwitched: boolean;
   readonly reason: string;
+  readonly warRoomEscalated?: boolean;
+  readonly warRoomId?: string;
+  readonly delegatedAgentId?: string;
 }
 
 export interface CognitiveContextAssemblyParams {
@@ -112,6 +117,34 @@ export interface CognitiveTurnEndParams {
 
 // ─── Coordinator Class ───────────────────────────────────────────
 
+/**
+ * Pure DOP complexity classifier to determine if a prompt requires War Room escalation (TB2.4).
+ * Single tasks run in fast single-agent mode; multi-file refactors, security audits,
+ * and multi-role instructions escalate to the War Room.
+ */
+export function isComplexMultiAgentTask(prompt: string): boolean {
+  const text = prompt.toLowerCase();
+  if (
+    text.includes("war room") ||
+    text.includes("warroom") ||
+    text.includes("multi-agent") ||
+    text.includes("multi agent") ||
+    text.includes("coordinate specialist") ||
+    text.includes("audit and fix") ||
+    text.includes("audit dan perbaiki") ||
+    text.includes("research then implement") ||
+    text.includes("investigate and patch")
+  ) {
+    return true;
+  }
+  const complexPatterns = [
+    /\b(?:architectural|architecture)\s+(?:refactor|migration|overhaul)\b/,
+    /\b(?:security|vulnerability)\s+(?:audit|assessment|scan)\b/,
+    /\bmulti-file\s+(?:refactor|editing|patch)\b/,
+  ];
+  return complexPatterns.some((pattern) => pattern.test(text));
+}
+
 export class CognitiveCoordinator {
   private readonly counters: CognitiveTelemetryCounters = {
     turnsTotal: 0,
@@ -121,6 +154,7 @@ export class CognitiveCoordinator {
     evoloopOutcomes: 0,
     scribeNotes: 0,
     compactionsPrepared: 0,
+    warroomEscalated: 0,
     decisionRouterTiers: {
       fast: 0,
       deep: 0,
@@ -163,25 +197,45 @@ export class CognitiveCoordinator {
         tier,
       });
 
-      // Check credential availability guardrail
-      const hasCredentials = this.isProviderConfigured(params.config, decision.providerId);
-      if (hasCredentials) {
-        return {
-          effectiveProvider: decision.providerId,
-          effectiveModel: decision.modelId,
-          tier,
-          daybreakSwitched: decision.daybreakSwitched,
-          reason: decision.reason,
-        };
+      // 1. War Room Escalation Gate (TB2.4)
+      let warRoomEscalated = false;
+      let warRoomId: string | undefined;
+      let delegatedAgentId: string | undefined;
+
+      if (microkernel?.warRoom && isComplexMultiAgentTask(params.prompt)) {
+        try {
+          const room = microkernel.warRoom.createWarRoom({
+            title: `War Room for ${params.sessionId.slice(0, 12)}`,
+            purpose: `Autonomous specialist escalation: ${params.prompt.slice(0, 100)}`,
+          });
+          const delegation = await microkernel.warRoom.delegateTask(room.roomId, params.prompt, {
+            execute: params.executeWarRoom ?? false,
+            cwd: params.workspaceDir,
+          });
+          warRoomEscalated = true;
+          warRoomId = room.roomId;
+          delegatedAgentId = delegation.delegatedToAgentId;
+          this.counters.warroomEscalated += 1;
+        } catch (err) {
+          log.warn(`War room escalation skipped: ${String(err)}`);
+        }
       }
 
-      // Safe fallback to operator's requested model
+      // 2. Check credential availability guardrail (TB1.7)
+      const hasCredentials = this.isProviderConfigured(params.config, decision.providerId);
+      const effectiveProvider = hasCredentials ? decision.providerId : params.requestedProvider;
+      const effectiveModel = hasCredentials ? decision.modelId : params.requestedModel;
+      const reason = hasCredentials
+        ? decision.reason
+        : `Preserved requested model '${params.requestedProvider}/${params.requestedModel}' (adaptive target '${decision.providerId}' lacks active credentials).`;
+
       return {
-        effectiveProvider: params.requestedProvider,
-        effectiveModel: params.requestedModel,
+        effectiveProvider,
+        effectiveModel,
         tier,
-        daybreakSwitched: false,
-        reason: `Preserved requested model '${params.requestedProvider}/${params.requestedModel}' (adaptive target '${decision.providerId}' lacks active credentials).`,
+        daybreakSwitched: hasCredentials ? decision.daybreakSwitched : false,
+        reason,
+        ...(warRoomEscalated ? { warRoomEscalated, warRoomId, delegatedAgentId } : {}),
       };
     } catch (err) {
       this.counters.degradedErrors += 1;
@@ -195,7 +249,6 @@ export class CognitiveCoordinator {
       };
     }
   }
-
   /**
    * 2. onContextAssembly: Retrieves memory layers and EvoLoop active skills.
    * Generates formatted prompt blocks for injection into the system prompt.
