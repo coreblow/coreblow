@@ -1100,7 +1100,7 @@ async function repairMissingPluginInstalls(params: {
         continue;
       }
       changes.push(
-        `Skipped package-manager repair for configured plugin "${pluginId}" during package update; rerun "openclaw doctor --fix" after the update completes.`,
+        `Skipped package-manager repair for configured plugin "${pluginId}" during package update; rerun "coreblow doctor --fix" after the update completes.`,
       );
     }
   }

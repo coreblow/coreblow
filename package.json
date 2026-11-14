@@ -1,6 +1,6 @@
 {
   "name": "coreblow",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "CoreBlow — enterprise AI gateway and personal assistant runtime",
   "keywords": [
     "ai",
@@ -111,7 +111,7 @@
     "migration:repo-family:audit": "node scripts/migration/check-repo-family.mjs",
     "migration:repo-family:audit:json": "node scripts/migration/check-repo-family.mjs --json",
     "migration:repo-family:seed": "node scripts/migration/seed-satellite-repo.mjs",
-    "check": "pnpm lint && pnpm check:mcp-import-budget && echo 'All checks passed'",
+    "check": "pnpm lint && pnpm exec tsgo --noEmit && pnpm check:mcp-import-budget && node --import tsx scripts/check-no-monolithic-plugin-sdk-entry-imports.ts && node scripts/check-security.mjs && node scripts/check-plugin-sdk-exports.mjs && echo 'All checks passed'",
     "check:mcp-import-budget": "node scripts/check-mcp-import-budget.mjs",
     "format": "echo 'oxfmt --check: not yet available — skipping'",
     "format:fix": "echo 'oxfmt --write: not yet available — skipping'",
@@ -265,7 +265,7 @@
     "undici": "^8.1.0",
     "ws": "^8.19.0",
     "yaml": "^2.8.3",
-    "zod": "^4.3.6"
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@ai-sdk/openai": "^3.0.53",

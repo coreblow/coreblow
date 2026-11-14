@@ -334,7 +334,7 @@ describe("configured plugin install release step", () => {
   it("does not stamp config during update-time deferred install repair", async () => {
     mocks.repairMissingPluginInstallsForIds.mockResolvedValue({
       changes: [
-        'Skipped package-manager repair for configured plugin "codex" during package update; rerun "openclaw doctor --fix" after the update completes.',
+        'Skipped package-manager repair for configured plugin "codex" during package update; rerun "coreblow doctor --fix" after the update completes.',
       ],
       warnings: [],
     });
@@ -366,7 +366,7 @@ describe("configured plugin install release step", () => {
     });
     expect(result).toEqual({
       changes: [
-        'Skipped package-manager repair for configured plugin "codex" during package update; rerun "openclaw doctor --fix" after the update completes.',
+        'Skipped package-manager repair for configured plugin "codex" during package update; rerun "coreblow doctor --fix" after the update completes.',
       ],
       warnings: [],
       completed: false,
@@ -377,7 +377,7 @@ describe("configured plugin install release step", () => {
   it("defers package-manager plugins for writable legacy parents without explicit deferral", async () => {
     mocks.repairMissingPluginInstallsForIds.mockResolvedValue({
       changes: [
-        'Skipped package-manager repair for configured plugin "discord" during package update; rerun "openclaw doctor --fix" after the update completes.',
+        'Skipped package-manager repair for configured plugin "discord" during package update; rerun "coreblow doctor --fix" after the update completes.',
       ],
       warnings: [],
     });
@@ -406,7 +406,7 @@ describe("configured plugin install release step", () => {
     });
     expect(result).toEqual({
       changes: [
-        'Skipped package-manager repair for configured plugin "discord" during package update; rerun "openclaw doctor --fix" after the update completes.',
+        'Skipped package-manager repair for configured plugin "discord" during package update; rerun "coreblow doctor --fix" after the update completes.',
       ],
       warnings: [],
       completed: false,

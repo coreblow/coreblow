@@ -1,6 +1,6 @@
 import type { ReplyToMode } from "coreblow/plugin-sdk/account-core";
-import type { ReplyThreadingPolicy } from "coreblow/plugin-sdk";
-import { resolveBatchedReplyThreadingPolicy } from "coreblow/plugin-sdk";
+import type { ReplyThreadingPolicy } from "coreblow/plugin-sdk/reply-reference";
+import { resolveBatchedReplyThreadingPolicy } from "coreblow/plugin-sdk/reply-reference";
 
 type ReplyThreadingContext = {
   ReplyThreading?: ReplyThreadingPolicy;

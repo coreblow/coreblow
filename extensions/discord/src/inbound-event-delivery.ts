@@ -1,4 +1,4 @@
-import type { ReplyPayload } from "coreblow/plugin-sdk";
+import type { ReplyPayload } from "coreblow/plugin-sdk/reply-payload";
 
 export type DiscordInboundEventDeliveryEnd = () => void;
 
