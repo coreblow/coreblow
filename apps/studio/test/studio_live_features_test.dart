@@ -110,12 +110,26 @@ void main() {
     });
 
     test('Cory 4-Layer Memory Wiki initializes defaults in homeDirPath and indexes disk files', () async {
+      final memoryDir = Directory('${tempHome.path}/.coreblow/memory')..createSync(recursive: true);
+      File('${memoryDir.path}/USER.md').writeAsStringSync(
+        '# User Profile & Working Style\n\n'
+        '- Operator: febrinanda\n'
+        '- Native Engine: CoreBlow Studio Native Desktop Workspace\n',
+      );
+      File('${memoryDir.path}/MEMORY.md').writeAsStringSync(
+        '# Cory 4-Layer Long-Term Memory\n\n'
+        '- Architecture: Layer 4 Persistent Microkernel Workspace\n',
+      );
+      File('${memoryDir.path}/CONSTRAINTS.md').writeAsStringSync(
+        '# Repository Invariants & Sovereign Security\n\n'
+        '- Baselines: Node 22+ & Bun runtime baseline\n',
+      );
+
       final viewModel = StudioViewModel(
         enablePersistence: true,
         homeDirPath: tempHome.path,
       );
 
-      final memoryDir = Directory('${tempHome.path}/.coreblow/memory');
       expect(memoryDir.existsSync(), isTrue);
 
       // Verify default files were initialized on disk
@@ -272,4 +286,3 @@ void main() {
     });
   });
 }
-

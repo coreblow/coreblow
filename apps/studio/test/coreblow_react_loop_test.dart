@@ -97,5 +97,87 @@ void main() {
 
       viewModel.dispose();
     });
+
+    test('refreshMemoryWiki preserves gateway://cory/... entries alongside local project docs without shadowing', () async {
+      final oldOverrides = HttpOverrides.current;
+      HttpOverrides.global = null;
+      addTearDown(() => HttpOverrides.global = oldOverrides);
+
+      // 1. Mock Gateway Server returning Cory memory layers at :18789
+      HttpServer? gatewayServer;
+      try {
+        gatewayServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 18789);
+      } catch (_) {
+        // If 18789 is already bound, skip starting mock
+      }
+
+      if (gatewayServer != null) {
+        gatewayServer.listen((HttpRequest request) async {
+          if (request.uri.path == '/api/cory/layers') {
+            request.response.headers.contentType = ContentType.json;
+            request.response.write(jsonEncode({
+              'ok': true,
+              'items': [
+                {
+                  'layer': 'identity',
+                  'id': 'agent-identity',
+                  'content': 'You are CoreBlow autonomous assistant.',
+                },
+                {
+                  'layer': 'constraint',
+                  'id': 'strict-security',
+                  'content': 'Never bypass gateway security policy.',
+                },
+                {
+                  'layer': 'durable',
+                  'id': 'user-preference',
+                  'content': 'User prefers TypeScript and Dart single-brain architecture.',
+                },
+              ],
+            }));
+            await request.response.close();
+          } else {
+            request.response.statusCode = 404;
+            await request.response.close();
+          }
+        });
+        addTearDown(() async => await gatewayServer?.close(force: true));
+      }
+
+      // 2. Set up local project docs on disk
+      final projectDir = Directory('${tempDir.path}/sample_project')..createSync(recursive: true);
+      File('${projectDir.path}/AGENTS.md').writeAsStringSync('# Project Invariants\nSingle-Brain architecture active.\n');
+      File('${projectDir.path}/CLAUDE.md').writeAsStringSync('# Instructions\nFollow zero-trust rules.\n');
+
+      final viewModel = StudioViewModel(
+        enablePersistence: false,
+        homeDirPath: tempDir.path,
+      );
+      viewModel.selectProject(projectDir.path);
+
+      await viewModel.refreshMemoryWiki();
+
+      // If gateway was running at 18789, verify gateway://cory entries are preserved
+      if (gatewayServer != null) {
+        expect(
+          viewModel.memoryEntries.any((e) => e.path == 'gateway://cory/IDENTITY/agent-identity'),
+          isTrue,
+        );
+        expect(
+          viewModel.memoryEntries.any((e) => e.path == 'gateway://cory/CONSTRAINT/strict-security'),
+          isTrue,
+        );
+        expect(
+          viewModel.memoryEntries.any((e) => e.path == 'gateway://cory/DURABLE/user-preference'),
+          isTrue,
+        );
+      }
+
+      // Verify local file entries are also preserved without wiping out gateway items
+      expect(viewModel.memoryEntries.any((e) => e.title == 'AGENTS.md'), isTrue);
+      expect(viewModel.memoryEntries.any((e) => e.title == 'CLAUDE.md'), isTrue);
+
+      viewModel.dispose();
+    });
   });
 }

@@ -1,7 +1,9 @@
 import crypto from "node:crypto";
 import { EventEmitter } from "node:events";
 import fs from "node:fs";
+import http from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { getCognitiveCoordinator } from "../agents/cognitive/coordinator.js";
 import os from "node:os";
 import path from "node:path";
 import { PassThrough } from "node:stream";
@@ -11,6 +13,7 @@ import type { ResolvedGatewayAuth } from "./auth.js";
 import {
   createMicrokernelServiceRegistry,
   handleCoreHubRoute,
+  setActiveMicrokernel,
   resolveCoreHubOperatorScopes,
   NativeProviderRuntimeService,
   NativeRagRuntimeService,
@@ -62,6 +65,19 @@ function createMockReqRes(options: {
     resHeaders[key.toLowerCase()] = String(value);
   };
   (res as any).getHeader = (key: string) => resHeaders[key.toLowerCase()];
+  (res as any).write = (chunk: string | Buffer) => {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    return true;
+  };
+  (res as any).writeHead = (status: number, headers?: Record<string, string>) => {
+    statusCode = status;
+    if (headers) {
+      for (const [k, v] of Object.entries(headers)) {
+        resHeaders[k.toLowerCase()] = String(v);
+      }
+    }
+    return res;
+  };
   (res as any).end = (chunk?: string | Buffer) => {
     if (chunk) {
       chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
@@ -1841,6 +1857,102 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
       expect(result.data.reply).toContain("Network connection error");
 
       await microkernel.registry.stopAll();
+    });
+
+    it("POST /api/corehub/chat/react increments coordinator counters, injects Cory memory, and streams real-time SSE", async () => {
+      const microkernel = createMicrokernelServiceRegistry({
+        stateDir: testDir,
+        coryDir,
+      });
+      await microkernel.registry.startAll();
+      setActiveMicrokernel(microkernel);
+
+      // Seed Cory constraint memory
+      microkernel.cory.memoryStore.remember({
+        layer: "constraint",
+        content: "CoreBlow Single-Brain sovereign architecture active.",
+      });
+
+      const coordinator = getCognitiveCoordinator();
+      const initialTurns = coordinator.getCounters().turnsTotal;
+      const initialMemory = coordinator.getCounters().memoryInjected;
+
+      // Mock LLM server that intercepts outbound call and inspects system prompt
+      let capturedSystemPrompt = "";
+      const mockServer = http.createServer((mReq, mRes) => {
+        let bodyStr = "";
+        mReq.on("data", (c) => {
+          bodyStr += c;
+        });
+        mReq.on("end", () => {
+          try {
+            const parsed = JSON.parse(bodyStr);
+            const sys = parsed.messages?.find((m: any) => m.role === "system");
+            if (sys) {
+              capturedSystemPrompt = String(sys.content);
+            }
+          } catch {}
+
+          mRes.writeHead(200, { "Content-Type": "application/json" });
+          mRes.end(
+            JSON.stringify({
+              choices: [
+                {
+                  message: {
+                    role: "assistant",
+                    content: "Acknowledged Single-Brain directive.",
+                  },
+                },
+              ],
+            }),
+          );
+        });
+      });
+
+      await new Promise<void>((resolve) => mockServer.listen(0, "127.0.0.1", () => resolve()));
+      const mockPort = (mockServer.address() as any).port;
+
+      try {
+        const { req, res, getResult } = createMockReqRes({
+          method: "POST",
+          url: "/api/corehub/chat/react",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+            accept: "text/event-stream",
+          },
+          body: {
+            prompt: "What architecture is active?",
+            executionProfile: "Full access",
+            providerUrl: `http://127.0.0.1:${mockPort}/v1`,
+          },
+        });
+
+        const handled = await handleCoreHubRoute(req, res, microkernel, { auth: testAuth });
+        expect(handled).toBe(true);
+
+        const result = await getResult();
+        expect(result.statusCode).toBe(200);
+        expect(result.headers["content-type"]).toContain("text/event-stream");
+
+        // 1. Verify SSE payload structure
+        const rawSse = String(result.data);
+        expect(rawSse).toContain("data: [DONE]");
+        expect(rawSse).toContain("Acknowledged Single-Brain directive.");
+
+        // 2. Verify coordinator counters incremented
+        const updatedCounters = coordinator.getCounters();
+        expect(updatedCounters.turnsTotal).toBeGreaterThan(initialTurns);
+        expect(updatedCounters.memoryInjected).toBeGreaterThan(initialMemory);
+
+        // 3. Verify outbound LLM prompt received <cory_memory> injection
+        expect(capturedSystemPrompt).toContain("<cory_memory>");
+        expect(capturedSystemPrompt).toContain("CoreBlow Single-Brain sovereign architecture active.");
+      } finally {
+        await new Promise<void>((resolve) => mockServer.close(() => resolve()));
+        await microkernel.registry.stopAll();
+        setActiveMicrokernel(null);
+      }
     });
   });
 });

@@ -3,6 +3,8 @@ import * as fs from "node:fs";
 import * as fsp from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
+import { getCognitiveCoordinator, type TrajectoryToolStep } from "./cognitive/coordinator.js";
+import { getActiveMicrokernel } from "../gateway/microkernel-services.js";
 
 export type ExecutionProfile = "Full access" | "Workspace" | "Guarded" | "Read-only";
 
@@ -40,6 +42,10 @@ export interface CoreBlowReActOptions {
   providerUrl?: string;
   apiKey?: string;
   maxTurns?: number;
+  runId?: string;
+  sessionId?: string;
+  trustZone?: string;
+  userScope?: string;
   onProgressStep?: (stepDescription: string) => void;
   processRunner?: (
     command: string,
@@ -1149,19 +1155,19 @@ export async function generateWorkspaceSnapshot(dirPath: string): Promise<string
  * Probes environment variables and local sockets to auto-discover active model runtimes.
  */
 export async function autoDiscoverRuntimeEndpoints(fetchFn: typeof fetch = fetch): Promise<DiscoveredEndpoint | null> {
-  // 1. Check local proxy (127.0.0.1:20128)
+  // 1. Check local gateway (127.0.0.1:18789)
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 800);
-    const res = await fetchFn("http://127.0.0.1:20128/v1/models", { signal: controller.signal });
+    const res = await fetchFn("http://127.0.0.1:18789/v1/models", { signal: controller.signal });
     clearTimeout(timer);
     if (res.ok) {
       const data = (await res.json()) as { data?: Array<{ id: string }> };
       const model = data.data?.[0]?.id ?? "coreblow-agent";
       return {
-        providerUrl: "http://127.0.0.1:20128/v1",
+        providerUrl: "http://127.0.0.1:18789/v1",
         model,
-        source: "Local Proxy (127.0.0.1:20128)",
+        source: "Local Gateway (127.0.0.1:18789)",
       };
     }
   } catch {
@@ -1257,6 +1263,58 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
     }
   }
 
+  // 1b. Single-Brain CognitiveCoordinator integration (Phase B1 / B1.5)
+  const runId = options.runId ?? `run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const sessionId = options.sessionId ?? `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const coordinator = getCognitiveCoordinator();
+
+  let cognitiveContext:
+    | Awaited<ReturnType<typeof coordinator.onContextAssembly>>
+    | undefined;
+
+  try {
+    await coordinator.onTurnStart({
+      runId,
+      sessionId,
+      prompt: options.prompt,
+      requestedProvider: "custom",
+      requestedModel: options.model ?? "coreblow-agent",
+      workspaceDir: effectiveCwd,
+      trustZone: options.trustZone,
+    });
+
+    cognitiveContext = await coordinator.onContextAssembly({
+      prompt: options.prompt,
+      workspaceDir: effectiveCwd,
+      userScope: options.userScope,
+      trustZone: options.trustZone,
+    });
+
+    const preLlmCheck = coordinator.preLlmCall({
+      prompt: options.prompt,
+      trustZone: options.trustZone,
+      activeConstraints: cognitiveContext?.activeConstraints,
+    });
+
+    if (!preLlmCheck.allowed) {
+      const blockedMsg = `SECURITY_GATE_BLOCKED: ${preLlmCheck.blockedReason ?? "Prompt rejected by security gate"}`;
+      return {
+        ok: false,
+        reply: blockedMsg,
+        toolSteps: [],
+        steps: [],
+        detectedPath: detectedPath ?? undefined,
+        executionProfile,
+        error: blockedMsg,
+      };
+    }
+  } catch (err: unknown) {
+    if (String(err).includes("SECURITY_GATE_BLOCKED")) {
+      throw err;
+    }
+    // Fail-open for turn start errors in non-critical paths
+  }
+
   // 2. Discover endpoint if not explicitly provided
   let providerUrl = options.providerUrl;
   let model = options.model;
@@ -1269,7 +1327,7 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
       model = model ?? discovered.model;
       apiKey = apiKey ?? discovered.apiKey;
     } else {
-      providerUrl = "http://127.0.0.1:20128/v1";
+      providerUrl = "http://127.0.0.1:18789/v1";
       model = model ?? "coreblow-agent";
     }
   }
@@ -1277,12 +1335,21 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
   const endpoint = `${providerUrl.replace(/\/+$/, "")}/chat/completions`;
   const executor = new CoreBlowToolExecutor(options.processRunner);
 
-  const systemMessage = [
+  const systemMessageParts = [
     COREBLOW_SYSTEM_PROMPT,
     `Active Working Directory: ${effectiveCwd}`,
     `Execution Profile: ${executionProfile}`,
     ...(snapshotContext ? [snapshotContext] : []),
-  ].join("\n\n");
+  ];
+
+  if (cognitiveContext?.memoryBlock) {
+    systemMessageParts.push(cognitiveContext.memoryBlock);
+  }
+  if (cognitiveContext?.skillsBlock) {
+    systemMessageParts.push(cognitiveContext.skillsBlock);
+  }
+
+  const systemMessage = systemMessageParts.join("\n\n");
 
   const conversation: Array<Record<string, unknown>> = [
     { role: "system", content: systemMessage },
@@ -1447,13 +1514,57 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
     }
   }
 
+  const ok = Boolean(finalReply) || steps.length > 0;
   if (!finalReply && steps.length > 0) {
     const lastStep = steps[steps.length - 1];
     finalReply = `CoreBlow Autonomous Engine completed ${steps.length} step(s).\n\n${lastStep.output}`;
   }
 
+  // 4. Cognitive turn end notification & trajectory ingestion
+  try {
+    const trajectorySteps: TrajectoryToolStep[] = steps.map((s) => ({
+      toolName: s.tool,
+      argsSummary: formatShortSummary(s.tool, s.input),
+      succeeded: s.success,
+      outputSummary: s.output ? s.output.slice(0, 200) : undefined,
+      durationMs: s.durationMs,
+      input: s.input,
+      output: s.output,
+    }));
+
+    await coordinator.onTurnEnd({
+      runId,
+      sessionId,
+      userGoal: options.prompt,
+      steps: trajectorySteps,
+      finalOutcome: ok ? "success" : "failure",
+      trustZone: options.trustZone,
+      workspaceId: effectiveCwd,
+      userScope: options.userScope,
+      skillsInvoked: cognitiveContext?.matchedSkills?.map((s) => s.id),
+    });
+
+    // Also persist explicit user preferences if detected or durable instructions
+    const microkernel = getActiveMicrokernel();
+    if (microkernel?.cory?.memoryStore) {
+      const lowerPrompt = options.prompt.toLowerCase();
+      if (lowerPrompt.startsWith("remember:") || lowerPrompt.startsWith("ingat:")) {
+        const toRemember = options.prompt.replace(/^(remember|ingat):\s*/i, "").trim();
+        if (toRemember) {
+          microkernel.cory.memoryStore.remember({
+            layer: "durable",
+            content: toRemember,
+            scope: { workspaceId: effectiveCwd, userScope: options.userScope },
+          });
+        }
+      }
+    }
+  } catch {
+    // Best-effort turn recording
+  }
+
   return {
-    ok: true,
+    ok,
     reply: finalReply,
     toolSteps,
     steps,

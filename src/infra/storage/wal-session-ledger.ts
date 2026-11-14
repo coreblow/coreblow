@@ -342,9 +342,13 @@ export class WalSessionLedger implements GatewayService {
 
   private triggerAsyncFlush(channel: SessionChannel): Promise<void> {
     if (!channel.flushPromise) {
-      channel.flushPromise = this.flushChannel(channel).finally(() => {
-        channel.flushPromise = null;
-      });
+      channel.flushPromise = this.flushChannel(channel)
+        .catch((err) => {
+          this.lastError = err instanceof Error ? err.message : String(err);
+        })
+        .finally(() => {
+          channel.flushPromise = null;
+        });
     }
     return channel.flushPromise;
   }
@@ -356,6 +360,7 @@ export class WalSessionLedger implements GatewayService {
     const lines = batch.map((item) => JSON.stringify(item.record)).join("\n") + "\n";
 
     try {
+      await fs.mkdir(channel.sessionDir, { recursive: true, mode: 0o700 });
       await fs.appendFile(channel.walFilePath, lines, "utf8");
 
       const meta: WalSessionMeta = {
@@ -385,7 +390,11 @@ export class WalSessionLedger implements GatewayService {
     const flushes: Promise<void>[] = [];
     for (const channel of this.channels.values()) {
       if (channel.queue.length > 0) {
-        flushes.push(this.flushChannel(channel));
+        flushes.push(
+          this.flushChannel(channel).catch((err) => {
+            this.lastError = err instanceof Error ? err.message : String(err);
+          }),
+        );
       }
     }
     if (flushes.length > 0) {

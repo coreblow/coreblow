@@ -45,6 +45,8 @@ function normalizeTrustZone(zone?: string): CoryTrustZone | undefined {
   return undefined;
 }
 
+export type { TrajectoryToolStep };
+
 // ─── Telemetry Contracts ──────────────────────────────────────────
 
 export interface CognitiveTelemetryCounters {
@@ -424,7 +426,7 @@ export class CognitiveCoordinator {
           toolStepsCount: params.steps.length,
           finalOutcome: params.finalOutcome,
         },
-      });
+      }).catch(() => {});
     } catch {}
 
     // Spawn bounded background task

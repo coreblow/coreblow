@@ -2,6 +2,8 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createMicrokernelServiceRegistry, setActiveMicrokernel } from "../gateway/microkernel-services.js";
+import { getCognitiveCoordinator } from "./cognitive/coordinator.js";
 import {
   autoDiscoverRuntimeEndpoints,
   cleanToolBlocksFromText,
@@ -344,6 +346,76 @@ ls -la
       expect(result.steps[0].tool).toBe("read_file");
       expect(result.steps[0].output).toContain("CoreBlow ReAct");
     });
+
+    it("wires CognitiveCoordinator, injects Cory memory into prompt, and updates telemetry", async () => {
+      const memoryDir = path.join(tempDir, "memory");
+      fs.mkdirSync(memoryDir, { recursive: true });
+
+      const microkernel = createMicrokernelServiceRegistry({
+        stateDir: tempDir,
+        coryDir: memoryDir,
+      });
+      await microkernel.registry.startAll();
+      setActiveMicrokernel(microkernel);
+
+      // Seed Cory constraint memory
+      microkernel.cory.memoryStore.remember({
+        layer: "constraint",
+        content: "CoreBlow Single-Brain sovereign architecture active.",
+      });
+
+      const coordinator = getCognitiveCoordinator();
+      const initialTurns = coordinator.getCounters().turnsTotal;
+      const initialMemory = coordinator.getCounters().memoryInjected;
+
+      let capturedSystemPrompt = "";
+
+      const mockFetch = vi.fn().mockImplementation(async (_url: string, init: any) => {
+        const body = JSON.parse(init.body);
+        const sysMsg = body.messages?.find((m: any) => m.role === "system");
+        if (sysMsg) {
+          capturedSystemPrompt = sysMsg.content;
+        }
+
+        return new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  role: "assistant",
+                  content: "CoreBlow single-brain verified.",
+                },
+              },
+            ],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      });
+
+      try {
+        const result = await runCoreBlowReActLoop({
+          prompt: "Verify single-brain active memory",
+          defaultCwd: tempDir,
+          providerUrl: "http://mock-llm/v1",
+          fetchFn: mockFetch as unknown as typeof fetch,
+        });
+
+        expect(result.ok).toBe(true);
+        expect(result.reply).toBe("CoreBlow single-brain verified.");
+
+        // 1. Verify coordinator turn & memory counters incremented
+        const counters = coordinator.getCounters();
+        expect(counters.turnsTotal).toBeGreaterThan(initialTurns);
+        expect(counters.memoryInjected).toBeGreaterThan(initialMemory);
+
+        // 2. Verify Cory memory was injected into system message
+        expect(capturedSystemPrompt).toContain("<cory_memory>");
+        expect(capturedSystemPrompt).toContain("CoreBlow Single-Brain sovereign architecture active.");
+      } finally {
+        await microkernel.registry.stopAll();
+        setActiveMicrokernel(null);
+      }
+    });
   });
 
   describe("Runtime Provider Auto-Discovery", () => {
@@ -357,7 +429,7 @@ ls -la
 
       const discovered = await autoDiscoverRuntimeEndpoints(mockFetch as unknown as typeof fetch);
       expect(discovered).not.toBeNull();
-      expect(discovered?.providerUrl).toBe("http://127.0.0.1:20128/v1");
+      expect(discovered?.providerUrl).toBe("http://127.0.0.1:18789/v1");
       expect(discovered?.model).toBe("proxy-model-1");
     });
   });

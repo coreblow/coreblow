@@ -1504,48 +1504,6 @@ class StudioViewModel extends ChangeNotifier {
     try {
       final home = homeDirPath ?? Platform.environment['HOME'] ?? '';
       final defaultMemoryDir = Directory('$home/.coreblow/memory');
-      if (enablePersistence && home.isNotEmpty && !defaultMemoryDir.existsSync()) {
-        try {
-          defaultMemoryDir.createSync(recursive: true);
-        } catch (_) {}
-      }
-
-      if (enablePersistence && defaultMemoryDir.existsSync()) {
-        final userMd = File('${defaultMemoryDir.path}/USER.md');
-        if (!userMd.existsSync()) {
-          try {
-            userMd.writeAsStringSync(
-              '# User Profile & Working Style\n\n'
-              '- Operator: febrinanda\n'
-              '- Native Engine: CoreBlow Studio Native Desktop Workspace\n'
-              '- Interaction: High-density sovereign HUD & quiet instrument\n',
-            );
-          } catch (_) {}
-        }
-        final memoryMd = File('${defaultMemoryDir.path}/MEMORY.md');
-        if (!memoryMd.existsSync()) {
-          try {
-            memoryMd.writeAsStringSync(
-              '# Cory 4-Layer Long-Term Memory\n\n'
-              '- Architecture: Layer 4 Persistent Microkernel Workspace\n'
-              '- Indexing: SQLite WAL + BM25 Hybrid Ingestion\n'
-              '- Invariant: Zero leaks across sessions\n',
-            );
-          } catch (_) {}
-        }
-        final constraintsMd = File('${defaultMemoryDir.path}/CONSTRAINTS.md');
-        if (!constraintsMd.existsSync()) {
-          try {
-            constraintsMd.writeAsStringSync(
-              '# Repository Invariants & Sovereign Security\n\n'
-              '- Baselines: Node 22+ & Bun runtime baseline\n'
-              '- Testing: Vitest on forks pool only, coverage >= 70%\n'
-              '- Secrets: Strict zero unencrypted API key policy\n',
-            );
-          } catch (_) {}
-        }
-      }
-
 
       final entries = <MemoryWikiEntry>[];
       int totalBytes = 0;
@@ -1580,8 +1538,6 @@ class StudioViewModel extends ChangeNotifier {
           }
         }
       } catch (_) {}
-
-
 
       final scanDirs = <Directory>[];
       if (defaultMemoryDir.existsSync()) scanDirs.add(defaultMemoryDir);
@@ -1641,9 +1597,6 @@ class StudioViewModel extends ChangeNotifier {
             return 0;
           }
         });
-
-        int totalBytes = 0;
-        final entries = <MemoryWikiEntry>[];
 
         for (final file in foundFiles) {
           try {
@@ -1708,20 +1661,16 @@ class StudioViewModel extends ChangeNotifier {
             ));
           } catch (_) {}
         }
+      }
 
-        if (entries.isNotEmpty) {
-          _memoryEntries = entries;
-          if (totalBytes < 1024 * 1024) {
-            _memoryWalSize = '${(totalBytes / 1024).toStringAsFixed(1)} KB';
-          } else {
-            _memoryWalSize = '${(totalBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-          }
-          _memoryHitRate = '99.1%';
+      if (entries.isNotEmpty) {
+        _memoryEntries = entries;
+        if (totalBytes < 1024 * 1024) {
+          _memoryWalSize = '${(totalBytes / 1024).toStringAsFixed(1)} KB';
         } else {
-          _memoryEntries = [];
-          _memoryWalSize = '0 KB';
-          _memoryHitRate = '—';
+          _memoryWalSize = '${(totalBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
         }
+        _memoryHitRate = '99.1%';
       } else {
         _memoryEntries = [];
         _memoryWalSize = '0 KB';

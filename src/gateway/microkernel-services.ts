@@ -1859,9 +1859,12 @@ export async function handleCoreHubRoute(
       }
     }
 
-    // POST /api/corehub/chat/react
+    // POST /api/corehub/chat/react (supports real-time SSE streaming for Desktop Studio)
     if (pathname === "/api/corehub/chat/react") {
       try {
+        const acceptHeader = (Array.isArray(req.headers.accept) ? req.headers.accept.join(", ") : req.headers.accept) || "";
+        const isSse = acceptHeader.toLowerCase().includes("text/event-stream");
+
         const body = (await parseJsonBody(req)) as Record<string, unknown>;
         const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
         if (!prompt) {
@@ -1877,15 +1880,73 @@ export async function handleCoreHubRoute(
         const providerUrl = typeof body.providerUrl === "string" ? body.providerUrl : undefined;
         const apiKey = typeof body.apiKey === "string" ? body.apiKey : undefined;
         const maxTurns = typeof body.maxTurns === "number" ? body.maxTurns : undefined;
+        const messages = Array.isArray(body.messages) ? (body.messages as any[]) : undefined;
+        const trustZone = typeof body.trustZone === "string" ? body.trustZone : undefined;
+        const userScope = typeof body.userScope === "string" ? body.userScope : undefined;
+        const runId = typeof body.runId === "string" ? body.runId : undefined;
+        const sessionId = typeof body.sessionId === "string" ? body.sessionId : undefined;
+
+        if (isSse && body.stream !== false) {
+          res.writeHead(200, {
+            "Content-Type": "text/event-stream; charset=utf-8",
+            "Cache-Control": "no-cache, no-transform",
+            Connection: "keep-alive",
+          });
+
+          const result = await runCoreBlowReActLoop({
+            prompt,
+            messages,
+            executionProfile,
+            defaultCwd,
+            model,
+            providerUrl,
+            apiKey,
+            maxTurns,
+            runId,
+            sessionId,
+            trustZone,
+            userScope,
+            onProgressStep: (step) => {
+              res.write(`data: ${JSON.stringify({ step })}\n\n`);
+            },
+          });
+
+          for (const step of result.toolSteps) {
+            res.write(`data: ${JSON.stringify({ toolStep: step, step })}\n\n`);
+          }
+
+          res.write(
+            `data: ${JSON.stringify({
+              choices: [
+                {
+                  delta: { content: result.reply },
+                  finish_reason: result.ok ? "stop" : "error",
+                },
+              ],
+              toolSteps: result.toolSteps,
+              reply: result.reply,
+              ok: result.ok,
+            })}\n\n`,
+          );
+
+          res.write("data: [DONE]\n\n");
+          res.end();
+          return true;
+        }
 
         const result = await runCoreBlowReActLoop({
           prompt,
+          messages,
           executionProfile,
           defaultCwd,
           model,
           providerUrl,
           apiKey,
           maxTurns,
+          runId,
+          sessionId,
+          trustZone,
+          userScope,
         });
 
         sendJson(res, 200, result);
