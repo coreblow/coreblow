@@ -4,11 +4,15 @@
     "onStartup": false
   },
   "enabledByDefault": false,
-  "providers": ["deepinfra"],
+  "providers": [
+    "deepinfra"
+  ],
   "providerEndpoints": [
     {
       "endpointClass": "deepinfra-native",
-      "hosts": ["api.deepinfra.com"]
+      "hosts": [
+        "api.deepinfra.com"
+      ]
     }
   ],
   "providerRequest": {
@@ -22,8 +26,12 @@
     "providers": [
       {
         "id": "deepinfra",
-        "authMethods": ["api-key"],
-        "envVars": ["DEEPINFRA_API_KEY"]
+        "authMethods": [
+          "api-key"
+        ],
+        "envVars": [
+          "DEEPINFRA_API_KEY"
+        ]
       }
     ]
   },
@@ -37,7 +45,9 @@
             "id": "deepseek-ai/DeepSeek-V3.2",
             "name": "DeepSeek V3.2",
             "reasoning": false,
-            "input": ["text"],
+            "input": [
+              "text"
+            ],
             "contextWindow": 163840,
             "maxTokens": 163840,
             "cost": {
@@ -54,7 +64,9 @@
             "id": "zai-org/GLM-5.1",
             "name": "GLM-5.1",
             "reasoning": true,
-            "input": ["text"],
+            "input": [
+              "text"
+            ],
             "contextWindow": 202752,
             "maxTokens": 202752,
             "cost": {
@@ -71,7 +83,9 @@
             "id": "stepfun-ai/Step-3.5-Flash",
             "name": "Step 3.5 Flash",
             "reasoning": false,
-            "input": ["text"],
+            "input": [
+              "text"
+            ],
             "contextWindow": 262144,
             "maxTokens": 262144,
             "cost": {
@@ -88,7 +102,9 @@
             "id": "MiniMaxAI/MiniMax-M2.5",
             "name": "MiniMax M2.5",
             "reasoning": true,
-            "input": ["text"],
+            "input": [
+              "text"
+            ],
             "contextWindow": 196608,
             "maxTokens": 196608,
             "cost": {
@@ -105,7 +121,10 @@
             "id": "moonshotai/Kimi-K2.5",
             "name": "Kimi K2.5",
             "reasoning": true,
-            "input": ["text", "image"],
+            "input": [
+              "text",
+              "image"
+            ],
             "contextWindow": 262144,
             "maxTokens": 262144,
             "cost": {
@@ -122,7 +141,9 @@
             "id": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
             "name": "NVIDIA Nemotron 3 Super 120B A12B",
             "reasoning": true,
-            "input": ["text"],
+            "input": [
+              "text"
+            ],
             "contextWindow": 262144,
             "maxTokens": 262144,
             "cost": {
@@ -139,7 +160,9 @@
             "id": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
             "name": "Llama 3.3 70B Instruct Turbo",
             "reasoning": false,
-            "input": ["text"],
+            "input": [
+              "text"
+            ],
             "contextWindow": 131072,
             "maxTokens": 131072,
             "cost": {
@@ -176,15 +199,28 @@
     }
   ],
   "contracts": {
-    "mediaUnderstandingProviders": ["deepinfra"],
-    "memoryEmbeddingProviders": ["deepinfra"],
-    "imageGenerationProviders": ["deepinfra"],
-    "speechProviders": ["deepinfra"],
-    "videoGenerationProviders": ["deepinfra"]
+    "mediaUnderstandingProviders": [
+      "deepinfra"
+    ],
+    "memoryEmbeddingProviders": [
+      "deepinfra"
+    ],
+    "imageGenerationProviders": [
+      "deepinfra"
+    ],
+    "speechProviders": [
+      "deepinfra"
+    ],
+    "videoGenerationProviders": [
+      "deepinfra"
+    ]
   },
   "mediaUnderstandingProviderMetadata": {
     "deepinfra": {
-      "capabilities": ["image", "audio"],
+      "capabilities": [
+        "image",
+        "audio"
+      ],
       "defaultModels": {
         "image": "moonshotai/Kimi-K2.5",
         "audio": "openai/whisper-large-v3-turbo"
@@ -199,5 +235,6 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {}
-  }
+  },
+  "status": "preview"
 }

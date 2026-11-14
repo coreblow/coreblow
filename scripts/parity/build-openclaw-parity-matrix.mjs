@@ -909,7 +909,7 @@ const matrix = domains
 
 const result = {
   schemaVersion: 1,
-  generatedDate: "2026-05-26",
+  generatedDate: new Date().toISOString().slice(0, 10),
   reference: {
     coreBlowRoot: ".",
     openClawRoot,

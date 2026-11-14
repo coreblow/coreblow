@@ -7,10 +7,14 @@
   "name": "Canvas",
   "description": "Experimental Canvas control and A2UI rendering surfaces for paired nodes.",
   "contracts": {
-    "tools": ["canvas"]
+    "tools": [
+      "canvas"
+    ]
   },
   "configContracts": {
-    "compatibilityMigrationPaths": ["canvasHost"]
+    "compatibilityMigrationPaths": [
+      "canvasHost"
+    ]
   },
   "configSchema": {
     "type": "object",
@@ -36,5 +40,6 @@
         }
       }
     }
-  }
+  },
+  "status": "preview"
 }

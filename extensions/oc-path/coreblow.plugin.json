@@ -4,7 +4,9 @@
   "description": "Adds the coreblow path CLI for oc:// workspace file addressing.",
   "activation": {
     "onStartup": false,
-    "onCommands": ["path"]
+    "onCommands": [
+      "path"
+    ]
   },
   "commandAliases": [
     {
@@ -16,5 +18,7 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {}
-  }
+  },
+  "enabledByDefault": false,
+  "status": "preview"
 }

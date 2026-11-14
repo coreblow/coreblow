@@ -2,25 +2,39 @@
   "id": "codex",
   "name": "Codex",
   "description": "Codex app-server harness and Codex-managed GPT model catalog.",
-  "providers": ["codex"],
+  "providers": [
+    "codex"
+  ],
   "contracts": {
-    "mediaUnderstandingProviders": ["codex"],
-    "migrationProviders": ["codex"]
+    "mediaUnderstandingProviders": [
+      "codex"
+    ],
+    "migrationProviders": [
+      "codex"
+    ]
   },
   "mediaUnderstandingProviderMetadata": {
     "codex": {
-      "capabilities": ["image"],
+      "capabilities": [
+        "image"
+      ],
       "defaultModels": {
         "image": "gpt-5.5"
       }
     }
   },
   "providerCatalogEntry": "./provider-discovery.ts",
-  "syntheticAuthRefs": ["codex"],
-  "nonSecretAuthMarkers": ["codex-app-server"],
+  "syntheticAuthRefs": [
+    "codex"
+  ],
+  "nonSecretAuthMarkers": [
+    "codex-app-server"
+  ],
   "activation": {
     "onStartup": false,
-    "onAgentHarnesses": ["codex"]
+    "onAgentHarnesses": [
+      "codex"
+    ]
   },
   "commandAliases": [
     {
@@ -35,19 +49,26 @@
     "properties": {
       "codexDynamicToolsLoading": {
         "type": "string",
-        "enum": ["searchable", "direct"],
+        "enum": [
+          "searchable",
+          "direct"
+        ],
         "default": "searchable"
       },
       "codexDynamicToolsExclude": {
         "type": "array",
-        "items": { "type": "string" },
+        "items": {
+          "type": "string"
+        },
         "default": []
       },
       "discovery": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "enabled": { "type": "boolean" },
+          "enabled": {
+            "type": "boolean"
+          },
           "timeoutMs": {
             "type": "number",
             "minimum": 1,
@@ -114,7 +135,9 @@
                 },
                 "marketplaceName": {
                   "type": "string",
-                  "enum": ["openai-curated"]
+                  "enum": [
+                    "openai-curated"
+                  ]
                 },
                 "pluginName": {
                   "type": "string"
@@ -133,33 +156,53 @@
         "properties": {
           "mode": {
             "type": "string",
-            "enum": ["yolo", "guardian"],
+            "enum": [
+              "yolo",
+              "guardian"
+            ],
             "default": "yolo"
           },
           "transport": {
             "type": "string",
-            "enum": ["stdio", "websocket"],
+            "enum": [
+              "stdio",
+              "websocket"
+            ],
             "default": "stdio"
           },
-          "command": { "type": "string" },
+          "command": {
+            "type": "string"
+          },
           "args": {
             "oneOf": [
               {
                 "type": "array",
-                "items": { "type": "string" }
+                "items": {
+                  "type": "string"
+                }
               },
-              { "type": "string" }
+              {
+                "type": "string"
+              }
             ]
           },
-          "url": { "type": "string" },
-          "authToken": { "type": "string" },
+          "url": {
+            "type": "string"
+          },
+          "authToken": {
+            "type": "string"
+          },
           "headers": {
             "type": "object",
-            "additionalProperties": { "type": "string" }
+            "additionalProperties": {
+              "type": "string"
+            }
           },
           "clearEnv": {
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           },
           "codeModeOnly": {
             "type": "boolean",
@@ -177,17 +220,35 @@
           },
           "approvalPolicy": {
             "type": "string",
-            "enum": ["never", "on-request", "on-failure", "untrusted"]
+            "enum": [
+              "never",
+              "on-request",
+              "on-failure",
+              "untrusted"
+            ]
           },
           "sandbox": {
             "type": "string",
-            "enum": ["read-only", "workspace-write", "danger-full-access"]
+            "enum": [
+              "read-only",
+              "workspace-write",
+              "danger-full-access"
+            ]
           },
           "approvalsReviewer": {
             "type": "string",
-            "enum": ["user", "auto_review", "guardian_subagent"]
+            "enum": [
+              "user",
+              "auto_review",
+              "guardian_subagent"
+            ]
           },
-          "serviceTier": { "type": ["string", "null"] },
+          "serviceTier": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "defaultWorkspaceDir": {
             "type": "string"
           }
@@ -370,5 +431,7 @@
       "help": "Workspace used by /codex bind when --cwd is omitted.",
       "advanced": true
     }
-  }
+  },
+  "enabledByDefault": false,
+  "status": "preview"
 }

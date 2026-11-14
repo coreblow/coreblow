@@ -3,14 +3,24 @@
   "name": "Google Meet",
   "description": "Join Google Meet calls through Chrome or Twilio transports.",
   "enabledByDefault": false,
-  "commandAliases": [{ "name": "googlemeet" }],
+  "commandAliases": [
+    {
+      "name": "googlemeet"
+    }
+  ],
   "activation": {
     "onStartup": true,
-    "onCommands": ["googlemeet"],
-    "onCapabilities": ["tool"]
+    "onCommands": [
+      "googlemeet"
+    ],
+    "onCapabilities": [
+      "tool"
+    ]
   },
   "contracts": {
-    "tools": ["google_meet"]
+    "tools": [
+      "google_meet"
+    ]
   },
   "uiHints": {
     "defaults.meeting": {
@@ -241,12 +251,20 @@
       },
       "defaultTransport": {
         "type": "string",
-        "enum": ["chrome", "chrome-node", "twilio"],
+        "enum": [
+          "chrome",
+          "chrome-node",
+          "twilio"
+        ],
         "default": "chrome"
       },
       "defaultMode": {
         "type": "string",
-        "enum": ["agent", "bidi", "transcribe"],
+        "enum": [
+          "agent",
+          "bidi",
+          "transcribe"
+        ],
         "default": "agent"
       },
       "chrome": {
@@ -255,7 +273,9 @@
         "properties": {
           "audioBackend": {
             "type": "string",
-            "enum": ["blackhole-2ch"],
+            "enum": [
+              "blackhole-2ch"
+            ],
             "default": "blackhole-2ch"
           },
           "launch": {
@@ -287,7 +307,10 @@
           },
           "audioFormat": {
             "type": "string",
-            "enum": ["pcm16-24khz", "g711-ulaw-8khz"],
+            "enum": [
+              "pcm16-24khz",
+              "g711-ulaw-8khz"
+            ],
             "default": "pcm16-24khz"
           },
           "audioBufferBytes": {
@@ -441,7 +464,10 @@
         "properties": {
           "strategy": {
             "type": "string",
-            "enum": ["agent", "bidi"],
+            "enum": [
+              "agent",
+              "bidi"
+            ],
             "default": "agent"
           },
           "provider": {
@@ -472,7 +498,11 @@
           },
           "toolPolicy": {
             "type": "string",
-            "enum": ["safe-read-only", "owner", "none"],
+            "enum": [
+              "safe-read-only",
+              "owner",
+              "none"
+            ],
             "default": "safe-read-only"
           },
           "providers": {
@@ -511,7 +541,9 @@
         "properties": {
           "provider": {
             "type": "string",
-            "enum": ["google-oauth"]
+            "enum": [
+              "google-oauth"
+            ]
           },
           "clientId": {
             "type": "string"
@@ -527,6 +559,9 @@
     }
   },
   "configContracts": {
-    "compatibilityMigrationPaths": ["plugins.entries.google-meet.config.realtime.provider"]
-  }
+    "compatibilityMigrationPaths": [
+      "plugins.entries.google-meet.config.realtime.provider"
+    ]
+  },
+  "status": "preview"
 }

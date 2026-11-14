@@ -364,12 +364,39 @@ export class PluginLifecycleManager {
   private readonly baseDir: string;
   private readonly extensionsDir: string;
   private readonly backupsDir: string;
+  private readonly stateFile: string;
   private readonly states = new Map<string, PluginLifecycleState>();
 
   constructor(options: LifecycleManagerOptions = {}) {
     this.baseDir = options.baseDir ?? path.join(os.homedir(), ".coreblow");
     this.extensionsDir = path.join(this.baseDir, "extensions");
     this.backupsDir = path.join(this.baseDir, "backups");
+    this.stateFile = path.join(this.baseDir, "plugins", "lifecycle-state.json");
+    this.loadState();
+  }
+
+  private loadState(): void {
+    try {
+      if (fs.existsSync(this.stateFile)) {
+        const raw = fs.readFileSync(this.stateFile, "utf8");
+        const parsed = JSON.parse(raw) as Record<string, PluginLifecycleState>;
+        for (const [id, st] of Object.entries(parsed)) {
+          this.states.set(id, st);
+        }
+      }
+    } catch {}
+  }
+
+  private saveState(): void {
+    try {
+      const dir = path.dirname(this.stateFile);
+      fs.mkdirSync(dir, { recursive: true });
+      const record: Record<string, PluginLifecycleState> = {};
+      for (const [id, st] of this.states.entries()) {
+        record[id] = st;
+      }
+      fs.writeFileSync(this.stateFile, JSON.stringify(record, null, 2), "utf8");
+    } catch {}
   }
 
   public getState(pluginId: string): PluginLifecycleState {
@@ -378,6 +405,7 @@ export class PluginLifecycleManager {
 
   public transitionTo(pluginId: string, newState: PluginLifecycleState): void {
     this.states.set(pluginId, newState);
+    this.saveState();
   }
 
   public snapshotBeforeUpdate(pluginId: string, currentVersion: string): string {

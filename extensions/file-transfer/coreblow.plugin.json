@@ -7,7 +7,12 @@
   "name": "File Transfer",
   "description": "Fetch, list, and write files on paired nodes via dedicated node commands. Bypasses bash stdout truncation by using base64 over node.invoke for binaries up to 16 MB.",
   "contracts": {
-    "tools": ["file_fetch", "dir_list", "dir_fetch", "file_write"]
+    "tools": [
+      "file_fetch",
+      "dir_list",
+      "dir_fetch",
+      "file_write"
+    ]
   },
   "configSchema": {
     "type": "object",
@@ -21,19 +26,29 @@
           "properties": {
             "ask": {
               "type": "string",
-              "enum": ["off", "on-miss", "always"]
+              "enum": [
+                "off",
+                "on-miss",
+                "always"
+              ]
             },
             "allowReadPaths": {
               "type": "array",
-              "items": { "type": "string" }
+              "items": {
+                "type": "string"
+              }
             },
             "allowWritePaths": {
               "type": "array",
-              "items": { "type": "string" }
+              "items": {
+                "type": "string"
+              }
             },
             "denyPaths": {
               "type": "array",
-              "items": { "type": "string" }
+              "items": {
+                "type": "string"
+              }
             },
             "maxBytes": {
               "type": "number"
@@ -46,5 +61,6 @@
         }
       }
     }
-  }
+  },
+  "status": "preview"
 }

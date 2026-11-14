@@ -3,10 +3,14 @@
   "activation": {
     "onStartup": false
   },
-  "channels": ["qa-channel"],
+  "channels": [
+    "qa-channel"
+  ],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
     "properties": {}
-  }
+  },
+  "enabledByDefault": false,
+  "status": "preview"
 }
