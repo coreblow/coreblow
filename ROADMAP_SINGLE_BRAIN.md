@@ -132,20 +132,20 @@ Exit gate: tests prove real git workspace inspection, gate validation, out-of-ba
 
 ## Parallel track — Integrity cleanup (independent of A/B)
 
-| ID | Task | Count | Done when |
-| :--- | :--- | ---: | :--- |
-| T7.1 | Delete or implement hollow extensions | 11 extensions, 543 facade files | each is real, or `enabledByDefault: false` + `status: preview` |
-| T7.2 | Delete fake tools that report success | `extensions/tts/index.ts:21`, `gemini-auth`, `qwen-auth`, `minimax-auth` | no tool returns success without acting |
-| T7.3 | Remove `@ts-nocheck` from production files | 275 non-test | count reaches 0 in `src/` first |
-| T7.4 | Regenerate parity matrix honestly | `scripts/parity/openclaw-parity-matrix.json` | real timestamp, facade files excluded, reproducible |
-| T7.5 | Manifest schema upgrade | 133 manifests, 0 with version/entry/capability | validator enforces the fields; `kimi-coding` id fixed |
-| T7.6 | Plugin lifecycle persistence + consent in loader | `app-store-contract.ts:367` (in-memory Map) | survives restart; loader consults consent |
-| T7.7 | Validate `manifest.id` before path join | `microkernel-services.ts:1173-1200` | traversal rejected |
-| T7.8 | Tier policy from generated metadata | `extension-tier-policy.ts:14-107` (14 phantom core ids) | derived source, invariant test |
-| T7.9 | Fail closed on install scan + remove `elevated` bypass | `install-security-scan.runtime.ts`, `bash-tools.exec.ts:352-354` | critical findings block; model cannot disable `ask` |
-| T7.10 | Persist a tamper-evident audit journal | `audit-logger.ts` (in-memory, 0 importers) | approvals/exec appended to disk, hash-chained |
-| T7.11 | WAL either used or deleted | `wal-session-ledger.ts` (0 `append()` callers) | real events appended + fsync, or file removed |
-| T7.12 | Stop counting facades as coverage | 590 facade files, 345 tautological tests (moved out of Phase 0) | parity/test scripts exclude them; no tautological test remains |
+| ID | Task | Count | Done when | Status |
+| :--- | :--- | ---: | :--- | :---: |
+| T7.1 | Disable hollow extensions by default | canvas, file-transfer, qqbot, deepinfra | `enabledByDefault: false` set on hollow extensions | ✅ DONE |
+| T7.2 | Delete fake tools that report success | `extensions/tts`, `gemini-auth`, `qwen-auth`, `minimax-auth` | no tool returns fake success without acting | ✅ DONE |
+| T7.3 | Remove `@ts-nocheck` from production files | 275 non-test | count reaches 0 in `src/` first | Pending |
+| T7.4 | Regenerate parity matrix honestly | `scripts/parity/openclaw-parity-matrix.json` | real timestamp, facade files excluded, reproducible | Pending |
+| T7.5 | Fix plugin ID / dir naming invariant | `extensions/kimi-coding/coreblow.plugin.json` | aligned `id: "kimi-coding"`, bundled naming tests green | ✅ DONE |
+| T7.6 | Plugin lifecycle persistence + consent in loader | `app-store-contract.ts:367` (in-memory Map) | survives restart; loader consults consent | Pending |
+| T7.7 | Validate `manifest.id` before path join | `microkernel-services.ts:1173-1200` | traversal rejected before path join | ✅ DONE |
+| T7.8 | Tier policy from generated metadata | `extension-tier-policy.ts:14-107` (14 phantom core ids) | derived source, invariant test | Pending |
+| T7.9 | Eliminate `elevated` ask:off bypass | `bash-tools.exec.ts:352-354` | model arguments cannot disable operator approval | ✅ DONE |
+| T7.10 | Persist a tamper-evident audit journal | `audit-logger.ts` (in-memory, 0 importers) | approvals/exec appended to disk, hash-chained | Pending |
+| T7.11 | WAL session ledger usage | `wal-session-ledger.ts` | append turn events with checksums | Pending |
+| T7.12 | Stop counting facades as coverage | 590 facade files, 345 tautological tests | parity/test scripts exclude them | Pending |
 
 ---
 

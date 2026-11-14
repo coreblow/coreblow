@@ -3,7 +3,7 @@
   "activation": {
     "onStartup": true
   },
-  "enabledByDefault": true,
+  "enabledByDefault": false,
   "name": "File Transfer",
   "description": "Fetch, list, and write files on paired nodes via dedicated node commands. Bypasses bash stdout truncation by using base64 over node.invoke for binaries up to 16 MB.",
   "contracts": {

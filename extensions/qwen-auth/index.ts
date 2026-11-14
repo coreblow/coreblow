@@ -19,10 +19,9 @@ const qwenAuthTool: AnyAgentTool = {
   },
   async execute(_toolCallId: string, params: unknown) {
     const action = readAction(params);
-    return {
-      content: [{ type: "text" as const, text: `Qwen auth ${action}` }],
-      details: { action },
-    };
+    throw new Error(
+      `qwen_auth is deprecated and non-functional. Configure DASHSCOPE_API_KEY in environment or run 'coreblow configure' for Qwen provider credentials. (action requested: ${action})`,
+    );
   },
 };
 

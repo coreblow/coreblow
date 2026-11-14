@@ -3,7 +3,7 @@
   "activation": {
     "onStartup": false
   },
-  "enabledByDefault": true,
+  "enabledByDefault": false,
   "providers": ["deepinfra"],
   "providerEndpoints": [
     {

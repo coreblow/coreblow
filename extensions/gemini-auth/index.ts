@@ -21,10 +21,9 @@ const geminiAuthTool: AnyAgentTool = {
   },
   async execute(_toolCallId: string, params: unknown) {
     const action = readAction(params);
-    return {
-      content: [{ type: "text" as const, text: `Gemini auth ${action}` }],
-      details: { action },
-    };
+    throw new Error(
+      `gemini_auth is deprecated and non-functional. Configure GEMINI_API_KEY in environment or run 'coreblow configure' for Gemini provider credentials. (action requested: ${action})`,
+    );
   },
 };
 

@@ -1247,8 +1247,11 @@ export async function handleCoreHubRoute(
       try {
         const body = await parseJsonBody(req);
         const pluginId = typeof body.pluginId === "string" ? body.pluginId.trim() : "";
-        if (!pluginId) {
-          sendJson(res, 400, { ok: false, error: "Missing required 'pluginId' field." });
+        if (!pluginId || !/^[a-z0-9][a-z0-9_-]{0,63}$/i.test(pluginId) || pluginId.includes("..") || pluginId.includes("/") || pluginId.includes("\\")) {
+          sendJson(res, 400, {
+            ok: false,
+            error: `Invalid pluginId "${pluginId}": must be a safe alphanumeric identifier without path traversal characters.`,
+          });
           return true;
         }
 
@@ -1284,8 +1287,16 @@ export async function handleCoreHubRoute(
       try {
         const body = await parseJsonBody(req);
         const manifest = body.manifest as CoreHubAppManifest;
-        if (!manifest || !manifest.id) {
+        if (!manifest || !manifest.id || typeof manifest.id !== "string") {
           sendJson(res, 400, { ok: false, error: "Missing required 'manifest' field." });
+          return true;
+        }
+        const pluginId = manifest.id.trim();
+        if (!/^[a-z0-9][a-z0-9_-]{0,63}$/i.test(pluginId) || pluginId.includes("..") || pluginId.includes("/") || pluginId.includes("\\")) {
+          sendJson(res, 400, {
+            ok: false,
+            error: `Invalid pluginId "${pluginId}": must be a safe alphanumeric identifier without path traversal characters.`,
+          });
           return true;
         }
         const archiveBuffer =
@@ -1315,10 +1326,10 @@ export async function handleCoreHubRoute(
         const body = await parseJsonBody(req);
         const pluginId = typeof body.pluginId === "string" ? body.pluginId.trim() : "";
         const manifest = body.manifest as CoreHubAppManifest;
-        if (!pluginId || !manifest) {
+        if (!pluginId || !manifest || !/^[a-z0-9][a-z0-9_-]{0,63}$/i.test(pluginId) || pluginId.includes("..") || pluginId.includes("/") || pluginId.includes("\\")) {
           sendJson(res, 400, {
             ok: false,
-            error: "Missing required 'pluginId' or 'manifest' field.",
+            error: `Invalid pluginId "${pluginId}": must be a safe alphanumeric identifier without path traversal characters.`,
           });
           return true;
         }
