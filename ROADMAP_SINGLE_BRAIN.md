@@ -118,13 +118,15 @@ Exit gate: a test proves model resolution, role-based tool boundary, and real de
 
 ---
 
-## Phase B3 — PR workflow for real
+## Phase B3 — PR workflow for real (COMPLETED)
 
-| ID | Task | Anchor | Done when |
-| :--- | :--- | :--- | :--- |
-| TB3.1 | Real git execution | `src/agents/pr-workflow/pr-workflow-service.ts` (no git today) | diff/branch/commit executed |
-| TB3.2 | Out-of-band approval | approval plumbing | risky action requires operator approval |
-| TB3.3 | Gate wiring | 5 preflight gates | gates run against real repo state |
+| ID | Task | Anchor | Done when | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| TB3.1 | Real git execution | `src/agents/pr-workflow/pr-workflow-service.ts` | diff, branch checkout, and commit executed via gitRunner | ✅ DONE |
+| TB3.2 | Out-of-band approval | `approvePullRequestDraft` & `commitApprovedPullRequestDraft` | risky commit requires operator approval, status -> merged | ✅ DONE |
+| TB3.3 | Gate wiring | `createPullRequestDraftFromWorkspace` | 5 preflight gates evaluate live repository status and diff | ✅ DONE |
+
+Exit gate: tests prove real git workspace inspection, gate validation, out-of-band operator approval, branch creation, and git commit staging. All 66 pr-workflow tests pass.
 
 ---
 

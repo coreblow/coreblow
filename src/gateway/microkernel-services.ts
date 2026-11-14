@@ -708,6 +708,7 @@ export async function handleCoreHubRoute(
     pathname === "/api/corehub/import-agent" ||
     (pathname === "/api/corehub/pr-workflow/drafts" && method === "POST") ||
     pathname === "/api/corehub/pr-workflow/approve" ||
+    pathname === "/api/corehub/pr-workflow/commit" ||
     pathname === "/api/corehub/chat-views/render" ||
     pathname === "/api/corehub/desktop/quick-launch" ||
     pathname === "/api/corehub/desktop/diff-inspector" ||
@@ -1178,6 +1179,7 @@ export async function handleCoreHubRoute(
           pathname.startsWith("/api/corehub/import-agent") ||
           pathname === "/api/corehub/pr-workflow/drafts" ||
           pathname === "/api/corehub/pr-workflow/approve" ||
+    pathname === "/api/corehub/pr-workflow/commit" ||
           pathname.startsWith("/api/corehub/desktop/")
         ? "agents.create"
         : pathname === "/api/corehub/chat-views/render"
@@ -1743,6 +1745,42 @@ export async function handleCoreHubRoute(
             : operator;
         const draft = services.prWorkflow.approvePullRequestDraft({ prId, approverId });
         sendJson(res, 200, { ok: true, draft });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const statusCode = msg.includes("ZONE_0_BLOCKED") ? 403 : 400;
+        sendJson(res, statusCode, { ok: false, error: msg });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/pr-workflow/commit
+    if (pathname === "/api/corehub/pr-workflow/commit") {
+      if (!services.prWorkflow) {
+        sendJson(res, 503, { ok: false, error: "PR Workflow Orchestrator service not available" });
+        return true;
+      }
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const prId = typeof body.prId === "string" ? body.prId.trim() : "";
+        const approverId =
+          typeof body.approverId === "string" && body.approverId.trim()
+            ? body.approverId.trim()
+            : operator;
+        const cwd = typeof body.cwd === "string" ? body.cwd : undefined;
+        const commitMessage = typeof body.commitMessage === "string" ? body.commitMessage : undefined;
+        const createBranch = body.createBranch === true;
+        const branchName = typeof body.branchName === "string" ? body.branchName : undefined;
+
+        const result = await services.prWorkflow.commitApprovedPullRequestDraft({
+          prId,
+          approverId,
+          cwd,
+          commitMessage,
+          createBranch,
+          branchName,
+        });
+        sendJson(res, 200, { ok: true, result });
         return true;
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);

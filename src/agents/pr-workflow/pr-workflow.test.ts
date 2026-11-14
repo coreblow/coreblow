@@ -1,13 +1,21 @@
 import { describe, expect, it } from "vitest";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import {
   compilePullRequestMarkdown,
   evaluatePrPreFlightGates,
   extractAddedDiffLines,
+  inspectGitWorkspace,
   isForbiddenPath,
   PrWorkflowOrchestratorService,
   scanAddedLinesForSecrets,
   type PullRequestDraftRecord,
 } from "./index.js";
+
+const execFileAsync = promisify(execFile);
 
 describe("Autonomous Git & Pull Request Workflow Engine", () => {
   describe("Pure DOP Helpers: extractAddedDiffLines & scanAddedLinesForSecrets", () => {
@@ -544,6 +552,132 @@ describe("Autonomous Git & Pull Request Workflow Engine", () => {
       expect(service.listPullRequestDrafts("ws_alpha")).toHaveLength(2);
       expect(service.listPullRequestDrafts("ws_beta")).toHaveLength(1);
       expect(service.listPullRequestDrafts("ws_nonexistent")).toHaveLength(0);
+    });
+  });
+
+  describe("PrWorkflowOrchestratorService: Real Git Execution & Approval Lifecycle (TB3.1, TB3.2, TB3.3)", () => {
+    it("inspects real Git repository workspace, detects branch, changed files, and diff", async () => {
+      const tempGitDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-git-test-"));
+      try {
+        await execFileAsync("git", ["init", "-q"], { cwd: tempGitDir });
+        await execFileAsync("git", ["config", "user.name", "CoreBlow Tester"], { cwd: tempGitDir });
+        await execFileAsync("git", ["config", "user.email", "test@coreblow.com"], { cwd: tempGitDir });
+
+        // Initial commit
+        const readmePath = path.join(tempGitDir, "README.md");
+        await fs.writeFile(readmePath, "# Initial Repo\n", "utf8");
+        await execFileAsync("git", ["add", "README.md"], { cwd: tempGitDir });
+        await execFileAsync("git", ["commit", "-m", "Initial commit"], { cwd: tempGitDir });
+
+        // Modify a file and add a new untracked file
+        await fs.writeFile(readmePath, "# Initial Repo\n\nUpdated feature line\n", "utf8");
+        const srcFile = path.join(tempGitDir, "feature.ts");
+        await fs.writeFile(srcFile, "export const feature = 42;\n", "utf8");
+
+        const service = new PrWorkflowOrchestratorService();
+        await service.start();
+
+        const status = await service.inspectGitWorkspace(tempGitDir);
+        expect(status.isClean).toBe(false);
+        expect(status.changedFiles).toContain("README.md");
+        expect(status.changedFiles).toContain("feature.ts");
+        expect(status.diffText).toContain("Updated feature line");
+      } finally {
+        await fs.rm(tempGitDir, { recursive: true, force: true });
+      }
+    });
+
+    it("creates PR draft from workspace, evaluates 5 gates, approves, and commits to Git", async () => {
+      const tempGitDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-pr-commit-"));
+      try {
+        await execFileAsync("git", ["init", "-q"], { cwd: tempGitDir });
+        await execFileAsync("git", ["config", "user.name", "CoreBlow Tester"], { cwd: tempGitDir });
+        await execFileAsync("git", ["config", "user.email", "test@coreblow.com"], { cwd: tempGitDir });
+
+        const baseFile = path.join(tempGitDir, "service.ts");
+        await fs.writeFile(baseFile, "export class Service {}\n", "utf8");
+        await execFileAsync("git", ["add", "service.ts"], { cwd: tempGitDir });
+        await execFileAsync("git", ["commit", "-m", "chore: base service"], { cwd: tempGitDir });
+
+        // Make clean modifications
+        await fs.writeFile(baseFile, "export class Service { run() { return true; } }\n", "utf8");
+
+        const service = new PrWorkflowOrchestratorService();
+        await service.start();
+
+        // 1. Create PR draft by inspecting live workspace (TB3.1, TB3.3)
+        const draft = await service.createPullRequestDraftFromWorkspace({
+          cwd: tempGitDir,
+          title: "feat(service): add run method",
+          description: "Implements the core run loop on Service class.",
+          typecheckPassed: true,
+          lintPassed: true,
+          testPassed: true,
+        });
+
+        expect(draft.allChecksPassed).toBe(true);
+        expect(draft.status).toBe("ready_for_review");
+        expect(draft.changedFiles).toContain("service.ts");
+        expect(draft.verificationChecks).toHaveLength(5);
+
+        // 2. Reject unapproved commit attempt (TB3.2)
+        await expect(
+          service.commitApprovedPullRequestDraft({
+            prId: draft.prId,
+            approverId: "operator-admin",
+            cwd: tempGitDir,
+          }),
+        ).rejects.toThrow("PR_NOT_APPROVED");
+
+        // 3. Approve draft (TB3.2)
+        const approved = service.approvePullRequestDraft({
+          prId: draft.prId,
+          approverId: "operator-admin",
+        });
+        expect(approved.status).toBe("approved");
+
+        // 4. Commit approved draft with new branch (TB3.1, TB3.2)
+        const commitResult = await service.commitApprovedPullRequestDraft({
+          prId: draft.prId,
+          approverId: "operator-admin",
+          cwd: tempGitDir,
+          createBranch: true,
+          branchName: "feature/service-run",
+          commitMessage: "feat: add service run implementation",
+        });
+
+        expect(commitResult.success).toBe(true);
+        expect(commitResult.commitHash).toMatch(/^[0-9a-f]{7,40}$/);
+        expect(commitResult.branchCreated).toBe("feature/service-run");
+        expect(commitResult.draft.status).toBe("merged");
+
+        // Verify git log in the repo
+        const logRes = await execFileAsync("git", ["log", "-1", "--oneline"], { cwd: tempGitDir });
+        expect(logRes.stdout).toContain("feat: add service run implementation");
+      } finally {
+        await fs.rm(tempGitDir, { recursive: true, force: true });
+      }
+    });
+
+    it("rejects draft when operator denies approval or blocks it", async () => {
+      const service = new PrWorkflowOrchestratorService();
+      await service.start();
+
+      const draft = service.createPullRequestDraft({
+        title: "Test PR",
+        description: "Test description",
+        sourceBranch: "feat/test",
+        changedFiles: ["src/test.ts"],
+        diffText: "+const x = 1;",
+      });
+
+      const rejected = service.rejectPullRequestDraft({
+        prId: draft.prId,
+        reason: "Does not meet security requirements",
+        rejecterId: "auditor-01",
+      });
+
+      expect(rejected.status).toBe("blocked");
     });
   });
 });

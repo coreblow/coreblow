@@ -6,7 +6,11 @@
  * deterministic PR Markdown compilation, and stateful PR workflow orchestration.
  */
 
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import type { GatewayService, ServiceHealth } from "../../gateway/service-registry.js";
+
+const execFileAsync = promisify(execFile);
 
 // ── Immutable DOP Data Contracts ─────────────────────────────────────────────
 
@@ -302,12 +306,138 @@ export interface ApprovePullRequestDraftParams {
   readonly trustZone?: "operator" | "authenticated" | "public";
 }
 
+export interface GitWorkspaceStatus {
+  readonly branch: string;
+  readonly changedFiles: readonly string[];
+  readonly diffText: string;
+  readonly isClean: boolean;
+}
+
+export type GitCommandRunner = (
+  command: string,
+  args: readonly string[],
+  options?: { cwd?: string; env?: NodeJS.ProcessEnv },
+) => Promise<{
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+}>;
+
+export interface CreatePullRequestDraftFromWorkspaceParams {
+  readonly cwd?: string;
+  readonly workspaceId?: string;
+  readonly warRoomId?: string;
+  readonly sourceBranch?: string;
+  readonly targetBranch?: string;
+  readonly title: string;
+  readonly description: string;
+  readonly runGates?: boolean;
+  readonly typecheckPassed?: boolean;
+  readonly lintPassed?: boolean;
+  readonly testPassed?: boolean;
+  readonly forbiddenPatterns?: readonly string[];
+  readonly trustZone?: "operator" | "authenticated" | "public";
+  readonly prId?: string;
+}
+
+export interface CommitApprovedPullRequestDraftParams {
+  readonly prId: string;
+  readonly approverId: string;
+  readonly cwd?: string;
+  readonly commitMessage?: string;
+  readonly createBranch?: boolean;
+  readonly branchName?: string;
+  readonly trustZone?: "operator" | "authenticated" | "public";
+}
+
+export interface CommitApprovedPullRequestDraftResult {
+  readonly success: boolean;
+  readonly draft: PullRequestDraftRecord;
+  readonly commitHash: string;
+  readonly branchCreated?: string;
+  readonly output: string;
+}
+
+export interface PrWorkflowOrchestratorOptions {
+  readonly initialDrafts?: readonly PullRequestDraftRecord[];
+  readonly gitRunner?: GitCommandRunner;
+}
+
+export async function defaultGitRunner(
+  command: string,
+  args: readonly string[],
+  options?: { cwd?: string; env?: NodeJS.ProcessEnv },
+): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+  try {
+    const { stdout, stderr } = await execFileAsync(command, [...args], {
+      cwd: options?.cwd ?? process.cwd(),
+      env: options?.env ?? process.env,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    return { stdout: String(stdout), stderr: String(stderr), exitCode: 0 };
+  } catch (err: any) {
+    return {
+      stdout: String(err.stdout ?? ""),
+      stderr: String(err.stderr ?? err.message ?? ""),
+      exitCode: typeof err.code === "number" ? err.code : 1,
+    };
+  }
+}
+
+/**
+ * Inspects a real Git workspace: branch, modified/untracked files, and full diffText (TB3.1).
+ */
+export async function inspectGitWorkspace(
+  cwd?: string,
+  gitRunner: GitCommandRunner = defaultGitRunner,
+): Promise<GitWorkspaceStatus> {
+  const dir = cwd ?? process.cwd();
+
+  // 1. Current Branch
+  const branchRes = await gitRunner("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: dir });
+  const branch = branchRes.exitCode === 0 ? branchRes.stdout.trim() : "main";
+
+  // 2. Status Porcelain (changed files)
+  const statusRes = await gitRunner("git", ["status", "--porcelain"], { cwd: dir });
+  const changedFiles: string[] = [];
+  if (statusRes.exitCode === 0 && statusRes.stdout.trim().length > 0) {
+    const lines = statusRes.stdout.split(/\r?\n/);
+    for (const line of lines) {
+      if (line.trim().length >= 3) {
+        const filePart = line.slice(3).trim();
+        const finalFile = filePart.includes(" -> ") ? filePart.split(" -> ")[1].trim() : filePart;
+        if (finalFile) {
+          changedFiles.push(finalFile);
+        }
+      }
+    }
+  }
+
+  // 3. Diff Text (staged + unstaged)
+  const diffRes = await gitRunner("git", ["diff", "HEAD"], { cwd: dir });
+  let diffText = diffRes.exitCode === 0 ? diffRes.stdout : "";
+  if (!diffText.trim()) {
+    const unstagedDiff = await gitRunner("git", ["diff"], { cwd: dir });
+    const stagedDiff = await gitRunner("git", ["diff", "--cached"], { cwd: dir });
+    diffText = `${unstagedDiff.stdout}\n${stagedDiff.stdout}`.trim();
+  }
+
+  return {
+    branch,
+    changedFiles: Object.freeze(Array.from(new Set(changedFiles))),
+    diffText,
+    isClean: changedFiles.length === 0,
+  };
+}
+
 export class PrWorkflowOrchestratorService implements GatewayService {
   public readonly name = "pr-workflow-orchestrator";
   private isStarted = false;
   private readonly drafts = new Map<string, PullRequestDraftRecord>();
+  private readonly gitRunner: GitCommandRunner;
 
-  constructor(options?: { readonly initialDrafts?: readonly PullRequestDraftRecord[] }) {
+  constructor(options?: PrWorkflowOrchestratorOptions) {
+    this.gitRunner = options?.gitRunner ?? defaultGitRunner;
     if (options?.initialDrafts) {
       for (const draft of options.initialDrafts) {
         this.drafts.set(draft.prId, draft);
@@ -415,5 +545,137 @@ export class PrWorkflowOrchestratorService implements GatewayService {
 
   getPullRequestDraft(prId: string): PullRequestDraftRecord | undefined {
     return this.drafts.get(prId);
+  }
+
+  /**
+   * Inspects a real Git workspace: branch, status, and diff (TB3.1).
+   */
+  async inspectGitWorkspace(cwd?: string): Promise<GitWorkspaceStatus> {
+    return inspectGitWorkspace(cwd, this.gitRunner);
+  }
+
+  /**
+   * Automatically creates a PR draft by inspecting the live Git workspace and running gates (TB3.1, TB3.3).
+   */
+  async createPullRequestDraftFromWorkspace(
+    params: CreatePullRequestDraftFromWorkspaceParams,
+  ): Promise<PullRequestDraftRecord> {
+    const gitStatus = await this.inspectGitWorkspace(params.cwd);
+    const sourceBranch = params.sourceBranch ?? gitStatus.branch;
+
+    return this.createPullRequestDraft({
+      workspaceId: params.workspaceId,
+      warRoomId: params.warRoomId,
+      sourceBranch,
+      targetBranch: params.targetBranch ?? "main",
+      title: params.title,
+      description: params.description,
+      changedFiles: gitStatus.changedFiles,
+      diffText: gitStatus.diffText,
+      typecheckPassed: params.typecheckPassed,
+      lintPassed: params.lintPassed,
+      testPassed: params.testPassed,
+      forbiddenPatterns: params.forbiddenPatterns,
+      trustZone: params.trustZone,
+      prId: params.prId,
+    });
+  }
+
+  /**
+   * Commits an approved Pull Request draft to Git (TB3.1, TB3.2).
+   * Strict safety check: Draft must be 'approved', Zone 0 public channels rejected.
+   */
+  async commitApprovedPullRequestDraft(
+    params: CommitApprovedPullRequestDraftParams,
+  ): Promise<CommitApprovedPullRequestDraftResult> {
+    if (params.trustZone === "public") {
+      throw new Error(
+        "ZONE_0_BLOCKED: Public channels cannot commit or mutate pull request drafts.",
+      );
+    }
+
+    const draft = this.drafts.get(params.prId);
+    if (!draft) {
+      throw new Error(`Pull request draft "${params.prId}" not found.`);
+    }
+
+    if (draft.status !== "approved") {
+      throw new Error(
+        `PR_NOT_APPROVED: Cannot commit PR draft in status "${draft.status}". Must be "approved" by operator.`,
+      );
+    }
+
+    const dir = params.cwd ?? process.cwd();
+    let branchCreated: string | undefined;
+
+    // 1. Create branch if requested
+    if (params.createBranch && params.branchName) {
+      const branchRes = await this.gitRunner("git", ["checkout", "-b", params.branchName], { cwd: dir });
+      if (branchRes.exitCode === 0) {
+        branchCreated = params.branchName;
+      }
+    }
+
+    // 2. Stage files
+    if (draft.changedFiles.length > 0) {
+      await this.gitRunner("git", ["add", "--", ...draft.changedFiles], { cwd: dir });
+    } else {
+      await this.gitRunner("git", ["add", "-A"], { cwd: dir });
+    }
+
+    // 3. Commit
+    const commitMsg = params.commitMessage ?? `${draft.title}\n\n${draft.summaryMarkdown}`;
+    const commitRes = await this.gitRunner("git", ["commit", "-m", commitMsg], { cwd: dir });
+
+    // 4. Resolve commit hash
+    const hashRes = await this.gitRunner("git", ["rev-parse", "--short=7", "HEAD"], { cwd: dir });
+    const commitHash = hashRes.exitCode === 0 ? hashRes.stdout.trim() : "unknown";
+
+    // 5. Transition status to 'merged'
+    const now = Date.now();
+    const updatedDraft: PullRequestDraftRecord = {
+      ...draft,
+      status: "merged",
+      updatedAtMs: now,
+    };
+    this.drafts.set(params.prId, updatedDraft);
+
+    return {
+      success: commitRes.exitCode === 0,
+      draft: updatedDraft,
+      commitHash,
+      branchCreated,
+      output: commitRes.stdout || commitRes.stderr,
+    };
+  }
+
+  /**
+   * Rejects a PR draft, transitioning status to 'blocked' (TB3.2).
+   */
+  rejectPullRequestDraft(params: {
+    prId: string;
+    reason: string;
+    rejecterId: string;
+    trustZone?: "operator" | "authenticated" | "public";
+  }): PullRequestDraftRecord {
+    if (params.trustZone === "public") {
+      throw new Error(
+        "ZONE_0_BLOCKED: Public channels cannot reject or mutate pull request drafts.",
+      );
+    }
+
+    const draft = this.drafts.get(params.prId);
+    if (!draft) {
+      throw new Error(`Pull request draft "${params.prId}" not found.`);
+    }
+
+    const now = Date.now();
+    const updatedDraft: PullRequestDraftRecord = {
+      ...draft,
+      status: "blocked",
+      updatedAtMs: now,
+    };
+    this.drafts.set(params.prId, updatedDraft);
+    return updatedDraft;
   }
 }
