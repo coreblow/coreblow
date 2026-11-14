@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../core/i18n/strings.dart';
 import '../models/studio_state.dart';
-import '../services/coreblow_tool_executor.dart';
 
 const List<CoreHubModuleItem> kDefaultCoreHubModules = [
   CoreHubModuleItem(
@@ -99,21 +98,7 @@ class StudioViewModel extends ChangeNotifier {
     this.enablePersistence = false,
     this.stateFilePath,
     this.homeDirPath,
-    CoreBlowToolExecutor? toolExecutor,
   }) {
-    this.toolExecutor = toolExecutor ??
-        CoreBlowToolExecutor(
-          onFileModified: (filePath) {
-            if (_currentProjectPath.isNotEmpty && filePath.startsWith(_currentProjectPath)) {
-              var rel = filePath.substring(_currentProjectPath.length);
-              if (rel.startsWith('/')) rel = rel.substring(1);
-              if (!_changedFiles.contains(rel)) {
-                _changedFiles.add(rel);
-                notifyListeners();
-              }
-            }
-          },
-        );
     inputController.addListener(_onTextChanged);
     _coreHubModules = List.from(kDefaultCoreHubModules);
     _initDefaultGates();
@@ -128,7 +113,6 @@ class StudioViewModel extends ChangeNotifier {
   final bool enablePersistence;
   final String? stateFilePath;
   final String? homeDirPath;
-  late final CoreBlowToolExecutor toolExecutor;
 
   Future<void>? _loadFuture;
   Future<void>? _saveQueue;
@@ -269,7 +253,7 @@ class StudioViewModel extends ChangeNotifier {
   String geminiApiKey = '';
   String groqApiKey = '';
   String localOllamaUrl = 'http://127.0.0.1:11434';
-  String customEndpointUrl = 'http://127.0.0.1:20128/v1';
+  String customEndpointUrl = 'http://127.0.0.1:18789';
   String get custom9RouterUrl => customEndpointUrl;
   set custom9RouterUrl(String val) => customEndpointUrl = val;
   String customApiKey = '';
@@ -962,49 +946,10 @@ class StudioViewModel extends ChangeNotifier {
     final stopwatch = Stopwatch()..start();
 
     // 1. Shorthand Path Normalization & Project Binding
-    final detectedPath = CoreBlowToolExecutor.detectAndNormalizePath(text);
+    final detectedPath = _detectPath(text);
     if (detectedPath != null && Directory(detectedPath).existsSync()) {
       if (_currentProjectPath != detectedPath && _currentProjectPath != '$detectedPath/') {
         selectProject(detectedPath);
-      }
-    }
-
-    // 2. Proactive Pre-Fetch: If user is inquiring about a directory, snapshot it
-    String? proactiveContext;
-    final targetDir = detectedPath ?? (Directory(_currentProjectPath).existsSync() ? _currentProjectPath : null);
-    if (targetDir != null && Directory(targetDir).existsSync()) {
-      final lowerText = text.toLowerCase();
-      final isFolderInquiry = text.contains('/') ||
-          lowerText.contains('folder') ||
-          lowerText.contains('struktur') ||
-          lowerText.contains('baca') ||
-          lowerText.contains('cek') ||
-          lowerText.contains('list') ||
-          lowerText.contains('dir') ||
-          lowerText.contains('file') ||
-          lowerText.contains('project') ||
-          lowerText.contains('repo') ||
-          lowerText.contains('aplesi');
-
-      if (isFolderInquiry) {
-        try {
-          final listResult = await toolExecutor.listDir(path: targetDir, maxDepth: 2, maxEntries: 100);
-          String manifestSnippet = '';
-          for (final manifestName in ['package.json', 'pubspec.yaml', 'README.md', 'Cargo.toml', 'pyproject.toml']) {
-            final mFile = File('$targetDir/$manifestName');
-            if (mFile.existsSync()) {
-              try {
-                final mContent = await toolExecutor.readFile(path: mFile.path, offset: 1, limit: 35);
-                manifestSnippet += '\n\n[$manifestName preview]:\n${mContent.output}';
-                break;
-              } catch (_) {}
-            }
-          }
-          proactiveContext = '[CoreBlow Workspace Snapshot: Directory $targetDir]\n'
-              '<tool_response>\n'
-              '{"name": "list_dir", "path": "$targetDir", "output": ${jsonEncode('${listResult.output}$manifestSnippet')}}\n'
-              '</tool_response>';
-        } catch (_) {}
       }
     }
 
@@ -1012,331 +957,174 @@ class StudioViewModel extends ChangeNotifier {
       currentAssistantMsgId: assistantMsgId,
       threadId: currentThreadId,
     );
-
     final activePayload = List<Map<String, dynamic>>.from(conversationPayload);
-    if (proactiveContext != null) {
-      activePayload.add({
-        'role': 'system',
-        'content': proactiveContext,
-      });
-    }
 
     String replyContent = '';
-    String traceInfo = 'CoreBlow Engine · Active';
-    int reactIteration = 0;
-    const int maxReactIterations = 5;
+    String traceInfo = 'CoreBlow Gateway · Active';
     final executedTools = <String>[];
     int? firstTtftMs;
 
     try {
-      final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 3000);
-      _activeHttpClient = client;
-
-      while (reactIteration < maxReactIterations) {
-        if (_cancelRequested) break;
-        reactIteration++;
-
-        // A. Custom Gateway (e.g. 20128)
-        if (customApiKey.isNotEmpty || (customEndpointUrl.isNotEmpty && !customEndpointUrl.contains('18789'))) {
-          final endpoint = customEndpointUrl.endsWith('/chat/completions')
+      final isGateway = customEndpointUrl.contains(':18789') || customEndpointUrl.contains('/chat/react');
+      final endpoint = isGateway
+          ? (customEndpointUrl.endsWith('/api/corehub/chat/react')
               ? customEndpointUrl
-              : (customEndpointUrl.endsWith('/') ? '${customEndpointUrl}chat/completions' : '$customEndpointUrl/chat/completions');
-          final request = await client.postUrl(Uri.parse(endpoint));
-          request.headers.contentType = ContentType.json;
-          request.headers.set('Accept', 'text/event-stream, application/json');
-          if (customApiKey.isNotEmpty) {
-            request.headers.set('Authorization', 'Bearer $customApiKey');
-          }
-          final chosenModel = customEndpointUrl.contains('20128')
-              ? 'supergratis'
-              : (_selectedModel == 'Coding' ? 'claude-3-7-sonnet' : 'deepseek-r1');
+              : '${customEndpointUrl.replaceAll(RegExp(r'/+$'), '')}/api/corehub/chat/react')
+          : (customEndpointUrl.endsWith('/chat/completions')
+              ? customEndpointUrl
+              : (customEndpointUrl.endsWith('/') ? '${customEndpointUrl}chat/completions' : '$customEndpointUrl/chat/completions'));
 
-          final requestBody = {
-            'model': chosenModel,
-            'stream': true,
-            'messages': activePayload,
-            'tools': CoreBlowToolExecutor.openAiTools,
-          };
-          request.write(jsonEncode(requestBody));
-          final response = await request.close();
-          if (response.statusCode == 200) {
-            final streamBuffer = StringBuffer();
-            final nonSseLines = <String>[];
-            final deltaToolCalls = <int, Map<String, dynamic>>{};
-            bool isSse = false;
-
-            await for (final rawLine in utf8.decoder.bind(response).transform(const LineSplitter())) {
-              if (_cancelRequested) break;
-              final trimmed = rawLine.trim();
-              if (trimmed.isEmpty) continue;
-              if (trimmed.startsWith(':')) continue;
-
-              if (trimmed.startsWith('data:')) {
-                isSse = true;
-                final dataStr = trimmed.substring(5).trim();
-                if (dataStr == '[DONE]') break;
-                if (dataStr.isEmpty) continue;
-                try {
-                  final chunk = jsonDecode(dataStr);
-
-                  // 1. Native OpenAI tool calls
-                  final toolCallsList = chunk['choices']?[0]?['delta']?['tool_calls'] ??
-                      chunk['choices']?[0]?['message']?['tool_calls'];
-                  if (toolCallsList is List) {
-                    for (final tc in toolCallsList) {
-                      if (tc is Map) {
-                        final idx = tc['index'] is int ? tc['index'] as int : 0;
-                        deltaToolCalls.putIfAbsent(idx, () => {
-                          'id': tc['id'] ?? 'call_${DateTime.now().millisecondsSinceEpoch}_$idx',
-                          'name': '',
-                          'arguments': StringBuffer(),
-                        });
-                        if (tc['id'] != null) deltaToolCalls[idx]!['id'] = tc['id'];
-                        if (tc['function'] is Map) {
-                          final fn = tc['function'] as Map;
-                          if (fn['name'] != null && fn['name'].toString().isNotEmpty) {
-                            deltaToolCalls[idx]!['name'] = fn['name'].toString();
-                          }
-                          if (fn['arguments'] != null) {
-                            (deltaToolCalls[idx]!['arguments'] as StringBuffer).write(fn['arguments'].toString());
-                          }
-                        }
-                      }
-                    }
-                  }
-
-                  // 2. Streamed prose content
-                  final rawContent = chunk['choices']?[0]?['delta']?['content'] ??
-                      chunk['choices']?[0]?['delta']?['reasoning_content'] ??
-                      chunk['choices']?[0]?['text'] ??
-                      chunk['choices']?[0]?['message']?['content'];
-
-                  String piece = '';
-                  if (rawContent is String) {
-                    piece = rawContent;
-                  } else if (rawContent is List) {
-                    for (final item in rawContent) {
-                      if (item is Map && item['text'] is String) {
-                        piece += item['text'] as String;
-                      } else if (item is String) {
-                        piece += item;
-                      }
-                    }
-                  }
-
-                  if (piece.isNotEmpty) {
-                    firstTtftMs ??= stopwatch.elapsedMilliseconds;
-                    streamBuffer.write(piece);
-                    final cleaned = CoreBlowToolExecutor.cleanToolBlocksFromText(streamBuffer.toString());
-                    if (cleaned.isNotEmpty) {
-                      replyContent = cleaned;
-                    }
-
-                    traceInfo = executedTools.isEmpty
-                        ? 'Custom Gateway · TTFT ${firstTtftMs}ms · Streaming...'
-                        : 'CoreBlow Engine · Step $reactIteration · Streaming...';
-
-                    _updateAssistantMessage(
-                      targetThreadId: currentThreadId,
-                      id: assistantMsgId,
-                      content: replyContent.isNotEmpty ? replyContent : '...',
-                      trace: traceInfo,
-                      isStreaming: true,
-                      toolSteps: List.from(executedTools),
-                    );
-                    notifyListeners();
-                  }
-                } catch (_) {}
-              } else {
-                nonSseLines.add(rawLine);
-              }
-            }
-
-            if (!isSse && nonSseLines.isNotEmpty) {
-              final body = nonSseLines.join('\n').trim();
-              try {
-                final json = jsonDecode(body);
-                final nonSseContent = json['choices']?[0]?['message']?['content'] ??
-                    json['choices']?[0]?['delta']?['content'] ??
-                    json['reply'] ??
-                    body;
-                streamBuffer.write(nonSseContent);
-                final nonSseToolCalls = json['choices']?[0]?['message']?['tool_calls'];
-                if (nonSseToolCalls is List) {
-                  for (var i = 0; i < nonSseToolCalls.length; i++) {
-                    final tc = nonSseToolCalls[i];
-                    if (tc is Map) {
-                      deltaToolCalls[i] = {
-                        'id': tc['id'] ?? 'call_${DateTime.now().millisecondsSinceEpoch}_$i',
-                        'name': tc['function']?['name'] ?? '',
-                        'arguments': StringBuffer(tc['function']?['arguments']?.toString() ?? ''),
-                      };
-                    }
-                  }
-                }
-              } catch (_) {
-                streamBuffer.write(body);
-              }
-            }
-
-            final currentTurnText = streamBuffer.toString();
-
-            // Detect tools to run
-            final detectedCalls = <ParsedToolCall>[];
-
-            // 1. From Native tool calls
-            for (final entry in deltaToolCalls.values) {
-              final name = entry['name']?.toString() ?? '';
-              final rawArgs = (entry['arguments'] as StringBuffer).toString();
-              if (name.isNotEmpty) {
-                Map<String, dynamic> args = {};
-                try {
-                  if (rawArgs.trim().isNotEmpty) {
-                    args = jsonDecode(rawArgs) as Map<String, dynamic>;
-                  }
-                } catch (_) {}
-                detectedCalls.add(ParsedToolCall(
-                  id: entry['id'].toString(),
-                  name: name,
-                  arguments: args,
-                  rawBlock: rawArgs,
-                ));
-              }
-            }
-
-            // 2. From XML tags
-            final xmlCalls = CoreBlowToolExecutor.parseXmlToolCalls(currentTurnText);
-            for (final xc in xmlCalls) {
-              if (!detectedCalls.any((dc) => dc.name == xc.name)) {
-                detectedCalls.add(xc);
-              }
-            }
-
-            // 3. Self-healing bash interceptor
-            if (detectedCalls.isEmpty) {
-              final intercepted = CoreBlowToolExecutor.detectBashCommandsToIntercept(currentTurnText);
-              detectedCalls.addAll(intercepted);
-            }
-
-            if (detectedCalls.isEmpty) {
-              final cleaned = CoreBlowToolExecutor.cleanToolBlocksFromText(currentTurnText);
-              if (cleaned.isNotEmpty) {
-                replyContent = cleaned;
-              }
-              break; // No further tools, final answer reached!
-            }
-
-            // Execute all detected tools
-            for (final toolCall in detectedCalls) {
-              if (_cancelRequested) break;
-              traceInfo = 'CoreBlow Engine · Step $reactIteration · Running ${toolCall.name}: ${toolCall.shortSummary}';
-              _updateAssistantMessage(
-                targetThreadId: currentThreadId,
-                id: assistantMsgId,
-                content: replyContent.isNotEmpty ? replyContent : 'Executing ${toolCall.name}...',
-                trace: traceInfo,
-                isStreaming: true,
-                toolSteps: List.from(executedTools),
-              );
-              notifyListeners();
-
-              final toolResult = await toolExecutor.executeTool(
-                name: toolCall.name,
-                arguments: toolCall.arguments,
-                executionProfile: _executionProfile,
-                defaultCwd: _currentProjectPath,
-              );
-
-              executedTools.add('✓ ${toolCall.name} · ${toolCall.shortSummary}');
-
-              activePayload.add({
-                'role': 'assistant',
-                'content': '<tool_call>\n${jsonEncode({"name": toolCall.name, "arguments": toolCall.arguments})}\n</tool_call>',
-              });
-              activePayload.add({
-                'role': 'user',
-                'content': '<tool_response>\n${jsonEncode({"name": toolCall.name, "output": toolResult.output})}\n</tool_response>',
-              });
-            }
-          } else {
-            throw Exception('Custom endpoint returned ${response.statusCode}');
-          }
-        } else {
-          // B. Local Microkernel Gateway (18789)
-          final request = await client.postUrl(Uri.parse('http://127.0.0.1:18789/api/corehub/desktop/quick-launch'));
-          request.headers.contentType = ContentType.json;
-          request.write(jsonEncode({
-            'prompt': text,
-            'project': _currentProjectName,
-            'branch': _currentBranch,
-            'messages': activePayload,
-          }));
-          final response = await request.close();
-          if (response.statusCode == 200) {
-            final body = await response.transform(utf8.decoder).join();
-            final json = jsonDecode(body);
-            final microReply = json['reply'] ?? json['message'] ?? body;
-            final xmlCalls = CoreBlowToolExecutor.parseXmlToolCalls(microReply);
-            final intercepted = xmlCalls.isEmpty ? CoreBlowToolExecutor.detectBashCommandsToIntercept(microReply) : <ParsedToolCall>[];
-            final detectedCalls = [...xmlCalls, ...intercepted];
-
-            if (detectedCalls.isEmpty) {
-              replyContent = CoreBlowToolExecutor.cleanToolBlocksFromText(microReply);
-              break;
-            }
-
-            for (final toolCall in detectedCalls) {
-              if (_cancelRequested) break;
-              final toolResult = await toolExecutor.executeTool(
-                name: toolCall.name,
-                arguments: toolCall.arguments,
-                executionProfile: _executionProfile,
-                defaultCwd: _currentProjectPath,
-              );
-              executedTools.add('✓ ${toolCall.name} · ${toolCall.shortSummary}');
-              activePayload.add({
-                'role': 'assistant',
-                'content': '<tool_call>\n${jsonEncode({"name": toolCall.name, "arguments": toolCall.arguments})}\n</tool_call>',
-              });
-              activePayload.add({
-                'role': 'user',
-                'content': '<tool_response>\n${jsonEncode({"name": toolCall.name, "output": toolResult.output})}\n</tool_response>',
-              });
-            }
-          } else {
-            throw Exception('Gateway returned ${response.statusCode}');
-          }
-        }
+      if (isGateway) {
+        await ensureGatewayRunning();
       }
 
-      if (replyContent.isEmpty) {
-        throw Exception('Empty reply after ReAct iterations');
+      final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+      final client = HttpClient()..connectionTimeout = Duration(milliseconds: isTest ? 150 : 5000);
+      _activeHttpClient = client;
+
+      final request = await client.postUrl(Uri.parse(endpoint));
+      request.headers.contentType = ContentType.json;
+      request.headers.set('Accept', 'text/event-stream, application/json');
+      if (customApiKey.isNotEmpty) {
+        request.headers.set('Authorization', 'Bearer $customApiKey');
+      }
+
+      final requestBody = isGateway
+          ? {
+              'prompt': text,
+              'executionProfile': _executionProfile,
+              'cwd': _currentProjectPath.isNotEmpty ? _currentProjectPath : Directory.current.path,
+              'model': _selectedModel == 'Coding' ? 'coding' : 'deep',
+              'messages': activePayload,
+            }
+          : {
+              'model': _selectedModel == 'Coding' ? 'claude-3-7-sonnet' : 'deepseek-r1',
+              'stream': true,
+              'messages': activePayload,
+            };
+
+      request.write(jsonEncode(requestBody));
+      final response = await request.close();
+
+      if (response.statusCode == 200) {
+        final streamBuffer = StringBuffer();
+        final nonSseLines = <String>[];
+        bool isSse = false;
+
+        await for (final rawLine in utf8.decoder.bind(response).transform(const LineSplitter())) {
+          if (_cancelRequested) break;
+          final trimmed = rawLine.trim();
+          if (trimmed.isEmpty) continue;
+          if (trimmed.startsWith(':')) continue;
+
+          if (trimmed.startsWith('data:')) {
+            isSse = true;
+            final dataStr = trimmed.substring(5).trim();
+            if (dataStr == '[DONE]') break;
+            if (dataStr.isEmpty) continue;
+            try {
+              final chunk = jsonDecode(dataStr);
+              if (chunk['tool'] != null || chunk['step'] != null) {
+                final s = (chunk['tool'] ?? chunk['step']).toString();
+                if (!executedTools.contains(s)) executedTools.add(s);
+              }
+              final rawContent = chunk['choices']?[0]?['delta']?['content'] ??
+                  chunk['choices']?[0]?['delta']?['reasoning_content'] ??
+                  chunk['choices']?[0]?['text'] ??
+                  chunk['choices']?[0]?['message']?['content'] ??
+                  chunk['reply'] ??
+                  chunk['token'];
+
+              String piece = '';
+              if (rawContent is String) {
+                piece = rawContent;
+              } else if (rawContent is List) {
+                for (final item in rawContent) {
+                  if (item is Map && item['text'] is String) {
+                    piece += item['text'] as String;
+                  } else if (item is String) {
+                    piece += item;
+                  }
+                }
+              }
+
+              if (piece.isNotEmpty) {
+                firstTtftMs ??= stopwatch.elapsedMilliseconds;
+                streamBuffer.write(piece);
+                final cleaned = cleanToolBlocksFromText(streamBuffer.toString());
+                if (cleaned.isNotEmpty) {
+                  replyContent = cleaned;
+                }
+
+                traceInfo = executedTools.isEmpty
+                    ? (isGateway
+                        ? 'CoreBlow Gateway · TTFT ${firstTtftMs}ms · Streaming...'
+                        : 'Custom Gateway · TTFT ${firstTtftMs}ms · Streaming...')
+                    : 'CoreBlow Gateway · Streaming...';
+
+                _updateAssistantMessage(
+                  targetThreadId: currentThreadId,
+                  id: assistantMsgId,
+                  content: replyContent.isNotEmpty ? replyContent : '...',
+                  trace: traceInfo,
+                  isStreaming: true,
+                  toolSteps: List.from(executedTools),
+                );
+                notifyListeners();
+              }
+            } catch (_) {}
+          } else {
+            nonSseLines.add(rawLine);
+          }
+        }
+
+        if (!isSse && nonSseLines.isNotEmpty) {
+          final body = nonSseLines.join('\n').trim();
+          try {
+            final json = jsonDecode(body);
+            final nonSseContent = json['choices']?[0]?['message']?['content'] ??
+                json['choices']?[0]?['delta']?['content'] ??
+                json['reply'] ??
+                json['message'];
+            if (nonSseContent is String && nonSseContent.isNotEmpty) {
+              replyContent = cleanToolBlocksFromText(nonSseContent);
+            } else {
+              replyContent = body;
+            }
+            final rawToolSteps = json['toolSteps'];
+            if (rawToolSteps is List) {
+              for (final step in rawToolSteps) {
+                executedTools.add(step.toString());
+              }
+            }
+          } catch (_) {
+            replyContent = body;
+          }
+        }
+      } else {
+        throw Exception('Server returned HTTP ${response.statusCode}');
       }
 
       if (executedTools.isNotEmpty) {
         final ttftPart = firstTtftMs != null ? 'TTFT ${firstTtftMs}ms · ' : '';
-        traceInfo = 'CoreBlow Engine · $ttftPart${executedTools.length} tools executed · Total ${stopwatch.elapsedMilliseconds}ms';
+        traceInfo = 'CoreBlow Gateway · $ttftPart${executedTools.length} tools executed · Total ${stopwatch.elapsedMilliseconds}ms';
       } else if (firstTtftMs != null) {
-        traceInfo = 'Custom Gateway · TTFT ${firstTtftMs}ms · Total ${stopwatch.elapsedMilliseconds}ms';
+        traceInfo = isGateway
+            ? 'CoreBlow Gateway · TTFT ${firstTtftMs}ms · Total ${stopwatch.elapsedMilliseconds}ms'
+            : 'Custom Gateway · TTFT ${firstTtftMs}ms · Total ${stopwatch.elapsedMilliseconds}ms';
       } else {
-        traceInfo = 'Custom Gateway · ${stopwatch.elapsedMilliseconds}ms · 1 completion';
+        traceInfo = isGateway
+            ? 'CoreBlow Gateway · ${stopwatch.elapsedMilliseconds}ms'
+            : 'Custom Gateway · ${stopwatch.elapsedMilliseconds}ms · 1 completion';
       }
     } catch (_) {
       if (replyContent.isEmpty) {
-        await Future.delayed(const Duration(milliseconds: 150));
         stopwatch.stop();
-
-        if (targetDir != null && Directory(targetDir).existsSync()) {
-          final listRes = await toolExecutor.listDir(path: targetDir, maxDepth: 2, maxEntries: 40);
-          replyContent = 'CoreBlow Autonomous Engine inspected `$targetDir` locally:\n\n```\n${listRes.output}\n```';
-          traceInfo = 'CoreBlow Engine · Local Inspection · ${stopwatch.elapsedMilliseconds}ms';
-        } else {
-          final projDesc = _currentProjectName.isNotEmpty ? ' in repo `$_currentProjectName` (branch `$_currentBranch`)' : '';
-          replyContent = _generateContextualReply(text, projDesc);
-          traceInfo = 'CoreBlow Microkernel · ${stopwatch.elapsedMilliseconds}ms · Local Mode';
-        }
+        final projDesc = _currentProjectName.isNotEmpty ? ' in repo `$_currentProjectName` (branch `$_currentBranch`)' : '';
+        replyContent = _generateContextualReply(text, projDesc);
+        traceInfo = 'CoreBlow Microkernel · ${stopwatch.elapsedMilliseconds}ms · Standalone';
       } else {
-        traceInfo = 'CoreBlow Engine · ${stopwatch.elapsedMilliseconds}ms · Partial';
+        traceInfo = 'CoreBlow Gateway · ${stopwatch.elapsedMilliseconds}ms · Partial';
       }
     } finally {
       if (_cancelRequested) {
@@ -1758,6 +1546,43 @@ class StudioViewModel extends ChangeNotifier {
         }
       }
 
+
+      final entries = <MemoryWikiEntry>[];
+      int totalBytes = 0;
+
+      // 1. Fetch live Cory memory layers from Gateway (:18789)
+      try {
+        final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 600);
+        final req = await client.getUrl(Uri.parse('http://127.0.0.1:18789/api/cory/layers'));
+        if (customApiKey.isNotEmpty) {
+          req.headers.set('Authorization', 'Bearer $customApiKey');
+        }
+        final resp = await req.close();
+        if (resp.statusCode == 200) {
+          final body = await resp.transform(utf8.decoder).join();
+          final data = jsonDecode(body);
+          if (data['items'] is List) {
+            for (final item in data['items']) {
+              final layer = (item['layer'] ?? 'memory').toString().toUpperCase();
+              final content = (item['content'] ?? '').toString();
+              final id = (item['id'] ?? 'item').toString();
+              final len = content.length;
+              totalBytes += len;
+              entries.add(MemoryWikiEntry(
+                title: '[$layer] $id',
+                path: 'gateway://cory/$layer/$id',
+                snippet: content.length > 90 ? '${content.substring(0, 90)}...' : content,
+                updated: 'Live Gateway',
+                sizeBytes: len,
+                sizeFormatted: '${(len / 1024).toStringAsFixed(1)} KB',
+              ));
+            }
+          }
+        }
+      } catch (_) {}
+
+
+
       final scanDirs = <Directory>[];
       if (defaultMemoryDir.existsSync()) scanDirs.add(defaultMemoryDir);
       final coreblowBase = Directory('$home/.coreblow');
@@ -1919,15 +1744,8 @@ class StudioViewModel extends ChangeNotifier {
     _microkernelStatusNotice = 'Restarting microkernel & pinging gateways...';
     notifyListeners();
 
-    bool port20128Active = false;
     bool port18789Active = false;
     bool remoteNodeActive = false;
-
-    try {
-      final s1 = await Socket.connect('127.0.0.1', 20128, timeout: const Duration(milliseconds: 600));
-      await s1.close();
-      port20128Active = true;
-    } catch (_) {}
 
     try {
       final s2 = await Socket.connect('127.0.0.1', 18789, timeout: const Duration(milliseconds: 600));
@@ -1948,7 +1766,7 @@ class StudioViewModel extends ChangeNotifier {
       }
     }
 
-    final bool isGatewayOnline = port20128Active || port18789Active;
+    final bool isGatewayOnline = port18789Active;
 
     _channels = [
       MessagingChannelStatus(
@@ -1974,9 +1792,7 @@ class StudioViewModel extends ChangeNotifier {
       ),
     ];
 
-    String portMsg = port20128Active
-        ? 'Active on :20128'
-        : (port18789Active ? 'Active on :18789' : 'Standalone engine');
+    String portMsg = port18789Active ? 'Active on :18789' : 'Standalone engine';
     if (remoteNodeActive) {
       portMsg += ' · Node connected';
     }
@@ -2525,15 +2341,8 @@ class StudioViewModel extends ChangeNotifier {
     }
 
     // 2. Fast 400ms socket checks for local gateways and Ollama
-    bool port20128Active = false;
     bool port18789Active = false;
     bool port11434Active = false;
-
-    try {
-      final s1 = await Socket.connect('127.0.0.1', 20128, timeout: const Duration(milliseconds: 400));
-      await s1.close();
-      port20128Active = true;
-    } catch (_) {}
 
     try {
       final s2 = await Socket.connect('127.0.0.1', 18789, timeout: const Duration(milliseconds: 400));
@@ -2551,7 +2360,7 @@ class StudioViewModel extends ChangeNotifier {
       localOllamaUrl = 'http://127.0.0.1:11434';
     }
 
-    final isGatewayOnline = port20128Active || port18789Active;
+    final isGatewayOnline = port18789Active;
     _channels = [
       MessagingChannelStatus(
         name: 'WhatsApp Web',
@@ -2577,6 +2386,53 @@ class StudioViewModel extends ChangeNotifier {
     ];
 
     notifyListeners();
+  }
+
+  static String? _detectPath(String text) {
+    final m = RegExp(r'(?:^|\s)(~?\/[^\s]+|[a-zA-Z0-9_\-\.\/]+\/[a-zA-Z0-9_\-\.]+)').firstMatch(text);
+    if (m != null) {
+      String p = m.group(1) ?? '';
+      if (p.startsWith('~/')) {
+        final home = Platform.environment['HOME'] ?? '';
+        p = '$home/${p.substring(2)}';
+      }
+      return p;
+    }
+    return null;
+  }
+
+  Future<bool> ensureGatewayRunning() async {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      return false;
+    }
+    try {
+      final s = await Socket.connect('127.0.0.1', 18789, timeout: const Duration(milliseconds: 300));
+      await s.close();
+      return true;
+    } catch (_) {}
+
+    try {
+      await Process.start(
+        'coreblow',
+        ['gateway', 'run', '--bind', 'loopback', '--port', '18789'],
+        mode: ProcessStartMode.detached,
+      );
+      for (int i = 0; i < 5; i++) {
+        await Future.delayed(const Duration(milliseconds: 400));
+        try {
+          final s2 = await Socket.connect('127.0.0.1', 18789, timeout: const Duration(milliseconds: 300));
+          await s2.close();
+          return true;
+        } catch (_) {}
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  static String cleanToolBlocksFromText(String text) {
+    var cleaned = text.replaceAll(RegExp(r'<tool_call>[\s\S]*?<\/tool_call>', caseSensitive: false), '');
+    cleaned = cleaned.replaceAll(RegExp(r'<tool_response>[\s\S]*?<\/tool_response>', caseSensitive: false), '');
+    return cleaned.trim();
   }
 
   bool _isDisposed = false;

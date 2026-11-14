@@ -1,6 +1,6 @@
 # Single-Brain Architecture — Decision Record
 
-**Status:** Accepted direction (pending sign-off on open decisions D5–D9)
+**Status:** Accepted & Active (Decisions D5–D9 officially ratified)
 **Date:** 2026-11-14
 **Scope:** CoreBlow monorepo (`src/` + `apps/studio/`)
 
@@ -120,15 +120,15 @@ the reply.
 
 ---
 
-## 4. Open decisions (defaults recommended)
+## 4. Ratified decisions
 
-| ID | Question | Recommended default |
+| ID | Decision | Resolution |
 | :--- | :--- | :--- |
-| D5 | Level A: run infra registry + cognitive registry side by side, or merge into one `ServiceRegistry`? | Side by side first (safer); merge later |
-| D6 | Desktop short-term: keep its loop but use gateway memory API, or migrate its loop to the gateway now? | Migrate the loop now (B1.5), no interim second loop |
-| D7 | Canonical agent-turn endpoint? | Gateway RPC (`:18789`). The `:20128` custom endpoint becomes a gateway-configured provider, never a direct client dial |
-| D8 | Memory read API shape for clients? | `GET /api/cory/search` (top-k) + `GET /api/cory/layers` |
-| D9 | Offline desktop? | Explicit exception labeled "bypasses gateway policy" (like the reference `--local` mode), not a default path |
+| D5 | Gateway Service Registry Topology | Dual-registry bootstrap (Infra + Cognitive Microkernel side-by-side, coordinated shutdown). Ratified in Phase A. |
+| D6 | Desktop Loop Migration | Migrate Desktop Studio to thin-client talking directly to Gateway (:18789). Delete Dart-side ReAct loop and tool executor. |
+| D7 | Canonical Agent-Turn Endpoint | Gateway (:18789) is the single canonical agent-turn authority. The legacy :20128 endpoint is eliminated. |
+| D8 | Memory Read API Shape | `GET /api/cory/search` (query, topK) + `GET /api/cory/layers` (layer, scope) served by Gateway HTTP. Ratified in Phase B1. |
+| D9 | Desktop Gateway Binding & Offline Policy | Gateway Required. Desktop Studio requires local Gateway daemon (:18789). If daemon is offline, Studio auto-starts `coreblow gateway` in background. |
 
 ---
 

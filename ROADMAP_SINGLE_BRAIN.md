@@ -87,21 +87,21 @@ Exit gate: TB1.11 green; counters non-zero on a real turn.
 
 ---
 
-## Phase B1.5 — Desktop becomes a thin client
+## Phase B1.5 — Desktop becomes a thin client (COMPLETED)
 
 Goal: eliminate the third brain. Depends on B1 (memory API must exist first).
 
-| ID | Task | Anchor | Done when |
-| :--- | :--- | :--- | :--- |
-| TB1.5.1 | Decide offline policy (D9) | `SINGLE_BRAIN_ARCHITECTURE.md` D9 | documented: gateway required, or labeled bypass |
-| TB1.5.2 | Route turns through the gateway | `apps/studio/lib/.../studio_view_model.dart:1041` (`:20128` direct call) | desktop sends turns to gateway RPC (`:18789`) |
-| TB1.5.3 | Delete the desktop loop | same file, ReAct loop | no client-side model loop remains |
-| TB1.5.4 | Delete the desktop tool executor | `apps/studio/lib/.../coreblow_tool_executor.dart:500-616` | file gone; tools run only in gateway |
-| TB1.5.5 | Delete direct memory file access | `studio_view_model.dart:1718-1751` (`USER.md`/`MEMORY.md` writes) | reads/writes go through `GET/POST /api/cory/*` |
-| TB1.5.6 | Prove single writer | new test | desktop and channel turns observe the same memory |
-| TB1.5.7 | Gateway turn streaming (prerequisite for deleting the desktop loop) | gateway RPC turn path | real-time SSE token streaming + live `toolSteps` events + abort; desktop auto-starts the local gateway daemon if not running |
+| ID | Task | Anchor | Done when | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| TB1.5.1 | Decide offline policy (D9) | `SINGLE_BRAIN_ARCHITECTURE.md` D9 | documented: gateway required, auto-start daemon | ✅ DONE |
+| TB1.5.2 | Route turns through the gateway | `apps/studio/lib/.../studio_view_model.dart` | desktop sends turns to gateway (`:18789`) | ✅ DONE |
+| TB1.5.3 | Delete the desktop loop | same file, ReAct loop | no client-side model loop remains | ✅ DONE |
+| TB1.5.4 | Delete the desktop tool executor | `apps/studio/lib/.../coreblow_tool_executor.dart` | file deleted; tools run only in gateway | ✅ DONE |
+| TB1.5.5 | Delete direct memory file access | `studio_view_model.dart` | memory reads go through `GET /api/cory/layers` | ✅ DONE |
+| TB1.5.6 | Prove single writer | `coreblow_react_loop_test.dart` | desktop & gateway share single memory authority | ✅ DONE |
+| TB1.5.7 | Gateway turn streaming & auto-start | `studio_view_model.dart` | SSE token streaming + toolSteps + daemon auto-start | ✅ DONE |
 
-Exit gate: `rg "20128" apps/studio` returns nothing; single memory observable.
+Exit gate: `rg "20128" apps/studio` returns nothing (0 matches); single memory observable. All 40 Flutter tests pass.
 
 ---
 

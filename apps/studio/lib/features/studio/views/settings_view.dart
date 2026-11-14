@@ -544,7 +544,7 @@ class _StudioSettingsViewState extends State<StudioSettingsView> {
             _divider(),
             _inputRow(
               'Custom Base URL (OpenAI-Compatible)',
-              'http://127.0.0.1:20128/v1 or https://...',
+              'http://127.0.0.1:18789 or https://...',
               _routerUrlController,
               isSecret: false,
               onTest: () => _testSingle('custom'),

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:coreblow_studio/features/studio/models/studio_state.dart';
-import 'package:coreblow_studio/features/studio/services/coreblow_tool_executor.dart';
 import 'package:coreblow_studio/features/studio/view_models/studio_view_model.dart';
 import 'package:coreblow_studio/features/studio/views/composer_view.dart';
 import 'package:coreblow_studio/features/studio/views/canvas_view.dart';
@@ -92,67 +91,6 @@ void main() {
       expect(vm.activeThreadId, 'thread-2');
 
       vm.dispose();
-    });
-
-    // 2. 4 Explicit Permission Modes in CoreBlowToolExecutor
-    test('CoreBlowToolExecutor 4 permission modes enforcement', () async {
-      final executor = CoreBlowToolExecutor();
-      final workspaceDir = Directory('${tempDir.path}/my_workspace')..createSync(recursive: true);
-      final insideFile = '${workspaceDir.path}/inside.txt';
-      final outsideFile = '${tempDir.path}/outside.txt';
-
-      // A. Full access allows write anywhere
-      final resFull = await executor.writeFile(
-        path: outsideFile,
-        content: 'hello outside',
-        executionProfile: 'Full access',
-        defaultCwd: workspaceDir.path,
-      );
-      expect(resFull.success, isTrue);
-
-      // B. Workspace allows write inside workspace, blocks outside
-      final resWsInside = await executor.writeFile(
-        path: insideFile,
-        content: 'hello inside',
-        executionProfile: 'Workspace',
-        defaultCwd: workspaceDir.path,
-      );
-      expect(resWsInside.success, isTrue);
-
-      final resWsOutside = await executor.writeFile(
-        path: outsideFile,
-        content: 'overwrite attempt',
-        executionProfile: 'Workspace',
-        defaultCwd: workspaceDir.path,
-      );
-      expect(resWsOutside.success, isFalse);
-      expect(resWsOutside.output, contains('outside active workspace'));
-
-      // C. Guarded & Read-only block all file writing
-      final resGuarded = await executor.writeFile(
-        path: insideFile,
-        content: 'guarded write',
-        executionProfile: 'Guarded',
-        defaultCwd: workspaceDir.path,
-      );
-      expect(resGuarded.success, isFalse);
-      expect(resGuarded.output, contains('requires \'Full access\' or \'Workspace\' profile'));
-
-      final resReadOnly = await executor.writeFile(
-        path: insideFile,
-        content: 'readonly write',
-        executionProfile: 'Read-only',
-        defaultCwd: workspaceDir.path,
-      );
-      expect(resReadOnly.success, isFalse);
-
-      // Terminal execution permissions
-      expect(CoreBlowToolExecutor.isCommandAllowed('git commit -m "fix"', 'Full access'), isTrue);
-      expect(CoreBlowToolExecutor.isCommandAllowed('git commit -m "fix"', 'Workspace', defaultCwd: workspaceDir.path, cwd: workspaceDir.path), isTrue);
-      expect(CoreBlowToolExecutor.isCommandAllowed('git commit -m "fix"', 'Workspace', defaultCwd: workspaceDir.path, cwd: '/tmp'), isFalse);
-      expect(CoreBlowToolExecutor.isCommandAllowed('git commit -m "fix"', 'Guarded'), isFalse);
-      expect(CoreBlowToolExecutor.isCommandAllowed('git status', 'Guarded'), isTrue);
-      expect(CoreBlowToolExecutor.isCommandAllowed('ls -la', 'Read-only'), isTrue);
     });
 
     // 3. Stop Generation Mid-Stream & Live Stop Button in StudioComposerView

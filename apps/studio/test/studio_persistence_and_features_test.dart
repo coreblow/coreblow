@@ -64,7 +64,7 @@ void main() {
         gemini: 'AIzaSyTest789',
         groq: 'gsk-test-groq',
         ollamaUrl: 'http://192.168.1.100:11434',
-        customUrl: 'http://127.0.0.1:20128/v1',
+        customUrl: 'http://127.0.0.1:18789',
         customKey: 'sk-custom-abc',
       );
 
@@ -112,7 +112,7 @@ void main() {
       expect(decoded['geminiApiKey'], 'AIzaSyTest789');
       expect(decoded['groqApiKey'], 'gsk-test-groq');
       expect(decoded['localOllamaUrl'], 'http://192.168.1.100:11434');
-      expect(decoded['customEndpointUrl'], 'http://127.0.0.1:20128/v1');
+      expect(decoded['customEndpointUrl'], 'http://127.0.0.1:18789');
       expect(decoded['customApiKey'], 'sk-custom-abc');
       expect(decoded['remoteNodeHost'], '100.112.44.88:18789');
       expect(decoded['remoteNodeAuthToken'], 'secret-token-xyz');
@@ -138,7 +138,7 @@ void main() {
       expect(vm2.geminiApiKey, 'AIzaSyTest789');
       expect(vm2.groqApiKey, 'gsk-test-groq');
       expect(vm2.localOllamaUrl, 'http://192.168.1.100:11434');
-      expect(vm2.customEndpointUrl, 'http://127.0.0.1:20128/v1');
+      expect(vm2.customEndpointUrl, 'http://127.0.0.1:18789');
       expect(vm2.customApiKey, 'sk-custom-abc');
       expect(vm2.remoteNodeHost, '100.112.44.88:18789');
       expect(vm2.remoteNodeAuthToken, 'secret-token-xyz');

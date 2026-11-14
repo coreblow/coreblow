@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:coreblow_studio/features/studio/view_models/studio_view_model.dart';
 
 void main() {
-  test('Live E2E CoreBlow ReAct against 127.0.0.1:20128 with user/febrinanda/aplesi', () async {
+  test('Live E2E CoreBlow ReAct against 127.0.0.1:18789 with user/febrinanda/aplesi', () async {
     HttpOverrides.global = null;
 
     try {
-      final socket = await Socket.connect('127.0.0.1', 20128, timeout: const Duration(milliseconds: 500));
+      final socket = await Socket.connect('127.0.0.1', 18789, timeout: const Duration(milliseconds: 500));
       await socket.close();
     } catch (_) {
       // Gateway not available in this environment
@@ -15,7 +15,7 @@ void main() {
     }
 
     final viewModel = StudioViewModel();
-    viewModel.customEndpointUrl = 'http://127.0.0.1:20128/v1';
+    viewModel.customEndpointUrl = 'http://127.0.0.1:18789';
     viewModel.customApiKey = 'sk-96b0ddd1aa0881dd-m93qzq-690585f1'; // pragma: allowlist secret
 
     // User sends prompt inquiring about user/febrinanda/aplesi
@@ -41,11 +41,11 @@ void main() {
     viewModel.dispose();
   }, timeout: const Timeout(Duration(seconds: 45)));
 
-  test('Live E2E CoreBlow Brand Sovereignty inquiry against 127.0.0.1:20128', () async {
+  test('Live E2E CoreBlow Brand Sovereignty inquiry against 127.0.0.1:18789', () async {
     HttpOverrides.global = null;
 
     try {
-      final socket = await Socket.connect('127.0.0.1', 20128, timeout: const Duration(milliseconds: 500));
+      final socket = await Socket.connect('127.0.0.1', 18789, timeout: const Duration(milliseconds: 500));
       await socket.close();
     } catch (_) {
       // Gateway not available in this environment
@@ -53,7 +53,7 @@ void main() {
     }
 
     final viewModel = StudioViewModel();
-    viewModel.customEndpointUrl = 'http://127.0.0.1:20128/v1';
+    viewModel.customEndpointUrl = 'http://127.0.0.1:18789';
     viewModel.customApiKey = 'sk-96b0ddd1aa0881dd-m93qzq-690585f1'; // pragma: allowlist secret
 
     viewModel.inputController.text = 'ini tools apa namanya dan pakai engine apa?';
