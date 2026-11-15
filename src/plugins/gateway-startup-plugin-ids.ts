@@ -64,9 +64,11 @@ function collectCandidatePlugins(
           providers: m.providers,
           cliBackends: m.cliBackends,
           startup: {
+            sidecar: false,
             memory: false,
             deferConfiguredChannelFullLoadUntilAfterListen:
               m.startupDeferConfiguredChannelFullLoadUntilAfterListen ?? false,
+            agentHarnesses: [],
           },
         }) as unknown as InstalledPluginIndexRecord,
     );
@@ -95,7 +97,7 @@ function listPotentialEnabledChannelIds(config: CoreBlowConfig, env: NodeJS.Proc
 }
 
 function isGatewayStartupMemoryPlugin(plugin: InstalledPluginIndexRecord): boolean {
-  return plugin.startup.memory;
+  return Boolean(plugin.startup?.memory);
 }
 
 function resolveGatewayStartupDreamingPluginIds(config: CoreBlowConfig): Set<string> {
@@ -485,7 +487,7 @@ function canStartRequiredAgentHarnessPlugin(params: {
   platform?: NodeJS.Platform;
 }): boolean {
   if (
-    !params.plugin.startup.agentHarnesses.some((runtime) =>
+    !params.plugin.startup?.agentHarnesses?.some((runtime) =>
       params.requiredAgentHarnessRuntimes.has(runtime),
     )
   ) {
@@ -818,7 +820,7 @@ export class GatewayStartupPluginResolver {
             manifestLookup,
             configuredChannelIds,
           }) &&
-          plugin.startup.deferConfiguredChannelFullLoadUntilAfterListen &&
+          Boolean(plugin.startup?.deferConfiguredChannelFullLoadUntilAfterListen) &&
           canStartConfiguredChannelPlugin({
             plugin,
             config: params.config,

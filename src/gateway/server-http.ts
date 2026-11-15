@@ -1049,12 +1049,21 @@ export function createGatewayHttpServer(opts: {
       }
 
       res.statusCode = 404;
-      res.setHeader("Content-Type", "text/plain; charset=utf-8");
-      res.end("Not Found");
-    } catch {
-      res.statusCode = 500;
-      res.setHeader("Content-Type", "text/plain; charset=utf-8");
-      res.end("Internal Server Error");
+      if (!res.headersSent) {
+        res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        res.end("Not Found");
+      } else {
+        res.end();
+      }
+    } catch (err) {
+      console.error(`http: unhandled request error: ${String(err)}`);
+      if (!res.headersSent) {
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        res.end("Internal Server Error");
+      } else {
+        res.end();
+      }
     }
   }
 

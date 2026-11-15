@@ -996,6 +996,12 @@ class StudioViewModel extends ChangeNotifier {
               'cwd': _currentProjectPath.isNotEmpty ? _currentProjectPath : Directory.current.path,
               'model': _selectedModel == 'Coding' ? 'coding' : 'deep',
               'messages': activePayload,
+              if (anthropicApiKey.isNotEmpty) 'anthropicApiKey': anthropicApiKey,
+              if (openAiApiKey.isNotEmpty) 'openAiApiKey': openAiApiKey,
+              if (geminiApiKey.isNotEmpty) 'geminiApiKey': geminiApiKey,
+              if (groqApiKey.isNotEmpty) 'groqApiKey': groqApiKey,
+              if (localOllamaUrl.isNotEmpty) 'localOllamaUrl': localOllamaUrl,
+              if (customApiKey.isNotEmpty) 'customApiKey': customApiKey,
             }
           : {
               'model': _selectedModel == 'Coding' ? 'claude-3-7-sonnet' : 'deepseek-r1',

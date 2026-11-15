@@ -429,8 +429,19 @@ ls -la
 
       const discovered = await autoDiscoverRuntimeEndpoints(mockFetch as unknown as typeof fetch);
       expect(discovered).not.toBeNull();
-      expect(discovered?.providerUrl).toBe("http://127.0.0.1:18789/v1");
+      expect(discovered?.providerUrl).toBe("http://127.0.0.1:20128/v1");
       expect(discovered?.model).toBe("proxy-model-1");
+      // Critical invariant: Upstream providerUrl must never be the Gateway port (:18789)
+      expect(discovered?.providerUrl).not.toContain("18789");
+    });
+
+    it("prefers configured API keys over local proxy", async () => {
+      const discovered = await autoDiscoverRuntimeEndpoints({
+        anthropicApiKey: "sk-ant-test-key",
+      });
+      expect(discovered).not.toBeNull();
+      expect(discovered?.providerUrl).toBe("https://api.anthropic.com/v1");
+      expect(discovered?.apiKey).toBe("sk-ant-test-key");
     });
   });
 });

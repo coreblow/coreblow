@@ -1879,6 +1879,13 @@ export async function handleCoreHubRoute(
         const model = typeof body.model === "string" ? body.model : undefined;
         const providerUrl = typeof body.providerUrl === "string" ? body.providerUrl : undefined;
         const apiKey = typeof body.apiKey === "string" ? body.apiKey : undefined;
+        const customApiKey = typeof body.customApiKey === "string" ? body.customApiKey : undefined;
+        const effectiveApiKey = apiKey ?? customApiKey;
+        const anthropicApiKey = typeof body.anthropicApiKey === "string" ? body.anthropicApiKey : undefined;
+        const openAiApiKey = typeof body.openAiApiKey === "string" ? body.openAiApiKey : undefined;
+        const geminiApiKey = typeof body.geminiApiKey === "string" ? body.geminiApiKey : undefined;
+        const groqApiKey = typeof body.groqApiKey === "string" ? body.groqApiKey : undefined;
+        const localOllamaUrl = typeof body.localOllamaUrl === "string" ? body.localOllamaUrl : undefined;
         const maxTurns = typeof body.maxTurns === "number" ? body.maxTurns : undefined;
         const messages = Array.isArray(body.messages) ? (body.messages as any[]) : undefined;
         const trustZone = typeof body.trustZone === "string" ? body.trustZone : undefined;
@@ -1900,7 +1907,12 @@ export async function handleCoreHubRoute(
             defaultCwd,
             model,
             providerUrl,
-            apiKey,
+            apiKey: effectiveApiKey,
+            anthropicApiKey,
+            openAiApiKey,
+            geminiApiKey,
+            groqApiKey,
+            localOllamaUrl,
             maxTurns,
             runId,
             sessionId,
@@ -1941,7 +1953,12 @@ export async function handleCoreHubRoute(
           defaultCwd,
           model,
           providerUrl,
-          apiKey,
+          apiKey: effectiveApiKey,
+          anthropicApiKey,
+          openAiApiKey,
+          geminiApiKey,
+          groqApiKey,
+          localOllamaUrl,
           maxTurns,
           runId,
           sessionId,
@@ -1952,6 +1969,14 @@ export async function handleCoreHubRoute(
         sendJson(res, 200, result);
         return true;
       } catch (err) {
+        const errMsg = err instanceof Error ? (err.stack ?? err.message) : String(err);
+        console.error(`[chat/react] error: ${errMsg}`);
+        if (res.headersSent) {
+          res.write(`data: ${JSON.stringify({ error: errMsg })}\n\n`);
+          res.write("data: [DONE]\n\n");
+          res.end();
+          return true;
+        }
         sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
         return true;
       }

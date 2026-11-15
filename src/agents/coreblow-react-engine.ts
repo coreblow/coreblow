@@ -5,6 +5,8 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { getCognitiveCoordinator, type TrajectoryToolStep } from "./cognitive/coordinator.js";
 import { getActiveMicrokernel } from "../gateway/microkernel-services.js";
+import { loadConfig } from "../config/io.js";
+import type { CoreBlowConfig } from "../config/config.js";
 
 export type ExecutionProfile = "Full access" | "Workspace" | "Guarded" | "Read-only";
 
@@ -41,6 +43,11 @@ export interface CoreBlowReActOptions {
   model?: string;
   providerUrl?: string;
   apiKey?: string;
+  anthropicApiKey?: string;
+  openAiApiKey?: string;
+  geminiApiKey?: string;
+  groqApiKey?: string;
+  localOllamaUrl?: string;
   maxTurns?: number;
   runId?: string;
   sessionId?: string;
@@ -1151,83 +1158,138 @@ export async function generateWorkspaceSnapshot(dirPath: string): Promise<string
   return sections.join("\n\n");
 }
 
+export interface AutoDiscoverEndpointOptions {
+  fetchFn?: typeof fetch;
+  anthropicApiKey?: string;
+  openAiApiKey?: string;
+  geminiApiKey?: string;
+  groqApiKey?: string;
+  localOllamaUrl?: string;
+  apiKey?: string;
+}
+
+function extractApiKeyString(key: unknown): string | undefined {
+  if (typeof key === "string" && key.trim().length > 0) {
+    return key.trim();
+  }
+  return undefined;
+}
+
 /**
  * Probes environment variables and local sockets to auto-discover active model runtimes.
+ * Upstream discovery: never resolves to 127.0.0.1:18789 (which is the CoreBlow Gateway itself).
  */
-export async function autoDiscoverRuntimeEndpoints(fetchFn: typeof fetch = fetch): Promise<DiscoveredEndpoint | null> {
-  // 1. Check local gateway (127.0.0.1:18789)
+export async function autoDiscoverRuntimeEndpoints(
+  optionsOrFetch: typeof fetch | AutoDiscoverEndpointOptions = fetch,
+): Promise<DiscoveredEndpoint | null> {
+  const fetchFn = typeof optionsOrFetch === "function" ? optionsOrFetch : (optionsOrFetch?.fetchFn ?? fetch);
+  const opts = typeof optionsOrFetch === "object" ? optionsOrFetch : {};
+
+  // 1. Check active provider/API keys: passed in options, configured in CoreBlow config, or in process.env
+  let cfg: CoreBlowConfig | undefined;
+  try {
+    cfg = loadConfig();
+  } catch {
+    // ignore
+  }
+
+  const anthropicKey =
+    opts.anthropicApiKey ||
+    process.env.ANTHROPIC_API_KEY ||
+    extractApiKeyString(cfg?.models?.providers?.anthropic?.apiKey);
+  if (anthropicKey) {
+    return {
+      providerUrl: "https://api.anthropic.com/v1",
+      model: "claude-3-7-sonnet-20250219",
+      apiKey: anthropicKey,
+      source: opts.anthropicApiKey ? "Studio Settings (Anthropic)" : "Environment (ANTHROPIC_API_KEY)",
+    };
+  }
+
+  const openAiKey =
+    opts.openAiApiKey ||
+    process.env.OPENAI_API_KEY ||
+    extractApiKeyString(cfg?.models?.providers?.openai?.apiKey);
+  if (openAiKey) {
+    return {
+      providerUrl: "https://api.openai.com/v1",
+      model: "gpt-4o",
+      apiKey: openAiKey,
+      source: opts.openAiApiKey ? "Studio Settings (OpenAI)" : "Environment (OPENAI_API_KEY)",
+    };
+  }
+
+  const geminiKey =
+    opts.geminiApiKey ||
+    process.env.GEMINI_API_KEY ||
+    extractApiKeyString(cfg?.models?.providers?.google?.apiKey) ||
+    extractApiKeyString(cfg?.models?.providers?.gemini?.apiKey);
+  if (geminiKey) {
+    return {
+      providerUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+      model: "gemini-2.0-flash",
+      apiKey: geminiKey,
+      source: opts.geminiApiKey ? "Studio Settings (Gemini)" : "Environment (GEMINI_API_KEY)",
+    };
+  }
+
+  const groqKey =
+    opts.groqApiKey ||
+    process.env.GROQ_API_KEY ||
+    extractApiKeyString(cfg?.models?.providers?.groq?.apiKey);
+  if (groqKey) {
+    return {
+      providerUrl: "https://api.groq.com/openai/v1",
+      model: "llama-3.3-70b-versatile",
+      apiKey: groqKey,
+      source: opts.groqApiKey ? "Studio Settings (Groq)" : "Environment (GROQ_API_KEY)",
+    };
+  }
+
+  // 2. Check local upstream OpenAI-compatible proxy (127.0.0.1:20128)
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 800);
-    const res = await fetchFn("http://127.0.0.1:18789/v1/models", { signal: controller.signal });
+    const proxyKey = opts.apiKey || process.env.COREBLOW_PROXY_API_KEY || "sk-96b0ddd1aa0881dd-m93qzq-690585f1"; // pragma: allowlist secret
+    const res = await fetchFn("http://127.0.0.1:20128/v1/models", {
+      headers: {
+        Authorization: `Bearer ${proxyKey}`,
+      },
+      signal: controller.signal,
+    });
     clearTimeout(timer);
     if (res.ok) {
       const data = (await res.json()) as { data?: Array<{ id: string }> };
       const model = data.data?.[0]?.id ?? "coreblow-agent";
       return {
-        providerUrl: "http://127.0.0.1:18789/v1",
+        providerUrl: "http://127.0.0.1:20128/v1",
         model,
-        source: "Local Gateway (127.0.0.1:18789)",
+        apiKey: proxyKey,
+        source: "Local Proxy (127.0.0.1:20128)",
       };
     }
   } catch {
     // ignore
   }
 
-  // 2. Check local Ollama (127.0.0.1:11434)
+  // 3. Check local Ollama (127.0.0.1:11434)
+  const ollamaBase = (opts.localOllamaUrl || "http://127.0.0.1:11434").replace(/\/+$/, "");
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 800);
-    const res = await fetchFn("http://127.0.0.1:11434/api/tags", { signal: controller.signal });
+    const res = await fetchFn(`${ollamaBase}/api/tags`, { signal: controller.signal });
     clearTimeout(timer);
     if (res.ok) {
       const data = (await res.json()) as { models?: Array<{ name: string }> };
       const model = data.models?.[0]?.name ?? "llama3.2";
       return {
-        providerUrl: "http://127.0.0.1:11434/v1",
+        providerUrl: `${ollamaBase}/v1`,
         model,
-        source: "Local Ollama (127.0.0.1:11434)",
+        source: `Local Ollama (${ollamaBase})`,
       };
     }
   } catch {
     // ignore
-  }
-
-  // 3. Check environment keys
-  if (process.env.ANTHROPIC_API_KEY) {
-    return {
-      providerUrl: "https://api.anthropic.com/v1",
-      model: "claude-3-7-sonnet-20250219",
-      apiKey: process.env.ANTHROPIC_API_KEY,
-      source: "Environment (ANTHROPIC_API_KEY)",
-    };
-  }
-
-  if (process.env.OPENAI_API_KEY) {
-    return {
-      providerUrl: "https://api.openai.com/v1",
-      model: "gpt-4o",
-      apiKey: process.env.OPENAI_API_KEY,
-      source: "Environment (OPENAI_API_KEY)",
-    };
-  }
-
-  if (process.env.GEMINI_API_KEY) {
-    return {
-      providerUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
-      model: "gemini-2.0-flash",
-      apiKey: process.env.GEMINI_API_KEY,
-      source: "Environment (GEMINI_API_KEY)",
-    };
-  }
-
-  if (process.env.GROQ_API_KEY) {
-    return {
-      providerUrl: "https://api.groq.com/openai/v1",
-      model: "llama-3.3-70b-versatile",
-      apiKey: process.env.GROQ_API_KEY,
-      source: "Environment (GROQ_API_KEY)",
-    };
   }
 
   return null;
@@ -1315,20 +1377,59 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
     // Fail-open for turn start errors in non-critical paths
   }
 
-  // 2. Discover endpoint if not explicitly provided
+  // 2. Discover endpoint if not explicitly provided or if self-loop detected
   let providerUrl = options.providerUrl;
   let model = options.model;
   let apiKey = options.apiKey;
 
-  if (!providerUrl) {
-    const discovered = await autoDiscoverRuntimeEndpoints(fetchFn);
+  const isSelfLoop = Boolean(
+    providerUrl && (providerUrl.includes("127.0.0.1:18789") || providerUrl.includes("localhost:18789")),
+  );
+
+  if (!providerUrl || isSelfLoop) {
+    const discovered = await autoDiscoverRuntimeEndpoints({
+      fetchFn,
+      anthropicApiKey: options.anthropicApiKey,
+      openAiApiKey: options.openAiApiKey,
+      geminiApiKey: options.geminiApiKey,
+      groqApiKey: options.groqApiKey,
+      localOllamaUrl: options.localOllamaUrl,
+      apiKey: !isSelfLoop ? options.apiKey : undefined,
+    });
     if (discovered) {
       providerUrl = discovered.providerUrl;
-      model = model ?? discovered.model;
+      model = (!model || model === "coding" || model === "deep") ? discovered.model : model;
       apiKey = apiKey ?? discovered.apiKey;
     } else {
-      providerUrl = "http://127.0.0.1:18789/v1";
-      model = model ?? "coreblow-agent";
+      // Upstream fallback: use local proxy, NEVER gateway port 18789
+      providerUrl = "http://127.0.0.1:20128/v1";
+      model = (!model || model === "coding" || model === "deep" || model === "coreblow-agent") ? "supergratis" : model;
+      apiKey = apiKey ?? "sk-96b0ddd1aa0881dd-m93qzq-690585f1"; // pragma: allowlist secret
+    }
+  }
+
+  if (providerUrl.includes(":20128")) {
+    if (!model || model === "coding" || model === "deep" || model === "coreblow-agent") {
+      model = "supergratis";
+    }
+    if (!apiKey) {
+      apiKey = "sk-96b0ddd1aa0881dd-m93qzq-690585f1"; // pragma: allowlist secret
+    }
+  }
+
+  // Pre-persist explicit memory directives so facts survive even on interrupted turns
+  const activeMk = getActiveMicrokernel();
+  if (activeMk?.cory?.memoryStore) {
+    const lowerPrompt = options.prompt.toLowerCase();
+    if (lowerPrompt.startsWith("remember:") || lowerPrompt.startsWith("ingat:")) {
+      const toRemember = options.prompt.replace(/^(remember|ingat):\s*/i, "").trim();
+      if (toRemember) {
+        activeMk.cory.memoryStore.remember({
+          layer: "durable",
+          content: toRemember,
+          scope: { workspaceId: "default", userScope: options.userScope },
+        });
+      }
     }
   }
 
@@ -1374,6 +1475,7 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
       messages: conversation,
       tools: COREBLOW_OPENAI_TOOLS,
       tool_choice: "auto",
+      stream: false,
     };
 
     let response: Response;
@@ -1409,22 +1511,54 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
       };
     }
 
-    const json = (await response.json()) as {
-      choices?: Array<{
-        message?: {
-          role?: string;
-          content?: string;
-          tool_calls?: Array<{
-            id: string;
-            function: { name: string; arguments: string };
+    const rawText = await response.text();
+    let content = "";
+    const nativeToolCalls: Array<{
+      id: string;
+      function: { name: string; arguments: string };
+    }> = [];
+
+    if (rawText.trim().startsWith("data:")) {
+      // Upstream streamed SSE response
+      const lines = rawText.split("\n");
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("data:") && !trimmed.includes("[DONE]")) {
+          try {
+            const chunk = JSON.parse(trimmed.slice(5).trim());
+            const delta = chunk.choices?.[0]?.delta;
+            if (delta?.content) {
+              content += delta.content;
+            }
+            if (delta?.tool_calls) {
+              nativeToolCalls.push(...delta.tool_calls);
+            }
+          } catch {}
+        }
+      }
+    } else {
+      try {
+        const json = JSON.parse(rawText) as {
+          choices?: Array<{
+            message?: {
+              role?: string;
+              content?: string;
+              tool_calls?: Array<{
+                id: string;
+                function: { name: string; arguments: string };
+              }>;
+            };
           }>;
         };
-      }>;
-    };
-
-    const choice = json.choices?.[0]?.message;
-    const content = choice?.content ?? "";
-    const nativeToolCalls = choice?.tool_calls ?? [];
+        const choice = json.choices?.[0]?.message;
+        content = choice?.content ?? "";
+        if (choice?.tool_calls) {
+          nativeToolCalls.push(...choice.tool_calls);
+        }
+      } catch {
+        content = rawText;
+      }
+    }
 
     // Parse tool calls across all protocols
     const callsToExecute: ParsedToolCall[] = [];
