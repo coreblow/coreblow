@@ -1250,7 +1250,7 @@ export async function autoDiscoverRuntimeEndpoints(
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 800);
-    const proxyKey = opts.apiKey || process.env.COREBLOW_PROXY_API_KEY || "sk-96b0ddd1aa0881dd-m93qzq-690585f1"; // pragma: allowlist secret
+    const proxyKey = opts.apiKey || (process.env.COREBLOW_PROXY_API_KEY ?? "");
     const res = await fetchFn("http://127.0.0.1:20128/v1/models", {
       headers: {
         Authorization: `Bearer ${proxyKey}`,
@@ -1404,7 +1404,7 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
       // Upstream fallback: use local proxy, NEVER gateway port 18789
       providerUrl = "http://127.0.0.1:20128/v1";
       model = (!model || model === "coding" || model === "deep" || model === "coreblow-agent") ? "supergratis" : model;
-      apiKey = apiKey ?? "sk-96b0ddd1aa0881dd-m93qzq-690585f1"; // pragma: allowlist secret
+      apiKey = apiKey ?? (process.env.COREBLOW_PROXY_API_KEY ?? "");
     }
   }
 
@@ -1413,7 +1413,7 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
       model = "supergratis";
     }
     if (!apiKey) {
-      apiKey = "sk-96b0ddd1aa0881dd-m93qzq-690585f1"; // pragma: allowlist secret
+      apiKey = process.env.COREBLOW_PROXY_API_KEY ?? "";
     }
   }
 

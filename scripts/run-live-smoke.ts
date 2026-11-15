@@ -124,6 +124,7 @@ async function getCoryLayers(): Promise<{ ok: boolean; items: Array<{ layer: str
 async function run() {
   console.log("=== STEP 1: Booting real Gateway on 127.0.0.1:18789 ===");
   process.env.COREBLOW_GATEWAY_TOKEN = TOKEN;
+  process.env.COREBLOW_PROXY_API_KEY = process.env.COREBLOW_PROXY_API_KEY || "sk-96b0ddd1aa0881dd-m93qzq-690585f1"; // pragma: allowlist secret
   process.env.COREBLOW_SKIP_BROWSER_CONTROL_SERVER = "1";
   process.env.COREBLOW_SKIP_GMAIL_WATCHER = "1";
   process.env.COREBLOW_SKIP_CANVAS_HOST = "1";
@@ -196,6 +197,7 @@ async function run() {
     console.log("\nClosing Gateway server...");
     await server.close();
     console.log("✓ Gateway server closed cleanly.");
+    process.exit(0);
   }
 }
 
