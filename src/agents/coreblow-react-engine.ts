@@ -5,6 +5,18 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { getCognitiveCoordinator, type TrajectoryToolStep } from "./cognitive/coordinator.js";
 import { getActiveMicrokernel } from "../gateway/microkernel-services.js";
+import {
+  COREBLOW_EXTENDED_OPENAI_TOOLS,
+  COREBLOW_TOOLSETS,
+  executeExtendedTool,
+  selectToolsForPrompt as selectToolsFromList,
+  type CoreBlowToolsetId,
+} from "./coreblow-extended-tools.js";
+import {
+  executeOnBackend,
+  listAvailableBackends,
+  type ExecutionBackendId,
+} from "../sandbox/multi-backend-executor.js";
 import { loadConfig } from "../config/io.js";
 import { loadCronStoreSync, resolveCronStorePath, saveCronStore } from "../cron/store.js";
 import { safeEvaluateMath } from "../tools/builtin/calculator.js";
@@ -87,17 +99,23 @@ export interface DiscoveredEndpoint {
   readonly source: string;
 }
 
-export const COREBLOW_OPENAI_TOOLS = [
+export const BASE_COREBLOW_OPENAI_TOOLS = [
   {
     type: "function",
     function: {
       name: "terminal",
-      description: "Execute a shell command with timeout and safety profile guards",
+      description: "Execute a shell command with timeout, safety profile guards, and 8-backend routing (local, vm_isolate, docker, ssh, daytona, modal, vercel, e2b)",
       parameters: {
         type: "object",
         properties: {
           command: { type: "string", description: "The shell command to execute" },
           cwd: { type: "string", description: "Optional working directory" },
+          backend: {
+            type: "string",
+            enum: ["local", "vm_isolate", "docker", "ssh", "daytona", "modal", "vercel", "e2b"],
+            description: "Execution backend (default: local)",
+          },
+          remote_host: { type: "string", description: "Target SSH/remote host for ssh backend" },
         },
         required: ["command"],
       },
@@ -511,7 +529,7 @@ export const COREBLOW_OPENAI_TOOLS = [
     type: "function",
     function: {
       name: "execute_code",
-      description: "Programmatic tool calling — execute a short self-contained Node.js/TypeScript or Python snippet in effectiveCwd to batch data/file operations in a single inference turn",
+      description: "Programmatic tool calling — execute a short self-contained Node.js/TypeScript, Python, or VM isolate snippet across 8 execution backends to batch operations in a single inference turn",
       parameters: {
         type: "object",
         properties: {
@@ -521,6 +539,12 @@ export const COREBLOW_OPENAI_TOOLS = [
             description: "Programming language to execute",
           },
           code: { type: "string", description: "Source code snippet to execute" },
+          backend: {
+            type: "string",
+            enum: ["local", "vm_isolate", "docker", "ssh", "daytona", "modal", "vercel", "e2b"],
+            description: "Execution backend (default: vm_isolate for fast JS evaluation, local for system scripts)",
+          },
+          remote_host: { type: "string", description: "Target SSH host when backend=ssh" },
         },
         required: ["language", "code"],
       },
@@ -596,19 +620,43 @@ export const COREBLOW_OPENAI_TOOLS = [
   },
 ] as const;
 
+export const COREBLOW_OPENAI_TOOLS = [
+  ...BASE_COREBLOW_OPENAI_TOOLS,
+  ...COREBLOW_EXTENDED_OPENAI_TOOLS,
+];
+
+export { COREBLOW_TOOLSETS, type CoreBlowToolsetId };
+export { listAvailableBackends, executeOnBackend, type ExecutionBackendId };
+
+export function selectToolsForPrompt(
+  promptOrTools: string | readonly any[],
+  promptOrOptions?: string | { mode?: "smart" | "all" },
+  maybeOptions?: { mode?: "smart" | "all" },
+): any[] {
+  if (Array.isArray(promptOrTools)) {
+    return selectToolsFromList(promptOrTools, String(promptOrOptions ?? ""), maybeOptions);
+  }
+  return selectToolsFromList(COREBLOW_OPENAI_TOOLS, String(promptOrTools ?? ""), promptOrOptions as any);
+}
+
 export function getUnifiedCoreBlowToolDefinitions(): typeof COREBLOW_OPENAI_TOOLS {
   return COREBLOW_OPENAI_TOOLS;
 }
 
 export const COREBLOW_SYSTEM_PROMPT = `You are the CoreBlow Autonomous ReAct Agent operating inside the CoreBlow Sovereign Microkernel.
-You have direct autonomous access to 30 native CoreBlow tools:
-- Filesystem: read_file, write_file, patch, search_files, list_dir, pdf_extract
-- Shell & Execution: terminal, execute_code, git_inspect, process_inspect, lsp_diagnostics
-- Web & Browser: web_fetch, web_search, browser_action
-- Memory & RAG: memory_search, memory_store, rag_query
-- Sessions: session_search, sessions_list, sessions_history, sessions_send
-- Subagents & Collaboration: delegate_subagent, pr_workflow, skill_search
-- Automation & Media: cron_list, cron_schedule, message_channel, nodes_status, tts_speak, calculator
+You have direct autonomous access to 75 native CoreBlow tools across 12 domain toolsets:
+- Filesystem & Archive (10): read_file, write_file, patch, multi_patch, search_files, list_dir, file_stat, file_tree, archive_ops, pdf_extract
+- Shell & 8-Backend Execution (7): terminal, execute_code, sandbox_backends, process_inspect, process_kill, env_inspect, port_wait
+- LSP & Code Intelligence (7): lsp_diagnostics, ast_symbols, code_outline, dependency_audit, deadcode_scan, test_runner, coverage_inspect
+- Git & 5-Gate PR Workflow (6): git_inspect, git_blame, git_log_search, git_stash_inspect, git_worktree_list, pr_workflow
+- Web & Browser Automation (6): web_fetch, web_search, browser_action, http_request, url_metadata, rss_feed_read
+- Cory 4-Layer Memory & Scribe (6): memory_search, memory_store, memory_layers, memory_forget, wiki_compile, rag_query
+- Unified Sessions (6): session_search, sessions_list, sessions_history, sessions_send, session_export, session_compact
+- Subagents, War Room & EvoLoop (6): delegate_subagent, war_room_board, skill_search, skill_create, skill_inspect, decision_route
+- Cron & Workflows (5): cron_list, cron_schedule, cron_run_now, workflow_pipeline, webhook_inspect
+- Data, SQLite & Crypto (6): calculator, json_query, csv_inspect, sqlite_query, hash_encode, diff_compare
+- Media & Voice (5): tts_speak, image_inspect, image_generate, audio_transcribe, diagram_render
+- Messaging & Security Governance (5): message_channel, nodes_status, security_scan, trust_zone_inspect, toolset_discover
 
 AUTONOMOUS EXECUTION RULES:
 1. Always execute tools autonomously to investigate the filesystem, read files, or run tests before answering.
@@ -932,6 +980,18 @@ export class CoreBlowToolExecutor {
     executionProfile: ExecutionProfile = "Full access",
     defaultCwd?: string,
   ): Promise<CoreBlowToolResult> {
+    // Check 45 extended native tools first (Phase 2)
+    const extendedResult = await executeExtendedTool(
+      name,
+      args,
+      executionProfile,
+      defaultCwd,
+      this.fetchFn,
+    );
+    if (extendedResult !== null) {
+      return extendedResult;
+    }
+
     switch (name) {
       case "terminal":
         return this.executeTerminal(
@@ -939,6 +999,8 @@ export class CoreBlowToolExecutor {
           args.cwd ? String(args.cwd) : undefined,
           executionProfile,
           defaultCwd,
+          args.backend as ExecutionBackendId | undefined,
+          args.remote_host ? String(args.remote_host) : undefined,
         );
       case "read_file": {
         const offset = Number.parseInt(String(args.offset ?? "1"), 10) || 1;
@@ -1081,6 +1143,8 @@ export class CoreBlowToolExecutor {
           String(args.code ?? ""),
           executionProfile,
           defaultCwd,
+          args.backend as ExecutionBackendId | undefined,
+          args.remote_host ? String(args.remote_host) : undefined,
         );
       case "message_channel":
         return this.executeMessageChannel(
@@ -1106,7 +1170,7 @@ export class CoreBlowToolExecutor {
       default:
         return {
           success: false,
-          output: `Unknown CoreBlow tool: ${name}. Available CoreBlow tools: terminal, read_file, write_file, patch, search_files, list_dir, web_fetch, web_search, memory_search, memory_store, skill_search, delegate_subagent, git_inspect, process_inspect, cron_list, calculator, session_search, sessions_list, sessions_history, sessions_send, cron_schedule, browser_action, rag_query, pr_workflow, lsp_diagnostics, execute_code, message_channel, nodes_status, tts_speak, pdf_extract.`,
+          output: `Unknown CoreBlow tool: ${name}. 75 native CoreBlow tools available across 12 domain toolsets. Use 'toolset_discover' to list all tools and capabilities.`,
           error: `Unknown tool: ${name}`,
         };
     }
@@ -1120,6 +1184,8 @@ export class CoreBlowToolExecutor {
     cwd?: string,
     executionProfile: ExecutionProfile = "Full access",
     defaultCwd?: string,
+    backend?: ExecutionBackendId,
+    remoteHost?: string,
   ): Promise<CoreBlowToolResult> {
     const trimmed = command.trim();
     if (!trimmed) {
@@ -1143,6 +1209,23 @@ export class CoreBlowToolExecutor {
 
     const targetDir = normalizePath(cwd ?? defaultCwd ?? process.env.HOME ?? "/");
     const effectiveDir = fs.existsSync(targetDir) ? targetDir : (process.env.HOME ?? "/");
+
+    // 8-Backend Sovereign Routing (Phase 1)
+    if (backend && backend !== "local") {
+      const backendRes = await executeOnBackend({
+        backend,
+        command: trimmed,
+        cwd: effectiveDir,
+        remoteHost,
+        timeoutMs: 20000,
+      });
+      return {
+        success: backendRes.success,
+        output: backendRes.output,
+        exitCode: backendRes.exitCode,
+        error: backendRes.error,
+      };
+    }
 
     try {
       const runner = this.processRunner ?? this.defaultProcessRunner.bind(this);
@@ -2507,6 +2590,8 @@ export class CoreBlowToolExecutor {
     code: string,
     executionProfile: ExecutionProfile = "Full access",
     defaultCwd?: string,
+    backend?: ExecutionBackendId,
+    remoteHost?: string,
   ): Promise<CoreBlowToolResult> {
     const trimmed = code.trim();
     if (!trimmed) {
@@ -2521,10 +2606,43 @@ export class CoreBlowToolExecutor {
       };
     }
 
-    const runner = this.processRunner ?? this.defaultProcessRunner.bind(this);
     const cwd = defaultCwd ?? process.cwd();
     const lang = (language || "javascript").toLowerCase();
 
+    // 8-Backend Sovereign Routing for Code Execution (Phase 1)
+    if (backend === "vm_isolate" || (lang === "javascript" && !backend)) {
+      const backendRes = await executeOnBackend({
+        backend: "vm_isolate",
+        code: trimmed,
+        cwd,
+        timeoutMs: 15000,
+      });
+      return {
+        success: backendRes.success,
+        output: backendRes.output,
+        exitCode: backendRes.exitCode,
+        error: backendRes.error,
+      };
+    }
+
+    if (backend && backend !== "local") {
+      const backendRes = await executeOnBackend({
+        backend,
+        code: trimmed,
+        language: lang as any,
+        cwd,
+        remoteHost,
+        timeoutMs: 15000,
+      });
+      return {
+        success: backendRes.success,
+        output: backendRes.output,
+        exitCode: backendRes.exitCode,
+        error: backendRes.error,
+      };
+    }
+
+    const runner = this.processRunner ?? this.defaultProcessRunner.bind(this);
     let executable = "node";
     let args: string[] = ["-e", trimmed];
 
@@ -3261,10 +3379,16 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
       headers.Authorization = `Bearer ${apiKey}`;
     }
 
+    const activeTools = selectToolsForPrompt(
+      COREBLOW_OPENAI_TOOLS,
+      options.prompt,
+      { mode: (options as any).toolSelectionMode ?? "smart" },
+    );
+
     const payload = {
       model,
       messages: conversation,
-      tools: COREBLOW_OPENAI_TOOLS,
+      tools: activeTools,
       tool_choice: "auto",
       stream: false,
     };

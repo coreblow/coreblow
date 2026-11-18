@@ -18,7 +18,11 @@ import {
   normalizePath,
   parseXmlToolCalls,
   runCoreBlowReActLoop,
+  COREBLOW_TOOLSETS,
+  selectToolsForPrompt,
+  listAvailableBackends,
 } from "./coreblow-react-engine.js";
+import { CORE_TOOL_GROUPS } from "./tool-catalog.js";
 import {
   getUnifiedSession,
   listUnifiedSessions,
@@ -257,10 +261,10 @@ describe("CoreBlow Autonomous ReAct Engine", () => {
       expect(res.output).toContain("match1.ts:1: const secretKey = 'xyz';");
     });
 
-    it("defines exactly 30 native tools in COREBLOW_OPENAI_TOOLS", () => {
-      expect(COREBLOW_OPENAI_TOOLS.length).toBe(30);
+    it("defines 75 native tools in COREBLOW_OPENAI_TOOLS containing all core tools", () => {
+      expect(COREBLOW_OPENAI_TOOLS.length).toBe(75);
       const toolNames = COREBLOW_OPENAI_TOOLS.map((t) => t.function.name);
-      expect(toolNames).toEqual([
+      const expectedCore = [
         "terminal",
         "read_file",
         "write_file",
@@ -291,7 +295,10 @@ describe("CoreBlow Autonomous ReAct Engine", () => {
         "nodes_status",
         "tts_speak",
         "pdf_extract",
-      ]);
+      ];
+      for (const core of expectedCore) {
+        expect(toolNames).toContain(core);
+      }
     });
 
     it("executes web_fetch and strips HTML tags/scripts", async () => {
@@ -655,11 +662,11 @@ ls -la
     });
   });
 
-  describe("Unified 30-Tool Catalog & Execution Bridge", () => {
-    it("defines exactly 30 tools in unified definitions", () => {
+  describe("Unified 75-Tool Catalog & Execution Bridge", () => {
+    it("defines exactly 75 tools in unified definitions", () => {
       const defs = getUnifiedCoreBlowToolDefinitions();
-      expect(defs.length).toBe(30);
-      expect(COREBLOW_OPENAI_TOOLS.length).toBe(30);
+      expect(defs.length).toBe(75);
+      expect(COREBLOW_OPENAI_TOOLS.length).toBe(75);
 
       const toolNames = defs.map((d) => d.function.name);
       expect(toolNames).toContain("terminal");
@@ -800,4 +807,240 @@ ls -la
       expect(persisted?.messages[1].content).toBe("Turn completed successfully.");
     });
   });
+  describe("Phase 1 & Phase 2: 75 Native Tools across 12 Toolsets and 8 Backends", () => {
+    it("has exactly 75 built-in tools and CORE_TOOL_GROUPS['group:coreblow'] contains all 75", () => {
+      expect(COREBLOW_OPENAI_TOOLS.length).toBe(75);
+      expect(Object.keys(COREBLOW_TOOLSETS).length).toBe(12);
+
+      const coreblowGroup = new Set(CORE_TOOL_GROUPS["group:coreblow"]);
+      for (const tool of COREBLOW_OPENAI_TOOLS) {
+        expect(coreblowGroup.has(tool.function.name), `Missing ${tool.function.name} from group:coreblow`).toBe(true);
+      }
+    });
+
+    it("listAvailableBackends returns all 8 execution backends", async () => {
+      const backends = await listAvailableBackends();
+      expect(backends.length).toBe(8);
+      const backendIds = backends.map((b) => b.id);
+      expect(backendIds).toEqual([
+        "local",
+        "vm_isolate",
+        "docker",
+        "ssh",
+        "daytona",
+        "modal",
+        "vercel",
+        "e2b",
+      ]);
+
+      const localBackend = backends.find((b) => b.id === "local");
+      expect(localBackend?.available).toBe(true);
+
+      const vmBackend = backends.find((b) => b.id === "vm_isolate");
+      expect(vmBackend?.available).toBe(true);
+    });
+
+    it("executes JavaScript in vm_isolate via execute_code with sub-millisecond precision", async () => {
+      const executor = new CoreBlowToolExecutor();
+      const res = await executor.executeTool(
+        "execute_code",
+        {
+          language: "javascript",
+          code: "const a = 12 * 12; Math.sqrt(a);",
+          backend: "vm_isolate",
+        },
+        "Full access",
+        tempDir,
+      );
+
+      expect(res.success).toBe(true);
+      expect(res.output).toContain("12");
+      expect(res.exitCode).toBe(0);
+    });
+
+    it("executes multi_patch atomically on target files", async () => {
+      const filePath = path.join(tempDir, "multi_target.txt");
+      fs.writeFileSync(filePath, "alpha\nbeta\ngamma\n", "utf8");
+
+      const executor = new CoreBlowToolExecutor();
+      const res = await executor.executeTool(
+        "multi_patch",
+        {
+          path: filePath,
+          hunks: [
+            { old_text: "alpha", new_text: "ALPHA_PRIME" },
+            { old_text: "gamma", new_text: "GAMMA_PRIME" },
+          ],
+        },
+        "Full access",
+        tempDir,
+      );
+
+      expect(res.success).toBe(true);
+      const updated = fs.readFileSync(filePath, "utf8");
+      expect(updated).toBe("ALPHA_PRIME\nbeta\nGAMMA_PRIME\n");
+    });
+
+    it("executes file_stat with file size and SHA-256 hash", async () => {
+      const filePath = path.join(tempDir, "stat_target.json");
+      fs.writeFileSync(filePath, '{"coreblow": "v2.0.0"}', "utf8");
+
+      const executor = new CoreBlowToolExecutor();
+      const res = await executor.executeTool(
+        "file_stat",
+        { path: filePath, hash: true },
+        "Full access",
+        tempDir,
+      );
+
+      expect(res.success).toBe(true);
+      const parsed = JSON.parse(res.output);
+      expect(parsed.sizeBytes).toBeGreaterThan(0);
+      expect(parsed.sha256).toBeDefined();
+      expect(parsed.type).toBe("file");
+    });
+
+    it("executes ast_symbols extracting functions and exports from source code", async () => {
+      const filePath = path.join(tempDir, "symbols.ts");
+      fs.writeFileSync(
+        filePath,
+        "export class GatewayService {\n  run(): void {}\n}\nexport async function startKernel() {}\ninterface Config {}\n",
+        "utf8",
+      );
+
+      const executor = new CoreBlowToolExecutor();
+      const res = await executor.executeTool(
+        "ast_symbols",
+        { path: filePath },
+        "Full access",
+        tempDir,
+      );
+
+      expect(res.success).toBe(true);
+      const parsed = JSON.parse(res.output);
+      expect(parsed.symbolCount).toBeGreaterThanOrEqual(2);
+      expect(parsed.symbols.some((s: any) => s.name === "GatewayService")).toBe(true);
+      expect(parsed.symbols.some((s: any) => s.name === "startKernel")).toBe(true);
+    });
+
+    it("executes json_query extracting nested fields by dot-path", async () => {
+      const filePath = path.join(tempDir, "data.json");
+      fs.writeFileSync(
+        filePath,
+        JSON.stringify({ microkernel: { version: "2.0.0", services: ["cory", "warroom"] } }),
+        "utf8",
+      );
+
+      const executor = new CoreBlowToolExecutor();
+      const res = await executor.executeTool(
+        "json_query",
+        { source: filePath, query: "microkernel.version" },
+        "Full access",
+        tempDir,
+      );
+
+      expect(res.success).toBe(true);
+      expect(res.output).toContain("2.0.0");
+    });
+
+    it("executes hash_encode across sha256, base64, and uuid", async () => {
+      const executor = new CoreBlowToolExecutor();
+      const shaRes = await executor.executeTool(
+        "hash_encode",
+        { operation: "sha256", input: "CoreBlow" },
+        "Full access",
+        tempDir,
+      );
+      expect(shaRes.success).toBe(true);
+      expect(shaRes.output.length).toBe(64);
+
+      const uuidRes = await executor.executeTool(
+        "hash_encode",
+        { operation: "uuid" },
+        "Full access",
+        tempDir,
+      );
+      expect(uuidRes.success).toBe(true);
+      expect(uuidRes.output).toMatch(/^[0-9a-f-]{36}$/);
+    });
+
+    it("executes security_scan detecting unredacted secrets and private keys", async () => {
+      const leakDir = path.join(tempDir, "leak_scan");
+      fs.mkdirSync(leakDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(leakDir, "leaked_secret.ts"),
+        "const key = 'sk-ant-12345678901234567890';\n",
+        "utf8",
+      );
+
+      const executor = new CoreBlowToolExecutor();
+      const res = await executor.executeTool(
+        "security_scan",
+        { path: leakDir },
+        "Full access",
+        tempDir,
+      );
+
+      expect(res.success).toBe(true);
+      const parsed = JSON.parse(res.output);
+      expect(parsed.findingsCount).toBeGreaterThanOrEqual(1);
+      expect(parsed.findings[0].type).toBe("Anthropic Key");
+    });
+
+    it("executes toolset_discover listing all 12 toolsets and 75 native tools", async () => {
+      const executor = new CoreBlowToolExecutor();
+      const res = await executor.executeTool(
+        "toolset_discover",
+        {},
+        "Full access",
+        tempDir,
+      );
+
+      expect(res.success).toBe(true);
+      const parsed = JSON.parse(res.output);
+      expect(parsed.totalToolsets).toBe(12);
+      expect(parsed.totalBuiltInTools).toBe(75);
+    });
+
+    it("executes sandbox_backends listing all 8 backends via tool call", async () => {
+      const executor = new CoreBlowToolExecutor();
+      const res = await executor.executeTool(
+        "sandbox_backends",
+        {},
+        "Full access",
+        tempDir,
+      );
+
+      expect(res.success).toBe(true);
+      const parsed = JSON.parse(res.output);
+      expect(parsed.count).toBe(8);
+      expect(parsed.backends.some((b: any) => b.id === "vm_isolate")).toBe(true);
+      expect(parsed.backends.some((b: any) => b.id === "docker")).toBe(true);
+      expect(parsed.backends.some((b: any) => b.id === "ssh")).toBe(true);
+    });
+
+    it("selectToolsForPrompt router selectively activates specialized tools based on intent", () => {
+      const dataTools = selectToolsForPrompt(
+        COREBLOW_OPENAI_TOOLS,
+        "Run read-only query on sqlite database and inspect csv table",
+      );
+      const dataNames = new Set(dataTools.map((t) => t.function.name));
+      expect(dataNames.has("sqlite_query")).toBe(true);
+      expect(dataNames.has("csv_inspect")).toBe(true);
+      expect(dataNames.has("json_query")).toBe(true);
+
+      const codeTools = selectToolsForPrompt(
+        COREBLOW_OPENAI_TOOLS,
+        "Extract ast symbols, check coverage and scan for deadcode",
+      );
+      const codeNames = new Set(codeTools.map((t) => t.function.name));
+      expect(codeNames.has("ast_symbols")).toBe(true);
+      expect(codeNames.has("deadcode_scan")).toBe(true);
+      expect(codeNames.has("coverage_inspect")).toBe(true);
+
+      const allTools = selectToolsForPrompt(COREBLOW_OPENAI_TOOLS, "hello", { mode: "all" });
+      expect(allTools.length).toBe(75);
+    });
+  });
+
 });

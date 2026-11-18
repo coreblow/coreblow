@@ -122,6 +122,48 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
         </button>
       </div>
 
+      {/* Sovereign Execution & Toolset Runtime Status Banner */}
+      <div
+        style={{
+          padding: "7px 12px",
+          background: "var(--bg-card)",
+          borderBottom: "1px solid var(--border-subtle)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          fontSize: "11px",
+          color: "var(--ink-secondary)",
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span
+            style={{
+              width: "6px",
+              height: "6px",
+              borderRadius: "50%",
+              background: "var(--accent-teal)",
+              display: "inline-block",
+            }}
+          />
+          <span style={{ fontWeight: 600, color: "var(--accent-teal)" }}>75 Native Tools</span>
+          <span style={{ color: "var(--ink-muted)" }}>(12 Toolsets)</span>
+        </div>
+        <span
+          style={{
+            padding: "2px 6px",
+            background: "var(--bg-chip)",
+            borderRadius: "var(--radius-xs)",
+            fontSize: "10px",
+            fontWeight: 500,
+            color: "var(--ink-primary)",
+          }}
+          title="local, vm_isolate, docker, ssh, daytona, modal, vercel, e2b"
+        >
+          8 Backends
+        </span>
+      </div>
+
       {/* Main Tab Content */}
       <div style={{ flex: 1, overflowY: "auto", padding: "14px" }}>
         {activeTab === "git" && (
@@ -180,7 +222,8 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
             }}
           >
             <div style={{ color: "var(--accent-teal)" }}>$ coreblow gateway :18789 [single-brain]</div>
-            <div>[microkernel] SSE stream initialized</div>
+            <div>[runtime] 8 execution backends ready (local, vm_isolate, docker, ssh, daytona, modal, vercel, e2b)</div>
+            <div>[tools] 75 native tools loaded across 12 domain toolsets</div>
             <div>[cory] cognitive memory synchronized (4 layers)</div>
             <div>[git] branch main verified against gates</div>
           </div>
