@@ -1,0 +1,315 @@
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+import { resolveStateDir } from "../config/paths.js";
+
+export type SessionSurface = "desktop" | "cli" | "cron" | "channel" | "web";
+
+export interface UnifiedSessionMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  createdAt: number;
+  attachedFiles?: string[];
+  toolSteps?: string[];
+}
+
+export interface UnifiedSessionRecord {
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+  cwd?: string;
+  executionProfile?: string;
+  model?: string;
+  surface: SessionSurface;
+  messages: UnifiedSessionMessage[];
+}
+
+export interface UnifiedSessionStoreFile {
+  version: 1;
+  sessions: Record<string, UnifiedSessionRecord>;
+}
+
+/**
+ * Resolves the absolute path to the unified session store file.
+ * Defaults to ~/.coreblow/sessions/sessions-store.json (or inside COREBLOW_STATE_DIR).
+ */
+export function resolveUnifiedSessionStorePath(customPath?: string): string {
+  if (customPath && customPath.trim().length > 0) {
+    const raw = customPath.trim();
+    if (raw.startsWith("~")) {
+      const home = process.env.HOME ?? os.homedir();
+      return path.resolve(home, raw.slice(1).replace(/^\/+/, ""));
+    }
+    return path.resolve(raw);
+  }
+
+  const envPath = process.env.COREBLOW_SESSION_STORE_PATH?.trim();
+  if (envPath) {
+    if (envPath.startsWith("~")) {
+      const home = process.env.HOME ?? os.homedir();
+      return path.resolve(home, envPath.slice(1).replace(/^\/+/, ""));
+    }
+    return path.resolve(envPath);
+  }
+
+  const stateDir = resolveStateDir();
+  return path.join(stateDir, "sessions", "sessions-store.json");
+}
+
+/**
+ * Loads the unified session store from disk synchronously.
+ */
+export function loadUnifiedSessionStoreSync(storePath?: string): UnifiedSessionStoreFile {
+  const filePath = resolveUnifiedSessionStorePath(storePath);
+  if (!fs.existsSync(filePath)) {
+    return { version: 1, sessions: {} };
+  }
+
+  try {
+    const raw = fs.readFileSync(filePath, "utf-8");
+    const parsed = JSON.parse(raw) as Partial<UnifiedSessionStoreFile>;
+    if (parsed && typeof parsed === "object" && typeof parsed.sessions === "object") {
+      return {
+        version: 1,
+        sessions: (parsed.sessions ?? {}) as Record<string, UnifiedSessionRecord>,
+      };
+    }
+  } catch {
+    // Return empty store on corrupted file
+  }
+
+  return { version: 1, sessions: {} };
+}
+
+/**
+ * Atomically saves the unified session store to disk synchronously.
+ */
+export function saveUnifiedSessionStoreSync(
+  store: UnifiedSessionStoreFile,
+  storePath?: string,
+): void {
+  const filePath = resolveUnifiedSessionStorePath(storePath);
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  const json = JSON.stringify(store, null, 2);
+  const tmpFile = `${filePath}.tmp.${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  try {
+    fs.writeFileSync(tmpFile, json, "utf-8");
+    fs.renameSync(tmpFile, filePath);
+  } catch {
+    // Fallback to direct write if rename fails (e.g. cross-device link)
+    fs.writeFileSync(filePath, json, "utf-8");
+    try {
+      if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
+    } catch {}
+  }
+}
+
+/**
+ * Lists unified session records sorted by updatedAt descending.
+ * Optionally filters by search query matching title, id, or message contents.
+ */
+export function listUnifiedSessions(options?: {
+  query?: string;
+  limit?: number;
+  storePath?: string;
+}): UnifiedSessionRecord[] {
+  const store = loadUnifiedSessionStoreSync(options?.storePath);
+  let list = Object.values(store.sessions);
+
+  const query = options?.query?.trim().toLowerCase();
+  if (query) {
+    list = list.filter((s) => {
+      if (s.id.toLowerCase().includes(query)) return true;
+      if (s.title.toLowerCase().includes(query)) return true;
+      return s.messages.some((m) => m.content.toLowerCase().includes(query));
+    });
+  }
+
+  list.sort((a, b) => b.updatedAt - a.updatedAt);
+
+  if (typeof options?.limit === "number" && options.limit > 0) {
+    list = list.slice(0, options.limit);
+  }
+
+  return list;
+}
+
+/**
+ * Retrieves a single unified session record by ID.
+ */
+export function getUnifiedSession(
+  id: string,
+  storePath?: string,
+): UnifiedSessionRecord | undefined {
+  const targetId = id.trim();
+  if (!targetId) return undefined;
+  const store = loadUnifiedSessionStoreSync(storePath);
+  if (store.sessions[targetId]) {
+    return store.sessions[targetId];
+  }
+  // Case-insensitive fallback
+  const lower = targetId.toLowerCase();
+  for (const s of Object.values(store.sessions)) {
+    if (s.id.toLowerCase() === lower) return s;
+  }
+  return undefined;
+}
+
+/**
+ * Upserts a session record into the unified store.
+ */
+export function upsertUnifiedSession(
+  session: Partial<UnifiedSessionRecord> & { id: string },
+  storePath?: string,
+): UnifiedSessionRecord {
+  const store = loadUnifiedSessionStoreSync(storePath);
+  const id = session.id.trim();
+  const existing = store.sessions[id];
+  const now = Date.now();
+
+  const title =
+    session.title?.trim() ||
+    existing?.title ||
+    session.messages?.[0]?.content?.slice(0, 48) ||
+    "New Chat";
+
+  const record: UnifiedSessionRecord = {
+    id,
+    title,
+    createdAt: existing?.createdAt ?? session.createdAt ?? now,
+    updatedAt: session.updatedAt ?? now,
+    cwd: session.cwd ?? existing?.cwd,
+    executionProfile: session.executionProfile ?? existing?.executionProfile,
+    model: session.model ?? existing?.model,
+    surface: session.surface ?? existing?.surface ?? "desktop",
+    messages: Array.isArray(session.messages) ? [...session.messages] : (existing?.messages ?? []),
+  };
+
+  store.sessions[id] = record;
+  saveUnifiedSessionStoreSync(store, storePath);
+  return record;
+}
+
+/**
+ * Appends a user/assistant turn to a unified session record.
+ * Automatically generates a clean title from prompt if creating a new session.
+ */
+export function appendTurnToUnifiedSession(params: {
+  sessionId?: string;
+  prompt: string;
+  reply: string;
+  toolSteps?: string[];
+  attachedFiles?: string[];
+  surface?: SessionSurface;
+  cwd?: string;
+  executionProfile?: string;
+  model?: string;
+  storePath?: string;
+}): UnifiedSessionRecord {
+  const id =
+    params.sessionId?.trim() ||
+    `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const store = loadUnifiedSessionStoreSync(params.storePath);
+  const existing = store.sessions[id];
+  const now = Date.now();
+
+  // Deduplicate if the last turn already matches this exact prompt and reply within 10 seconds
+  if (existing?.messages && existing.messages.length >= 2) {
+    const lastUser = existing.messages[existing.messages.length - 2];
+    const lastAssistant = existing.messages[existing.messages.length - 1];
+    if (
+      lastUser.role === "user" &&
+      lastUser.content === params.prompt &&
+      lastAssistant.role === "assistant" &&
+      lastAssistant.content === params.reply &&
+      Math.abs(now - lastAssistant.createdAt) < 10000
+    ) {
+      return existing;
+    }
+  }
+
+  const userMsgId = `msg_${now}_user_${Math.random().toString(36).slice(2, 6)}`;
+  const assistantMsgId = `msg_${now + 1}_assistant_${Math.random().toString(36).slice(2, 6)}`;
+
+  const userMessage: UnifiedSessionMessage = {
+    id: userMsgId,
+    role: "user",
+    content: params.prompt,
+    createdAt: now,
+    attachedFiles: params.attachedFiles && params.attachedFiles.length > 0 ? [...params.attachedFiles] : undefined,
+  };
+
+  const assistantMessage: UnifiedSessionMessage = {
+    id: assistantMsgId,
+    role: "assistant",
+    content: params.reply,
+    createdAt: now + 1,
+    toolSteps: params.toolSteps && params.toolSteps.length > 0 ? [...params.toolSteps] : undefined,
+  };
+
+  const title =
+    existing?.title ||
+    (params.prompt.length > 48
+      ? `${params.prompt.slice(0, 48).trim()}...`
+      : params.prompt.trim()) ||
+    "New Chat";
+
+  const updatedMessages = existing?.messages ? [...existing.messages] : [];
+  updatedMessages.push(userMessage, assistantMessage);
+
+  const record: UnifiedSessionRecord = {
+    id,
+    title,
+    createdAt: existing?.createdAt ?? now,
+    updatedAt: now + 1,
+    cwd: params.cwd ?? existing?.cwd,
+    executionProfile: params.executionProfile ?? existing?.executionProfile,
+    model: params.model ?? existing?.model,
+    surface: params.surface ?? existing?.surface ?? "desktop",
+    messages: updatedMessages,
+  };
+
+  store.sessions[id] = record;
+  saveUnifiedSessionStoreSync(store, params.storePath);
+  return record;
+}
+
+/**
+ * Deletes a session by ID from the unified session store.
+ */
+export function deleteUnifiedSession(id: string, storePath?: string): boolean {
+  const targetId = id.trim();
+  if (!targetId) return false;
+
+  const store = loadUnifiedSessionStoreSync(storePath);
+  if (store.sessions[targetId]) {
+    delete store.sessions[targetId];
+    saveUnifiedSessionStoreSync(store, storePath);
+    return true;
+  }
+
+  // Case-insensitive check
+  const lower = targetId.toLowerCase();
+  for (const key of Object.keys(store.sessions)) {
+    if (key.toLowerCase() === lower) {
+      delete store.sessions[key];
+      saveUnifiedSessionStoreSync(store, storePath);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Clears all sessions from the unified store (primarily for unit tests).
+ */
+export function clearUnifiedSessions(storePath?: string): void {
+  saveUnifiedSessionStoreSync({ version: 1, sessions: {} }, storePath);
+}

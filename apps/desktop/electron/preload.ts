@@ -1,0 +1,67 @@
+import { contextBridge, ipcRenderer } from "electron";
+
+export interface CoreBlowDesktopApi {
+  platform: string;
+  versions: {
+    node: string;
+    chrome: string;
+    electron: string;
+    coreblow: string;
+  };
+  dialog: {
+    selectDirectory: () => Promise<string | null>;
+    selectFiles: (options?: { title?: string; filters?: { name: string; extensions: string[] }[] }) => Promise<string[]>;
+  };
+  clipboard: {
+    readText: () => Promise<string>;
+    writeText: (text: string) => Promise<boolean>;
+  };
+  gateway: {
+    health: () => Promise<boolean>;
+    ensure: () => Promise<boolean>;
+  };
+  window: {
+    minimize: () => Promise<void>;
+    maximize: () => Promise<void>;
+    close: () => Promise<void>;
+    isMaximized: () => Promise<boolean>;
+    onFullscreenChange: (callback: (fullscreen: boolean) => void) => () => void;
+  };
+}
+
+const desktopApi: CoreBlowDesktopApi = {
+  platform: process.platform,
+  versions: {
+    node: process.versions.node,
+    chrome: process.versions.chrome,
+    electron: process.versions.electron,
+    coreblow: "2.0.0",
+  },
+  dialog: {
+    selectDirectory: () => ipcRenderer.invoke("coreblow:dialog:selectDirectory"),
+    selectFiles: (options) => ipcRenderer.invoke("coreblow:dialog:selectFiles", options),
+  },
+  clipboard: {
+    readText: () => ipcRenderer.invoke("coreblow:clipboard:readText"),
+    writeText: (text) => ipcRenderer.invoke("coreblow:clipboard:writeText", text),
+  },
+  gateway: {
+    health: () => ipcRenderer.invoke("coreblow:gateway:health"),
+    ensure: () => ipcRenderer.invoke("coreblow:gateway:ensure"),
+  },
+  window: {
+    minimize: () => ipcRenderer.invoke("coreblow:window:minimize"),
+    maximize: () => ipcRenderer.invoke("coreblow:window:maximize"),
+    close: () => ipcRenderer.invoke("coreblow:window:close"),
+    isMaximized: () => ipcRenderer.invoke("coreblow:window:isMaximized"),
+    onFullscreenChange: (callback: (fullscreen: boolean) => void) => {
+      const handler = (_event: unknown, isFullscreen: boolean) => callback(isFullscreen);
+      ipcRenderer.on("coreblow:window-fullscreen", handler);
+      return () => {
+        ipcRenderer.removeListener("coreblow:window-fullscreen", handler);
+      };
+    },
+  },
+};
+
+contextBridge.exposeInMainWorld("coreblowDesktop", desktopApi);

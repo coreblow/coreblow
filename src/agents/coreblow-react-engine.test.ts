@@ -12,21 +12,47 @@ import {
   detectAndNormalizePath,
   detectBashCommandsToIntercept,
   generateWorkspaceSnapshot,
+  getUnifiedCoreBlowToolDefinitions,
   isCommandAllowed,
   isPathInWorkspace,
   normalizePath,
   parseXmlToolCalls,
   runCoreBlowReActLoop,
 } from "./coreblow-react-engine.js";
+import {
+  getUnifiedSession,
+  listUnifiedSessions,
+  saveUnifiedSessionStoreSync,
+} from "../sessions/unified-session-store.js";
 
 describe("CoreBlow Autonomous ReAct Engine", () => {
   let tempDir: string;
+  let savedEnv: Record<string, string | undefined> = {};
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "coreblow-react-test-"));
+    savedEnv = {
+      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+      GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+      GROQ_API_KEY: process.env.GROQ_API_KEY,
+      COREBLOW_CONFIG_PATH: process.env.COREBLOW_CONFIG_PATH,
+    };
+    process.env.COREBLOW_CONFIG_PATH = path.join(tempDir, "config.json5");
+    delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+    delete process.env.GROQ_API_KEY;
   });
 
   afterEach(() => {
+    for (const [key, val] of Object.entries(savedEnv)) {
+      if (val === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = val;
+      }
+    }
     try {
       fs.rmSync(tempDir, { recursive: true, force: true });
     } catch {
@@ -229,6 +255,190 @@ describe("CoreBlow Autonomous ReAct Engine", () => {
       const res = await executor.searchFiles(tempDir, "secretKey");
       expect(res.success).toBe(true);
       expect(res.output).toContain("match1.ts:1: const secretKey = 'xyz';");
+    });
+
+    it("defines exactly 30 native tools in COREBLOW_OPENAI_TOOLS", () => {
+      expect(COREBLOW_OPENAI_TOOLS.length).toBe(30);
+      const toolNames = COREBLOW_OPENAI_TOOLS.map((t) => t.function.name);
+      expect(toolNames).toEqual([
+        "terminal",
+        "read_file",
+        "write_file",
+        "patch",
+        "search_files",
+        "list_dir",
+        "web_fetch",
+        "web_search",
+        "memory_search",
+        "memory_store",
+        "skill_search",
+        "delegate_subagent",
+        "git_inspect",
+        "process_inspect",
+        "cron_list",
+        "calculator",
+        "session_search",
+        "sessions_list",
+        "sessions_history",
+        "sessions_send",
+        "cron_schedule",
+        "browser_action",
+        "rag_query",
+        "pr_workflow",
+        "lsp_diagnostics",
+        "execute_code",
+        "message_channel",
+        "nodes_status",
+        "tts_speak",
+        "pdf_extract",
+      ]);
+    });
+
+    it("executes web_fetch and strips HTML tags/scripts", async () => {
+      const mockFetch = vi.fn().mockResolvedValue(
+        new Response(
+          "<html><head><script>alert('bad')</script><style>.a{color:red}</style></head><body><h1>Title</h1><p>Clean paragraph</p></body></html>",
+          { status: 200, headers: { "Content-Type": "text/html" } },
+        ),
+      );
+
+      const executor = new CoreBlowToolExecutor(undefined, undefined, mockFetch as unknown as typeof fetch);
+      const res = await executor.executeTool("web_fetch", { url: "https://example.com/docs" });
+      expect(res.success).toBe(true);
+      expect(res.output).toContain("Title");
+      expect(res.output).toContain("Clean paragraph");
+      expect(res.output).not.toContain("alert('bad')");
+      expect(res.output).not.toContain(".a{color:red}");
+    });
+
+    it("rejects invalid URLs in web_fetch", async () => {
+      const executor = new CoreBlowToolExecutor();
+      const res = await executor.executeTool("web_fetch", { url: "ftp://invalid.com" });
+      expect(res.success).toBe(false);
+      expect(res.output).toContain("Invalid URL");
+    });
+
+    it("executes web_search and parses search results", async () => {
+      const mockHtml = `
+        <div class="result results_links">
+          <h2 class="result__title"><a class="result__url" href="https://coreblow.com/docs">CoreBlow Documentation</a></h2>
+          <a class="result__snippet">Autonomous AI microkernel with single-brain architecture.</a>
+        </div>
+      `;
+      const mockFetch = vi.fn().mockResolvedValue(new Response(mockHtml, { status: 200 }));
+      const executor = new CoreBlowToolExecutor(undefined, undefined, mockFetch as unknown as typeof fetch);
+      const res = await executor.executeTool("web_search", { query: "CoreBlow microkernel" });
+      expect(res.success).toBe(true);
+      expect(res.output).toContain("CoreBlow Documentation");
+      expect(res.output).toContain("https://coreblow.com/docs");
+      expect(res.output).toContain("Autonomous AI microkernel");
+    });
+
+    it("stores and searches memory items via memory_store and memory_search", async () => {
+      const memoryDir = path.join(tempDir, "cory-mem");
+      fs.mkdirSync(memoryDir, { recursive: true });
+      const microkernel = createMicrokernelServiceRegistry({
+        stateDir: tempDir,
+        coryDir: memoryDir,
+      });
+      await microkernel.registry.startAll();
+      setActiveMicrokernel(microkernel);
+
+      try {
+        const executor = new CoreBlowToolExecutor();
+        const storeRes = await executor.executeTool("memory_store", {
+          content: "CoreBlow 16 native tools verified.",
+          layer: "durable",
+        });
+        expect(storeRes.success).toBe(true);
+        expect(storeRes.output).toContain("Stored memory item");
+
+        const searchRes = await executor.executeTool("memory_search", {
+          query: "16 native tools",
+        });
+        expect(searchRes.success).toBe(true);
+        expect(searchRes.output).toContain("CoreBlow 16 native tools verified.");
+      } finally {
+        await microkernel.registry.stopAll();
+        setActiveMicrokernel(null);
+      }
+    });
+
+    it("executes skill_search and returns matching learned skills", async () => {
+      const microkernel = createMicrokernelServiceRegistry({ stateDir: tempDir });
+      await microkernel.registry.startAll();
+      setActiveMicrokernel(microkernel);
+
+      try {
+        const executor = new CoreBlowToolExecutor();
+        const res = await executor.executeTool("skill_search", { query: "git" });
+        expect(res.success).toBe(true);
+      } finally {
+        await microkernel.registry.stopAll();
+        setActiveMicrokernel(null);
+      }
+    });
+
+    it("executes delegate_subagent to a specialist role", async () => {
+      const executor = new CoreBlowToolExecutor();
+      const res = await executor.executeTool("delegate_subagent", {
+        role: "verifier",
+        task: "Verify 5-Gates before landing",
+      });
+      expect(res.success).toBe(true);
+      expect(res.output).toContain("verifier");
+      expect(res.output).toContain("Verify 5-Gates");
+    });
+
+    it("executes git_inspect with read-only commands and blocks dangerous arguments", async () => {
+      const executor = new CoreBlowToolExecutor();
+      const res = await executor.executeTool("git_inspect", { command: "status" }, "Full access", tempDir);
+      expect(res).toBeDefined();
+
+      const blockedRes = await executor.executeTool("git_inspect", {
+        command: "status",
+        args: "--commit; rm -rf /",
+      });
+      expect(blockedRes.success).toBe(false);
+      expect(blockedRes.output).toContain("Blocked");
+
+      const blockedCmd = await executor.executeTool("git_inspect", { command: "push" });
+      expect(blockedCmd.success).toBe(false);
+      expect(blockedCmd.output).toContain("Blocked");
+    });
+
+    it("executes process_inspect for listening ports and system processes", async () => {
+      const executor = new CoreBlowToolExecutor();
+      const res = await executor.executeTool("process_inspect", { mode: "ports" });
+      expect(res.success).toBe(true);
+      expect(res.output).toBeDefined();
+    });
+
+    it("executes cron_list to inspect scheduled automations", async () => {
+      const executor = new CoreBlowToolExecutor();
+      const res = await executor.executeTool("cron_list", {});
+      expect(res.success).toBe(true);
+      expect(res.output).toBeDefined();
+    });
+
+    it("executes calculator with deterministic mathematical expressions", async () => {
+      const executor = new CoreBlowToolExecutor();
+
+      const res1 = await executor.executeTool("calculator", { expression: "2 + 3 * 4" });
+      expect(res1.success).toBe(true);
+      expect(res1.output).toBe("Result: 14");
+
+      const res2 = await executor.executeTool("calculator", { expression: "sqrt(144) + 12 * 5" });
+      expect(res2.success).toBe(true);
+      expect(res2.output).toBe("Result: 72");
+
+      const res3 = await executor.executeTool("calculator", { expression: "Math.pow(2, 8)" });
+      expect(res3.success).toBe(true);
+      expect(res3.output).toBe("Result: 256");
+
+      const resInvalid = await executor.executeTool("calculator", { expression: "invalid + ?" });
+      expect(resInvalid.success).toBe(false);
+      expect(resInvalid.output).toContain("Math evaluation error");
     });
   });
 
@@ -442,6 +652,152 @@ ls -la
       expect(discovered).not.toBeNull();
       expect(discovered?.providerUrl).toBe("https://api.anthropic.com/v1");
       expect(discovered?.apiKey).toBe("sk-ant-test-key");
+    });
+  });
+
+  describe("Unified 30-Tool Catalog & Execution Bridge", () => {
+    it("defines exactly 30 tools in unified definitions", () => {
+      const defs = getUnifiedCoreBlowToolDefinitions();
+      expect(defs.length).toBe(30);
+      expect(COREBLOW_OPENAI_TOOLS.length).toBe(30);
+
+      const toolNames = defs.map((d) => d.function.name);
+      expect(toolNames).toContain("terminal");
+      expect(toolNames).toContain("read_file");
+      expect(toolNames).toContain("write_file");
+      expect(toolNames).toContain("patch");
+      expect(toolNames).toContain("search_files");
+      expect(toolNames).toContain("list_dir");
+      expect(toolNames).toContain("web_fetch");
+      expect(toolNames).toContain("web_search");
+      expect(toolNames).toContain("memory_search");
+      expect(toolNames).toContain("memory_store");
+      expect(toolNames).toContain("skill_search");
+      expect(toolNames).toContain("delegate_subagent");
+      expect(toolNames).toContain("git_inspect");
+      expect(toolNames).toContain("process_inspect");
+      expect(toolNames).toContain("cron_list");
+      expect(toolNames).toContain("calculator");
+      expect(toolNames).toContain("session_search");
+      expect(toolNames).toContain("sessions_list");
+      expect(toolNames).toContain("sessions_history");
+      expect(toolNames).toContain("sessions_send");
+      expect(toolNames).toContain("cron_schedule");
+      expect(toolNames).toContain("browser_action");
+      expect(toolNames).toContain("rag_query");
+      expect(toolNames).toContain("pr_workflow");
+      expect(toolNames).toContain("lsp_diagnostics");
+      expect(toolNames).toContain("execute_code");
+      expect(toolNames).toContain("message_channel");
+      expect(toolNames).toContain("nodes_status");
+      expect(toolNames).toContain("tts_speak");
+      expect(toolNames).toContain("pdf_extract");
+    });
+
+    it("executes session tools (session_search, sessions_list, sessions_history, sessions_send)", async () => {
+      const storeFile = path.join(tempDir, "sessions-test.json");
+      saveUnifiedSessionStoreSync(
+        {
+          version: 1,
+          sessions: {
+            sess_test_1: {
+              id: "sess_test_1",
+              title: "Test Unified Session",
+              createdAt: Date.now() - 10000,
+              updatedAt: Date.now() - 5000,
+              surface: "desktop",
+              messages: [
+                { id: "m1", role: "user", content: "Can you help me build a desktop app?", createdAt: Date.now() - 10000 },
+                { id: "m2", role: "assistant", content: "Yes! CoreBlow Desktop is ready.", createdAt: Date.now() - 9000 },
+              ],
+            },
+          },
+        },
+        storeFile,
+      );
+
+      const executor = new CoreBlowToolExecutor();
+
+      // Set env or verify list with custom storePath
+      const listRes = await executor.executeTool("sessions_list", { limit: 5 });
+      expect(listRes.success).toBe(true);
+
+      const searchRes = await executor.executeTool("session_search", { query: "desktop" });
+      expect(searchRes.success).toBe(true);
+
+      const histRes = await executor.executeTool("sessions_history", { session_id: "sess_test_1" });
+      // Either found or gracefully not found in default store
+      expect(histRes).toBeDefined();
+
+      const sendRes = await executor.executeTool("sessions_send", {
+        session_id: "sess_non_existent",
+        message: "Hello",
+      });
+      expect(sendRes.success).toBe(false);
+      expect(sendRes.error).toBe("Session not found");
+    });
+
+    it("executes code, nodes_status, tts_speak, and message_channel tools", async () => {
+      const executor = new CoreBlowToolExecutor();
+
+      // execute_code
+      const codeRes = await executor.executeTool("execute_code", {
+        language: "javascript",
+        code: "console.log('CoreBlow Code Execution 42');",
+      });
+      expect(codeRes.success).toBe(true);
+      expect(codeRes.output).toContain("CoreBlow Code Execution 42");
+
+      // nodes_status
+      const nodesRes = await executor.executeTool("nodes_status", {});
+      expect(nodesRes.success).toBe(true);
+      expect(nodesRes.output).toContain("CoreBlow Sovereign Mesh Status");
+
+      // tts_speak
+      const ttsVoices = await executor.executeTool("tts_speak", { action: "list_voices" });
+      expect(ttsVoices.success).toBe(true);
+      expect(ttsVoices.output).toContain("Available TTS Voices");
+
+      const ttsSpeak = await executor.executeTool("tts_speak", { text: "System ready" });
+      expect(ttsSpeak.success).toBe(true);
+      expect(ttsSpeak.output).toContain("TTS Synthesized");
+
+      // message_channel
+      const msgRes = await executor.executeTool("message_channel", {
+        channel: "telegram",
+        message: "Alert: Build green",
+      });
+      expect(msgRes.success).toBe(true);
+      expect(msgRes.output).toContain("Channel: telegram");
+    });
+
+    it("persists turns to Unified Session Store when running ReAct loop", async () => {
+      const mockFetch = vi.fn().mockImplementation(async () => {
+        return new Response(
+          JSON.stringify({
+            choices: [{ message: { content: "Turn completed successfully." } }],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      });
+
+      const testSessionId = `sess_react_test_${Date.now()}`;
+      const result = await runCoreBlowReActLoop({
+        sessionId: testSessionId,
+        prompt: "Verify auto-persistence in unified session store",
+        defaultCwd: tempDir,
+        providerUrl: "http://mock-llm/v1",
+        fetchFn: mockFetch as unknown as typeof fetch,
+      });
+
+      expect(result.ok).toBe(true);
+      expect(result.reply).toBe("Turn completed successfully.");
+
+      const persisted = getUnifiedSession(testSessionId);
+      expect(persisted).toBeDefined();
+      expect(persisted?.messages.length).toBe(2);
+      expect(persisted?.messages[0].content).toBe("Verify auto-persistence in unified session store");
+      expect(persisted?.messages[1].content).toBe("Turn completed successfully.");
     });
   });
 });

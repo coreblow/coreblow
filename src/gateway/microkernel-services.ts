@@ -38,6 +38,13 @@ import {
 } from "../memory/index.js";
 import { UniversalAgentImporterService, type ExternalAgentSource } from "../migration/index.js";
 import {
+  listUnifiedSessions,
+  getUnifiedSession,
+  upsertUnifiedSession,
+  deleteUnifiedSession,
+  appendTurnToUnifiedSession,
+} from "../sessions/unified-session-store.js";
+import {
   isCoreHubCapability,
   type CoreHubAppManifest,
   type CoreHubCapability,
@@ -712,7 +719,9 @@ export async function handleCoreHubRoute(
     pathname === "/api/corehub/chat-views/render" ||
     pathname === "/api/corehub/desktop/quick-launch" ||
     pathname === "/api/corehub/desktop/diff-inspector" ||
-    pathname === "/api/corehub/chat/react";
+    pathname === "/api/corehub/chat/react" ||
+    (pathname === "/api/corehub/sessions" && method === "POST") ||
+    (pathname.startsWith("/api/corehub/sessions/") && method === "DELETE");
   const cfg = options.cfg ?? loadConfig();
 
   // Validate browser origin for CORS / cross-origin protection
@@ -1161,6 +1170,35 @@ export async function handleCoreHubRoute(
       ok: true,
       drafts,
     });
+    return true;
+  }
+
+  // GET /api/corehub/sessions (Unified Session Store list & search)
+  if (method === "GET" && pathname === "/api/corehub/sessions") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    const q = url.searchParams.get("q") ?? undefined;
+    const limit = url.searchParams.get("limit") ? parseInt(url.searchParams.get("limit")!, 10) : undefined;
+    const sessions = listUnifiedSessions({ query: q, limit });
+    sendJson(res, 200, {
+      ok: true,
+      count: sessions.length,
+      sessions,
+    });
+    return true;
+  }
+
+  // GET /api/corehub/sessions/:id
+  if (method === "GET" && pathname.startsWith("/api/corehub/sessions/")) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, DELETE, OPTIONS");
+    const id = pathname.slice("/api/corehub/sessions/".length).trim();
+    const session = getUnifiedSession(id);
+    if (!session) {
+      sendJson(res, 404, { ok: false, error: `Session "${id}" not found` });
+      return true;
+    }
+    sendJson(res, 200, { ok: true, session });
     return true;
   }
 
@@ -1941,6 +1979,19 @@ export async function handleCoreHubRoute(
             })}\n\n`,
           );
 
+          try {
+            appendTurnToUnifiedSession({
+              sessionId,
+              prompt,
+              reply: result.reply,
+              toolSteps: result.toolSteps,
+              cwd: defaultCwd,
+              executionProfile,
+              model,
+              surface: "desktop",
+            });
+          } catch {}
+
           res.write("data: [DONE]\n\n");
           res.end();
           return true;
@@ -1966,6 +2017,19 @@ export async function handleCoreHubRoute(
           userScope,
         });
 
+        try {
+          appendTurnToUnifiedSession({
+            sessionId,
+            prompt,
+            reply: result.reply,
+            toolSteps: result.toolSteps,
+            cwd: defaultCwd,
+            executionProfile,
+            model,
+            surface: "desktop",
+          });
+        } catch {}
+
         sendJson(res, 200, result);
         return true;
       } catch (err) {
@@ -1980,6 +2044,39 @@ export async function handleCoreHubRoute(
         sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
         return true;
       }
+    }
+
+    // POST /api/corehub/sessions (Create or upsert session thread)
+    if (method === "POST" && pathname === "/api/corehub/sessions") {
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const id =
+          typeof body.id === "string" && body.id.trim().length > 0
+            ? body.id.trim()
+            : `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const saved = upsertUnifiedSession({
+          id,
+          title: typeof body.title === "string" ? body.title : undefined,
+          messages: Array.isArray(body.messages) ? body.messages : undefined,
+          cwd: typeof body.cwd === "string" ? body.cwd : undefined,
+          executionProfile: typeof body.executionProfile === "string" ? body.executionProfile : undefined,
+          model: typeof body.model === "string" ? body.model : undefined,
+          surface: typeof body.surface === "string" ? (body.surface as any) : "desktop",
+        });
+        sendJson(res, 200, { ok: true, session: saved });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // DELETE /api/corehub/sessions/:id
+    if (method === "DELETE" && pathname.startsWith("/api/corehub/sessions/")) {
+      const id = pathname.slice("/api/corehub/sessions/".length).trim();
+      const deleted = deleteUnifiedSession(id);
+      sendJson(res, 200, { ok: true, deleted, id });
+      return true;
     }
 
     // POST /api/corehub/desktop/diff-inspector

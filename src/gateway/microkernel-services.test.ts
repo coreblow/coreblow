@@ -1955,4 +1955,82 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
       }
     });
   });
+
+  describe("Unified Session Store Endpoints", () => {
+    it("handles GET /api/corehub/sessions, POST, and DELETE /api/corehub/sessions/:id", async () => {
+      const microkernel = createMicrokernelServiceRegistry({
+        stateDir: testDir,
+        coryDir,
+      });
+      await microkernel.registry.startAll();
+
+      try {
+        // 1. POST /api/corehub/sessions
+        const postReqRes = createMockReqRes({
+          method: "POST",
+          url: "/api/corehub/sessions",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: {
+            id: "sess_gateway_test_1",
+            title: "Gateway Test Session",
+            messages: [
+              { id: "m1", role: "user", content: "Hello Gateway", createdAt: Date.now() },
+            ],
+            surface: "desktop",
+          },
+        });
+        const handledPost = await handleCoreHubRoute(postReqRes.req, postReqRes.res, microkernel, { auth: testAuth });
+        expect(handledPost).toBe(true);
+        const postRes = await postReqRes.getResult();
+        expect(postRes.statusCode).toBe(200);
+        expect(postRes.data.ok).toBe(true);
+        expect(postRes.data.session.id).toBe("sess_gateway_test_1");
+
+        // 2. GET /api/corehub/sessions
+        const listReqRes = createMockReqRes({
+          method: "GET",
+          url: "/api/corehub/sessions?query=Gateway",
+        });
+        const handledList = await handleCoreHubRoute(listReqRes.req, listReqRes.res, microkernel, { auth: testAuth });
+        expect(handledList).toBe(true);
+        const listRes = await listReqRes.getResult();
+        expect(listRes.statusCode).toBe(200);
+        expect(listRes.data.ok).toBe(true);
+        expect(listRes.data.sessions.length).toBeGreaterThanOrEqual(1);
+
+        // 3. GET /api/corehub/sessions/:id
+        const getReqRes = createMockReqRes({
+          method: "GET",
+          url: "/api/corehub/sessions/sess_gateway_test_1",
+        });
+        const handledGet = await handleCoreHubRoute(getReqRes.req, getReqRes.res, microkernel, { auth: testAuth });
+        expect(handledGet).toBe(true);
+        const getRes = await getReqRes.getResult();
+        expect(getRes.statusCode).toBe(200);
+        expect(getRes.data.ok).toBe(true);
+        expect(getRes.data.session.title).toBe("Gateway Test Session");
+
+        // 4. DELETE /api/corehub/sessions/:id
+        const delReqRes = createMockReqRes({
+          method: "DELETE",
+          url: "/api/corehub/sessions/sess_gateway_test_1",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+        });
+        const handledDel = await handleCoreHubRoute(delReqRes.req, delReqRes.res, microkernel, { auth: testAuth });
+        expect(handledDel).toBe(true);
+        const delRes = await delReqRes.getResult();
+        expect(delRes.statusCode).toBe(200);
+        expect(delRes.data.ok).toBe(true);
+        expect(delRes.data.deleted).toBe(true);
+      } finally {
+        await microkernel.registry.stopAll();
+      }
+    });
+  });
 });

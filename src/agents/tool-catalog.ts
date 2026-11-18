@@ -249,6 +249,199 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
     profiles: [],
     includeInCoreBlowGroup: true,
   },
+  // CoreBlow 30-Native ReAct Tools
+  {
+    id: "terminal",
+    label: "terminal",
+    description: "Execute shell commands with profile guards",
+    sectionId: "runtime",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "read_file",
+    label: "read_file",
+    description: "Read file contents with line limits",
+    sectionId: "fs",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "write_file",
+    label: "write_file",
+    description: "Write or overwrite file contents",
+    sectionId: "fs",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "patch",
+    label: "patch",
+    description: "Apply exact text replacement patch to a file",
+    sectionId: "fs",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "search_files",
+    label: "search_files",
+    description: "Search file contents by regex or text",
+    sectionId: "fs",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "list_dir",
+    label: "list_dir",
+    description: "List directory contents recursively",
+    sectionId: "fs",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "memory_store",
+    label: "memory_store",
+    description: "Store durable insight into memory layers",
+    sectionId: "memory",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "skill_search",
+    label: "skill_search",
+    description: "Search learned skills in CoreHub",
+    sectionId: "agents",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "delegate_subagent",
+    label: "delegate_subagent",
+    description: "Delegate sub-task to War Room specialist",
+    sectionId: "agents",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "git_inspect",
+    label: "git_inspect",
+    description: "Inspect git status, diff, log, and branches",
+    sectionId: "runtime",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "process_inspect",
+    label: "process_inspect",
+    description: "Inspect listening ports and active processes",
+    sectionId: "runtime",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "cron_list",
+    label: "cron_list",
+    description: "List scheduled automations in cron store",
+    sectionId: "automation",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "calculator",
+    label: "calculator",
+    description: "Deterministic math evaluation",
+    sectionId: "automation",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "session_search",
+    label: "session_search",
+    description: "Search across persisted conversations",
+    sectionId: "sessions",
+    profiles: ["coding", "messaging"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "cron_schedule",
+    label: "cron_schedule",
+    description: "Manage scheduled cron tasks",
+    sectionId: "automation",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "browser_action",
+    label: "browser_action",
+    description: "Navigate and inspect web pages",
+    sectionId: "ui",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "rag_query",
+    label: "rag_query",
+    description: "Query or index documents in RAG pipeline",
+    sectionId: "memory",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "pr_workflow",
+    label: "pr_workflow",
+    description: "Create or inspect Pull Request drafts",
+    sectionId: "agents",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "lsp_diagnostics",
+    label: "lsp_diagnostics",
+    description: "Run fast syntax and type diagnostics",
+    sectionId: "runtime",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "execute_code",
+    label: "execute_code",
+    description: "Programmatic tool calling snippet execution",
+    sectionId: "runtime",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "message_channel",
+    label: "message_channel",
+    description: "Send outbound notifications to messaging channels",
+    sectionId: "messaging",
+    profiles: ["messaging"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "nodes_status",
+    label: "nodes_status",
+    description: "Inspect local and paired mesh nodes",
+    sectionId: "nodes",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "tts_speak",
+    label: "tts_speak",
+    description: "Synthesize speech audio or list voices",
+    sectionId: "media",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
+  {
+    id: "pdf_extract",
+    label: "pdf_extract",
+    description: "Extract text and metadata from PDF files",
+    sectionId: "fs",
+    profiles: ["coding"],
+    includeInCoreBlowGroup: true,
+  },
 ];
 
 const CORE_TOOL_BY_ID = new Map<string, CoreToolDefinition>(
@@ -348,4 +541,12 @@ export class ToolCatalog {
   register(def: ToolDefinition): void { this.tools.set(def.name, def); }
   list(): ToolDefinition[] { return [...this.tools.values()]; }
   get(name: string): ToolDefinition | undefined { return this.tools.get(name); }
+}
+
+/**
+ * Lazy getter for unified OpenAI tool definitions to preserve fast CLI startup import budget.
+ */
+export async function getUnifiedCoreBlowToolDefinitions() {
+  const { getUnifiedCoreBlowToolDefinitions: getDefs } = await import("./coreblow-react-engine.js");
+  return getDefs();
 }

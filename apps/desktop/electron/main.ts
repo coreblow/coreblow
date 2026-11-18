@@ -1,0 +1,265 @@
+import { app, BrowserWindow, ipcMain, dialog, shell, clipboard } from "electron";
+import * as path from "node:path";
+import * as http from "node:http";
+import { spawn, type ChildProcess } from "node:child_process";
+import * as fs from "node:fs";
+
+let mainWindow: BrowserWindow | null = null;
+let gatewayProcess: ChildProcess | null = null;
+let isGatewayManagedByDesktop = false;
+
+const GATEWAY_PORT = 18789;
+const GATEWAY_HEALTH_URL = `http://127.0.0.1:${GATEWAY_PORT}/health`;
+
+/**
+ * Probe whether the CoreBlow Gateway is responding on 127.0.0.1:18789.
+ */
+function probeGatewayHealth(): Promise<boolean> {
+  return new Promise((resolve) => {
+    const req = http.get(GATEWAY_HEALTH_URL, { timeout: 1500 }, (res: http.IncomingMessage) => {
+      resolve(res.statusCode === 200 || res.statusCode === 401);
+    });
+    req.on("error", () => resolve(false));
+    req.on("timeout", () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
+}
+
+/**
+ * Locate project root where coreblow.mjs or package.json lives.
+ */
+function findProjectRoot(): string {
+  let curr = app.getAppPath();
+  for (let i = 0; i < 5; i++) {
+    if (fs.existsSync(path.join(curr, "coreblow.mjs")) || fs.existsSync(path.join(curr, "pnpm-workspace.yaml"))) {
+      return curr;
+    }
+    const parent = path.dirname(curr);
+    if (parent === curr) break;
+    curr = parent;
+  }
+  return app.getAppPath();
+}
+
+/**
+ * Ensure the local CoreBlow Gateway daemon is running on 127.0.0.1:18789.
+ * If not running, start it as a background process.
+ */
+async function ensureGatewayDaemon(): Promise<boolean> {
+  const isHealthy = await probeGatewayHealth();
+  if (isHealthy) {
+    return true;
+  }
+
+  const projectRoot = findProjectRoot();
+  const coreblowMjs = path.join(projectRoot, "coreblow.mjs");
+
+  if (fs.existsSync(coreblowMjs)) {
+    try {
+      gatewayProcess = spawn(
+        process.execPath,
+        [coreblowMjs, "gateway", "run", "--port", String(GATEWAY_PORT), "--allow-unconfigured"],
+        {
+          cwd: projectRoot,
+          detached: false,
+          stdio: "ignore",
+          env: {
+            ...process.env,
+            PORT: String(GATEWAY_PORT),
+          },
+        },
+      );
+
+      isGatewayManagedByDesktop = true;
+
+      gatewayProcess.on("exit", () => {
+        gatewayProcess = null;
+        isGatewayManagedByDesktop = false;
+      });
+
+      // Poll until listening or timeout (up to 5 seconds)
+      for (let i = 0; i < 10; i++) {
+        await new Promise((r) => setTimeout(r, 500));
+        if (await probeGatewayHealth()) {
+          return true;
+        }
+      }
+    } catch {
+      // Fall through to return false
+    }
+  }
+
+  return await probeGatewayHealth();
+}
+
+function createWindow(): void {
+  const isMac = process.platform === "darwin";
+
+  mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 820,
+    minWidth: 520,
+    minHeight: 600,
+    show: false,
+    backgroundColor: "#08110F",
+    ...(isMac
+      ? {
+          titleBarStyle: "hiddenInset",
+          trafficLightPosition: {
+            x: 16,
+            y: 16,
+          },
+          vibrancy: "sidebar",
+          visualEffectState: "active",
+        }
+      : {
+          titleBarStyle: "hidden",
+          titleBarOverlay: {
+            color: "#08110F",
+            symbolColor: "#819B93",
+            height: 48,
+          },
+        }),
+    webPreferences: {
+      preload: path.join(__dirname, "preload.cjs"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
+      webSecurity: true,
+      devTools: true,
+    },
+  });
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith("http:") || url.startsWith("https:")) {
+      shell.openExternal(url);
+    }
+    return { action: "deny" };
+  });
+
+  const sendFullscreenState = () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("coreblow:window-fullscreen", mainWindow.isFullScreen());
+    }
+  };
+
+  mainWindow.on("enter-full-screen", sendFullscreenState);
+  mainWindow.on("leave-full-screen", sendFullscreenState);
+  mainWindow.webContents.on("did-finish-load", sendFullscreenState);
+
+  // Load URL
+  const devUrl = process.env.VITE_DEV_SERVER_URL;
+  if (devUrl) {
+    mainWindow.loadURL(devUrl);
+  } else {
+    const distPath = path.join(__dirname, "../dist/index.html");
+    if (fs.existsSync(distPath)) {
+      mainWindow.loadFile(distPath);
+    } else {
+      mainWindow.loadFile(path.join(app.getAppPath(), "dist/index.html"));
+    }
+  }
+
+  mainWindow.once("ready-to-show", () => {
+    mainWindow?.show();
+  });
+
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+  });
+}
+
+// ─── IPC Handlers ──────────────────────────────────────────────────────────
+
+ipcMain.handle("coreblow:dialog:selectDirectory", async () => {
+  if (!mainWindow) return null;
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ["openDirectory", "createDirectory"],
+    title: "Select CoreBlow Project Directory",
+  });
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
+  }
+  return result.filePaths[0];
+});
+
+ipcMain.handle("coreblow:dialog:selectFiles", async (_event, options) => {
+  if (!mainWindow) return [];
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ["openFile", "multiSelections"],
+    title: options?.title || "Attach Files",
+    filters: options?.filters,
+  });
+  if (result.canceled) {
+    return [];
+  }
+  return result.filePaths;
+});
+
+ipcMain.handle("coreblow:clipboard:readText", () => {
+  return clipboard.readText();
+});
+
+ipcMain.handle("coreblow:clipboard:writeText", (_event, text: string) => {
+  clipboard.writeText(text);
+  return true;
+});
+
+ipcMain.handle("coreblow:gateway:health", async () => {
+  return await probeGatewayHealth();
+});
+
+ipcMain.handle("coreblow:gateway:ensure", async () => {
+  return await ensureGatewayDaemon();
+});
+
+ipcMain.handle("coreblow:window:minimize", () => {
+  mainWindow?.minimize();
+});
+
+ipcMain.handle("coreblow:window:maximize", () => {
+  if (mainWindow?.isMaximized()) {
+    mainWindow.unmaximize();
+  } else {
+    mainWindow?.maximize();
+  }
+});
+
+ipcMain.handle("coreblow:window:close", () => {
+  mainWindow?.close();
+});
+
+ipcMain.handle("coreblow:window:isMaximized", () => {
+  return mainWindow?.isMaximized() ?? false;
+});
+
+// ─── App Lifecycle ─────────────────────────────────────────────────────────
+
+app.whenReady().then(async () => {
+  await ensureGatewayDaemon();
+  createWindow();
+
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+});
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
+
+app.on("will-quit", () => {
+  if (isGatewayManagedByDesktop && gatewayProcess) {
+    try {
+      gatewayProcess.kill();
+    } catch {
+      // Ignore cleanup error
+    }
+  }
+});

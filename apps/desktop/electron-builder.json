@@ -1,0 +1,41 @@
+{
+  "appId": "ai.coreblow.studio",
+  "productName": "CoreBlow",
+  "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+  "icon": "assets/icons/coreblow-studio-1024.png",
+  "npmRebuild": false,
+  "nodeGypRebuild": false,
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*",
+    "package.json"
+  ],
+  "mac": {
+    "icon": "assets/icons/coreblow-studio-1024.png",
+    "target": [
+      {
+        "target": "dir",
+        "arch": ["arm64"]
+      }
+    ],
+    "category": "public.app-category.developer-tools",
+    "minimumSystemVersion": "12.0.0",
+    "darkModeSupport": true,
+    "hardenedRuntime": false,
+    "gatekeeperAssess": false
+  },
+  "win": {
+    "icon": "assets/icons/coreblow-studio-1024.png",
+    "target": ["nsis", "portable"],
+    "arch": ["x64", "arm64"]
+  },
+  "linux": {
+    "icon": "assets/icons/coreblow-studio-1024.png",
+    "target": ["AppImage", "deb"],
+    "arch": ["x64", "arm64"],
+    "category": "Development"
+  }
+}

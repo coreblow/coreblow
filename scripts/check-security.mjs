@@ -4,8 +4,8 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
-const ROOTS = ["src", "apps/studio/lib"];
-const EXTS = new Set([".ts", ".tsx", ".js", ".mjs", ".cjs", ".dart"]);
+const ROOTS = ["src", "apps/desktop/src", "apps/desktop/electron"];
+const EXTS = new Set([".ts", ".tsx", ".js", ".mjs", ".cjs"]);
 const SKIP_DIRS = new Set(["node_modules", ".git", "dist", "build", ".build"]);
 
 const PRIVATE_KEY = /-----BEGIN (?:RSA |OPENSSH |EC |DSA |PGP )?PRIVATE KEY-----/;

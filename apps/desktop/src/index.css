@@ -1,0 +1,122 @@
+:root {
+  /* Quiet Instrument Design Tokens */
+  --bg-canvas: #08110F;
+  --bg-sidebar: #09130F;
+  --bg-card: #0A1815;
+  --bg-card-hover: #0E201C;
+  --bg-input: #081512;
+  --bg-code: #050B09;
+  --bg-chip: #0E221D;
+
+  --border-subtle: rgba(45, 212, 191, 0.08);
+  --border-medium: rgba(45, 212, 191, 0.15);
+  --border-strong: rgba(45, 212, 191, 0.28);
+  --border-active: #2DD4BF;
+
+  --accent-teal: #2DD4BF;
+  --accent-teal-glow: rgba(45, 212, 191, 0.18);
+  --accent-teal-subtle: rgba(45, 212, 191, 0.08);
+
+  --ink-primary: #D9FBF3;
+  --ink-secondary: #819B93;
+  --ink-muted: #4D665E;
+  --ink-accent: #2DD4BF;
+
+  --state-success: #10B981;
+  --state-warning: #F59E0B;
+  --state-error: #EF4444;
+  --state-running: #2DD4BF;
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, Monaco, Consolas, monospace;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-panel: 16px;
+  --radius-full: 999px;
+
+  --topbar-height: 48px;
+  --sidebar-default: 280px;
+  --sidebar-min: 264px;
+  --sidebar-max: 420px;
+  --sidebar-collapsed: 56px;
+  --composer-max-width: 768px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: var(--font-ui);
+  background: var(--bg-canvas);
+  color: var(--ink-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+}
+
+/* Native Window Dragging Regions */
+[data-window-drag] {
+  -webkit-app-region: drag;
+}
+
+[data-window-no-drag],
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-app-region: no-drag;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(45, 212, 191, 0.12);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 212, 191, 0.25);
+}
+
+/* Text Selection */
+::selection {
+  background: rgba(45, 212, 191, 0.28);
+  color: var(--ink-primary);
+}
+
+/* Animations */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-pulse {
+  animation: pulse-subtle 1.8s ease-in-out infinite;
+}
