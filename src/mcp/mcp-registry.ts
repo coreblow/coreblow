@@ -340,12 +340,20 @@ export async function probeMcpServer(server: McpServerConfig): Promise<{
     // Search PATH for binary
     const pathDirs = (process.env.PATH || "").split(path.delimiter);
     let found = false;
+    const extensions = process.platform === "win32"
+      ? (process.env.PATHEXT || ".EXE;.CMD;.BAT;.COM").split(";").map((e) => e.toLowerCase())
+      : [""];
     for (const dir of pathDirs) {
-      const full = path.join(dir, cmd);
-      if (fs.existsSync(full)) {
-        found = true;
-        break;
+      for (const ext of extensions) {
+        const full = path.join(dir, ext ? `${cmd}${ext}` : cmd);
+        try {
+          if (fs.existsSync(full) && fs.statSync(full).isFile()) {
+            found = true;
+            break;
+          }
+        } catch {}
       }
+      if (found) break;
     }
 
     if (found) {

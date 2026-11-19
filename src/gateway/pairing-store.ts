@@ -169,7 +169,12 @@ export function requestOrCheckPairing(
       p.expiresAtMs > now,
   );
 
-  const code = generatePairingCode();
+  let code = generatePairingCode();
+  let attempts = 0;
+  while (store.pending.some((p) => p.code === code) && attempts < 100) {
+    code = generatePairingCode();
+    attempts++;
+  }
   const newRequest: PendingPairingRequest = {
     id: `req_${now}_${Math.random().toString(36).slice(2, 6)}`,
     code,

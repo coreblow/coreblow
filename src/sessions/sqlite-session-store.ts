@@ -73,13 +73,28 @@ export function resolveSqliteSessionStorePath(customPath?: string): string {
     return path.join(path.dirname(resolved), "state.db");
   }
 
-  const envPath = process.env.COREBLOW_SQLITE_SESSION_STORE_PATH?.trim();
-  if (envPath) {
-    if (envPath.startsWith("~")) {
+  const envSqlitePath = process.env.COREBLOW_SQLITE_SESSION_STORE_PATH?.trim();
+  if (envSqlitePath) {
+    if (envSqlitePath.startsWith("~")) {
       const home = process.env.HOME ?? os.homedir();
-      return path.resolve(home, envPath.slice(1).replace(/^\/+/, ""));
+      return path.resolve(home, envSqlitePath.slice(1).replace(/^\/+/, ""));
     }
-    return path.resolve(envPath);
+    return path.resolve(envSqlitePath);
+  }
+
+  const envSessionPath = process.env.COREBLOW_SESSION_STORE_PATH?.trim();
+  if (envSessionPath) {
+    let resolved: string;
+    if (envSessionPath.startsWith("~")) {
+      const home = process.env.HOME ?? os.homedir();
+      resolved = path.resolve(home, envSessionPath.slice(1).replace(/^\/+/, ""));
+    } else {
+      resolved = path.resolve(envSessionPath);
+    }
+    if (resolved.endsWith(".db")) {
+      return resolved;
+    }
+    return path.join(path.dirname(resolved), "state.db");
   }
 
   const stateDir = resolveStateDir();
@@ -139,7 +154,16 @@ export function getOrCreateSqliteDb(customPath?: string): DatabaseSyncType | nul
     try {
       const row = db.prepare("SELECT count(*) as cnt FROM sessions").get() as { cnt?: number };
       if (!row || Number(row.cnt) === 0) {
-        const legacyJsonPath = path.join(path.dirname(dbPath), "sessions-store.json");
+        let legacyJsonPath = path.join(path.dirname(dbPath), "sessions-store.json");
+        if (customPath && customPath.trim().endsWith(".json")) {
+          const raw = customPath.trim();
+          const customResolved = raw.startsWith("~")
+            ? path.resolve(process.env.HOME ?? os.homedir(), raw.slice(1).replace(/^\/+/, ""))
+            : path.resolve(raw);
+          if (fs.existsSync(customResolved)) {
+            legacyJsonPath = customResolved;
+          }
+        }
         if (fs.existsSync(legacyJsonPath)) {
           migrateLegacyJsonToSqlite(legacyJsonPath, db);
         }
@@ -158,6 +182,7 @@ export function getOrCreateSqliteDb(customPath?: string): DatabaseSyncType | nul
 export function closeSqliteSessionStore(customPath?: string): void {
   if (customPath) {
     const dbPath = resolveSqliteSessionStorePath(customPath);
+    migratedPaths.delete(dbPath);
     const db = activeDatabases.get(dbPath);
     if (db) {
       try {
@@ -166,6 +191,7 @@ export function closeSqliteSessionStore(customPath?: string): void {
       activeDatabases.delete(dbPath);
     }
   } else {
+    migratedPaths.clear();
     for (const [p, db] of activeDatabases.entries()) {
       try {
         db.close();

@@ -27,19 +27,19 @@ const SECURITY_RULES: SecurityRule[] = [
   {
     id: "prompt-injection-override",
     severity: "critical",
-    regex: /(?:ignore|disregard|forget)\s+(?:all\s+|any\s+|prior\s+|previous\s+)*(?:instructions|prompts|rules|constraints|system\s+directives)/i,
+    regex: /(?:ignore|disregard|forget|bypass)\s+(?:all\s+|any\s+|prior\s+|previous\s+|system\s+)*(?:instructions|prompts|rules|constraints|system\s+directives|guardrails|safety\s+filters)/i,
     detail: "Detected prompt-injection override attempting to bypass system directives.",
   },
   {
     id: "system-directive-override",
     severity: "critical",
-    regex: /(?:system\s+prompt\s+override|you\s+are\s+now\s+in\s+(?:developer|dan|jailbreak)\s+mode|unrestricted\s+mode\s+enabled)/i,
+    regex: /(?:system\s+prompt\s+override|you\s+are\s+now\s+in\s+(?:developer|dan|jailbreak|unrestricted)\s+mode|unrestricted\s+mode\s+enabled|disregard\s+all\s+safety)/i,
     detail: "Detected jailbreak pattern attempting to redefine agent operating mode.",
   },
   {
     id: "data-exfiltration-prompt",
     severity: "critical",
-    regex: /(?:exfiltrat(?:e|ion)|covertly\s+send|silently\s+transmit).*(?:token|secret|password|key|credential|private|env)/i,
+    regex: /(?:exfiltrat(?:e|ion)|covertly\s+send|silently\s+transmit|leak|steal|send\s+out)[\s\S]*?(?:token|secret|password|key|credential|private|\.env)/i,
     detail: "Detected instruction to secretly extract or exfiltrate sensitive credentials.",
   },
 
@@ -47,13 +47,13 @@ const SECURITY_RULES: SecurityRule[] = [
   {
     id: "obfuscated-shell-download",
     severity: "critical",
-    regex: /(?:curl|wget)\s+[^|\n]+\|\s*(?:ba|z|da)?sh\b/i,
+    regex: /(?:curl|wget)\s+[\s\S]*?\|\s*(?:ba|z|da)?sh\b/i,
     detail: "Detected pipe-to-shell remote execution pattern ('curl ... | bash').",
   },
   {
     id: "destructive-filesystem-deletion",
     severity: "critical",
-    regex: /rm\s+-(?:[a-z]*r[a-z]*f|[a-z]*f[a-z]*r|[a-z]*r)\s+(?:\/|\/\*|~\/|\$HOME|\.\/|\.\.)(?:\s|$)/i,
+    regex: /rm\s+(?:-[a-zA-Z]*r[a-zA-Z]*f[a-zA-Z]*|-[a-zA-Z]*f[a-zA-Z]*r[a-zA-Z]*|-[a-zA-Z]*r[a-zA-Z]*\s+-[a-zA-Z]*f[a-zA-Z]*|--recursive\s+--force|--force\s+--recursive)\s+(?:\/|\/\*|~|~\/|~\/\*|\$HOME|\$HOME\/\*|\.\/|\.\.\/?)(?:\s|$|;)/i,
     detail: "Detected destructive root or home directory recursive file deletion ('rm -rf /').",
   },
   {
@@ -73,7 +73,7 @@ const SECURITY_RULES: SecurityRule[] = [
   {
     id: "ssh-key-harvesting",
     severity: "critical",
-    regex: /(?:\.ssh\/(?:id_rsa|id_ed25519|id_dsa|authorized_keys))/i,
+    regex: /(?:\.ssh\/(?:id_rsa|id_ed25519|id_dsa|authorized_keys|known_hosts))/i,
     detail: "Attempted access to private SSH keys or authorized_keys.",
   },
   {
@@ -85,7 +85,7 @@ const SECURITY_RULES: SecurityRule[] = [
   {
     id: "env-credential-exfiltration",
     severity: "critical",
-    regex: /(?:\.env\b.*(?:exfil|curl|wget|webhook|upload|pastebin))|(?:(?:curl|fetch|wget|axios|http\.post).*[\w./-]*\.env\b)/i,
+    regex: /(?:\.env\b[\s\S]*?(?:exfil|curl|wget|webhook|upload|pastebin))|(?:(?:curl|fetch|wget|axios|http\.post)[\s\S]*?\.env\b)/i,
     detail: "Detected attempt to upload or exfiltrate environment credentials.",
   },
 
@@ -124,7 +124,9 @@ export function auditSkillSecurity(
 
   const lines = content.split(/\r?\n/);
   const findings: SkillSecurityFinding[] = [];
+  const matchedRuleIds = new Set<string>();
 
+  // 1. Line-by-line scanning (for precise line reporting)
   for (let idx = 0; idx < lines.length; idx++) {
     const lineNum = idx + 1;
     const lineText = lines[idx];
@@ -137,6 +139,28 @@ export function auditSkillSecurity(
           detail: rule.detail,
           severity: rule.severity,
         });
+        matchedRuleIds.add(rule.id);
+      }
+    }
+  }
+
+  // 2. Multiline & backslash-continuation normalized scanning
+  // Normalize escaped newlines (e.g. 'curl ... \\\n | bash')
+  const normalizedContent = content.replace(/\\\r?\n\s*/g, " ");
+  for (const rule of SECURITY_RULES) {
+    if (!matchedRuleIds.has(rule.id)) {
+      const match = rule.regex.exec(normalizedContent) ?? rule.regex.exec(content);
+      if (match) {
+        // Calculate line number where the match began
+        const prefix = content.slice(0, match.index);
+        const matchLine = prefix.split(/\r?\n/).length;
+        findings.push({
+          rule: rule.id,
+          line: matchLine,
+          detail: rule.detail,
+          severity: rule.severity,
+        });
+        matchedRuleIds.add(rule.id);
       }
     }
   }

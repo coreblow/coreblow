@@ -174,5 +174,10 @@ describe("Unified Session Store", () => {
     // Deleting again returns false
     const deletedAgain = deleteUnifiedSession("sess_to_delete", testStorePath);
     expect(deletedAgain).toBe(false);
+
+    // Verify session is not resurrected from JSON mirror on subsequent load
+    const reloaded = loadUnifiedSessionStoreSync(testStorePath);
+    expect(reloaded.sessions.sess_to_delete).toBeUndefined();
+    expect(Object.keys(reloaded.sessions).length).toBe(0);
   });
 });

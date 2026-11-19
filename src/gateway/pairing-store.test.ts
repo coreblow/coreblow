@@ -101,4 +101,19 @@ describe("Bot Pairing Security & Authorization Store", () => {
     );
     expect(check.authorized).toBe(false);
   });
+
+  it("ensures unique pairing codes across multiple requests", () => {
+    const codes = new Set<string>();
+    for (let i = 0; i < 20; i++) {
+      const res = requestOrCheckPairing(
+        { platform: "telegram", externalUserId: `user_${i}` },
+        testStorePath,
+      );
+      if (!res.authorized) {
+        expect(codes.has(res.code)).toBe(false);
+        codes.add(res.code);
+      }
+    }
+    expect(codes.size).toBe(20);
+  });
 });

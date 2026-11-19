@@ -75,9 +75,9 @@ export function resolveUnifiedSessionStorePath(customPath?: string): string {
 export function loadUnifiedSessionStoreSync(storePath?: string): UnifiedSessionStoreFile {
   if (isSqliteAvailable()) {
     try {
-      getOrCreateSqliteDb(storePath);
-      const list = listSqliteSessions({ storePath, limit: 10000 });
-      if (list.length > 0) {
+      const db = getOrCreateSqliteDb(storePath);
+      if (db) {
+        const list = listSqliteSessions({ storePath, limit: 10000 });
         const sessions: Record<string, UnifiedSessionRecord> = {};
         for (const s of list) {
           sessions[s.id] = s;
@@ -293,7 +293,20 @@ export function appendTurnToUnifiedSession(params: {
 }): UnifiedSessionRecord {
   if (isSqliteAvailable()) {
     try {
-      return appendTurnToSqliteSession(params);
+      const record = appendTurnToSqliteSession(params);
+      // Keep JSON mirror in sync if it exists on disk
+      const filePath = resolveUnifiedSessionStorePath(params.storePath);
+      if (fs.existsSync(filePath)) {
+        try {
+          const raw = fs.readFileSync(filePath, "utf-8");
+          const parsed = JSON.parse(raw) as Partial<UnifiedSessionStoreFile>;
+          if (parsed && typeof parsed === "object" && typeof parsed.sessions === "object") {
+            parsed.sessions[record.id] = record;
+            fs.writeFileSync(filePath, JSON.stringify(parsed, null, 2), "utf-8");
+          }
+        } catch {}
+      }
+      return record;
     } catch {
       // Fall through to JSON
     }
@@ -374,13 +387,45 @@ export function deleteUnifiedSession(id: string, storePath?: string): boolean {
   const targetId = id.trim();
   if (!targetId) return false;
 
+  let deletedFromSqlite = false;
   if (isSqliteAvailable()) {
     try {
-      const deleted = deleteSqliteSession(targetId, storePath);
-      if (deleted) return true;
+      deletedFromSqlite = deleteSqliteSession(targetId, storePath);
     } catch {
       // Fall through to JSON
     }
+  }
+
+  // Keep JSON mirror in sync if it exists on disk
+  const filePath = resolveUnifiedSessionStorePath(storePath);
+  let deletedFromJson = false;
+  if (fs.existsSync(filePath)) {
+    try {
+      const raw = fs.readFileSync(filePath, "utf-8");
+      const parsed = JSON.parse(raw) as Partial<UnifiedSessionStoreFile>;
+      if (parsed?.sessions && typeof parsed.sessions === "object") {
+        if (parsed.sessions[targetId]) {
+          delete parsed.sessions[targetId];
+          deletedFromJson = true;
+        } else {
+          const lower = targetId.toLowerCase();
+          for (const key of Object.keys(parsed.sessions)) {
+            if (key.toLowerCase() === lower) {
+              delete parsed.sessions[key];
+              deletedFromJson = true;
+              break;
+            }
+          }
+        }
+        if (deletedFromJson) {
+          fs.writeFileSync(filePath, JSON.stringify(parsed, null, 2), "utf-8");
+        }
+      }
+    } catch {}
+  }
+
+  if (deletedFromSqlite || deletedFromJson) {
+    return true;
   }
 
   const store = loadUnifiedSessionStoreSync(storePath);
@@ -412,5 +457,10 @@ export function clearUnifiedSessions(storePath?: string): void {
       clearSqliteSessions(storePath);
     } catch {}
   }
-  saveUnifiedSessionStoreSync({ version: 1, sessions: {} }, storePath);
+  const filePath = resolveUnifiedSessionStorePath(storePath);
+  if (fs.existsSync(filePath)) {
+    try {
+      fs.writeFileSync(filePath, JSON.stringify({ version: 1, sessions: {} }, null, 2), "utf-8");
+    } catch {}
+  }
 }

@@ -277,13 +277,21 @@ ipcMain.handle("coreblow:window:isMaximized", () => {
 ipcMain.handle("coreblow:window:toggleHud", () => {
   if (!mainWindow || mainWindow.isDestroyed()) return false;
   if (!isHudMode) {
+    if (mainWindow.isFullScreen()) {
+      mainWindow.setFullScreen(false);
+    }
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    }
     savedBounds = mainWindow.getBounds();
     mainWindow.setAlwaysOnTop(true, "floating");
+    mainWindow.setMinimumSize(320, 480);
     mainWindow.setSize(460, 640);
     mainWindow.center();
     isHudMode = true;
   } else {
     mainWindow.setAlwaysOnTop(false);
+    mainWindow.setMinimumSize(520, 600);
     if (savedBounds) {
       mainWindow.setBounds(savedBounds);
     } else {

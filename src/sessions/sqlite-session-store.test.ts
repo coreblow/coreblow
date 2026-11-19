@@ -175,4 +175,45 @@ describe("SQLite WAL + FTS5 Session Store", () => {
     clearSqliteSessions(testDbPath);
     expect(listSqliteSessions({ storePath: testDbPath }).length).toBe(0);
   });
+
+  it("migrates from custom JSON store path with non-standard filename", () => {
+    const customArchiveJson = path.join(tempDir, "custom-archive.json");
+    fs.writeFileSync(
+      customArchiveJson,
+      JSON.stringify({
+        version: 1,
+        sessions: {
+          custom_archived_1: {
+            id: "custom_archived_1",
+            title: "Archived Session",
+            createdAt: 1000,
+            updatedAt: 2000,
+            surface: "channel",
+            messages: [{ id: "m1", role: "user", content: "Archived prompt", createdAt: 1000 }],
+          },
+        },
+      }),
+      "utf-8",
+    );
+
+    const migrated = listSqliteSessions({ storePath: customArchiveJson });
+    expect(migrated.length).toBe(1);
+    expect(migrated[0].id).toBe("custom_archived_1");
+  });
+
+  it("resolves store path from COREBLOW_SESSION_STORE_PATH env var", () => {
+    const originalSqliteEnv = process.env.COREBLOW_SQLITE_SESSION_STORE_PATH;
+    const originalSessionEnv = process.env.COREBLOW_SESSION_STORE_PATH;
+    try {
+      delete process.env.COREBLOW_SQLITE_SESSION_STORE_PATH;
+      process.env.COREBLOW_SESSION_STORE_PATH = "/tmp/test-env-sessions/store.json";
+      const resolved = resolveSqliteSessionStorePath();
+      expect(resolved).toBe("/tmp/test-env-sessions/state.db");
+    } finally {
+      if (originalSqliteEnv) process.env.COREBLOW_SQLITE_SESSION_STORE_PATH = originalSqliteEnv;
+      else delete process.env.COREBLOW_SQLITE_SESSION_STORE_PATH;
+      if (originalSessionEnv) process.env.COREBLOW_SESSION_STORE_PATH = originalSessionEnv;
+      else delete process.env.COREBLOW_SESSION_STORE_PATH;
+    }
+  });
 });
