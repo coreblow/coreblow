@@ -13,6 +13,7 @@ import { enableConsoleCapture } from "../logging.js";
 import { hasMemoryRuntime } from "../plugins/memory-state.js";
 import {
   getCommandPathWithRootOptions,
+  getFlagValue,
   getPrimaryCommand,
   hasHelpOrVersion,
   isRootHelpInvocation,
@@ -137,6 +138,44 @@ export async function runCli(argv: string[] = process.argv) {
 
   try {
     if (shouldUseRootHelpFastPath(normalizedArgv)) {
+      const { outputRootHelp } = await import("./program/root-help.js");
+      outputRootHelp();
+      return;
+    }
+
+    const queryPrompt =
+      getFlagValue(normalizedArgv, "-q") ?? getFlagValue(normalizedArgv, "--query");
+    if (queryPrompt !== undefined) {
+      if (typeof queryPrompt === "string" && queryPrompt.trim()) {
+        const { runOneShotCliQuery } = await import("./interactive-chat.js");
+        await runOneShotCliQuery(queryPrompt.trim());
+        return;
+      }
+      console.error("error: missing required argument for -q/--query");
+      process.exitCode = 1;
+      return;
+    }
+
+    const primaryCommand = getPrimaryCommand(normalizedArgv);
+    if (primaryCommand === "ask" && !hasHelpOrVersion(normalizedArgv)) {
+      const askIndex = normalizedArgv.indexOf("ask");
+      const askPrompt = normalizedArgv.slice(askIndex + 1).join(" ").trim();
+      if (askPrompt) {
+        const { runOneShotCliQuery } = await import("./interactive-chat.js");
+        await runOneShotCliQuery(askPrompt);
+        return;
+      }
+    }
+
+    if (primaryCommand === null && !hasHelpOrVersion(normalizedArgv)) {
+      const isInteractiveTty = Boolean(
+        process.stdin.isTTY && process.stdout.isTTY && !process.env.VITEST,
+      );
+      if (isInteractiveTty) {
+        const { runInteractiveCliChat } = await import("./interactive-chat.js");
+        await runInteractiveCliChat();
+        return;
+      }
       const { outputRootHelp } = await import("./program/root-help.js");
       outputRootHelp();
       return;

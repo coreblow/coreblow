@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { getCommandPathWithRootOptions } from "../argv.js";
 import { resolveCliArgvInvocation } from "../argv-invocation.js";
 import { resolveCliCommandPathPolicy } from "../command-path-policy.js";
 import {
@@ -57,24 +58,17 @@ async function registerGatewayRunOnly(program: Command): Promise<void> {
   );
 }
 
-async function registerSubCliWithPluginCommands(
-  program: Command,
-  registerSubCli: () => Promise<void>,
-  pluginCliPosition: "before" | "after",
-) {
-  const invocation = resolveCliArgvInvocation(process.argv);
-  const shouldRegisterPluginCommands =
-    !invocation.hasHelpOrVersion &&
-    resolveCliCommandPathPolicy(invocation.commandPath).loadPlugins !== "never";
-  if (pluginCliPosition === "before" && shouldRegisterPluginCommands) {
-    const { registerPluginCliCommandsFromValidatedConfig } = await import("../../plugins/cli.js");
-    await registerPluginCliCommandsFromValidatedConfig(program);
-  }
-  await registerSubCli();
-  if (pluginCliPosition === "after" && shouldRegisterPluginCommands) {
-    const { registerPluginCliCommandsFromValidatedConfig } = await import("../../plugins/cli.js");
-    await registerPluginCliCommandsFromValidatedConfig(program);
-  }
+const PLUGINS_COMMANDS_WITHOUT_PLUGIN_CLI_PRELOAD = new Set([
+  "install",
+  "uninstall",
+  "update",
+  "verify",
+  "policy",
+]);
+
+function shouldPreloadPluginCliForPluginsCommand(argv: string[]): boolean {
+  const [, subcommand] = getCommandPathWithRootOptions(argv, 2);
+  return !subcommand || !PLUGINS_COMMANDS_WITHOUT_PLUGIN_CLI_PRELOAD.has(subcommand);
 }
 
 const entrySpecs: readonly CommandGroupDescriptorSpec<SubCliRegistrar>[] = [
@@ -140,6 +134,11 @@ const entrySpecs: readonly CommandGroupDescriptorSpec<SubCliRegistrar>[] = [
       exportName: "registerTuiCli",
     },
     {
+      commandNames: ["desktop"],
+      loadModule: () => import("../desktop-cli.js"),
+      exportName: "registerDesktopCli",
+    },
+    {
       commandNames: ["cron"],
       loadModule: () => import("../cron-cli.js"),
       exportName: "registerCronCli",
@@ -182,28 +181,31 @@ const entrySpecs: readonly CommandGroupDescriptorSpec<SubCliRegistrar>[] = [
   ]),
   {
     commandNames: ["pairing"],
-    register: async (program) => {
-      await registerSubCliWithPluginCommands(
-        program,
-        async () => {
-          const mod = await import("../pairing-cli.js");
-          mod.registerPairingCli(program);
-        },
-        "before",
-      );
+    register: async (program, argv) => {
+      const { registerPluginCliCommands } = await import("../../plugins/cli.js");
+      const { loadValidatedConfigForPluginRegistration } = await import("./register.subclis.js");
+      const config = await loadValidatedConfigForPluginRegistration();
+      if (config) {
+        registerPluginCliCommands(program, config);
+      }
+      const mod = await import("../pairing-cli.js");
+      mod.registerPairingCli(program);
     },
   },
   {
     commandNames: ["plugins"],
-    register: async (program) => {
-      await registerSubCliWithPluginCommands(
-        program,
-        async () => {
-          const mod = await import("../plugins-cli.js");
-          mod.registerPluginsCli(program);
-        },
-        "after",
-      );
+    register: async (program, argv) => {
+      const mod = await import("../plugins-cli.js");
+      mod.registerPluginsCli(program);
+      if (!shouldPreloadPluginCliForPluginsCommand(argv)) {
+        return;
+      }
+      const { registerPluginCliCommands } = await import("../../plugins/cli.js");
+      const { loadValidatedConfigForPluginRegistration } = await import("./register.subclis.js");
+      const config = await loadValidatedConfigForPluginRegistration();
+      if (config) {
+        registerPluginCliCommands(program, config);
+      }
     },
   },
   {

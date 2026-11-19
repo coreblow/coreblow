@@ -25,8 +25,19 @@ import {
   type SubCliDescriptor,
 } from "./subcli-descriptors.js";
 
+import type { CoreBlowConfig } from "../../config/config.js";
+
 export { getSubCliCommandsWithSubcommands };
-export { loadValidatedConfigForPluginRegistration } from "../../plugins/cli.js";
+
+export const loadValidatedConfigForPluginRegistration =
+  async (): Promise<CoreBlowConfig | null> => {
+    const mod = await import("../../config/config.js");
+    const snapshot = await mod.readConfigFileSnapshot();
+    if (!snapshot.valid) {
+      return null;
+    }
+    return mod.loadConfig();
+  };
 
 type SubCliRegistrar = (
   program: Command,

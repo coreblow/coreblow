@@ -30,3 +30,8 @@ declare module "../../scripts/lib/local-build-metadata-paths.mjs" {
   export const LOCAL_BUILD_METADATA_DIST_PATHS: readonly string[];
   export function isLocalBuildMetadataDistPath(relativePath: string): boolean;
 }
+
+declare module "*coreblow.mjs" {
+  export function buildChildEnv(baseEnv?: NodeJS.ProcessEnv): NodeJS.ProcessEnv;
+  export function isDirectRun(argv1?: string): boolean;
+}

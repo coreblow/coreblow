@@ -153,6 +153,14 @@ export const SUB_CLI_DESCRIPTORS = [
     description: commandDescription("completion", "Generate shell completion script"),
     hasSubcommands: false,
   },
+  {
+    name: "desktop",
+    description: commandDescription(
+      "desktop",
+      "Launch the CoreBlow Studio desktop application",
+    ),
+    hasSubcommands: false,
+  },
 ] as const satisfies ReadonlyArray<SubCliDescriptor>;
 
 export function getSubCliEntries(): ReadonlyArray<SubCliDescriptor> {
