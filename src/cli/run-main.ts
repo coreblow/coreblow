@@ -172,6 +172,15 @@ export async function runCli(argv: string[] = process.argv) {
         process.stdin.isTTY && process.stdout.isTTY && !process.env.VITEST,
       );
       if (isInteractiveTty) {
+        if (!normalizedArgv.includes("--simple")) {
+          try {
+            const { runTui } = await import("../tui/tui.js");
+            await runTui({});
+            return;
+          } catch {
+            // Fall back to lightweight interactive chat if full TUI cannot attach
+          }
+        }
         const { runInteractiveCliChat } = await import("./interactive-chat.js");
         await runInteractiveCliChat();
         return;
