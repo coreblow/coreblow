@@ -77,3 +77,65 @@ export interface ActiveProjectState {
   isGit: boolean;
   uncommittedFiles: number;
 }
+
+export type WarRoomRole = "lead" | "coder" | "researcher" | "auditor" | "verifier";
+
+export interface WarRoomMember {
+  agentId: string;
+  name: string;
+  role: WarRoomRole;
+  routeTier: string;
+  liveState: "idle" | "thinking" | "executing_tool" | "awaiting_approval" | "completed";
+}
+
+export interface KanbanCard {
+  taskId: string;
+  title: string;
+  column: "backlog" | "in_progress" | "review" | "done";
+  assigneeAgentId: string;
+  requiredSkillIds: string[];
+}
+
+export interface ChildApprovalRequest {
+  approvalId: string;
+  parentSessionId: string;
+  childSessionId: string;
+  agentId: string;
+  toolName: string;
+  status: "pending" | "approved" | "denied";
+}
+
+export interface WarRoomChatMessage {
+  id: string;
+  roomId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: WarRoomRole | "user" | "system";
+  content: string;
+  mentions: WarRoomRole[];
+  handoffDepth: number;
+  createdAt: number;
+}
+
+export interface AgentScreenFrame {
+  id: string;
+  roomId: string;
+  agentId: string;
+  role: WarRoomRole | "system" | "user";
+  kind: "thinking" | "tool_start" | "tool_output" | "tool_done" | "kanban_move" | "approval" | "chat_message";
+  summary: string;
+  detail?: string;
+  timestamp: number;
+}
+
+export interface WarRoomState {
+  roomId: string;
+  title: string;
+  purpose: string;
+  leadAgentId: string;
+  members: WarRoomMember[];
+  kanbanBoard: KanbanCard[];
+  pendingApprovals: ChildApprovalRequest[];
+  messages: WarRoomChatMessage[];
+  screenFeed: AgentScreenFrame[];
+}

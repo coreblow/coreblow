@@ -1,4 +1,5 @@
 import type {
+  AgentScreenFrame,
   ChatMessage,
   ChatThread,
   CoryMemoryItem,
@@ -7,6 +8,8 @@ import type {
   ModelTier,
   PermissionMode,
   ToolExecutionStep,
+  WarRoomChatMessage,
+  WarRoomState,
 } from "../types/gateway";
 
 export const GATEWAY_BASE_URL = "http://127.0.0.1:18789";
@@ -629,6 +632,155 @@ export class CoreBlowGatewayClient {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * List available War Rooms.
+   */
+  async listWarRooms(): Promise<Array<{ roomId: string; title: string; purpose: string }>> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/warroom/rooms`, {
+        signal: AbortSignal.timeout(3000),
+      });
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.rooms ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Get full state of a War Room (messages, roster, Kanban cards, pending approvals, recent frames).
+   */
+  async getWarRoomState(roomId: string = "coreblow-squad"): Promise<WarRoomState | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/warroom/${encodeURIComponent(roomId)}/messages`, {
+        signal: AbortSignal.timeout(4000),
+      });
+      if (!res.ok) return null;
+      const json = await res.json();
+      return {
+        roomId: json.roomId ?? roomId,
+        title: json.title ?? "CoreBlow Squad",
+        purpose: json.purpose ?? "Unified Autonomous Multi-Agent Squad",
+        leadAgentId: json.leadAgentId ?? "agent-lead",
+        members: json.members ?? [],
+        kanbanBoard: json.kanbanBoard ?? [],
+        pendingApprovals: json.pendingApprovals ?? [],
+        messages: json.messages ?? [],
+        screenFeed: json.screenFeed ?? [],
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Send a squad group chat message with @mention / @all parallel dispatch.
+   */
+  async postWarRoomMessage(
+    roomId: string = "coreblow-squad",
+    content: string,
+    cwd?: string,
+  ): Promise<{ userMessage: WarRoomChatMessage; replies: WarRoomChatMessage[]; room: WarRoomState } | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/warroom/${encodeURIComponent(roomId)}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, cwd }),
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Approve or deny a child tool execution approval request.
+   */
+  async resolveWarRoomApproval(
+    roomId: string = "coreblow-squad",
+    approvalId: string,
+    decision: "approved" | "denied",
+  ): Promise<boolean> {
+    try {
+      const res = await fetch(
+        `${this.baseUrl}/api/corehub/warroom/${encodeURIComponent(roomId)}/approvals/${encodeURIComponent(approvalId)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ decision }),
+          signal: AbortSignal.timeout(4000),
+        },
+      );
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Subscribe to real-time Live Agent Screen SSE stream.
+   */
+  subscribeWarRoomScreen(
+    roomId: string = "coreblow-squad",
+    onFrame: (frame: AgentScreenFrame) => void,
+  ): () => void {
+    const url = `${this.baseUrl}/api/corehub/warroom/${encodeURIComponent(roomId)}/screen/stream`;
+
+    if (typeof EventSource !== "undefined") {
+      const es = new EventSource(url);
+      es.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data?.frame) {
+            onFrame(data.frame);
+          }
+        } catch {}
+      };
+      return () => {
+        es.close();
+      };
+    }
+
+    const controller = new AbortController();
+    fetch(url, { signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok || !res.body) return;
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith("data:")) {
+              const dataStr = trimmed.slice(5).trim();
+              if (dataStr) {
+                try {
+                  const data = JSON.parse(dataStr);
+                  if (data?.frame) {
+                    onFrame(data.frame);
+                  }
+                } catch {}
+              }
+            }
+          }
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      controller.abort();
+    };
   }
 }
 

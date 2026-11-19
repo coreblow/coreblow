@@ -18,7 +18,7 @@ export type SubagentRouteTier = "fast" | "deep" | "local" | "coding" | "vision" 
 export type WarRoomRole = "lead" | "coder" | "researcher" | "auditor" | "verifier";
 
 /**
- * Role-based allowed toolsets per specialist (TB2.3, Hermes PR #82157 pattern).
+ * Role-based allowed toolsets per specialist (TB2.3).
  * Strict isolation: auditors cannot run terminal; researchers cannot write files.
  */
 export const ROLE_ALLOWED_TOOLSETS: Readonly<Record<WarRoomRole, readonly string[]>> = Object.freeze({
@@ -110,6 +110,38 @@ export interface ChildApprovalRelayRequest {
   readonly status: ChildApprovalStatus;
 }
 
+export interface WarRoomChatMessage {
+  readonly id: string;
+  readonly roomId: string;
+  readonly senderId: string;
+  readonly senderName: string;
+  readonly senderRole: WarRoomRole | "user" | "system";
+  readonly content: string;
+  readonly mentions: readonly WarRoomRole[];
+  readonly handoffDepth: number;
+  readonly createdAt: number;
+}
+
+export type AgentScreenFrameKind =
+  | "thinking"
+  | "tool_start"
+  | "tool_output"
+  | "tool_done"
+  | "kanban_move"
+  | "approval"
+  | "chat_message";
+
+export interface AgentScreenFrame {
+  readonly id: string;
+  readonly roomId: string;
+  readonly agentId: string;
+  readonly role: WarRoomRole | "system" | "user";
+  readonly kind: AgentScreenFrameKind;
+  readonly summary: string;
+  readonly detail?: string;
+  readonly timestamp: number;
+}
+
 export interface WarRoomSession {
   readonly roomId: string;
   readonly title: string;
@@ -121,6 +153,48 @@ export interface WarRoomSession {
   readonly forkedThreadIds: readonly string[];
   readonly pendingApprovals: readonly ChildApprovalRelayRequest[];
   readonly inheritedSkills: readonly string[];
+  readonly messages: readonly WarRoomChatMessage[];
+  readonly screenFeed: readonly AgentScreenFrame[];
+}
+
+export interface PostSquadMessageParams {
+  readonly senderId?: string;
+  readonly senderName?: string;
+  readonly senderRole?: WarRoomRole | "user" | "system";
+  readonly content: string;
+  readonly cwd?: string;
+  readonly maxHandoffDepth?: number;
+  readonly handoffDepth?: number;
+}
+
+export interface PostSquadMessageResult {
+  readonly userMessage: WarRoomChatMessage;
+  readonly replies: readonly WarRoomChatMessage[];
+  readonly room: WarRoomSession;
+}
+
+export function parseMentions(text: string): WarRoomRole[] {
+  if (!text) return [];
+  const regex = /@(lead|coder|researcher|auditor|verifier|all)\b/gi;
+  const matches = Array.from(text.matchAll(regex)).map((m) => m[1].toLowerCase());
+  const roles = new Set<WarRoomRole>();
+  for (const match of matches) {
+    if (match === "all") {
+      roles.add("coder");
+      roles.add("researcher");
+      roles.add("auditor");
+      roles.add("verifier");
+    } else if (
+      match === "lead" ||
+      match === "coder" ||
+      match === "researcher" ||
+      match === "auditor" ||
+      match === "verifier"
+    ) {
+      roles.add(match as WarRoomRole);
+    }
+  }
+  return Array.from(roles);
 }
 
 export interface WarRoomOrchestratorOptions {
@@ -231,6 +305,7 @@ export class WarRoomOrchestratorService implements GatewayService {
   public readonly name = "war-room-orchestrator";
   private isStarted = false;
   private readonly rooms = new Map<string, WarRoomSession>();
+  private readonly screenListeners = new Map<string, Set<(frame: AgentScreenFrame) => void>>();
   private skillSynthesizer?: CorySkillSynthesizerService;
   private providerRuntime?: NativeProviderRuntimeService;
   private subagentDispatcher?: WarRoomSubagentDispatcher;
@@ -241,7 +316,11 @@ export class WarRoomOrchestratorService implements GatewayService {
     this.subagentDispatcher = options.subagentDispatcher;
     if (options.defaultRooms) {
       for (const room of options.defaultRooms) {
-        this.rooms.set(room.roomId, room);
+        this.rooms.set(room.roomId, {
+          ...room,
+          messages: Object.freeze([...(room.messages ?? [])]),
+          screenFeed: Object.freeze([...(room.screenFeed ?? [])]),
+        });
       }
     }
   }
@@ -253,6 +332,7 @@ export class WarRoomOrchestratorService implements GatewayService {
   async stop(): Promise<void> {
     this.isStarted = false;
     this.rooms.clear();
+    this.screenListeners.clear();
   }
 
   health(): ServiceHealth {
@@ -262,6 +342,63 @@ export class WarRoomOrchestratorService implements GatewayService {
     return {
       status: "healthy",
       detail: `Managing ${this.rooms.size} war room sessions`,
+    };
+  }
+
+  emitScreenFrame(
+    roomId: string,
+    frameInput: Omit<AgentScreenFrame, "id" | "timestamp" | "roomId">,
+  ): AgentScreenFrame {
+    const frame: AgentScreenFrame = {
+      id: `frame_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      roomId,
+      timestamp: Date.now(),
+      ...frameInput,
+    };
+
+    const room = this.rooms.get(roomId);
+    if (room) {
+      const feed = [...(room.screenFeed ?? []), frame].slice(-200);
+      this.rooms.set(roomId, { ...room, screenFeed: Object.freeze(feed) });
+    }
+
+    const listeners = this.screenListeners.get(roomId);
+    if (listeners) {
+      for (const listener of listeners) {
+        try {
+          listener(frame);
+        } catch {
+          // Ignore listener error
+        }
+      }
+    }
+
+    return frame;
+  }
+
+  getScreenFeed(roomId: string, limit = 50): readonly AgentScreenFrame[] {
+    const room = this.rooms.get(roomId);
+    return (room?.screenFeed ?? []).slice(-limit);
+  }
+
+  subscribeScreenStream(
+    roomId: string,
+    listener: (frame: AgentScreenFrame) => void,
+  ): () => void {
+    let set = this.screenListeners.get(roomId);
+    if (!set) {
+      set = new Set();
+      this.screenListeners.set(roomId, set);
+    }
+    set.add(listener);
+    return () => {
+      const current = this.screenListeners.get(roomId);
+      if (current) {
+        current.delete(listener);
+        if (current.size === 0) {
+          this.screenListeners.delete(roomId);
+        }
+      }
     };
   }
 
@@ -295,6 +432,8 @@ export class WarRoomOrchestratorService implements GatewayService {
       forkedThreadIds: Object.freeze([]),
       pendingApprovals: Object.freeze([]),
       inheritedSkills: Object.freeze([...(params.inheritedSkills ?? [])]),
+      messages: Object.freeze([]),
+      screenFeed: Object.freeze([]),
     };
 
     this.rooms.set(roomId, session);
@@ -390,14 +529,36 @@ export class WarRoomOrchestratorService implements GatewayService {
     };
     this.rooms.set(roomId, updatedRoom);
 
+    this.emitScreenFrame(roomId, {
+      agentId: delegatedToAgentId,
+      role: specialist.role,
+      kind: "thinking",
+      summary: `${specialist.name} is thinking about task: ${title}`,
+    });
+    this.emitScreenFrame(roomId, {
+      agentId: delegatedToAgentId,
+      role: specialist.role,
+      kind: "kanban_move",
+      summary: `Task card [${taskId}] moved to in_progress`,
+      detail: title,
+    });
+
     // 8. Execute delegated subagent (TB2.1)
     let executionResult: DelegateTaskResult["executionResult"] = undefined;
     if (options.execute !== false) {
       // Transition member state to executing_tool
-      currentMembers = updatedRoom.members.map((m) =>
+      currentMembers = (this.rooms.get(roomId)?.members ?? updatedRoom.members).map((m) =>
         m.agentId === delegatedToAgentId ? { ...m, liveState: "executing_tool" as const } : m,
       );
-      this.rooms.set(roomId, { ...updatedRoom, members: Object.freeze(currentMembers) });
+      this.rooms.set(roomId, { ...(this.rooms.get(roomId) ?? updatedRoom), members: Object.freeze(currentMembers) });
+
+      this.emitScreenFrame(roomId, {
+        agentId: delegatedToAgentId,
+        role: specialist.role,
+        kind: "tool_start",
+        summary: `${specialist.name} executing subagent tools with tier ${routeTier}`,
+        detail: allowedTools.join(", "),
+      });
 
       executionResult = await this.dispatchSubagent({
         roomId,
@@ -415,24 +576,50 @@ export class WarRoomOrchestratorService implements GatewayService {
       });
 
       // Move card to "done"
+      const latestRoom = this.rooms.get(roomId) ?? updatedRoom;
       kanbanCard = { ...kanbanCard, column: "done" };
-      const updatedBoard = updatedRoom.kanbanBoard.map((c) =>
+      const updatedBoard = latestRoom.kanbanBoard.map((c) =>
         c.taskId === taskId ? kanbanCard : c,
       );
 
       // Transition member state to completed
-      currentMembers = updatedRoom.members.map((m) =>
+      currentMembers = latestRoom.members.map((m) =>
         m.agentId === delegatedToAgentId ? { ...m, liveState: "completed" as const } : m,
       );
 
       const note = `[Task Completed] ${taskId} (${specialist.role}): ${executionResult.output}`;
       updatedRoom = {
-        ...updatedRoom,
+        ...latestRoom,
         members: Object.freeze(currentMembers),
         kanbanBoard: Object.freeze(updatedBoard),
-        sharedNotes: Object.freeze([...updatedRoom.sharedNotes, note]),
+        sharedNotes: Object.freeze([...latestRoom.sharedNotes, note]),
       };
       this.rooms.set(roomId, updatedRoom);
+
+      if (executionResult.toolCallsExecuted && executionResult.toolCallsExecuted.length > 0) {
+        this.emitScreenFrame(roomId, {
+          agentId: delegatedToAgentId,
+          role: specialist.role,
+          kind: "tool_output",
+          summary: `Tools executed by ${specialist.name}: ${executionResult.toolCallsExecuted.join(", ")}`,
+          detail: executionResult.output,
+        });
+      }
+
+      this.emitScreenFrame(roomId, {
+        agentId: delegatedToAgentId,
+        role: specialist.role,
+        kind: "tool_done",
+        summary: `${specialist.name} completed task [${taskId}]`,
+        detail: executionResult.output,
+      });
+
+      this.emitScreenFrame(roomId, {
+        agentId: delegatedToAgentId,
+        role: specialist.role,
+        kind: "kanban_move",
+        summary: `Task card [${taskId}] moved to done`,
+      });
     }
 
     return {
@@ -509,6 +696,8 @@ export class WarRoomOrchestratorService implements GatewayService {
       forkedThreadIds: Object.freeze([]),
       pendingApprovals: Object.freeze([]),
       inheritedSkills: room.inheritedSkills,
+      messages: Object.freeze([]),
+      screenFeed: Object.freeze([]),
     };
     this.rooms.set(forkedThreadId, siblingRoom);
 
@@ -610,6 +799,15 @@ export class WarRoomOrchestratorService implements GatewayService {
       pendingApprovals: Object.freeze([...room.pendingApprovals, approval]),
     };
     this.rooms.set(roomId, updatedRoom);
+
+    this.emitScreenFrame(roomId, {
+      agentId: req.agentId,
+      role: "system",
+      kind: "approval",
+      summary: `Pending approval for tool ${req.toolName} [${approval.approvalId}]`,
+      detail: `Child session ${req.childSessionId}`,
+    });
+
     return approval;
   }
 
@@ -649,6 +847,15 @@ export class WarRoomOrchestratorService implements GatewayService {
       pendingApprovals: Object.freeze(updatedApprovals),
     };
     this.rooms.set(roomId, updatedRoom);
+
+    this.emitScreenFrame(roomId, {
+      agentId: existing.agentId,
+      role: "system",
+      kind: "approval",
+      summary: `Approval [${approvalId}] was ${decision} for tool ${existing.toolName}`,
+      detail: `Agent ${existing.agentId}`,
+    });
+
     return resolved;
   }
 
@@ -698,6 +905,140 @@ export class WarRoomOrchestratorService implements GatewayService {
       kanbanBoard: Object.freeze(updatedBoard),
     };
     this.rooms.set(roomId, updatedRoom);
+
+    this.emitScreenFrame(roomId, {
+      agentId: assignee,
+      role: "system",
+      kind: "kanban_move",
+      summary: `Kanban card [${taskId}] moved to ${column}`,
+      detail: existingCard.title,
+    });
+
     return updatedRoom;
+  }
+
+  /**
+   * Squad Group Chat with @mention / @all parallel specialist routing and bounded handoff.
+   */
+  async postSquadMessage(
+    roomId: string,
+    params: PostSquadMessageParams,
+  ): Promise<PostSquadMessageResult> {
+    const room = this.rooms.get(roomId);
+    if (!room) {
+      throw new Error(`War room "${roomId}" not found`);
+    }
+
+    const mentions = parseMentions(params.content);
+    const userMessage: WarRoomChatMessage = {
+      id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      roomId,
+      senderId: params.senderId || "user",
+      senderName:
+        params.senderName ||
+        (params.senderRole === "user" || !params.senderRole ? "Operator" : "Specialist"),
+      senderRole: params.senderRole || "user",
+      content: params.content,
+      mentions: Object.freeze(mentions),
+      handoffDepth: params.handoffDepth ?? 0,
+      createdAt: Date.now(),
+    };
+
+    const currentMessages = room.messages ?? [];
+    this.rooms.set(roomId, {
+      ...room,
+      messages: Object.freeze([...currentMessages, userMessage]),
+    });
+
+    this.emitScreenFrame(roomId, {
+      agentId: userMessage.senderId,
+      role: userMessage.senderRole,
+      kind: "chat_message",
+      summary: userMessage.content,
+      detail: mentions.length > 0 ? `Mentions: @${mentions.join(", @")}` : undefined,
+    });
+
+    // Determine target specialists: explicit @mentions or classified fallback
+    const targetRoles: WarRoomRole[] =
+      mentions.length > 0
+        ? mentions
+        : [classifyPromptToRole(params.content).role];
+
+    const replies: WarRoomChatMessage[] = [];
+
+    // Parallel multi-specialist dispatch via delegateTask
+    const specialistPromises = targetRoles.map(async (role) => {
+      const delegation = await this.delegateTask(roomId, params.content, {
+        role,
+        execute: true,
+        cwd: params.cwd,
+      });
+
+      const member = (this.rooms.get(roomId)?.members ?? []).find((m) => m.role === role);
+      const agentId = member?.agentId ?? `agent-${role}`;
+      const agentName = member?.name ?? `${role.toUpperCase()} Specialist`;
+      const replyContent = delegation.executionResult?.output ?? `[${role}] Task completed.`;
+      const replyMentions = parseMentions(replyContent);
+
+      const replyMsg: WarRoomChatMessage = {
+        id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        roomId,
+        senderId: agentId,
+        senderName: agentName,
+        senderRole: role,
+        content: replyContent,
+        mentions: Object.freeze(replyMentions),
+        handoffDepth: (params.handoffDepth ?? 0) + 1,
+        createdAt: Date.now(),
+      };
+      return replyMsg;
+    });
+
+    const directReplies = await Promise.all(specialistPromises);
+    for (const reply of directReplies) {
+      replies.push(reply);
+      const latestRoom = this.rooms.get(roomId)!;
+      this.rooms.set(roomId, {
+        ...latestRoom,
+        messages: Object.freeze([...(latestRoom.messages ?? []), reply]),
+      });
+      this.emitScreenFrame(roomId, {
+        agentId: reply.senderId,
+        role: reply.senderRole,
+        kind: "chat_message",
+        summary: reply.content,
+        detail: `Specialist response from @${reply.senderRole}`,
+      });
+    }
+
+    // Agent-to-agent bounded handoff
+    const maxHandoff = params.maxHandoffDepth ?? 2;
+    const currentDepth = params.handoffDepth ?? 0;
+    if (currentDepth < maxHandoff) {
+      for (const reply of directReplies) {
+        // Only hand off to specialists that were not already in the initial user dispatch
+        const nextRoles = reply.mentions.filter(
+          (r) => r !== reply.senderRole && !mentions.includes(r),
+        );
+        if (nextRoles.length > 0) {
+          const handoffResult = await this.postSquadMessage(roomId, {
+            senderId: reply.senderId,
+            senderName: reply.senderName,
+            senderRole: reply.senderRole as WarRoomRole,
+            content: `[Handoff from @${reply.senderRole}] ${reply.content}`,
+            cwd: params.cwd,
+            maxHandoffDepth: maxHandoff,
+            handoffDepth: currentDepth + 1,
+          });
+          replies.push(...handoffResult.replies);
+        }
+      }
+    }
+
+    return {
+      userMessage,
+      replies: Object.freeze(replies),
+      room: this.rooms.get(roomId)!,
+    };
   }
 }

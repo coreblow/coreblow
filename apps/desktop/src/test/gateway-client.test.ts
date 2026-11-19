@@ -264,4 +264,73 @@ describe("CoreBlowGatewayClient", () => {
       expect.objectContaining({ method: "DELETE" }),
     );
   });
+
+  it("handles War Room state, squad messaging, and approval resolution", async () => {
+    // 1. listWarRooms
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true, rooms: [{ roomId: "room_1", title: "Room 1", purpose: "Test" }] }),
+    } as any);
+
+    const rooms = await client.listWarRooms();
+    expect(rooms.length).toBe(1);
+    expect(rooms[0].roomId).toBe("room_1");
+
+    // 2. getWarRoomState
+    const mockState = {
+      ok: true,
+      roomId: "coreblow-squad",
+      title: "CoreBlow Squad",
+      purpose: "Unified Squad",
+      leadAgentId: "agent-lead",
+      members: [
+        { agentId: "agent-coder", name: "Coder", role: "coder", routeTier: "coding", liveState: "idle" },
+      ],
+      kanbanBoard: [],
+      pendingApprovals: [
+        { approvalId: "appr_1", parentSessionId: "p1", childSessionId: "c1", agentId: "agent-coder", toolName: "terminal", status: "pending" },
+      ],
+      messages: [
+        { id: "m1", roomId: "coreblow-squad", senderId: "user", senderName: "Operator", senderRole: "user", content: "@coder hello", mentions: ["coder"], handoffDepth: 0, createdAt: 1000 },
+      ],
+      screenFeed: [],
+    };
+
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockState,
+    } as any);
+
+    const state = await client.getWarRoomState("coreblow-squad");
+    expect(state).not.toBeNull();
+    expect(state?.roomId).toBe("coreblow-squad");
+    expect(state?.members.length).toBe(1);
+    expect(state?.pendingApprovals.length).toBe(1);
+    expect(state?.messages.length).toBe(1);
+
+    // 3. postWarRoomMessage
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        userMessage: mockState.messages[0],
+        replies: [{ id: "m2", roomId: "coreblow-squad", senderId: "agent-coder", senderName: "Coder", senderRole: "coder", content: "Done", mentions: [], handoffDepth: 1, createdAt: 1001 }],
+        room: mockState,
+      }),
+    } as any);
+
+    const postResult = await client.postWarRoomMessage("coreblow-squad", "@coder run tests");
+    expect(postResult).not.toBeNull();
+    expect(postResult?.replies.length).toBe(1);
+    expect(postResult?.replies[0].senderRole).toBe("coder");
+
+    // 4. resolveWarRoomApproval
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true }),
+    } as any);
+
+    const approvalRes = await client.resolveWarRoomApproval("coreblow-squad", "appr_1", "approved");
+    expect(approvalRes).toBe(true);
+  });
 });

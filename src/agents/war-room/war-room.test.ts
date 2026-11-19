@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import {
   WarRoomOrchestratorService,
+  parseMentions,
+  type AgentScreenFrame,
+  type WarRoomChatMessage,
   type WarRoomMember,
   type WarRoomSession,
 } from "./war-room-service.js";
@@ -412,6 +415,130 @@ describe("WarRoomOrchestratorService", () => {
       expect(() => service.moveKanbanCard(room.roomId, "missing-task", "done")).toThrow(
         'Kanban card "missing-task" not found',
       );
+    });
+  });
+
+  describe("Squad Group Chat, @mention Routing & Live Agent Screen Stream", () => {
+    it("parses @mentions correctly including @all expansion to all 4 execution specialists", () => {
+      expect(parseMentions("Hello @coder please fix the bug")).toEqual(["coder"]);
+      expect(parseMentions("@auditor and @verifier run tests")).toEqual(["auditor", "verifier"]);
+      expect(parseMentions("Broadcast: @all full repo verification")).toEqual([
+        "coder",
+        "researcher",
+        "auditor",
+        "verifier",
+      ]);
+      expect(parseMentions("No mentions here")).toEqual([]);
+    });
+
+    it("dispatches multiple mentioned specialists in parallel via postSquadMessage", async () => {
+      await service.start();
+      const room = service.createWarRoom({
+        title: "Squad Parallel Test",
+        purpose: "Testing multi-specialist dispatch",
+      });
+
+      const result = await service.postSquadMessage(room.roomId, {
+        content: "@coder @auditor review and patch the authentication middleware",
+      });
+
+      expect(result.userMessage.content).toBe("@coder @auditor review and patch the authentication middleware");
+      expect(result.userMessage.mentions).toEqual(["coder", "auditor"]);
+      expect(result.replies.length).toBe(2);
+
+      const roles = result.replies.map((r) => r.senderRole);
+      expect(roles).toContain("coder");
+      expect(roles).toContain("auditor");
+
+      // Verify messages are recorded in room state
+      const updatedRoom = service.getWarRoom(room.roomId)!;
+      expect(updatedRoom.messages.length).toBe(3); // 1 user + 2 replies
+    });
+
+    it("supports bounded agent-to-agent handoffs stopping at maxHandoffDepth", async () => {
+      // Custom subagent dispatcher that causes @coder to hand off to @verifier
+      const customService = new WarRoomOrchestratorService({
+        subagentDispatcher: async (params) => {
+          if (params.role === "coder") {
+            return {
+              output: "Code refactored. @verifier please verify test coverage.",
+              exitCode: 0,
+              toolCallsExecuted: ["patch"],
+            };
+          }
+          if (params.role === "verifier") {
+            return {
+              output: "All unit tests pass 100% green. @auditor please audit security.",
+              exitCode: 0,
+              toolCallsExecuted: ["terminal"],
+            };
+          }
+          return {
+            output: `[${params.role}] Done.`,
+            exitCode: 0,
+          };
+        },
+      });
+
+      await customService.start();
+      const room = customService.createWarRoom({
+        title: "Handoff Test",
+        purpose: "Testing bounded agent handoffs",
+      });
+
+      // maxHandoffDepth = 1: coder replies and hands off to verifier, then stops
+      const result = await customService.postSquadMessage(room.roomId, {
+        content: "@coder implement feature",
+        maxHandoffDepth: 1,
+      });
+
+      expect(result.replies.length).toBeGreaterThanOrEqual(2);
+      const roles = result.replies.map((r) => r.senderRole);
+      expect(roles).toContain("coder");
+      expect(roles).toContain("verifier");
+      // Auditor should NOT be called because maxHandoffDepth was 1
+      expect(roles).not.toContain("auditor");
+    });
+
+    it("emits live AgentScreenFrame events and allows real-time pub/sub subscription", async () => {
+      await service.start();
+      const room = service.createWarRoom({
+        title: "Live Stream Test",
+        purpose: "Testing SSE event emission",
+      });
+
+      const framesReceived: AgentScreenFrame[] = [];
+      const unsubscribe = service.subscribeScreenStream(room.roomId, (frame) => {
+        framesReceived.push(frame);
+      });
+
+      // Send squad message
+      await service.postSquadMessage(room.roomId, {
+        content: "@verifier run smoke test",
+      });
+
+      expect(framesReceived.length).toBeGreaterThan(0);
+      const kinds = framesReceived.map((f) => f.kind);
+      expect(kinds).toContain("chat_message");
+      expect(kinds).toContain("thinking");
+      expect(kinds).toContain("tool_start");
+      expect(kinds).toContain("tool_done");
+      expect(kinds).toContain("kanban_move");
+
+      // Verify screenFeed ring-buffer
+      const feed = service.getScreenFeed(room.roomId, 10);
+      expect(feed.length).toBeGreaterThan(0);
+
+      // Verify unsubscribe halts notifications
+      const prevCount = framesReceived.length;
+      unsubscribe();
+      service.emitScreenFrame(room.roomId, {
+        agentId: "agent-lead",
+        role: "lead",
+        kind: "thinking",
+        summary: "After unsubscribe",
+      });
+      expect(framesReceived.length).toBe(prevCount);
     });
   });
 });

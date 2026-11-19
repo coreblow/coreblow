@@ -708,9 +708,8 @@ export async function handleCoreHubRoute(
     pathname === "/api/corehub/skills/ingest" ||
     pathname === "/api/corehub/skills/outcome" ||
     pathname === "/api/corehub/skills/lock" ||
-    (pathname === "/api/corehub/war-room/rooms" && method === "POST") ||
-    pathname === "/api/corehub/war-room/delegate" ||
-    pathname === "/api/corehub/war-room/fork" ||
+    (pathname.startsWith("/api/corehub/war-room") && method === "POST") ||
+    (pathname.startsWith("/api/corehub/warroom") && method === "POST") ||
     pathname === "/api/corehub/memory-wiki/scribe" ||
     pathname === "/api/corehub/import-agent" ||
     (pathname === "/api/corehub/pr-workflow/drafts" && method === "POST") ||
@@ -977,8 +976,8 @@ export async function handleCoreHubRoute(
     return true;
   }
 
-  // GET /api/corehub/war-room/rooms
-  if (method === "GET" && pathname === "/api/corehub/war-room/rooms") {
+  // GET /api/corehub/war-room/rooms or /api/corehub/warroom/rooms
+  if (method === "GET" && (pathname === "/api/corehub/war-room/rooms" || pathname === "/api/corehub/warroom/rooms")) {
     if (!services.warRoom) {
       sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
       return true;
@@ -1004,12 +1003,157 @@ export async function handleCoreHubRoute(
 
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-    const rooms = services.warRoom.listWarRooms();
+    let rooms = services.warRoom.listWarRooms();
+    if (rooms.length === 0 && (pathname === "/api/corehub/warroom/rooms" || url.searchParams.get("autoCreate") === "true")) {
+      services.warRoom.createWarRoom({
+        roomId: "coreblow-squad",
+        title: "CoreBlow Squad",
+        purpose: "Unified Autonomous Multi-Agent Squad",
+      });
+      rooms = services.warRoom.listWarRooms();
+    }
     sendJson(res, 200, {
       ok: true,
       count: rooms.length,
       rooms,
     });
+    return true;
+  }
+
+  // GET /api/corehub/warroom/:roomId/messages or /api/corehub/war-room/:roomId/messages
+  const warRoomMessagesGetMatch = /^\/api\/corehub\/(?:war-room|warroom)\/([^/]+)\/messages$/.exec(pathname);
+  if (method === "GET" && warRoomMessagesGetMatch) {
+    const roomId = decodeURIComponent(warRoomMessagesGetMatch[1]);
+    if (!services.warRoom) {
+      sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
+      return true;
+    }
+
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "agents.list",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+
+    let room = services.warRoom.getWarRoom(roomId);
+    if (!room && (roomId === "coreblow-squad" || roomId === "default")) {
+      room = services.warRoom.createWarRoom({
+        roomId: "coreblow-squad",
+        title: "CoreBlow Squad",
+        purpose: "Unified Autonomous Multi-Agent Squad",
+      });
+    }
+
+    if (!room) {
+      sendJson(res, 404, { ok: false, error: `War room "${roomId}" not found.` });
+      return true;
+    }
+
+    sendJson(res, 200, {
+      ok: true,
+      roomId: room.roomId,
+      title: room.title,
+      purpose: room.purpose,
+      leadAgentId: room.leadAgentId,
+      messages: room.messages ?? [],
+      members: room.members,
+      kanbanBoard: room.kanbanBoard,
+      pendingApprovals: room.pendingApprovals,
+      screenFeed: services.warRoom.getScreenFeed(roomId, 50),
+    });
+    return true;
+  }
+
+  // GET /api/corehub/warroom/:roomId/screen/stream or /api/corehub/war-room/:roomId/screen/stream
+  const warRoomScreenStreamMatch = /^\/api\/corehub\/(?:war-room|warroom)\/([^/]+)\/screen\/stream$/.exec(pathname);
+  if (method === "GET" && warRoomScreenStreamMatch) {
+    const roomId = decodeURIComponent(warRoomScreenStreamMatch[1]);
+    if (!services.warRoom) {
+      sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
+      return true;
+    }
+
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "agents.list",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    let room = services.warRoom.getWarRoom(roomId);
+    if (!room && (roomId === "coreblow-squad" || roomId === "default")) {
+      room = services.warRoom.createWarRoom({
+        roomId: "coreblow-squad",
+        title: "CoreBlow Squad",
+        purpose: "Unified Autonomous Multi-Agent Squad",
+      });
+    }
+
+    if (!room) {
+      sendJson(res, 404, { ok: false, error: `War room "${roomId}" not found.` });
+      return true;
+    }
+
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "Access-Control-Allow-Origin": "*",
+    });
+
+    const initialFrames = services.warRoom.getScreenFeed(roomId, 40);
+    for (const frame of initialFrames) {
+      res.write(`data: ${JSON.stringify({ frame })}\n\n`);
+    }
+
+    const unsubscribe = services.warRoom.subscribeScreenStream(roomId, (frame) => {
+      try {
+        res.write(`data: ${JSON.stringify({ frame })}\n\n`);
+      } catch {
+        // stream closed
+      }
+    });
+
+    const heartbeat = setInterval(() => {
+      try {
+        res.write(": keepalive\n\n");
+      } catch {
+        clearInterval(heartbeat);
+      }
+    }, 15000);
+
+    req.on("close", () => {
+      clearInterval(heartbeat);
+      unsubscribe();
+      res.end();
+    });
+
     return true;
   }
 
@@ -1214,6 +1358,7 @@ export async function handleCoreHubRoute(
     const operatorMethod = pathname.startsWith("/api/corehub/skills/")
       ? "skills.install"
       : pathname.startsWith("/api/corehub/war-room/") ||
+          pathname.startsWith("/api/corehub/warroom/") ||
           pathname.startsWith("/api/corehub/import-agent") ||
           pathname === "/api/corehub/pr-workflow/drafts" ||
           pathname === "/api/corehub/pr-workflow/approve" ||
@@ -1558,8 +1703,8 @@ export async function handleCoreHubRoute(
       }
     }
 
-    // POST /api/corehub/war-room/rooms
-    if (pathname === "/api/corehub/war-room/rooms") {
+    // POST /api/corehub/war-room/rooms or /api/corehub/warroom/rooms
+    if (pathname === "/api/corehub/war-room/rooms" || pathname === "/api/corehub/warroom/rooms") {
       if (!services.warRoom) {
         sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
         return true;
@@ -1595,8 +1740,89 @@ export async function handleCoreHubRoute(
       }
     }
 
+    // POST /api/corehub/warroom/:roomId/messages or /api/corehub/war-room/:roomId/messages
+    const warRoomMessagesPostMatch = /^\/api\/corehub\/(?:war-room|warroom)\/([^/]+)\/messages$/.exec(pathname);
+    if (method === "POST" && warRoomMessagesPostMatch) {
+      const roomId = decodeURIComponent(warRoomMessagesPostMatch[1]);
+      if (!services.warRoom) {
+        sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
+        return true;
+      }
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const content = typeof body.content === "string" ? body.content.trim() : "";
+        if (!content) {
+          sendJson(res, 400, { ok: false, error: "Missing required 'content' field." });
+          return true;
+        }
+        const senderName = typeof body.senderName === "string" ? body.senderName.trim() : undefined;
+        const cwd = typeof body.cwd === "string" ? body.cwd : undefined;
+        const maxHandoffDepth = typeof body.maxHandoffDepth === "number" ? body.maxHandoffDepth : undefined;
+
+        let room = services.warRoom.getWarRoom(roomId);
+        if (!room && (roomId === "coreblow-squad" || roomId === "default")) {
+          room = services.warRoom.createWarRoom({
+            roomId: "coreblow-squad",
+            title: "CoreBlow Squad",
+            purpose: "Unified Autonomous Multi-Agent Squad",
+          });
+        }
+        if (!room) {
+          sendJson(res, 404, { ok: false, error: `War room "${roomId}" not found.` });
+          return true;
+        }
+
+        const result = await services.warRoom.postSquadMessage(room.roomId, {
+          content,
+          senderName,
+          cwd,
+          maxHandoffDepth,
+        });
+
+        sendJson(res, 200, {
+          ok: true,
+          userMessage: result.userMessage,
+          replies: result.replies,
+          room: result.room,
+        });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        sendJson(res, 400, { ok: false, error: msg });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/warroom/:roomId/approvals/:approvalId or /api/corehub/war-room/:roomId/approvals/:approvalId
+    const warRoomApprovalPostMatch = /^\/api\/corehub\/(?:war-room|warroom)\/([^/]+)\/approvals\/([^/]+)$/.exec(pathname);
+    if (method === "POST" && warRoomApprovalPostMatch) {
+      const roomId = decodeURIComponent(warRoomApprovalPostMatch[1]);
+      const approvalId = decodeURIComponent(warRoomApprovalPostMatch[2]);
+      if (!services.warRoom) {
+        sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
+        return true;
+      }
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const decision = body.decision === "approved" || body.decision === "denied" ? body.decision : undefined;
+        if (!decision) {
+          sendJson(res, 400, { ok: false, error: "Missing or invalid 'decision' (expected 'approved' | 'denied')." });
+          return true;
+        }
+
+        const resolved = services.warRoom.resolveChildApproval(roomId, approvalId, decision);
+        sendJson(res, 200, { ok: true, approval: resolved });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const statusCode = msg.includes("not found") ? 404 : 400;
+        sendJson(res, statusCode, { ok: false, error: msg });
+        return true;
+      }
+    }
+
     // POST /api/corehub/war-room/delegate
-    if (pathname === "/api/corehub/war-room/delegate") {
+    if (pathname === "/api/corehub/war-room/delegate" || pathname === "/api/corehub/warroom/delegate") {
       if (!services.warRoom) {
         sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
         return true;
@@ -1625,8 +1851,8 @@ export async function handleCoreHubRoute(
       }
     }
 
-    // POST /api/corehub/war-room/fork
-    if (pathname === "/api/corehub/war-room/fork") {
+    // POST /api/corehub/war-room/fork or /api/corehub/warroom/fork
+    if (pathname === "/api/corehub/war-room/fork" || pathname === "/api/corehub/warroom/fork") {
       if (!services.warRoom) {
         sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
         return true;
