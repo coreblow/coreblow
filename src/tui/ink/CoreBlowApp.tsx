@@ -1,26 +1,45 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Box, Text, useInput, useApp } from "ink";
 import process from "node:process";
+import { execSync } from "node:child_process";
 import { ModelPickerModal } from "./ModelPickerModal.js";
 import { FirstRunWizard } from "./FirstRunWizard.js";
+import { RewindModal, type RewindMode } from "./RewindModal.js";
+import { DiffView } from "./DiffView.js";
+import { ApprovalModal, type ApprovalDecision } from "./ApprovalModal.js";
+import { ToolRow, TurnSummaryRule, type ToolCallItem } from "./ToolRow.js";
 import {
   cleanupStaleProviderConfig,
   normalizeModelId,
   splitModelRef,
   type ReasoningEffort,
 } from "./model-picker-utils.js";
+import {
+  cyclePermissionMode,
+  getPermissionModeBadge,
+  collapsePastedText,
+  expandPastedChips,
+  filterSlashCommands,
+  parseShellEscape,
+  isDangerousShellCommand,
+  executeLocalShell,
+  DraftStashStack,
+  type PermissionMode,
+} from "./input-prefixes.js";
+import { expandContextReferences } from "./context-expander.js";
 import { inkPalette } from "./theme.js";
 import type { TuiBackend, TuiModelChoice } from "../tui-backend.js";
 import type { TuiOptions } from "../tui-types.js";
 import { loadConfig } from "../../config/config.js";
 import { writeConfigFile } from "../../config/config-io.js";
 import { resolveAgentModelPrimaryValue } from "../../config/model-input.js";
+import { getCheckpointManager } from "../../security/checkpoint-manager.js";
 
 export interface MessageItem {
   id: string;
   role: "user" | "assistant" | "system" | "tool" | "error";
   text: string;
-  toolName?: string;
+  toolCall?: ToolCallItem;
 }
 
 export interface CoreBlowAppProps {
@@ -29,18 +48,7 @@ export interface CoreBlowAppProps {
   needsSetup?: boolean;
 }
 
-type ActiveModal = "none" | "model" | "setup" | "help";
-
-const SLASH_COMMANDS = [
-  { cmd: "/help", desc: "Show slash commands" },
-  { cmd: "/model", desc: "Open model switcher" },
-  { cmd: "/setup", desc: "Run setup wizard" },
-  { cmd: "/clear", desc: "Clear current session" },
-  { cmd: "/rollback", desc: "Rollback file edit checkpoint" },
-  { cmd: "/desktop", desc: "Launch CoreBlow Studio desktop" },
-  { cmd: "/sessions", desc: "List recent sessions" },
-  { cmd: "/exit", desc: "Exit CoreBlow TUI" },
-];
+type ActiveModal = "none" | "model" | "setup" | "help" | "diff" | "rewind" | "approval";
 
 function shortenCwd(cwd: string = process.cwd()): string {
   const home = process.env.HOME || "";
@@ -63,7 +71,7 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
     {
       id: "init",
       role: "system",
-      text: "CoreBlow v2.0.0 ready · Type /help for slash commands, Ctrl+L for models, Ctrl+C to exit.",
+      text: "CoreBlow v2.0.0 ready · Type / for commands, @ for context, ! for local shell, Shift+Tab for mode.",
     },
   ]);
   const [inputVal, setInputVal] = useState("");
@@ -72,13 +80,26 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
     resolveAgentModelPrimaryValue(cfg.agents?.defaults?.model) || "coreblow/native",
   );
   const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort>("off");
+  const [permissionMode, setPermissionMode] = useState<PermissionMode>("manual");
   const [isBusy, setIsBusy] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [lastCtrlCAt, setLastCtrlCAt] = useState(0);
+  const [lastEscAt, setLastEscAt] = useState(0);
   const [modelsList, setModelsList] = useState<TuiModelChoice[]>([]);
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  const [toolsExpanded, setToolsExpanded] = useState(false);
+  const [diffString, setDiffString] = useState("");
+  const [pendingApproval, setPendingApproval] = useState<{
+    tool: string;
+    target: string;
+    description?: string;
+  } | null>(null);
 
+  // Stashed drafts and pasted chips
+  const draftStackRef = useRef(new DraftStashStack());
+  const pastedChipsRef = useRef(new Map<string, string>());
   const sessionKeyRef = useRef(opts.session || "agent:main:main");
+  const [draftCount, setDraftCount] = useState(0);
 
   // Determine backend badge
   const backendBadge = backend.connection.url.includes("embedded")
@@ -131,9 +152,17 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         const payload = evt.payload as any;
         if (payload?.stream === "tool") {
           const toolName = payload.data?.name || "tool";
+          const toolCallItem: ToolCallItem = {
+            id: String(Date.now()),
+            name: toolName,
+            target: payload.data?.input?.path || payload.data?.input?.command || "",
+            status: "running",
+            durationMs: 100,
+            outputPreview: payload.data?.output ? String(payload.data.output) : undefined,
+          };
           setMessages((prev) => [
             ...prev,
-            { id: String(Date.now()), role: "tool", text: `› ${toolName}`, toolName },
+            { id: String(Date.now()), role: "tool", text: `› ${toolName}`, toolCall: toolCallItem },
           ]);
         }
       }
@@ -172,6 +201,22 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         case "/setup":
           setModal("setup");
           break;
+        case "/rewind":
+          setModal("rewind");
+          break;
+        case "/diff": {
+          try {
+            const out = execSync("git diff", { encoding: "utf8", timeout: 5000 });
+            setDiffString(out || "");
+            setModal("diff");
+          } catch (err) {
+            setMessages((prev) => [
+              ...prev,
+              { id: String(Date.now()), role: "error", text: `Failed to inspect git diff: ${String(err)}` },
+            ]);
+          }
+          break;
+        }
         case "/clear": {
           setMessages([
             {
@@ -187,7 +232,6 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         }
         case "/rollback": {
           try {
-            const { getCheckpointManager } = await import("../../security/checkpoint-manager.js");
             const res = getCheckpointManager().rollbackCheckpoint(
               args[0],
               sessionKeyRef.current,
@@ -265,20 +309,81 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
   );
 
   const handleSubmit = useCallback(async () => {
-    const text = inputVal.trim();
-    if (!text) return;
+    let rawText = inputVal.trim();
+    if (!rawText) return;
+
+    // Expand any paste chips back to original full content
+    if (pastedChipsRef.current.size > 0) {
+      rawText = expandPastedChips(rawText, pastedChipsRef.current);
+      pastedChipsRef.current.clear();
+    }
 
     setInputVal("");
     setCursorPos(0);
 
-    if (text.startsWith("/")) {
-      await handleSlashCommand(text);
+    // 1. Slash command
+    if (rawText.startsWith("/")) {
+      await handleSlashCommand(rawText);
       return;
     }
 
+    // 2. Local shell escape (!command)
+    const shellParsed = parseShellEscape(rawText);
+    if (shellParsed.isShell) {
+      const danger = isDangerousShellCommand(shellParsed.command);
+      if (danger.dangerous) {
+        setMessages((prev) => [
+          ...prev,
+          { id: String(Date.now()), role: "user", text: `!${shellParsed.command}` },
+          { id: String(Date.now() + 1), role: "error", text: danger.reason || "Dangerous shell command blocked." },
+        ]);
+        return;
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { id: String(Date.now()), role: "user", text: `!${shellParsed.command}` },
+      ]);
+
+      const execResult = await executeLocalShell(shellParsed.command);
+      const out = (execResult.stdout + (execResult.stderr ? `\n${execResult.stderr}` : "")).trim();
+      const statusIcon = execResult.exitCode === 0 ? "✓" : `✗ [${execResult.exitCode}]`;
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: String(Date.now()),
+          role: "tool",
+          text: `! ${shellParsed.command} ${statusIcon}\n${out || "(no output)"}`,
+        },
+      ]);
+      return;
+    }
+
+    // 3. Context references (@file, @diff, etc.)
+    const contextRes = expandContextReferences(rawText);
+    if (contextRes.refused) {
+      setMessages((prev) => [
+        ...prev,
+        { id: String(Date.now()), role: "error", text: contextRes.refused! },
+      ]);
+      return;
+    }
+
+    if (contextRes.warnings.length > 0) {
+      for (const w of contextRes.warnings) {
+        setMessages((prev) => [
+          ...prev,
+          { id: String(Date.now()), role: "system", text: w },
+        ]);
+      }
+    }
+
+    const textToSend = contextRes.expanded;
+
     setMessages((prev) => [
       ...prev,
-      { id: String(Date.now()), role: "user", text },
+      { id: String(Date.now()), role: "user", text: rawText },
     ]);
 
     setIsBusy(true);
@@ -287,7 +392,7 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
     try {
       const res = await backend.sendChat({
         sessionKey: sessionKeyRef.current,
-        message: text,
+        message: textToSend,
         thinking: reasoningEffort !== "off" ? reasoningEffort : undefined,
         deliver: opts.deliver,
       });
@@ -307,6 +412,39 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
       return;
     }
 
+    // Shift+Tab: cycle permission mode
+    if (key.tab && (key.shift || input === "\x1b[Z")) {
+      setPermissionMode((prev) => cyclePermissionMode(prev));
+      return;
+    }
+
+    // Ctrl+S: Draft stash stack
+    if (key.ctrl && input === "s") {
+      if (inputVal.trim().length > 0) {
+        const count = draftStackRef.current.push(inputVal);
+        setInputVal("");
+        setCursorPos(0);
+        setDraftCount(count);
+        setStatusMsg(`Draft stashed (📌 ${count}).`);
+      } else {
+        const popped = draftStackRef.current.pop();
+        if (popped) {
+          setInputVal(popped);
+          setCursorPos(popped.length);
+          setDraftCount(draftStackRef.current.count());
+          setStatusMsg("Draft restored from stash.");
+        }
+      }
+      return;
+    }
+
+    // Ctrl+O: Toggle tool output expand/collapse
+    if (key.ctrl && input === "o") {
+      setToolsExpanded((prev) => !prev);
+      return;
+    }
+
+    // Ctrl+C: Safe exit behavior
     if (key.ctrl && input === "c") {
       const now = Date.now();
       if (inputVal.length > 0) {
@@ -316,7 +454,7 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         setLastCtrlCAt(now);
         return;
       }
-      if (now - lastCtrlCAt <= 1500) {
+      if (lastCtrlCAt > 0 && now - lastCtrlCAt <= 1500) {
         exit();
         return;
       }
@@ -335,14 +473,36 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
       return;
     }
 
+    // Esc & Double-Esc rewind
     if (key.escape) {
+      const now = Date.now();
+      if (inputVal.length === 0) {
+        if (lastEscAt > 0 && now - lastEscAt <= 800) {
+          setModal("rewind");
+          setLastEscAt(0);
+          return;
+        }
+        setLastEscAt(now);
+      }
       if (isBusy) {
         abortActiveTurn();
       }
       return;
     }
 
+    // Multi-line / newline shortcuts: Ctrl+J or \ + Enter
+    if (key.ctrl && input === "j") {
+      setInputVal((prev) => prev.slice(0, cursorPos) + "\n" + prev.slice(cursorPos));
+      setCursorPos((prev) => prev + 1);
+      return;
+    }
+
     if (key.return) {
+      if (inputVal.endsWith("\\")) {
+        setInputVal((prev) => prev.slice(0, -1) + "\n");
+        setCursorPos((prev) => prev);
+        return;
+      }
       void handleSubmit();
       return;
     }
@@ -365,16 +525,27 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
       return;
     }
 
+    // Detect large paste burst
     if (input && !key.ctrl && !key.meta) {
+      const collapsed = collapsePastedText(input, pastedChipsRef.current.size);
+      if (collapsed.isChip && collapsed.chipLabel) {
+        pastedChipsRef.current.set(collapsed.chipLabel, collapsed.fullContent);
+        setInputVal((prev) => prev.slice(0, cursorPos) + collapsed.displayText + prev.slice(cursorPos));
+        setCursorPos((prev) => prev + collapsed.displayText.length);
+        return;
+      }
+
       setInputVal((prev) => prev.slice(0, cursorPos) + input + prev.slice(cursorPos));
       setCursorPos((prev) => prev + input.length);
     }
   });
 
-  // Autocomplete hints
-  const matchingCommand = inputVal.startsWith("/")
-    ? SLASH_COMMANDS.find((c) => c.cmd.startsWith(inputVal.toLowerCase()) && c.cmd !== inputVal)
-    : null;
+  // Autocomplete matching
+  const slashMatches = inputVal.startsWith("/")
+    ? filterSlashCommands(inputVal)
+    : [];
+
+  const modeBadge = getPermissionModeBadge(permissionMode);
 
   return (
     <Box flexDirection="column" paddingX={1} paddingY={0}>
@@ -386,14 +557,19 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
           </Text>
           <Text color={inkPalette.dim}> · {shortenCwd()}</Text>
         </Box>
-        <Text bold color={backendBadge === "Local" ? inkPalette.accentSoft : inkPalette.success}>
-          [{backendBadge}]
-        </Text>
+        <Box>
+          {draftCount > 0 && (
+            <Text color={inkPalette.accentSoft}>📌 {draftCount} · </Text>
+          )}
+          <Text bold color={backendBadge === "Local" ? inkPalette.accentSoft : inkPalette.success}>
+            [{backendBadge}]
+          </Text>
+        </Box>
       </Box>
 
       {/* 2. TranscriptView */}
       <Box flexDirection="column" marginY={1}>
-        {messages.slice(-14).map((msg) => {
+        {messages.slice(-12).map((msg) => {
           if (msg.role === "user") {
             return (
               <Box key={msg.id} marginY={0}>
@@ -412,6 +588,11 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
             );
           }
           if (msg.role === "tool") {
+            if (msg.toolCall) {
+              return (
+                <ToolRow key={msg.id} tool={msg.toolCall} expanded={toolsExpanded} />
+              );
+            }
             return (
               <Box key={msg.id} marginY={0}>
                 <Text color={inkPalette.dim}>{msg.text}</Text>
@@ -435,7 +616,7 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         })}
       </Box>
 
-      {/* 3. ModalSlot (exclusive overlay) */}
+      {/* 3. ModalSlot (exclusive overlay - HIDES StatusBar) */}
       {modal === "model" && (
         <Box marginY={1}>
           <ModelPickerModal
@@ -495,6 +676,62 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         </Box>
       )}
 
+      {modal === "diff" && (
+        <Box marginY={1}>
+          <DiffView
+            diff={diffString}
+            onClose={() => setModal("none")}
+          />
+        </Box>
+      )}
+
+      {modal === "rewind" && (
+        <Box marginY={1}>
+          <RewindModal
+            sessionId={sessionKeyRef.current}
+            onRollback={(cpId, rollbackMode: RewindMode) => {
+              try {
+                const res = getCheckpointManager().rollbackCheckpoint(cpId, sessionKeyRef.current);
+                setModal("none");
+                setMessages((prev) => [
+                  ...prev,
+                  { id: String(Date.now()), role: "system", text: `${res.message} (mode: ${rollbackMode})` },
+                ]);
+              } catch (err) {
+                setModal("none");
+                setMessages((prev) => [
+                  ...prev,
+                  { id: String(Date.now()), role: "error", text: `Rewind failed: ${String(err)}` },
+                ]);
+              }
+            }}
+            onClose={() => setModal("none")}
+          />
+        </Box>
+      )}
+
+      {modal === "approval" && pendingApproval && (
+        <Box marginY={1}>
+          <ApprovalModal
+            tool={pendingApproval.tool}
+            commandOrPath={pendingApproval.target}
+            description={pendingApproval.description}
+            onDecision={(decision: ApprovalDecision, comment?: string) => {
+              setModal("none");
+              setPendingApproval(null);
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: String(Date.now()),
+                  role: "system",
+                  text: `Approval ${decision}${comment ? ` with steering: "${comment}"` : ""}.`,
+                },
+              ]);
+            }}
+          />
+        </Box>
+      )}
+
       {modal === "help" && (
         <Box
           flexDirection="column"
@@ -509,7 +746,7 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
             CoreBlow Slash Commands
           </Text>
           <Box flexDirection="column" marginY={1}>
-            {SLASH_COMMANDS.map((c) => (
+            {filterSlashCommands("").map((c) => (
               <Box key={c.cmd} justifyContent="space-between">
                 <Text bold color={inkPalette.text}>
                   {c.cmd}
@@ -530,12 +767,22 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
               coreblow ❯{" "}
             </Text>
             <Text color={inkPalette.text}>{inputVal}</Text>
-            {matchingCommand && (
-              <Text color={inkPalette.dim}>
-                {"  "}(hint: {matchingCommand.cmd} - {matchingCommand.desc})
-              </Text>
-            )}
           </Box>
+
+          {/* Autocomplete suggestions preview */}
+          {slashMatches.length > 0 && inputVal.length > 1 && (
+            <Box flexDirection="column" borderStyle="single" borderColor={inkPalette.border} paddingX={1} marginY={0}>
+              {slashMatches.slice(0, 5).map((m, idx) => (
+                <Box key={m.cmd} justifyContent="space-between">
+                  <Text color={idx === 0 ? inkPalette.accent : inkPalette.dim}>
+                    {idx === 0 ? "❯ " : "  "}
+                    {m.cmd}
+                  </Text>
+                  <Text color={inkPalette.dim}>{m.desc}</Text>
+                </Box>
+              ))}
+            </Box>
+          )}
         </Box>
       )}
 
@@ -550,10 +797,11 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
             {reasoningEffort !== "off" && (
               <Text color={inkPalette.accentSoft}> [{reasoningEffort}]</Text>
             )}
+            <Text color={modeBadge.color}> [{modeBadge.label}]</Text>
             {isBusy && <Text color={inkPalette.accent}> · {statusMsg || "busy"}</Text>}
           </Box>
           <Text color={inkPalette.dim}>
-            /help · Ctrl+L models · Ctrl+C exit
+            / commands · @ context · ! shell · Shift+Tab mode
           </Text>
         </Box>
       )}

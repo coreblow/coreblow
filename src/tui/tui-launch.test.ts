@@ -5,9 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const spawnMock = vi.hoisted(() => vi.fn());
 const detachMock = vi.hoisted(() => vi.fn());
 
-vi.mock("node:child_process", () => ({
-  spawn: spawnMock,
-}));
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return {
+    ...actual,
+    spawn: spawnMock,
+  };
+});
 
 vi.mock("../process/child-process-bridge.js", () => ({
   attachChildProcessBridge: vi.fn(() => ({ detach: detachMock })),
