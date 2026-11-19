@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
+import { Command } from "commander";
 import { buildChildEnv } from "../../coreblow.mjs";
 import { launchDesktopApp } from "./desktop-cli.js";
 import { handleSlashCommand, runOneShotCliQuery } from "./interactive-chat.js";
 import { SUB_CLI_DESCRIPTORS } from "./program/subcli-descriptors.js";
+import { registerTuiCli } from "./tui-cli.js";
 
 describe("coreblow.mjs environment", () => {
   it("injects --disable-warning=DEP0040 into NODE_OPTIONS when unset", () => {
@@ -107,5 +109,17 @@ describe("runOneShotCliQuery", () => {
         method: "POST",
       }),
     );
+  });
+});
+
+describe("tui command options", () => {
+  it("registers --local option on tui command", () => {
+    const program = new Command();
+    registerTuiCli(program);
+    const tuiCmd = program.commands.find((c) => c.name() === "tui");
+    expect(tuiCmd).toBeDefined();
+    const localOption = tuiCmd?.options.find((o) => o.attributeName() === "local");
+    expect(localOption).toBeDefined();
+    expect(localOption?.long).toBe("--local");
   });
 });

@@ -6,7 +6,8 @@ import {
   parseAgentSessionKey,
 } from "../routing/session-key.js";
 import type { ChatLog } from "./components/chat-log.js";
-import type { GatewayAgentsList, GatewayChatClient } from "./gateway-chat.js";
+import type { GatewayAgentsList } from "./gateway-chat.js";
+import type { TuiBackend } from "./tui-backend.js";
 import { asString, extractTextFromMessage, isCommandMessage } from "./tui-formatters.js";
 import type { SessionInfo, TuiOptions, TuiStateAccess } from "./tui-types.js";
 
@@ -15,7 +16,7 @@ type SessionActionBtwPresenter = {
 };
 
 type SessionActionContext = {
-  client: GatewayChatClient;
+  client: TuiBackend;
   chatLog: ChatLog;
   btw: SessionActionBtwPresenter;
   tui: TUI;

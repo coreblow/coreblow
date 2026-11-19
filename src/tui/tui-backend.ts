@@ -3,7 +3,7 @@ import type {
   SessionsPatchParams,
   SessionsPatchResult,
 } from "../gateway/protocol/index.js";
-import type { ResponseUsageMode, SessionInfo, SessionScope } from "./tui-types.js";
+import type { ResponseUsageMode, SessionInfo, SessionScope, TuiOptions } from "./tui-types.js";
 
 export type ChatSendOptions = {
   sessionKey: string;
@@ -112,6 +112,51 @@ export type TuiBackend = {
   listAgents: () => Promise<TuiAgentsList>;
   patchSession: (opts: SessionsPatchParams) => Promise<SessionsPatchResult>;
   resetSession: (key: string, reason?: "new" | "reset") => Promise<unknown>;
+  getStatus?: () => Promise<unknown>;
   getGatewayStatus: () => Promise<unknown>;
   listModels: () => Promise<TuiModelChoice[]>;
 };
+
+export async function isGatewayReachable(rawUrl: string, timeoutMs = 800): Promise<boolean> {
+  try {
+    const httpUrl = rawUrl.replace(/^ws:/i, "http:").replace(/^wss:/i, "https:");
+    const urlObj = new URL(httpUrl);
+    urlObj.pathname = "/healthz";
+    const res = await fetch(urlObj.toString(), {
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    return res.status < 500;
+  } catch {
+    return false;
+  }
+}
+
+export async function resolveTuiBackend(opts: TuiOptions = {}): Promise<TuiBackend> {
+  if (opts.backend) {
+    return opts.backend;
+  }
+  if (opts.local === true) {
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+    return new EmbeddedTuiBackend();
+  }
+
+  try {
+    const { GatewayChatClient, resolveGatewayConnection } = await import("./gateway-chat.js");
+    const connection = await resolveGatewayConnection({
+      url: opts.url,
+      token: opts.token,
+      password: opts.password,
+    });
+
+    const reachable = await isGatewayReachable(connection.url, 800);
+    if (!reachable) {
+      const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+      return new EmbeddedTuiBackend();
+    }
+
+    return new GatewayChatClient(connection);
+  } catch {
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+    return new EmbeddedTuiBackend();
+  }
+}

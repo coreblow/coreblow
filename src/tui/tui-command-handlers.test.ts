@@ -242,4 +242,31 @@ describe("tui command handlers", () => {
     expect(applySessionInfoFromPatch).toHaveBeenCalledWith({ groupActivation: "always" });
     expect(refreshSessionInfo).toHaveBeenCalledTimes(1);
   });
+
+  it("handles /clear command and resets session", async () => {
+    const resetSession = vi.fn().mockResolvedValue({ ok: true });
+    const loadHistory = vi.fn().mockResolvedValue(undefined);
+    const { handleCommand, addSystem } = createHarness({
+      resetSession,
+      loadHistory,
+    });
+
+    await handleCommand("/clear");
+
+    expect(resetSession).toHaveBeenCalledWith("agent:main:main", "reset");
+    expect(addSystem).toHaveBeenCalledWith("Session cleared. Started fresh session.");
+    expect(loadHistory).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles /rollback command and reports checkpoint result", async () => {
+    const { handleCommand, addSystem } = createHarness();
+    await handleCommand("/rollback");
+    expect(addSystem).toHaveBeenCalled();
+  });
+
+  it("handles /desktop command and reports launch status", async () => {
+    const { handleCommand, addSystem } = createHarness();
+    await handleCommand("/desktop");
+    expect(addSystem).toHaveBeenCalled();
+  });
 });

@@ -19,7 +19,7 @@ import {
 import { getSlashCommands } from "./commands.js";
 import { ChatLog } from "./components/chat-log.js";
 import { CustomEditor } from "./components/custom-editor.js";
-import { GatewayChatClient } from "./gateway-chat.js";
+import { resolveTuiBackend, type TuiBackend } from "./tui-backend.js";
 import { editorTheme, theme } from "./theme/theme.js";
 import { createCommandHandlers } from "./tui-command-handlers.js";
 import { createEventHandlers } from "./tui-event-handlers.js";
@@ -42,6 +42,7 @@ import type {
 import { buildWaitingStatusMessage, defaultWaitingPhrases } from "./tui-waiting.js";
 
 export { resolveFinalAssistantText } from "./tui-formatters.js";
+export { resolveTuiBackend } from "./tui-backend.js";
 export type { TuiOptions } from "./tui-types.js";
 export {
   createEditorSubmitHandler,
@@ -391,11 +392,7 @@ export async function runTui(opts: TuiOptions) {
     localBtwRunIds.clear();
   };
 
-  const client = await GatewayChatClient.connect({
-    url: opts.url,
-    token: opts.token,
-    password: opts.password,
-  });
+  const client: TuiBackend = opts.backend ?? (await resolveTuiBackend(opts));
 
   const tui = new TUI(new ProcessTerminal());
   const dedupeBackspace = createBackspaceDeduper();
@@ -417,6 +414,15 @@ export async function runTui(opts: TuiOptions) {
   root.addChild(statusContainer);
   root.addChild(footer);
   root.addChild(editor);
+
+  const isEmbedded = client.connection.url.includes("embedded");
+  const modeBadge = isEmbedded ? "local embedded" : "gateway :18789";
+  chatLog.addSystem(
+    [
+      `CoreBlow v2.0.0 · [${modeBadge}] · ${process.cwd()}`,
+      `Shortcuts: /help commands · Ctrl+L model · Ctrl+P sessions · Ctrl+O tools · Ctrl+C exit`,
+    ].join("\n"),
+  );
 
   const updateAutocompleteProvider = () => {
     editor.setAutocompleteProvider(
@@ -461,9 +467,13 @@ export async function runTui(opts: TuiOptions) {
   const updateHeader = () => {
     const sessionLabel = formatSessionKey(currentSessionKey);
     const agentLabel = formatAgentLabel(currentAgentId);
+    const embeddedMode = client.connection.url.includes("embedded");
+    const modeLabel = embeddedMode
+      ? "local embedded"
+      : `gateway ${client.connection.url.replace(/^wss?:\/\//, "")}`;
     header.setText(
       theme.header(
-        `coreblow tui - ${client.connection.url} - agent ${agentLabel} - session ${sessionLabel}`,
+        `coreblow tui [${modeLabel}] - agent ${agentLabel} - session ${sessionLabel}`,
       ),
     );
   };
@@ -650,7 +660,10 @@ export async function runTui(opts: TuiOptions) {
     const reasoning = sessionInfo.reasoningLevel ?? "off";
     const reasoningLabel =
       reasoning === "on" ? "reasoning" : reasoning === "stream" ? "reasoning:stream" : null;
+    const embeddedMode = client.connection.url.includes("embedded");
+    const modeBadge = embeddedMode ? "local embedded" : "gateway :18789";
     const footerParts = [
+      modeBadge,
       `agent ${agentLabel}`,
       `session ${sessionLabel}`,
       modelLabel,
@@ -863,12 +876,20 @@ export async function runTui(opts: TuiOptions) {
     pairingHintShown = false;
     const reconnected = wasDisconnected;
     wasDisconnected = false;
-    setConnectionStatus("connected");
+    const embeddedMode = client.connection.url.includes("embedded");
+    setConnectionStatus(embeddedMode ? "ready" : "connected");
     void (async () => {
       await refreshAgents();
       updateHeader();
       await loadHistory();
-      setConnectionStatus(reconnected ? "gateway reconnected" : "gateway connected", 4000);
+      setConnectionStatus(
+        embeddedMode
+          ? "local embedded ready"
+          : reconnected
+            ? "gateway reconnected"
+            : "gateway connected",
+        4000,
+      );
       tui.requestRender();
       if (!autoMessageSent && autoMessage) {
         autoMessageSent = true;
@@ -900,7 +921,7 @@ export async function runTui(opts: TuiOptions) {
   };
 
   updateHeader();
-  setConnectionStatus("connecting");
+  setConnectionStatus(client.connection.url.includes("embedded") ? "ready" : "connecting");
   updateFooter();
   const sigintHandler = () => {
     handleCtrlC();

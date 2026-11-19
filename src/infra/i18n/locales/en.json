@@ -676,6 +676,7 @@
         "tui": {
             "description": "Open a terminal UI connected to the Gateway",
             "options": {
+                "local": "Run directly with local embedded backend (no gateway required)",
                 "url": "Gateway WebSocket URL (defaults to gateway.remote.url when configured)",
                 "credential": "Gateway credential (if required)",
                 "passphrase": "Gateway passphrase (if required)",

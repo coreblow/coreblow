@@ -1,6 +1,7 @@
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import process from "node:process";
+import chalk from "chalk";
 
 export interface SlashCommandContext {
   sessionId?: string;
@@ -189,7 +190,7 @@ async function executeInteractiveTurn(prompt: string, sessionId: string): Promis
           try {
             const data = JSON.parse(dataStr);
             if (data.step) {
-              process.stdout.write(`› ${data.step}\n`);
+              process.stdout.write(chalk.dim(`› ${data.step}\n`));
             } else if (data.reply) {
               reply = data.reply;
             }
@@ -213,22 +214,28 @@ async function executeInteractiveTurn(prompt: string, sessionId: string): Promis
     sessionId,
     defaultCwd: process.cwd(),
     onProgressStep: (step) => {
-      process.stdout.write(`› ${step}\n`);
+      process.stdout.write(chalk.dim(`› ${step}\n`));
     },
   });
 
   if (result.reply) {
     console.log(result.reply);
   } else if (result.error) {
-    console.error(`Error: ${result.error}`);
+    console.error(chalk.hex("#F97066")(`Error: ${result.error}`));
   }
 }
 
 export async function runInteractiveCliChat(): Promise<void> {
   let sessionId = `cli_${Date.now().toString(36)}`;
 
-  console.log("CoreBlow v2.0.0 · Single-Brain :18789");
-  console.log("Type /help for slash commands, or /exit to quit.\n");
+  console.log(chalk.bold.hex("#F6C453")("CoreBlow v2.0.0") + chalk.dim(" · Single-Brain :18789"));
+  console.log(
+    chalk.dim("Type ") +
+      chalk.hex("#F6C453")("/help") +
+      chalk.dim(" for slash commands, or ") +
+      chalk.hex("#F6C453")("/exit") +
+      chalk.dim(" to quit.\n"),
+  );
 
   const rl = readline.createInterface({ input, output });
 
@@ -236,7 +243,8 @@ export async function runInteractiveCliChat(): Promise<void> {
     while (true) {
       let line: string;
       try {
-        line = await rl.question("coreblow> ");
+        const prompt = chalk.bold.hex("#F6C453")("coreblow") + chalk.hex("#F2A65A")(" ❯ ");
+        line = await rl.question(prompt);
       } catch {
         // EOF or Ctrl+D
         break;

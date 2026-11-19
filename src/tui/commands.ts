@@ -60,11 +60,15 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   const activationCompletions = createLevelCompletion(ACTIVATION_LEVELS);
   const commands: SlashCommand[] = [
     { name: "help", description: "Show slash command help" },
+    { name: "commands", description: "Show slash command help" },
     { name: "status", description: "Show gateway status summary" },
     { name: "agent", description: "Switch agent (or open picker)" },
     { name: "agents", description: "Open agent picker" },
     { name: "session", description: "Switch session (or open picker)" },
     { name: "sessions", description: "Open session picker" },
+    { name: "rollback", description: "Undo last file edit checkpoint" },
+    { name: "desktop", description: "Launch CoreBlow Studio desktop" },
+    { name: "clear", description: "Start a fresh session" },
     {
       name: "model",
       description: "Set model (or open picker)",
@@ -145,6 +149,9 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/help",
     "/commands",
     "/status",
+    "/rollback [id]",
+    "/desktop",
+    "/clear",
     "/agent <id> (or /agents)",
     "/session <key> (or /sessions)",
     "/model <provider/model> (or /models)",

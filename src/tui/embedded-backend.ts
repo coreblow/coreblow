@@ -157,17 +157,66 @@ export class EmbeddedTuiBackend implements TuiBackend {
     return { ok: true, aborted: true };
   }
 
-  async loadHistory(_opts: { sessionKey: string; limit?: number }) {
+  async loadHistory(opts: { sessionKey: string; limit?: number }) {
+    try {
+      const { getSqliteSession, isSqliteAvailable } = await import(
+        "../sessions/sqlite-session-store.js"
+      );
+      let session = isSqliteAvailable() ? getSqliteSession(opts.sessionKey) : undefined;
+      if (!session) {
+        const { getUnifiedSession } = await import("../sessions/unified-session-store.js");
+        session = getUnifiedSession(opts.sessionKey);
+      }
+      if (session && Array.isArray(session.messages)) {
+        const messages = session.messages.map((m) => ({
+          role: m.role,
+          content: [{ type: "text", text: m.content }],
+          timestamp: m.createdAt || Date.now(),
+        }));
+        return { messages: messages.slice(-(opts.limit ?? 200)) };
+      }
+    } catch {
+      // Best-effort load from local session store
+    }
     return { messages: [] };
   }
 
-  async listSessions(): Promise<TuiSessionList> {
-    return {
-      ts: Date.now(),
-      path: "local embedded",
-      count: 0,
-      sessions: [],
-    };
+  async listSessions(opts?: { limit?: number }): Promise<TuiSessionList> {
+    try {
+      const { listSqliteSessions, isSqliteAvailable } = await import(
+        "../sessions/sqlite-session-store.js"
+      );
+      let sessions = isSqliteAvailable()
+        ? listSqliteSessions({ limit: opts?.limit ?? 50 })
+        : [];
+      if (sessions.length === 0) {
+        const { listUnifiedSessions } = await import("../sessions/unified-session-store.js");
+        sessions = listUnifiedSessions({ limit: opts?.limit ?? 50 });
+      }
+      return {
+        ts: Date.now(),
+        path: "local embedded",
+        count: sessions.length,
+        sessions: sessions.map((s) => ({
+          key: s.id,
+          sessionId: s.id,
+          updatedAt: s.updatedAt || s.createdAt,
+          model: s.model,
+          derivedTitle: s.title,
+          lastMessagePreview:
+            s.messages && s.messages.length > 0
+              ? s.messages[s.messages.length - 1]?.content?.slice(0, 80)
+              : undefined,
+        })),
+      };
+    } catch {
+      return {
+        ts: Date.now(),
+        path: "local embedded",
+        count: 0,
+        sessions: [],
+      };
+    }
   }
 
   async listAgents(): Promise<TuiAgentsList> {
@@ -195,12 +244,71 @@ export class EmbeddedTuiBackend implements TuiBackend {
     return { ok: true, key };
   }
 
-  async getGatewayStatus() {
-    return { mode: "embedded" };
+  async getStatus(): Promise<unknown> {
+    return {
+      runtimeVersion: "2.0.0",
+      mode: "embedded",
+      providerSummary: [
+        "Local Embedded CoreBlow ReAct engine",
+        `Active workspace: ${process.cwd()}`,
+      ],
+    };
   }
 
+  async getGatewayStatus(): Promise<unknown> {
+    return this.getStatus();
+  }
+
+  // ponytail: local model list inferred from config; upgrade when dynamic model probing needed.
   async listModels(): Promise<TuiModelChoice[]> {
-    return [];
+    try {
+      const { loadConfig } = await import("../config/config.js");
+      const cfg = loadConfig();
+      const result: TuiModelChoice[] = [];
+      const providers = cfg.models?.providers ?? {};
+      for (const [providerId, providerCfg] of Object.entries(providers)) {
+        if (Array.isArray(providerCfg?.models)) {
+          for (const m of providerCfg.models) {
+            if (m?.id) {
+              result.push({
+                id: `${providerId}/${m.id}`,
+                name: m.name ?? m.id,
+                provider: providerId,
+                contextWindow: m.contextWindow,
+                reasoning: m.reasoning,
+              });
+            }
+          }
+        }
+      }
+      const defaultModels = cfg.agents?.defaults?.models ?? {};
+      for (const [modelKey, modelCfg] of Object.entries(defaultModels)) {
+        if (!result.some((r) => r.id === modelKey)) {
+          const [prov, ...rest] = modelKey.split("/");
+          result.push({
+            id: modelKey,
+            name: (modelCfg as { alias?: string })?.alias ?? rest.join("/") ?? modelKey,
+            provider: prov ?? "default",
+          });
+        }
+      }
+      if (result.length === 0) {
+        result.push({
+          id: "coreblow/native",
+          name: "CoreBlow Native Agent",
+          provider: "coreblow",
+        });
+      }
+      return result;
+    } catch {
+      return [
+        {
+          id: "coreblow/native",
+          name: "CoreBlow Native Agent",
+          provider: "coreblow",
+        },
+      ];
+    }
   }
 
   private emit(event: string, payload?: unknown) {

@@ -16,7 +16,7 @@ import {
   createSearchableSelectList,
   createSettingsList,
 } from "./components/selectors.js";
-import type { GatewayChatClient } from "./gateway-chat.js";
+import type { TuiBackend } from "./tui-backend.js";
 import { sanitizeRenderableText } from "./tui-formatters.js";
 import { formatStatusSummary } from "./tui-status-summary.js";
 import type {
@@ -27,7 +27,7 @@ import type {
 } from "./tui-types.js";
 
 type CommandHandlerContext = {
-  client: GatewayChatClient;
+  client: TuiBackend;
   chatLog: ChatLog;
   tui: TUI;
   opts: TuiOptions;
@@ -258,7 +258,10 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         break;
       case "status":
         try {
-          const status = await client.getStatus();
+          const status =
+            typeof client.getStatus === "function"
+              ? await client.getStatus()
+              : await client.getGatewayStatus();
           if (typeof status === "string") {
             chatLog.addSystem(status);
             break;
@@ -491,6 +494,49 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           chatLog.addSystem(`reset failed: ${sanitizeRenderableText(String(err))}`);
         }
         break;
+      case "clear":
+        try {
+          state.sessionInfo.inputTokens = null;
+          state.sessionInfo.outputTokens = null;
+          state.sessionInfo.totalTokens = null;
+          if (typeof chatLog.clearAll === "function") {
+            chatLog.clearAll();
+          }
+          await client.resetSession(state.currentSessionKey, "reset");
+          chatLog.addSystem("Session cleared. Started fresh session.");
+          await loadHistory();
+        } catch {
+          chatLog.addSystem("Session cleared. Started fresh session.");
+        }
+        break;
+      case "rollback": {
+        try {
+          const { getCheckpointManager } = await import("../security/checkpoint-manager.js");
+          const targetId = args.trim() ? args.trim().split(/\s+/)[0] : undefined;
+          const res = getCheckpointManager().rollbackCheckpoint(
+            targetId,
+            state.currentSessionKey,
+          );
+          chatLog.addSystem(res.message);
+        } catch (err) {
+          chatLog.addSystem(`rollback failed: ${String(err)}`);
+        }
+        break;
+      }
+      case "desktop": {
+        try {
+          const { launchDesktopApp } = await import("../cli/desktop-cli.js");
+          const res = launchDesktopApp();
+          chatLog.addSystem(
+            res.launched
+              ? `CoreBlow Studio launched (${res.strategy}).`
+              : "Could not launch desktop app.",
+          );
+        } catch (err) {
+          chatLog.addSystem(`desktop launch failed: ${String(err)}`);
+        }
+        break;
+      }
       case "abort":
         await abortActive();
         break;

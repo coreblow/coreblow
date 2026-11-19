@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { CoreBlowConfig } from "../config/config.js";
-import { getSlashCommands, parseCommand } from "./commands.js";
+import { getSlashCommands, helpText, parseCommand } from "./commands.js";
+import { EmbeddedTuiBackend } from "./embedded-backend.js";
 import {
   createBackspaceDeduper,
   isIgnorableTuiStopError,
@@ -8,6 +9,7 @@ import {
   resolveFinalAssistantText,
   resolveGatewayDisconnectState,
   resolveInitialTuiAgentId,
+  resolveTuiBackend,
   resolveTuiSessionKey,
   stopTuiSafely,
 } from "./tui.js";
@@ -53,6 +55,16 @@ describe("tui slash commands", () => {
     const commands = getSlashCommands({});
     expect(commands.some((command) => command.name === "context")).toBe(true);
     expect(commands.some((command) => command.name === "commands")).toBe(true);
+    expect(commands.some((command) => command.name === "rollback")).toBe(true);
+    expect(commands.some((command) => command.name === "desktop")).toBe(true);
+    expect(commands.some((command) => command.name === "clear")).toBe(true);
+  });
+
+  it("includes v2.0.0 commands in helpText", () => {
+    const text = helpText({});
+    expect(text).toContain("/rollback");
+    expect(text).toContain("/desktop");
+    expect(text).toContain("/clear");
   });
 });
 
@@ -260,5 +272,24 @@ describe("TUI shutdown safety", () => {
         throw new Error("boom");
       });
     }).toThrow("boom");
+  });
+});
+
+describe("resolveTuiBackend", () => {
+  it("returns EmbeddedTuiBackend when local is true", async () => {
+    const backend = await resolveTuiBackend({ local: true });
+    expect(backend).toBeInstanceOf(EmbeddedTuiBackend);
+    expect(backend.connection.url).toBe("local embedded");
+  });
+
+  it("returns explicit backend when passed in options", async () => {
+    const mockBackend = { connection: { url: "custom" } } as never;
+    const backend = await resolveTuiBackend({ backend: mockBackend });
+    expect(backend).toBe(mockBackend);
+  });
+
+  it("falls back to EmbeddedTuiBackend when gateway is unavailable", async () => {
+    const backend = await resolveTuiBackend({ url: "ws://127.0.0.1:59999" });
+    expect(backend).toBeInstanceOf(EmbeddedTuiBackend);
   });
 });

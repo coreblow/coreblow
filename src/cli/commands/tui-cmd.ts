@@ -74,10 +74,11 @@ export function registerTuiCommand(parent: Command): void {
     parent
         .command('tui')
         .description('Open a terminal UI connected to the Gateway')
+        .option('--local', 'Display local embedded status without querying gateway', false)
         .option('--port <port>', 'Gateway port', '3000')
         .option('--host <host>', 'Gateway host', '127.0.0.1')
         .option('--interval <ms>', 'Refresh interval in ms', '3000')
-        .action(async (opts: { port: string; host: string; interval: string }) => {
+        .action(async (opts: { local?: boolean; port: string; host: string; interval: string }) => {
             const interval = parseInt(opts.interval, 10) || 3000;
 
             // Set up raw mode for key input

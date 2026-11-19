@@ -1,4 +1,5 @@
 export type TuiOptions = {
+  backend?: import("./tui-backend.js").TuiBackend;
   local?: boolean;
   url?: string;
   token?: string;

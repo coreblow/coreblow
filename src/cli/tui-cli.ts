@@ -10,6 +10,7 @@ export function registerTuiCli(program: Command) {
   program
     .command("tui")
     .description(t("cli_help.tui.description"))
+    .option("--local", t("cli_help.tui.options.local"), false)
     .option("--url <url>", t("cli_help.tui.options.url"))
     .option("--token <token>", t("cli_help.tui.options.credential"))
     .option("--password <password>", t("cli_help.tui.options.passphrase"))
@@ -33,6 +34,7 @@ export function registerTuiCli(program: Command) {
         }
         const historyLimit = Number.parseInt(String(opts.historyLimit ?? "200"), 10);
         await runTui({
+          local: Boolean(opts.local),
           url: opts.url as string | undefined,
           token: opts.token as string | undefined,
           password: opts.password as string | undefined,

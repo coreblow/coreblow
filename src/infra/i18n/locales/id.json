@@ -676,6 +676,7 @@
         "tui": {
             "description": "Buka terminal UI yang terhubung ke Gateway",
             "options": {
+                "local": "Jalankan langsung dengan backend embedded lokal (tanpa gateway)",
                 "url": "URL WebSocket Gateway (default ke gateway.remote.url jika dikonfigurasi)",
                 "credential": "Kredensial Gateway (jika diperlukan)",
                 "passphrase": "Passphrase Gateway (jika diperlukan)",
