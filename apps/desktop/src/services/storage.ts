@@ -51,10 +51,10 @@ const DEFAULT_PREFERENCES: UiPreferences = {
 };
 
 const DEFAULT_PROJECT: ActiveProjectState = {
-  path: "/Users/febrinanda/coreblow",
-  name: "coreblow",
+  path: "~",
+  name: "Default workspace",
   branch: "main",
-  isGit: true,
+  isGit: false,
   uncommittedFiles: 0,
 };
 
