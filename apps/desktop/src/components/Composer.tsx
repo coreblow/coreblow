@@ -1,6 +1,18 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import type { ModelTier, PermissionMode } from "../types/gateway";
-import { FolderIcon, GitBranchIcon, PlusIcon, SendIcon, ShieldIcon, SparklesIcon, StopIcon } from "./Icons";
+import { gatewayClient } from "../services/gateway-client";
+import {
+  FolderIcon,
+  GitBranchIcon,
+  MicIcon,
+  PlusIcon,
+  SendIcon,
+  ShieldIcon,
+  SparklesIcon,
+  SpeakerIcon,
+  StopIcon,
+  VolumeXIcon,
+} from "./Icons";
 
 interface ComposerProps {
   prompt: string;
@@ -17,6 +29,10 @@ interface ComposerProps {
   onRemoveFile: (path: string) => void;
   projectName: string;
   projectBranch: string;
+  autoSpeak?: boolean;
+  onToggleAutoSpeak?: () => void;
+  isSpeaking?: boolean;
+  onStopSpeaking?: () => void;
 }
 
 export const Composer: React.FC<ComposerProps> = ({
@@ -34,8 +50,16 @@ export const Composer: React.FC<ComposerProps> = ({
   onRemoveFile,
   projectName,
   projectBranch,
+  autoSpeak = false,
+  onToggleAutoSpeak,
+  isSpeaking = false,
+  onStopSpeaking,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   // Auto-grow textarea height
   useEffect(() => {
@@ -61,6 +85,95 @@ export const Composer: React.FC<ComposerProps> = ({
       if (files && files.length > 0) {
         onAddFiles(files);
       }
+    }
+  };
+
+  const handleToggleMic = async () => {
+    if (isRecording) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {}
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+        mediaRecorderRef.current.stop();
+      }
+      setIsRecording(false);
+      return;
+    }
+
+    // 1. Try Web Speech API (webkitSpeechRecognition or SpeechRecognition)
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = "en-US";
+
+        recognition.onresult = (event: any) => {
+          let currentTranscript = "";
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            currentTranscript += event.results[i][0].transcript;
+          }
+          if (currentTranscript) {
+            onChangePrompt((prompt ? prompt + " " : "") + currentTranscript);
+          }
+        };
+
+        recognition.onerror = () => {
+          setIsRecording(false);
+        };
+
+        recognition.onend = () => {
+          setIsRecording(false);
+        };
+
+        recognition.start();
+        recognitionRef.current = recognition;
+        setIsRecording(true);
+        return;
+      } catch {}
+    }
+
+    // 2. Fallback to MediaRecorder + Gateway POST /api/corehub/voice/transcribe
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        stream.getTracks().forEach((track) => track.stop());
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64Audio = (reader.result as string).split(",")[1];
+          if (base64Audio) {
+            const res = await gatewayClient.transcribeVoice({
+              audioBase64: base64Audio,
+              mimeType: "audio/webm",
+            });
+            if (res.ok && res.text) {
+              onChangePrompt(prompt ? `${prompt} ${res.text}` : res.text);
+            }
+          }
+        };
+        reader.readAsDataURL(audioBlob);
+      };
+
+      mediaRecorder.start();
+      mediaRecorderRef.current = mediaRecorder;
+      setIsRecording(true);
+    } catch {
+      setIsRecording(false);
     }
   };
 
@@ -145,7 +258,7 @@ export const Composer: React.FC<ComposerProps> = ({
             value={prompt}
             onChange={(e) => onChangePrompt(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask CoreBlow anything, analyze workspace code, or trigger tools..."
+            placeholder={isRecording ? "Listening to your voice dictation..." : "Ask CoreBlow anything, analyze workspace code, or trigger tools..."}
             rows={1}
             style={{
               width: "100%",
@@ -155,11 +268,11 @@ export const Composer: React.FC<ComposerProps> = ({
               border: "none",
               outline: "none",
               color: "var(--ink-primary)",
-              fontFamily: "var(--font-ui)",
-              fontSize: "14px",
-              lineHeight: "24px",
+              fontSize: "13px",
+              lineHeight: 1.5,
               resize: "none",
-              boxSizing: "border-box",
+              fontFamily: "var(--font-sans)",
+              padding: 0,
             }}
           />
         </div>
@@ -243,7 +356,65 @@ export const Composer: React.FC<ComposerProps> = ({
           </div>
 
           {/* Right Controls */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {/* Live Push-to-Talk Mic Dictation */}
+            <button
+              type="button"
+              onClick={handleToggleMic}
+              title={isRecording ? "Listening... Click to finish dictation" : "Push-to-Talk Voice Dictation (Mic)"}
+              style={{
+                width: "30px",
+                height: "30px",
+                borderRadius: "var(--radius-sm)",
+                background: isRecording ? "rgba(239, 68, 68, 0.2)" : "var(--bg-chip)",
+                border: isRecording ? "1px solid #EF4444" : "1px solid var(--border-subtle)",
+                color: isRecording ? "#EF4444" : "var(--ink-secondary)",
+                display: "grid",
+                placeItems: "center",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <MicIcon size={14} color={isRecording ? "#EF4444" : "currentColor"} />
+            </button>
+
+            {/* Auto-Speak Replies Toggle */}
+            <button
+              type="button"
+              onClick={isSpeaking ? onStopSpeaking : onToggleAutoSpeak}
+              title={
+                isSpeaking
+                  ? "Speaking reply. Click to stop (Silence)"
+                  : autoSpeak
+                    ? "Auto-Speak Replies enabled (Click to mute)"
+                    : "Auto-Speak Replies disabled (Click to enable)"
+              }
+              style={{
+                width: "30px",
+                height: "30px",
+                borderRadius: "var(--radius-sm)",
+                background: isSpeaking
+                  ? "rgba(45, 212, 191, 0.2)"
+                  : autoSpeak
+                    ? "rgba(45, 212, 191, 0.1)"
+                    : "var(--bg-chip)",
+                border: isSpeaking || autoSpeak ? "1px solid rgba(45, 212, 191, 0.3)" : "1px solid var(--border-subtle)",
+                color: isSpeaking || autoSpeak ? "var(--accent-teal)" : "var(--ink-muted)",
+                display: "grid",
+                placeItems: "center",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              {isSpeaking ? (
+                <SpeakerIcon size={14} color="var(--accent-teal)" />
+              ) : autoSpeak ? (
+                <SpeakerIcon size={14} color="var(--accent-teal)" />
+              ) : (
+                <VolumeXIcon size={14} color="var(--ink-muted)" />
+              )}
+            </button>
+
             {/* Model Tier Selector */}
             <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
               <select

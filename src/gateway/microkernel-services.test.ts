@@ -2302,5 +2302,152 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
         await microkernel.registry.stopAll();
       }
     });
+
+    it("handles remote nodes registry routes and live voice endpoints", async () => {
+      const microkernel = await createMicrokernelServiceRegistry();
+      setActiveMicrokernel(microkernel);
+
+      const testAuth: ResolvedGatewayAuth = {
+        mode: "token",
+        token: "test-admin-secret-token",
+        allowTailscale: false,
+      };
+
+      try {
+        // 1. GET /api/corehub/nodes?probe=false
+        const listNodesReqRes = createMockReqRes({
+          method: "GET",
+          url: "/api/corehub/nodes?probe=false",
+        });
+        const handledList = await handleCoreHubRoute(listNodesReqRes.req, listNodesReqRes.res, microkernel, { auth: testAuth });
+        expect(handledList).toBe(true);
+        const listRes = await listNodesReqRes.getResult();
+        expect(listRes.statusCode).toBe(200);
+        expect(listRes.data.ok).toBe(true);
+        expect(listRes.data.nodes.length).toBeGreaterThanOrEqual(1);
+        expect(listRes.data.nodes[0].id).toBe("local");
+
+        // 2. POST /api/corehub/nodes (Add remote node)
+        const addNodeReqRes = createMockReqRes({
+          method: "POST",
+          url: "/api/corehub/nodes",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: {
+            name: "Cloud 24/7 VPS Gateway",
+            url: "https://vps-cloud.coreblow.com:18789",
+            kind: "vps",
+            bearerToken: "tok_secret_production_key_12345",
+          },
+        });
+        const handledAdd = await handleCoreHubRoute(addNodeReqRes.req, addNodeReqRes.res, microkernel, { auth: testAuth });
+        expect(handledAdd).toBe(true);
+        const addedNodeRes = await addNodeReqRes.getResult();
+        expect(addedNodeRes.statusCode).toBe(200);
+        expect(addedNodeRes.data.ok).toBe(true);
+        expect(addedNodeRes.data.node.id).toBeDefined();
+        expect(addedNodeRes.data.node.bearerToken).toBe("tok_...2345");
+        const nodeId = addedNodeRes.data.node.id;
+
+        // 3. POST /api/corehub/nodes/:id/probe
+        const probeReqRes = createMockReqRes({
+          method: "POST",
+          url: `/api/corehub/nodes/${nodeId}/probe`,
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+        });
+        const handledProbe = await handleCoreHubRoute(probeReqRes.req, probeReqRes.res, microkernel, { auth: testAuth });
+        expect(handledProbe).toBe(true);
+        const probeRes = await probeReqRes.getResult();
+        expect(probeRes.statusCode).toBe(200);
+        expect(probeRes.data.ok).toBe(true);
+
+        // 4. DELETE /api/corehub/nodes/local (Forbidden)
+        const delLocalReqRes = createMockReqRes({
+          method: "DELETE",
+          url: "/api/corehub/nodes/local",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+        });
+        const handledDelLocal = await handleCoreHubRoute(delLocalReqRes.req, delLocalReqRes.res, microkernel, { auth: testAuth });
+        expect(handledDelLocal).toBe(true);
+        const delLocalRes = await delLocalReqRes.getResult();
+        expect(delLocalRes.statusCode).toBe(400);
+
+        // 5. DELETE /api/corehub/nodes/:id (Success)
+        const delNodeReqRes = createMockReqRes({
+          method: "DELETE",
+          url: `/api/corehub/nodes/${nodeId}`,
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+        });
+        const handledDelNode = await handleCoreHubRoute(delNodeReqRes.req, delNodeReqRes.res, microkernel, { auth: testAuth });
+        expect(handledDelNode).toBe(true);
+        const delNodeRes = await delNodeReqRes.getResult();
+        expect(delNodeRes.statusCode).toBe(200);
+        expect(delNodeRes.data.removed).toBe(true);
+
+        // 6. POST /api/corehub/voice/transcribe
+        const sttReqRes = createMockReqRes({
+          method: "POST",
+          url: "/api/corehub/voice/transcribe",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: {
+            audioBase64: "dGVzdC1hdWRpby1ieXRlcw==",
+            mockText: "Hello CoreBlow desktop live voice",
+          },
+        });
+        const handledStt = await handleCoreHubRoute(sttReqRes.req, sttReqRes.res, microkernel, { auth: testAuth });
+        expect(handledStt).toBe(true);
+        const sttRes = await sttReqRes.getResult();
+        expect(sttRes.statusCode).toBe(200);
+        expect(sttRes.data.ok).toBe(true);
+        expect(sttRes.data.text).toBe("Hello CoreBlow desktop live voice");
+
+        // 7. POST /api/corehub/voice/speak
+        const ttsReqRes = createMockReqRes({
+          method: "POST",
+          url: "/api/corehub/voice/speak",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: {
+            text: "CoreBlow Studio ready for deployment.",
+            voice: "en-US-JennyNeural",
+          },
+        });
+        const handledTts = await handleCoreHubRoute(ttsReqRes.req, ttsReqRes.res, microkernel, { auth: testAuth });
+        expect(handledTts).toBe(true);
+        const ttsRes = await ttsReqRes.getResult();
+        expect(ttsRes.statusCode).toBe(200);
+        expect(ttsRes.data.ok).toBe(true);
+        expect(ttsRes.data.mode).toBe("browser_speech_fallback");
+
+        // 8. GET /api/corehub/voice/voices
+        const voicesReqRes = createMockReqRes({
+          method: "GET",
+          url: "/api/corehub/voice/voices",
+        });
+        const handledVoices = await handleCoreHubRoute(voicesReqRes.req, voicesReqRes.res, microkernel, { auth: testAuth });
+        expect(handledVoices).toBe(true);
+        const voicesRes = await voicesReqRes.getResult();
+        expect(voicesRes.statusCode).toBe(200);
+        expect(voicesRes.data.voices.length).toBeGreaterThanOrEqual(1);
+      } finally {
+        await microkernel.registry.stopAll();
+      }
+    });
   });
 });

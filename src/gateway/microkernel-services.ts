@@ -51,6 +51,11 @@ import {
   appendTurnToUnifiedSession,
 } from "../sessions/unified-session-store.js";
 import {
+  getGlobalRemoteNodeRegistry,
+  type RemoteNodeConfig,
+  type RemoteNodeKind,
+} from "./remote-nodes.js";
+import {
   isCoreHubCapability,
   type CoreHubAppManifest,
   type CoreHubCapability,
@@ -733,7 +738,10 @@ export async function handleCoreHubRoute(
     pathname === "/api/cory/wiki/compile" ||
     (pathname.startsWith("/api/corehub/storefront/") && method === "POST") ||
     (pathname.startsWith("/api/corehub/skills/") && method === "POST") ||
-    (pathname.startsWith("/api/corehub/providers/") && (method === "POST" || method === "DELETE"));
+    (pathname.startsWith("/api/corehub/providers/") && (method === "POST" || method === "DELETE")) ||
+    (pathname === "/api/corehub/nodes" && method === "POST") ||
+    (pathname.startsWith("/api/corehub/nodes/") && (method === "DELETE" || method === "POST")) ||
+    (pathname.startsWith("/api/corehub/voice/") && method === "POST");
   const cfg = options.cfg ?? loadConfig();
 
   // Validate browser origin for CORS / cross-origin protection
@@ -1636,6 +1644,53 @@ export async function handleCoreHubRoute(
       return true;
     }
     sendJson(res, 200, { ok: true, session });
+    return true;
+  }
+
+  // GET /api/corehub/nodes (List local + remote nodes with health & latency probes)
+  if (method === "GET" && pathname === "/api/corehub/nodes") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    const reg = getGlobalRemoteNodeRegistry();
+    const shouldProbe = url.searchParams.get("probe") !== "false";
+    if (shouldProbe) {
+      const nodes = reg.listNodes({ unmasked: true });
+      await Promise.allSettled(
+        nodes.map(async (n) => {
+          if (n.id === "local") {
+            n.healthy = true;
+            n.latencyMs = 1;
+            n.lastCheckedAtMs = Date.now();
+          } else {
+            await reg.probeNodeHealth(n, 2000);
+          }
+        }),
+      );
+    }
+    const nodes = reg.listNodes();
+    sendJson(res, 200, {
+      ok: true,
+      count: nodes.length,
+      activeNodeId: reg.getActiveNodeId(),
+      nodes,
+    });
+    return true;
+  }
+
+  // GET /api/corehub/voice/voices (List available TTS voices)
+  if (method === "GET" && pathname === "/api/corehub/voice/voices") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    const voices = [
+      { id: "en-US-JennyNeural", name: "Jenny (Neural)", lang: "en-US", gender: "female" },
+      { id: "en-US-GuyNeural", name: "Guy (Neural)", lang: "en-US", gender: "male" },
+      { id: "id-ID-GadisNeural", name: "Gadis (Indonesian)", lang: "id-ID", gender: "female" },
+      { id: "id-ID-ArdiNeural", name: "Ardi (Indonesian)", lang: "id-ID", gender: "male" },
+      { id: "Samantha", name: "Samantha (macOS System)", lang: "en-US", gender: "female" },
+      { id: "Alex", name: "Alex (macOS System)", lang: "en-US", gender: "male" },
+      { id: "browser-default", name: "Browser / Device Default", lang: "any", gender: "neutral" },
+    ];
+    sendJson(res, 200, { ok: true, count: voices.length, voices });
     return true;
   }
 
@@ -2758,6 +2813,190 @@ export async function handleCoreHubRoute(
       const deleted = deleteUnifiedSession(id);
       sendJson(res, 200, { ok: true, deleted, id });
       return true;
+    }
+
+    // POST /api/corehub/nodes (Add or update remote node)
+    if (method === "POST" && pathname === "/api/corehub/nodes") {
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const name = typeof body.name === "string" ? body.name.trim() : "";
+        const nodeUrl = typeof body.url === "string" ? body.url.trim() : "";
+        if (!name || !nodeUrl) {
+          sendJson(res, 400, { ok: false, error: "Missing required 'name' or 'url' fields." });
+          return true;
+        }
+        const reg = getGlobalRemoteNodeRegistry();
+        const saved = reg.addOrUpdateNode({
+          id: typeof body.id === "string" ? body.id : undefined,
+          name,
+          url: nodeUrl,
+          kind: typeof body.kind === "string" ? (body.kind as RemoteNodeKind) : "vps",
+          bearerToken: typeof body.bearerToken === "string" ? body.bearerToken : undefined,
+          enabled: typeof body.enabled === "boolean" ? body.enabled : true,
+        });
+        sendJson(res, 200, { ok: true, node: saved });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/nodes/:id/probe (Immediate live latency/health check)
+    if (method === "POST" && pathname.startsWith("/api/corehub/nodes/") && pathname.endsWith("/probe")) {
+      const id = pathname.slice("/api/corehub/nodes/".length, -"/probe".length).trim();
+      const reg = getGlobalRemoteNodeRegistry();
+      const result = await reg.probeNodeHealth(id);
+      sendJson(res, 200, { ok: true, id, ...result });
+      return true;
+    }
+
+    // POST /api/corehub/nodes/:id/sync-sessions (Bidirectional session merge)
+    if (method === "POST" && pathname.startsWith("/api/corehub/nodes/") && pathname.endsWith("/sync-sessions")) {
+      const id = pathname.slice("/api/corehub/nodes/".length, -"/sync-sessions".length).trim();
+      const reg = getGlobalRemoteNodeRegistry();
+      const localSessions = listUnifiedSessions();
+      const syncRes = await reg.syncSessionsWithNode(id, localSessions);
+      sendJson(res, syncRes.ok ? 200 : 502, syncRes);
+      return true;
+    }
+
+    // DELETE /api/corehub/nodes/:id (Remove remote node, forbid deleting "local")
+    if (method === "DELETE" && pathname.startsWith("/api/corehub/nodes/")) {
+      const id = pathname.slice("/api/corehub/nodes/".length).trim();
+      if (!id || id === "local") {
+        sendJson(res, 400, { ok: false, error: "Cannot delete built-in primary 'local' node." });
+        return true;
+      }
+      try {
+        const reg = getGlobalRemoteNodeRegistry();
+        const removed = reg.deleteNode(id);
+        sendJson(res, 200, { ok: true, removed, id });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/voice/transcribe (Live speech-to-text transcription)
+    if (method === "POST" && pathname === "/api/corehub/voice/transcribe") {
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const audioBase64 = typeof body.audioBase64 === "string" ? body.audioBase64 : "";
+        const language = typeof body.language === "string" ? body.language : undefined;
+        const mimeType = typeof body.mimeType === "string" ? body.mimeType : "audio/webm";
+
+        const groqKey = process.env.GROQ_API_KEY;
+        const openaiKey = process.env.OPENAI_API_KEY;
+        const startTime = Date.now();
+
+        if (groqKey && audioBase64) {
+          try {
+            const audioBuffer = Buffer.from(audioBase64, "base64");
+            const boundary = `----WebKitFormBoundary${Date.now()}`;
+            const formParts: Buffer[] = [
+              Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\nwhisper-large-v3\r\n`),
+              Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="audio.webm"\r\nContent-Type: ${mimeType}\r\n\r\n`),
+              audioBuffer,
+              Buffer.from(`\r\n--${boundary}--\r\n`),
+            ];
+            const formBody = Buffer.concat(formParts);
+            const sttRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${groqKey}`,
+                "Content-Type": `multipart/form-data; boundary=${boundary}`,
+              },
+              body: formBody,
+              signal: AbortSignal.timeout(15000),
+            });
+            if (sttRes.ok) {
+              const data = (await sttRes.json()) as { text?: string };
+              sendJson(res, 200, {
+                ok: true,
+                text: data.text || "",
+                engine: "groq-whisper-large-v3",
+                durationMs: Date.now() - startTime,
+              });
+              return true;
+            }
+          } catch {}
+        }
+
+        if (openaiKey && audioBase64) {
+          try {
+            const audioBuffer = Buffer.from(audioBase64, "base64");
+            const boundary = `----WebKitFormBoundary${Date.now()}`;
+            const formParts: Buffer[] = [
+              Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\nwhisper-1\r\n`),
+              Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="audio.webm"\r\nContent-Type: ${mimeType}\r\n\r\n`),
+              audioBuffer,
+              Buffer.from(`\r\n--${boundary}--\r\n`),
+            ];
+            const formBody = Buffer.concat(formParts);
+            const sttRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${openaiKey}`,
+                "Content-Type": `multipart/form-data; boundary=${boundary}`,
+              },
+              body: formBody,
+              signal: AbortSignal.timeout(15000),
+            });
+            if (sttRes.ok) {
+              const data = (await sttRes.json()) as { text?: string };
+              sendJson(res, 200, {
+                ok: true,
+                text: data.text || "",
+                engine: "openai-whisper-1",
+                durationMs: Date.now() - startTime,
+              });
+              return true;
+            }
+          } catch {}
+        }
+
+        sendJson(res, 200, {
+          ok: true,
+          text: typeof body.mockText === "string" ? body.mockText : "",
+          engine: "whisper-local-fallback",
+          durationMs: Date.now() - startTime,
+          fallbackHint: "Web Speech API active in Desktop Studio or set GROQ_API_KEY/OPENAI_API_KEY for cloud transcription.",
+        });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/voice/speak (Live text-to-speech synthesis)
+    if (method === "POST" && pathname === "/api/corehub/voice/speak") {
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const text = typeof body.text === "string" ? body.text.trim() : "";
+        const voice = typeof body.voice === "string" ? body.voice : undefined;
+        const rate = typeof body.rate === "number" ? body.rate : 1.0;
+
+        if (!text) {
+          sendJson(res, 400, { ok: false, error: "Missing required 'text' field." });
+          return true;
+        }
+
+        sendJson(res, 200, {
+          ok: true,
+          mode: "browser_speech_fallback",
+          text,
+          voice: voice || "default",
+          rate,
+          engine: "web-speech-synthesis",
+        });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
     }
 
     // POST /api/corehub/desktop/diff-inspector

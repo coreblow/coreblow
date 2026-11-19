@@ -12,7 +12,10 @@ import type {
   MemoryProposal,
   ModelTier,
   PermissionMode,
+  RemoteNodeConfig,
   ToolExecutionStep,
+  VoiceSpeakResponse,
+  VoiceTranscribeResponse,
   WarRoomChatMessage,
   WarRoomState,
 } from "../types/gateway";
@@ -102,9 +105,37 @@ export function parseStepString(str: string): {
 
 export class CoreBlowGatewayClient {
   private baseUrl: string;
+  private bearerToken?: string;
 
-  constructor(baseUrl: string = GATEWAY_BASE_URL) {
+  constructor(baseUrl: string = GATEWAY_BASE_URL, bearerToken?: string) {
     this.baseUrl = baseUrl.replace(/\/$/, "");
+    this.bearerToken = bearerToken?.trim() || undefined;
+  }
+
+  /**
+   * Set the active gateway target node (URL and optional Bearer token).
+   */
+  setTargetNode(baseUrl: string, bearerToken?: string): void {
+    this.baseUrl = baseUrl.replace(/\/$/, "");
+    this.bearerToken = bearerToken?.trim() || undefined;
+  }
+
+  /**
+   * Get the active gateway target node configuration.
+   */
+  getTargetNode(): { baseUrl: string; bearerToken?: string } {
+    return { baseUrl: this.baseUrl, bearerToken: this.bearerToken };
+  }
+
+  /**
+   * Attaches Authorization: Bearer <token> if a bearer token is configured on the client.
+   */
+  private authHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
+    const headers: Record<string, string> = { ...extraHeaders };
+    if (this.bearerToken) {
+      headers["Authorization"] = `Bearer ${this.bearerToken}`;
+    }
+    return headers;
   }
 
   /**
@@ -114,6 +145,7 @@ export class CoreBlowGatewayClient {
     try {
       const res = await fetch(`${this.baseUrl}/health`, {
         method: "GET",
+        headers: this.authHeaders(),
         signal: AbortSignal.timeout(2000),
       });
       return res.ok || res.status === 401;
@@ -160,10 +192,10 @@ export class CoreBlowGatewayClient {
     try {
       const res = await fetch(url, {
         method: "POST",
-        headers: {
+        headers: this.authHeaders({
           "Content-Type": "application/json",
           Accept: "text/event-stream",
-        },
+        }),
         body: JSON.stringify({
           sessionId: params.sessionId,
           prompt: params.prompt,
@@ -1019,6 +1051,130 @@ export class CoreBlowGatewayClient {
     return () => {
       controller.abort();
     };
+  }
+
+  /**
+   * List all configured local and remote nodes from GET /api/corehub/nodes
+   */
+  async listNodes(options?: { probe?: boolean }): Promise<RemoteNodeConfig[]> {
+    try {
+      const probeParam = options?.probe === false ? "?probe=false" : "";
+      const res = await fetch(`${this.baseUrl}/api/corehub/nodes${probeParam}`, {
+        method: "GET",
+        headers: this.authHeaders({ Accept: "application/json" }),
+        signal: AbortSignal.timeout(4000),
+      });
+      if (!res.ok) return [];
+      const data = (await res.json()) as { ok?: boolean; nodes?: RemoteNodeConfig[] };
+      return Array.isArray(data?.nodes) ? data.nodes : [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Add or update a remote gateway node via POST /api/corehub/nodes
+   */
+  async saveRemoteNode(node: Partial<RemoteNodeConfig> & { name: string; url: string }): Promise<{ ok: boolean; node?: RemoteNodeConfig; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/nodes`, {
+        method: "POST",
+        headers: this.authHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+        body: JSON.stringify(node),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = (await res.json()) as { ok?: boolean; node?: RemoteNodeConfig; error?: string };
+      return { ok: res.ok && !!data?.ok, node: data?.node, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Remove a remote gateway node via DELETE /api/corehub/nodes/:id
+   */
+  async deleteRemoteNode(id: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/nodes/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: this.authHeaders({ Accept: "application/json" }),
+        signal: AbortSignal.timeout(4000),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      return { ok: res.ok && !!data?.ok, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Probe an immediate latency and health check via POST /api/corehub/nodes/:id/probe
+   */
+  async probeNode(id: string): Promise<{ ok: boolean; latencyMs?: number; healthy?: boolean; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/nodes/${encodeURIComponent(id)}/probe`, {
+        method: "POST",
+        headers: this.authHeaders({ Accept: "application/json" }),
+        signal: AbortSignal.timeout(4000),
+      });
+      const data = (await res.json()) as { ok?: boolean; latencyMs?: number; healthy?: boolean; error?: string };
+      return { ok: res.ok && !!data?.ok, latencyMs: data?.latencyMs, healthy: data?.healthy, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Trigger bidirectional session synchronization with target node via POST /api/corehub/nodes/:id/sync-sessions
+   */
+  async syncNodeSessions(id: string): Promise<{ ok: boolean; syncedCount?: number; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/nodes/${encodeURIComponent(id)}/sync-sessions`, {
+        method: "POST",
+        headers: this.authHeaders({ Accept: "application/json" }),
+        signal: AbortSignal.timeout(10000),
+      });
+      const data = (await res.json()) as { ok?: boolean; syncedCount?: number; error?: string };
+      return { ok: res.ok && !!data?.ok, syncedCount: data?.syncedCount, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Transcribe recorded audio via POST /api/corehub/voice/transcribe
+   */
+  async transcribeVoice(params: { audioBase64: string; mimeType?: string; language?: string }): Promise<VoiceTranscribeResponse> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/voice/transcribe`, {
+        method: "POST",
+        headers: this.authHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+        body: JSON.stringify(params),
+        signal: AbortSignal.timeout(20000),
+      });
+      const data = (await res.json()) as VoiceTranscribeResponse;
+      return { ok: res.ok && !!data?.ok, text: data?.text, engine: data?.engine, durationMs: data?.durationMs, fallbackHint: data?.fallbackHint, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Synthesize text to speech via POST /api/corehub/voice/speak
+   */
+  async synthesizeVoice(params: { text: string; voice?: string; rate?: number }): Promise<VoiceSpeakResponse> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/voice/speak`, {
+        method: "POST",
+        headers: this.authHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+        body: JSON.stringify(params),
+        signal: AbortSignal.timeout(10000),
+      });
+      const data = (await res.json()) as VoiceSpeakResponse;
+      return { ok: res.ok && !!data?.ok, mode: data?.mode, text: data?.text, voice: data?.voice, rate: data?.rate, audioBase64: data?.audioBase64, format: data?.format, engine: data?.engine, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
   }
 }
 

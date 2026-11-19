@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { gatewayClient } from "../services/gateway-client";
-import type { CoreHubSkill, PermissionMode, CredentialPoolPayload } from "../types/gateway";
+import type { CoreHubSkill, PermissionMode, CredentialPoolPayload, RemoteNodeConfig, RemoteNodeKind } from "../types/gateway";
 import type { UiPreferences } from "../services/storage";
 import {
   CloseIcon,
@@ -18,6 +18,7 @@ interface SettingsModalProps {
   onClose: () => void;
   preferences: UiPreferences;
   onUpdatePreferences: (prefs: Partial<UiPreferences>) => void;
+  initialSection?: SettingsSection;
 }
 
 type SettingsSection =
@@ -35,8 +36,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   preferences,
   onUpdatePreferences,
+  initialSection,
 }) => {
-  const [activeSection, setActiveSection] = useState<SettingsSection>("general");
+  const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection || "general");
   const [skills, setSkills] = useState<CoreHubSkill[]>([]);
   const [learnedSkills, setLearnedSkills] = useState<CoreHubSkill[]>([]);
   const [loadingSkills, setLoadingSkills] = useState(false);
@@ -46,6 +48,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [newKeyProvider, setNewKeyProvider] = useState("anthropic");
   const [newKeyValue, setNewKeyValue] = useState("");
   const [newKeyLabel, setNewKeyLabel] = useState("");
+
+  const [remoteNodes, setRemoteNodes] = useState<RemoteNodeConfig[]>([]);
+  const [loadingNodes, setLoadingNodes] = useState(false);
+  const [newNodeName, setNewNodeName] = useState("");
+  const [newNodeUrl, setNewNodeUrl] = useState("");
+  const [newNodeKind, setNewNodeKind] = useState<RemoteNodeKind>("vps");
+  const [newNodeToken, setNewNodeToken] = useState("");
+  const [nodeActionStatus, setNodeActionStatus] = useState<string | null>(null);
+
+  const fetchNodes = async () => {
+    setLoadingNodes(true);
+    try {
+      const list = await gatewayClient.listNodes();
+      setRemoteNodes(list);
+    } finally {
+      setLoadingNodes(false);
+    }
+  };
+
+  useEffect(() => {
+    if (initialSection) {
+      setActiveSection(initialSection);
+    }
+  }, [initialSection, open]);
+
+  useEffect(() => {
+    if (open && activeSection === "remotes") {
+      fetchNodes();
+    }
+  }, [open, activeSection]);
 
   const fetchPools = async () => {
     setLoadingPool(true);
@@ -723,101 +755,332 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {activeSection === "remotes" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <p style={{ fontSize: "12px", color: "var(--ink-secondary)", lineHeight: 1.5 }}>
-                Manage remote gateway pairing and headless nodes across Tailscale or SSH tunnels.
-              </p>
-
-              {/* Primary Local Node */}
-              <div
-                style={{
-                  background: "var(--bg-input)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "12px 14px",
-                  border: "1px solid var(--border-subtle)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        background: "var(--state-success)",
-                        boxShadow: "0 0 6px var(--state-success)",
-                      }}
-                    />
-                    <strong style={{ fontSize: "13px", color: "var(--ink-primary)" }}>Local Node (Single-Brain)</strong>
-                  </div>
-                  <div style={{ fontSize: "11px", color: "var(--ink-secondary)", marginTop: "2px", fontFamily: "var(--font-mono)" }}>
-                    http://127.0.0.1:18789
-                  </div>
-                </div>
-                <span
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <p style={{ fontSize: "12px", color: "var(--ink-secondary)", lineHeight: 1.5, margin: 0 }}>
+                  Always-On Cloud & Remote Nodes (24/7 VPS, Tailscale, Docker) with live health probing and session sync.
+                </p>
+                <button
+                  type="button"
+                  onClick={fetchNodes}
+                  disabled={loadingNodes}
                   style={{
-                    padding: "2px 8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "4px 8px",
+                    background: "var(--bg-chip)",
+                    border: "1px solid var(--border-subtle)",
                     borderRadius: "var(--radius-xs)",
-                    background: "rgba(16, 185, 129, 0.1)",
-                    color: "var(--state-success)",
+                    color: "var(--accent-teal)",
                     fontSize: "11px",
-                    fontWeight: 600,
+                    cursor: "pointer",
                   }}
                 >
-                  Active
-                </span>
+                  <RefreshIcon size={12} />
+                  <span>{loadingNodes ? "Probing..." : "Refresh Nodes"}</span>
+                </button>
               </div>
 
-              {/* Remote Node Connection Settings */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {nodeActionStatus && (
+                <div
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "var(--radius-xs)",
+                    background: "rgba(45, 212, 191, 0.1)",
+                    border: "1px solid rgba(45, 212, 191, 0.25)",
+                    fontSize: "11px",
+                    color: "var(--accent-teal)",
+                  }}
+                >
+                  {nodeActionStatus}
+                </div>
+              )}
+
+              {/* Configured Nodes List */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {remoteNodes.map((node) => {
+                  const isLocal = node.id === "local";
+                  const isHealthy = node.healthy ?? true;
+                  return (
+                    <div
+                      key={node.id}
+                      style={{
+                        background: "var(--bg-input)",
+                        borderRadius: "var(--radius-md)",
+                        padding: "12px 14px",
+                        border: "1px solid var(--border-subtle)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "12px",
+                      }}
+                    >
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span
+                            style={{
+                              width: "8px",
+                              height: "8px",
+                              borderRadius: "50%",
+                              background: isHealthy ? "var(--state-success)" : "var(--state-error)",
+                              boxShadow: isHealthy ? "0 0 6px var(--state-success)" : "none",
+                              flexShrink: 0,
+                            }}
+                          />
+                          <strong style={{ fontSize: "13px", color: "var(--ink-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {node.name}
+                          </strong>
+                          <span
+                            style={{
+                              padding: "1px 6px",
+                              borderRadius: "var(--radius-xs)",
+                              background: "rgba(45, 212, 191, 0.12)",
+                              color: "var(--accent-teal)",
+                              fontSize: "10px",
+                              textTransform: "uppercase",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {node.kind}
+                          </span>
+                          {node.latencyMs !== undefined && node.latencyMs > 0 && (
+                            <span style={{ fontSize: "11px", color: "var(--ink-secondary)", fontFamily: "var(--font-mono)" }}>
+                              {node.latencyMs}ms
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "var(--ink-secondary)", marginTop: "3px", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {node.url}
+                          {node.bearerToken && ` · Token: ${node.bearerToken}`}
+                        </div>
+                      </div>
+
+                      {/* Node Action Buttons */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            setNodeActionStatus(`Probing ${node.name}...`);
+                            const p = await gatewayClient.probeNode(node.id);
+                            setNodeActionStatus(p.healthy ? `✓ ${node.name} Online (${p.latencyMs}ms)` : `✗ ${node.name} Offline: ${p.error || "unreachable"}`);
+                            fetchNodes();
+                          }}
+                          style={{
+                            padding: "4px 8px",
+                            borderRadius: "var(--radius-xs)",
+                            background: "var(--bg-chip)",
+                            border: "1px solid var(--border-subtle)",
+                            color: "var(--ink-primary)",
+                            fontSize: "11px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Probe
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            setNodeActionStatus(`Syncing sessions with ${node.name}...`);
+                            const s = await gatewayClient.syncNodeSessions(node.id);
+                            setNodeActionStatus(s.ok ? `✓ Synchronized ${s.syncedCount ?? 0} sessions with ${node.name}` : `✗ Sync error: ${s.error || "failed"}`);
+                          }}
+                          style={{
+                            padding: "4px 8px",
+                            borderRadius: "var(--radius-xs)",
+                            background: "var(--bg-chip)",
+                            border: "1px solid var(--border-subtle)",
+                            color: "var(--accent-teal)",
+                            fontSize: "11px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Sync
+                        </button>
+
+                        {!isLocal && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (confirm(`Remove remote node "${node.name}"?`)) {
+                                await gatewayClient.deleteRemoteNode(node.id);
+                                fetchNodes();
+                              }
+                            }}
+                            style={{
+                              padding: "4px 8px",
+                              borderRadius: "var(--radius-xs)",
+                              background: "transparent",
+                              border: "1px solid rgba(239, 68, 68, 0.3)",
+                              color: "#EF4444",
+                              fontSize: "11px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Add New Remote Node Form */}
+              <div
+                style={{
+                  background: "var(--bg-chip)",
+                  borderRadius: "var(--radius-md)",
+                  padding: "14px",
+                  border: "1px solid var(--border-subtle)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--ink-primary)" }}>
+                  Add Always-On Remote Node (24/7 VPS / Tailscale / Docker)
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "11px", color: "var(--ink-secondary)", marginBottom: "4px" }}>
+                      Node Name
+                    </label>
+                    <input
+                      type="text"
+                      value={newNodeName}
+                      onChange={(e) => setNewNodeName(e.target.value)}
+                      placeholder="e.g. Frankfurt VPS 24/7"
+                      style={{
+                        width: "100%",
+                        height: "32px",
+                        background: "var(--bg-input)",
+                        border: "1px solid var(--border-subtle)",
+                        borderRadius: "var(--radius-xs)",
+                        padding: "0 8px",
+                        color: "var(--ink-primary)",
+                        fontSize: "12px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: "11px", color: "var(--ink-secondary)", marginBottom: "4px" }}>
+                      Node Kind
+                    </label>
+                    <select
+                      value={newNodeKind}
+                      onChange={(e) => setNewNodeKind(e.target.value as RemoteNodeKind)}
+                      style={{
+                        width: "100%",
+                        height: "32px",
+                        background: "var(--bg-input)",
+                        border: "1px solid var(--border-subtle)",
+                        borderRadius: "var(--radius-xs)",
+                        padding: "0 8px",
+                        color: "var(--ink-primary)",
+                        fontSize: "12px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <option value="vps">VPS (Cloud Server 24/7)</option>
+                      <option value="tailscale">Tailscale Mesh Gateway</option>
+                      <option value="docker">Docker Container</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "4px" }}>
-                    Remote Gateway Host (SSH / Tailscale URL)
+                  <label style={{ display: "block", fontSize: "11px", color: "var(--ink-secondary)", marginBottom: "4px" }}>
+                    Gateway Endpoint URL
                   </label>
                   <input
                     type="text"
-                    value={preferences.remoteHost || ""}
-                    onChange={(e) => onUpdatePreferences({ remoteHost: e.target.value })}
-                    placeholder="https://studio-gateway.tailnet.ts.net:18789"
+                    value={newNodeUrl}
+                    onChange={(e) => setNewNodeUrl(e.target.value)}
+                    placeholder="https://coreblow-vps.internal:18789"
                     style={{
                       width: "100%",
-                      height: "34px",
+                      height: "32px",
                       background: "var(--bg-input)",
                       border: "1px solid var(--border-subtle)",
                       borderRadius: "var(--radius-xs)",
-                      padding: "0 10px",
+                      padding: "0 8px",
                       color: "var(--ink-primary)",
                       fontFamily: "var(--font-mono)",
                       fontSize: "12px",
                       outline: "none",
+                      boxSizing: "border-box",
                     }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "4px" }}>
-                    Remote Auth Token
+                  <label style={{ display: "block", fontSize: "11px", color: "var(--ink-secondary)", marginBottom: "4px" }}>
+                    Bearer Auth Token (Optional)
                   </label>
                   <input
                     type="password"
-                    value={preferences.remoteToken || ""}
-                    onChange={(e) => onUpdatePreferences({ remoteToken: e.target.value })}
-                    placeholder="Enter pairing token..."
+                    value={newNodeToken}
+                    onChange={(e) => setNewNodeToken(e.target.value)}
+                    placeholder="tok_..."
                     style={{
                       width: "100%",
-                      height: "34px",
+                      height: "32px",
                       background: "var(--bg-input)",
                       border: "1px solid var(--border-subtle)",
                       borderRadius: "var(--radius-xs)",
-                      padding: "0 10px",
+                      padding: "0 8px",
                       color: "var(--ink-primary)",
                       fontFamily: "var(--font-mono)",
                       fontSize: "12px",
                       outline: "none",
+                      boxSizing: "border-box",
                     }}
                   />
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "4px" }}>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!newNodeName.trim() || !newNodeUrl.trim()) {
+                        alert("Please provide both Node Name and Endpoint URL");
+                        return;
+                      }
+                      const res = await gatewayClient.saveRemoteNode({
+                        name: newNodeName.trim(),
+                        url: newNodeUrl.trim(),
+                        kind: newNodeKind,
+                        bearerToken: newNodeToken.trim() || undefined,
+                      });
+                      if (res.ok) {
+                        setNewNodeName("");
+                        setNewNodeUrl("");
+                        setNewNodeToken("");
+                        setNodeActionStatus(`✓ Added remote node "${res.node?.name}"`);
+                        fetchNodes();
+                      } else {
+                        alert(res.error || "Failed to add remote node");
+                      }
+                    }}
+                    style={{
+                      padding: "6px 14px",
+                      background: "var(--accent-teal)",
+                      border: "none",
+                      borderRadius: "var(--radius-xs)",
+                      color: "#08110F",
+                      fontWeight: 600,
+                      fontSize: "12px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Add 24/7 Gateway Node
+                  </button>
                 </div>
               </div>
             </div>

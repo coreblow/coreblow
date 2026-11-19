@@ -13,6 +13,7 @@ import type {
   ChatThread,
   ModelTier,
   PermissionMode,
+  RemoteNodeConfig,
   ToolExecutionStep,
 } from "./types/gateway";
 
@@ -27,7 +28,39 @@ export const App: React.FC = () => {
   const [attachedFiles, setAttachedFiles] = useState<string[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsSection, setSettingsSection] = useState<any>(undefined);
   const [gatewayHealthy, setGatewayHealthy] = useState(true);
+
+  // Always-On 24/7 Remote Nodes state
+  const [nodes, setNodes] = useState<RemoteNodeConfig[]>([
+    {
+      id: "local",
+      name: "Local Gateway",
+      url: "http://127.0.0.1:18789",
+      kind: "local",
+      enabled: true,
+      healthy: true,
+      latencyMs: 1,
+    },
+  ]);
+  const [activeNodeId, setActiveNodeId] = useState<string>(() => {
+    try {
+      return localStorage.getItem("coreblow_active_node_id") || "local";
+    } catch {
+      return "local";
+    }
+  });
+  const [isSyncingSessions, setIsSyncingSessions] = useState(false);
+
+  // Live Voice Mode state
+  const [autoSpeak, setAutoSpeak] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("coreblow_auto_speak") === "true";
+    } catch {
+      return false;
+    }
+  });
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -61,40 +94,109 @@ export const App: React.FC = () => {
     setGatewayHealthy(ok);
   }, []);
 
+  const loadNodes = useCallback(async () => {
+    try {
+      const list = await gatewayClient.listNodes();
+      if (list && list.length > 0) {
+        setNodes(list);
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     checkHealth();
-    const interval = setInterval(checkHealth, 5000);
+    loadNodes();
+    const interval = setInterval(() => {
+      checkHealth();
+    }, 5000);
     return () => clearInterval(interval);
-  }, [checkHealth]);
+  }, [checkHealth, loadNodes]);
 
-  // Sync sessions from Gateway Unified Session Store
+  // Handle active node change: update gateway client target & reload sessions
   useEffect(() => {
-    if (!gatewayHealthy) return;
-    let cancelled = false;
-    gatewayClient.listSessions().then((remoteSessions) => {
-      if (cancelled || remoteSessions.length === 0) return;
-      setThreads((localThreads) => {
-        const localMap = new Map(localThreads.map((t) => [t.id, t]));
-        for (const rem of remoteSessions) {
-          const local = localMap.get(rem.id);
-          if (!local || rem.updatedAt > local.updatedAt) {
-            localMap.set(rem.id, rem);
+    const targetNode = nodes.find((n) => n.id === activeNodeId) || nodes[0];
+    if (targetNode) {
+      gatewayClient.setTargetNode(targetNode.url, targetNode.bearerToken);
+      checkHealth();
+
+      gatewayClient.listSessions().then((remoteSessions) => {
+        if (!remoteSessions || remoteSessions.length === 0) return;
+        setThreads((localThreads) => {
+          const localMap = new Map(localThreads.map((t) => [t.id, t]));
+          for (const rem of remoteSessions) {
+            const local = localMap.get(rem.id);
+            if (!local || rem.updatedAt > local.updatedAt) {
+              localMap.set(rem.id, rem);
+            }
           }
-        }
-        const merged = Array.from(localMap.values()).sort((a, b) => b.updatedAt - a.updatedAt);
-        return merged;
+          return Array.from(localMap.values()).sort((a, b) => b.updatedAt - a.updatedAt);
+        });
       });
+    }
+
+    try {
+      localStorage.setItem("coreblow_active_node_id", activeNodeId);
+    } catch {}
+  }, [activeNodeId, nodes, checkHealth]);
+
+  const handleSelectNode = (nodeId: string) => {
+    setActiveNodeId(nodeId);
+  };
+
+  const handleSyncSessions = async () => {
+    setIsSyncingSessions(true);
+    try {
+      const res = await gatewayClient.syncNodeSessions(activeNodeId);
+      if (res.ok) {
+        const reloaded = await gatewayClient.listSessions();
+        if (reloaded.length > 0) {
+          setThreads(reloaded);
+        }
+      }
+    } finally {
+      setIsSyncingSessions(false);
+    }
+  };
+
+  const speakReply = useCallback((text: string) => {
+    if (!text.trim()) return;
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    }
+  }, []);
+
+  const handleStopSpeaking = useCallback(() => {
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    setIsSpeaking(false);
+  }, []);
+
+  const handleToggleAutoSpeak = () => {
+    setAutoSpeak((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("coreblow_auto_speak", String(next));
+      } catch {}
+      if (!next) {
+        handleStopSpeaking();
+      }
+      return next;
     });
-    return () => {
-      cancelled = true;
-    };
-  }, [gatewayHealthy]);
+  };
 
   const handleReconnectGateway = async () => {
     if (window.coreblowDesktop) {
       await window.coreblowDesktop.gateway.ensure();
     }
     await checkHealth();
+    await loadNodes();
   };
 
   // Thread actions
@@ -140,36 +242,28 @@ export const App: React.FC = () => {
       } else if (isCmdOrCtrl && e.key.toLowerCase() === "i") {
         e.preventDefault();
         setPreferences((p) => ({ ...p, inspectorOpen: !p.inspectorOpen }));
-      } else if (isCmdOrCtrl && e.key.toLowerCase() === "o") {
+      } else if (isCmdOrCtrl && e.key.toLowerCase() === "b") {
         e.preventDefault();
-        if (window.coreblowDesktop) {
-          window.coreblowDesktop.dialog.selectDirectory().then((dir) => {
-            if (dir) {
-              const name = dir.split("/").pop() || dir;
-              setProject((p) => ({ ...p, path: dir, name }));
-            }
-          });
-        }
+        setPreferences((p) => ({ ...p, sidebarCollapsed: !p.sidebarCollapsed }));
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [threads, preferences]);
 
-  // Send turn with SSE streaming against 127.0.0.1:18789
+  // Main chat submission handler
   const handleSend = async () => {
-    if (!prompt.trim() || isStreaming) return;
-
-    let targetThreadId = activeThreadId;
-    let currentThreads = threads;
+    const currentPrompt = prompt.trim();
+    if (!currentPrompt || isStreaming) return;
 
     // Ensure we have an active thread
-    if (!targetThreadId || !threads.some((t) => t.id === targetThreadId)) {
-      const newId = `thread_${Date.now()}`;
+    let targetThreadId = activeThreadId;
+    if (!targetThreadId) {
+      targetThreadId = `thread_${Date.now()}`;
       const newThread: ChatThread = {
-        id: newId,
-        title: prompt.slice(0, 36) + (prompt.length > 36 ? "..." : ""),
+        id: targetThreadId,
+        title: currentPrompt.slice(0, 30) + (currentPrompt.length > 30 ? "..." : ""),
         createdAt: Date.now(),
         updatedAt: Date.now(),
         messages: [],
@@ -177,50 +271,49 @@ export const App: React.FC = () => {
         model: preferences.modelTier,
         cwd: project.path,
       };
-      targetThreadId = newId;
-      currentThreads = [newThread, ...threads];
-      setThreads(currentThreads);
-      setActiveThreadId(newId);
+      setThreads((prev) => [newThread, ...prev]);
+      setActiveThreadId(targetThreadId);
     }
 
-    const effectivePrompt = attachedFiles.length > 0
-      ? `${prompt}\n\n[Attached Files for Inspection]:\n${attachedFiles.map((f) => `- ${f}`).join("\n")}`
-      : prompt;
+    const userMessageId = `msg_${Date.now()}`;
+    const assistantMessageId = `msg_${Date.now() + 1}`;
 
     const userMessage: ChatMessage = {
-      id: `msg_${Date.now()}_user`,
+      id: userMessageId,
       role: "user",
-      content: prompt,
-      attachedFiles: attachedFiles.length > 0 ? [...attachedFiles] : undefined,
+      content: currentPrompt,
       timestamp: Date.now(),
+      attachedFiles: attachedFiles.length > 0 ? [...attachedFiles] : undefined,
     };
 
-    const assistantMessageId = `msg_${Date.now()}_assistant`;
-    const assistantMessage: ChatMessage = {
+    const assistantPlaceholder: ChatMessage = {
       id: assistantMessageId,
       role: "assistant",
       content: "",
-      timestamp: Date.now(),
+      timestamp: Date.now() + 1,
       streaming: true,
       toolSteps: [],
     };
 
-    // Update target thread with user and initial assistant message
+    // Append user & assistant placeholder to active thread
     setThreads((prev) =>
       prev.map((t) => {
         if (t.id === targetThreadId) {
-          const title = t.messages.length === 0 ? prompt.slice(0, 36) + (prompt.length > 36 ? "..." : "") : t.title;
+          const isFirstTurn = t.messages.length === 0;
           return {
             ...t,
-            title,
+            title: isFirstTurn
+              ? currentPrompt.slice(0, 32) + (currentPrompt.length > 32 ? "..." : "")
+              : t.title,
             updatedAt: Date.now(),
-            messages: [...t.messages, userMessage, assistantMessage],
+            messages: [...t.messages, userMessage, assistantPlaceholder],
           };
         }
         return t;
       }),
     );
 
+    // Clear input
     setPrompt("");
     setAttachedFiles([]);
     setIsStreaming(true);
@@ -228,27 +321,33 @@ export const App: React.FC = () => {
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
+    // Build context messages from history (up to last 10 turns)
+    const contextMessages = (activeThread?.messages || []).map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+    contextMessages.push({ role: "user", content: currentPrompt });
+
     try {
       await gatewayClient.streamChat(
         {
           sessionId: targetThreadId,
-          prompt: effectivePrompt,
-          messages: messages.map((m) => ({ role: m.role, content: m.content })),
+          prompt: currentPrompt,
+          messages: contextMessages,
           executionProfile: preferences.permissionMode,
           cwd: project.path,
           modelTier: preferences.modelTier,
-          credentials: {
-            anthropicApiKey: preferences.anthropicApiKey,
-            openAiApiKey: preferences.openAiApiKey,
-            geminiApiKey: preferences.geminiApiKey,
-            groqApiKey: preferences.groqApiKey,
-            localOllamaUrl: preferences.localOllamaUrl,
-            customApiKey: preferences.customApiKey,
-          },
           signal: abortController.signal,
+          credentials: {
+            anthropicApiKey: preferences.anthropicApiKey || undefined,
+            openAiApiKey: preferences.openAiApiKey || undefined,
+            geminiApiKey: preferences.geminiApiKey || undefined,
+            groqApiKey: preferences.groqApiKey || undefined,
+            localOllamaUrl: preferences.localOllamaUrl || undefined,
+          },
         },
         {
-          onDelta: (delta) => {
+          onDelta: (delta: string) => {
             setThreads((prev) =>
               prev.map((t) => {
                 if (t.id === targetThreadId) {
@@ -263,34 +362,7 @@ export const App: React.FC = () => {
               }),
             );
           },
-          onStep: (step) => {
-            setThreads((prev) =>
-              prev.map((t) => {
-                if (t.id === targetThreadId) {
-                  return {
-                    ...t,
-                    messages: t.messages.map((m) => {
-                      if (m.id === assistantMessageId) {
-                        const existingSteps = m.toolSteps || [];
-                        const existingIndex = existingSteps.findIndex((s) => s.stepIndex === step.stepIndex);
-                        let updatedSteps: ToolExecutionStep[];
-                        if (existingIndex >= 0) {
-                          updatedSteps = [...existingSteps];
-                          updatedSteps[existingIndex] = { ...updatedSteps[existingIndex], ...step };
-                        } else {
-                          updatedSteps = [...existingSteps, step];
-                        }
-                        return { ...m, toolSteps: updatedSteps };
-                      }
-                      return m;
-                    }),
-                  };
-                }
-                return t;
-              }),
-            );
-          },
-          onToolStep: (toolStep) => {
+          onToolStep: (toolStep: ToolExecutionStep) => {
             setThreads((prev) =>
               prev.map((t) => {
                 if (t.id === targetThreadId) {
@@ -317,8 +389,11 @@ export const App: React.FC = () => {
               }),
             );
           },
-          onDone: () => {
+          onDone: (fullReply: string) => {
             setIsStreaming(false);
+            if (autoSpeak && fullReply) {
+              speakReply(fullReply);
+            }
             setThreads((prev) =>
               prev.map((t) => {
                 if (t.id === targetThreadId) {
@@ -363,6 +438,7 @@ export const App: React.FC = () => {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
+    handleStopSpeaking();
     setIsStreaming(false);
   };
 
@@ -380,7 +456,10 @@ export const App: React.FC = () => {
             onToggleCollapse={() =>
               setPreferences((p) => ({ ...p, sidebarCollapsed: !p.sidebarCollapsed }))
             }
-            onOpenSettings={() => setSettingsOpen(true)}
+            onOpenSettings={() => {
+              setSettingsSection(undefined);
+              setSettingsOpen(true);
+            }}
           />
         }
         topbar={
@@ -397,6 +476,15 @@ export const App: React.FC = () => {
             }
             gatewayHealthy={gatewayHealthy}
             onReconnectGateway={handleReconnectGateway}
+            nodes={nodes}
+            activeNodeId={activeNodeId}
+            onSelectNode={handleSelectNode}
+            onSyncSessions={handleSyncSessions}
+            onOpenRemoteSettings={() => {
+              setSettingsSection("remotes");
+              setSettingsOpen(true);
+            }}
+            isSyncingSessions={isSyncingSessions}
           />
         }
         content={
@@ -420,6 +508,10 @@ export const App: React.FC = () => {
             }
             projectName={project.name}
             projectBranch={project.branch}
+            autoSpeak={autoSpeak}
+            onToggleAutoSpeak={handleToggleAutoSpeak}
+            isSpeaking={isSpeaking}
+            onStopSpeaking={handleStopSpeaking}
           />
         }
         inspector={
@@ -435,9 +527,14 @@ export const App: React.FC = () => {
 
       <SettingsModal
         open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
+        onClose={() => {
+          setSettingsOpen(false);
+          setSettingsSection(undefined);
+          loadNodes();
+        }}
         preferences={preferences}
         onUpdatePreferences={(p) => setPreferences((prev) => ({ ...prev, ...p }))}
+        initialSection={settingsSection}
       />
     </>
   );

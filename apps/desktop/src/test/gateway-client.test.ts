@@ -464,4 +464,96 @@ describe("CoreBlowGatewayClient", () => {
     const chainOk = await client.saveFallbackChain(["openai", "anthropic"]);
     expect(chainOk).toBe(true);
   });
+
+  it("handles target node switching and Bearer auth header injection", async () => {
+    client.setTargetNode("https://vps-frankfurt.coreblow.com:18789", "tok_secret_production_key_12345");
+    const target = client.getTargetNode();
+    expect(target.baseUrl).toBe("https://vps-frankfurt.coreblow.com:18789");
+    expect(target.bearerToken).toBe("tok_secret_production_key_12345");
+
+    (global as any).fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+    } as any);
+
+    const healthy = await client.checkHealth();
+    expect(healthy).toBe(true);
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://vps-frankfurt.coreblow.com:18789/health",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer tok_secret_production_key_12345",
+        }),
+      }),
+    );
+  });
+
+  it("handles remote nodes CRUD, probing, session sync, and voice API methods", async () => {
+    // 1. listNodes
+    const mockNodes = [
+      { id: "local", name: "Local Gateway", url: "http://127.0.0.1:18789", kind: "local", enabled: true },
+      { id: "vps_1", name: "VPS Cloud 24/7", url: "https://vps.cloud:18789", kind: "vps", enabled: true, bearerToken: "tok_...1234" },
+    ];
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true, nodes: mockNodes }),
+    } as any);
+    const nodes = await client.listNodes();
+    expect(nodes.length).toBe(2);
+    expect(nodes[0].id).toBe("local");
+
+    // 2. saveRemoteNode
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true, node: mockNodes[1] }),
+    } as any);
+    const saveRes = await client.saveRemoteNode({ name: "VPS Cloud 24/7", url: "https://vps.cloud:18789", kind: "vps" });
+    expect(saveRes.ok).toBe(true);
+    expect(saveRes.node?.id).toBe("vps_1");
+
+    // 3. probeNode
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true, healthy: true, latencyMs: 24 }),
+    } as any);
+    const probeRes = await client.probeNode("vps_1");
+    expect(probeRes.ok).toBe(true);
+    expect(probeRes.healthy).toBe(true);
+    expect(probeRes.latencyMs).toBe(24);
+
+    // 4. syncNodeSessions
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true, syncedCount: 5 }),
+    } as any);
+    const syncRes = await client.syncNodeSessions("vps_1");
+    expect(syncRes.ok).toBe(true);
+    expect(syncRes.syncedCount).toBe(5);
+
+    // 5. deleteRemoteNode
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true, removed: true }),
+    } as any);
+    const delRes = await client.deleteRemoteNode("vps_1");
+    expect(delRes.ok).toBe(true);
+
+    // 6. transcribeVoice
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true, text: "Transcribed voice text", engine: "whisper-large-v3" }),
+    } as any);
+    const transcribeRes = await client.transcribeVoice({ audioBase64: "base64audio==" });
+    expect(transcribeRes.ok).toBe(true);
+    expect(transcribeRes.text).toBe("Transcribed voice text");
+
+    // 7. synthesizeVoice
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true, mode: "browser_speech_fallback", text: "Speak this" }),
+    } as any);
+    const synthRes = await client.synthesizeVoice({ text: "Speak this" });
+    expect(synthRes.ok).toBe(true);
+    expect(synthRes.mode).toBe("browser_speech_fallback");
+  });
 });

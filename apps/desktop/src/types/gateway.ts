@@ -215,3 +215,38 @@ export interface CredentialPoolPayload {
     byProvider: Record<string, ProviderUsageTelemetry>;
   };
 }
+
+export type RemoteNodeKind = "local" | "tailscale" | "vps" | "docker";
+
+export interface RemoteNodeConfig {
+  id: string;
+  name: string;
+  url: string;
+  kind: RemoteNodeKind;
+  bearerToken?: string;
+  enabled: boolean;
+  latencyMs?: number;
+  healthy?: boolean;
+  lastCheckedAtMs?: number;
+}
+
+export interface VoiceTranscribeResponse {
+  ok: boolean;
+  text?: string;
+  engine?: string;
+  durationMs?: number;
+  fallbackHint?: string;
+  error?: string;
+}
+
+export interface VoiceSpeakResponse {
+  ok: boolean;
+  mode?: string;
+  text?: string;
+  voice?: string;
+  rate?: number;
+  audioBase64?: string;
+  format?: string;
+  engine?: string;
+  error?: string;
+}

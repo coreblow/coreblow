@@ -20,6 +20,10 @@ interface ConversationAreaProps {
   onRemoveFile: (path: string) => void;
   projectName: string;
   projectBranch: string;
+  autoSpeak?: boolean;
+  onToggleAutoSpeak?: () => void;
+  isSpeaking?: boolean;
+  onStopSpeaking?: () => void;
 }
 
 export const ConversationArea: React.FC<ConversationAreaProps> = ({
@@ -38,6 +42,10 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
   onRemoveFile,
   projectName,
   projectBranch,
+  autoSpeak = false,
+  onToggleAutoSpeak,
+  isSpeaking = false,
+  onStopSpeaking,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -208,6 +216,10 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
             onRemoveFile={onRemoveFile}
             projectName={projectName}
             projectBranch={projectBranch}
+            autoSpeak={autoSpeak}
+            onToggleAutoSpeak={onToggleAutoSpeak}
+            isSpeaking={isSpeaking}
+            onStopSpeaking={onStopSpeaking}
           />
         </div>
       </div>

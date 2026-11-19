@@ -29,13 +29,29 @@
   },
   "win": {
     "icon": "assets/icons/coreblow-studio-1024.png",
-    "target": ["nsis", "portable"],
-    "arch": ["x64", "arm64"]
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64", "arm64"]
+      }
+    ]
   },
   "linux": {
     "icon": "assets/icons/coreblow-studio-1024.png",
-    "target": ["AppImage", "deb"],
-    "arch": ["x64", "arm64"],
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "deb",
+        "arch": ["x64", "arm64"]
+      }
+    ],
     "category": "Development"
   }
 }
