@@ -27,6 +27,10 @@ import {
   type CoryTrustZone,
   prepareZeroStallCompaction,
   type PreparedCompactionArtifact,
+  extractDialecticSignals,
+  getGlobalDialecticUserModel,
+  getGlobalMemoryProposalStore,
+  unifiedHybridRecall,
 } from "../../memory/index.js";
 import {
   classifyTaskRouteTier,
@@ -299,13 +303,6 @@ export class CognitiveCoordinator {
         }
       }
 
-      // 2. Query scope-aware recall (top-5)
-      const recall = await microkernel.cory.retriever.retrieve({
-        query: params.prompt,
-        scope,
-        topK: 5,
-      });
-
       const memoryLines: string[] = [];
       if (activeConstraints.length > 0) {
         memoryLines.push("### Active System Constraints & Guidelines");
@@ -314,10 +311,30 @@ export class CognitiveCoordinator {
         }
       }
 
-      if (recall.hits.length > 0) {
+      // 2. Active Dialectic User Profile Traits (top non-superseded)
+      const dialecticModel = getGlobalDialecticUserModel(microkernel.cory.getStateDir());
+      const activeTraits = dialecticModel.getActiveTraits();
+      if (activeTraits.length > 0) {
+        memoryLines.push("### User Profile (Dialectic)");
+        for (const t of activeTraits.slice(0, 8)) {
+          memoryLines.push(`- [${t.dimension}] ${t.key}: ${t.value}`);
+        }
+      }
+
+      // 3. Unified Hybrid Recall across Cory 4-Layer Memory + Dialectic + Session Store
+      const hybridRecall = unifiedHybridRecall({
+        query: params.prompt,
+        scope,
+        memoryStore: microkernel.cory.memoryStore,
+        dialecticModel,
+        topK: 6,
+      });
+
+      if (hybridRecall.hits.length > 0) {
         memoryLines.push("### Relevant Contextual Memories");
-        for (const hit of recall.hits) {
-          memoryLines.push(`- [${hit.item.layer.toUpperCase()}] ${hit.item.content}`);
+        for (const hit of hybridRecall.hits) {
+          const tag = hit.layer ? hit.layer.toUpperCase() : hit.dimension ? hit.dimension.toUpperCase() : "MEMORY";
+          memoryLines.push(`- [${tag}] ${hit.content}`);
         }
       }
 
@@ -480,6 +497,64 @@ export class CognitiveCoordinator {
           this.counters.degradedErrors += 1;
           log.warn(`onTurnEnd: KnowledgeScribe degraded: ${String(err)}`);
         }
+      }
+
+      // 4. Dialectic User Modeling & TrustZone Staging Queue (Phase 1 & 2)
+      try {
+        const stateDir = microkernel.cory.getStateDir();
+        const dialecticModel = getGlobalDialecticUserModel(stateDir);
+        const proposalStore = getGlobalMemoryProposalStore(stateDir);
+        const isPublic = params.isPublicChannel === true || params.trustZone === "public";
+
+        const textToAnalyze = [params.userGoal, params.userCorrectionText].filter(Boolean).join("\n");
+        const signals = extractDialecticSignals({
+          text: textToAnalyze,
+          sessionId: params.sessionId,
+        });
+
+        if (signals.length > 0) {
+          if (!isPublic) {
+            // Private / Operator turn: auto-sync high-confidence signals to profile and Cory canonical layers
+            for (const signal of signals) {
+              dialecticModel.ingestSignal(signal);
+              if (signal.confidence >= 0.8) {
+                const targetLayer =
+                  signal.dimension === "communication_style"
+                    ? "identity"
+                    : signal.dimension === "hard_constraints"
+                    ? "constraint"
+                    : "durable";
+                microkernel.cory.memoryStore.remember({
+                  layer: targetLayer,
+                  content: `${signal.key}: ${signal.value}`,
+                  scope: {
+                    workspaceId: params.workspaceId,
+                    userScope: params.userScope,
+                    trustZone: normalizeTrustZone(params.trustZone),
+                  },
+                });
+              }
+            }
+          } else {
+            // Public / Group turn: NEVER mutate private layers directly; stage into proposal queue
+            for (const signal of signals) {
+              const targetLayer =
+                signal.dimension === "communication_style"
+                  ? "identity"
+                  : signal.dimension === "hard_constraints"
+                  ? "constraint"
+                  : "durable";
+              proposalStore.enqueueProposal({
+                content: `${signal.key}: ${signal.value}`,
+                targetLayer,
+                dimension: signal.dimension,
+                source: `public_channel:${params.sessionId}`,
+              });
+            }
+          }
+        }
+      } catch (err) {
+        log.warn(`onTurnEnd: dialectic extraction degraded: ${String(err)}`);
       }
     });
   }

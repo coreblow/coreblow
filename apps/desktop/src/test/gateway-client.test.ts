@@ -87,6 +87,75 @@ describe("CoreBlowGatewayClient", () => {
     );
   });
 
+  it("handles Cory profile, remember, forget, proposal resolve, and wiki compile", async () => {
+    // 1. getCoryProfile
+    const mockProfile = {
+      ok: true,
+      profile: {
+        updatedAt: 1000,
+        traits: [{ id: "t1", dimension: "tech_stack", key: "desktop_framework", value: "Electron", confidence: 0.95, updatedAt: 1000 }],
+      },
+      itemsByLayer: {
+        identity: [{ id: "i1", layer: "identity", content: "Operator" }],
+        durable: [{ id: "d1", layer: "durable", content: "Single Brain" }],
+        constraint: [{ id: "c1", layer: "constraint", content: "Zero Trust" }],
+        episodic: [],
+      },
+      pendingProposals: [
+        { id: "p1", content: "TypeScript", targetLayer: "durable", source: "test", createdAt: 1000, status: "pending" },
+      ],
+      counts: { total: 3, identity: 1, durable: 1, constraint: 1, episodic: 0 },
+    };
+
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockProfile,
+    } as any);
+
+    const profileRes = await client.getCoryProfile();
+    expect(profileRes).not.toBeNull();
+    expect(profileRes?.profile.traits.length).toBe(1);
+    expect(profileRes?.itemsByLayer.durable.length).toBe(1);
+    expect(profileRes?.pendingProposals.length).toBe(1);
+
+    // 2. rememberMemory
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true, item: { id: "new-1" } }),
+    } as any);
+
+    const remOk = await client.rememberMemory("User prefers dark mode", "identity");
+    expect(remOk).toBe(true);
+
+    // 3. forgetMemory
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true, removedCount: 1 }),
+    } as any);
+
+    const delOk = await client.forgetMemory("old-1");
+    expect(delOk).toBe(true);
+
+    // 4. resolveMemoryProposal
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true }),
+    } as any);
+
+    const propOk = await client.resolveMemoryProposal("p1", "approve");
+    expect(propOk).toBe(true);
+
+    // 5. compileMemoryWiki
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true, path: "/path/to/INDEX.md", markdown: "# Wiki" }),
+    } as any);
+
+    const wikiRes = await client.compileMemoryWiki();
+    expect(wikiRes?.ok).toBe(true);
+    expect(wikiRes?.markdown).toBe("# Wiki");
+  });
+
   it("fetches storefront skills from GET /api/corehub/storefront handling cards array", async () => {
     const mockPayload = {
       ok: true,

@@ -18,3 +18,4 @@ export * from "./compaction.js";
 export * from "./search.js";
 export * from "./manager.js";
 export * from "./knowledge-scribe.js";
+export * from "./dialectic-user-model.js";

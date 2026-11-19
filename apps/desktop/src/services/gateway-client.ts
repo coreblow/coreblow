@@ -4,7 +4,10 @@ import type {
   ChatThread,
   CoryMemoryItem,
   CoryMemoryLayer,
+  CoryProfilePayload,
   CoreHubSkill,
+  DialecticTrait,
+  MemoryProposal,
   ModelTier,
   PermissionMode,
   ToolExecutionStep,
@@ -415,6 +418,94 @@ export class CoreBlowGatewayClient {
       });
     } catch {
       return [];
+    }
+  }
+
+  /**
+   * Fetch full Cory profile (GET /api/cory/profile)
+   */
+  async getCoryProfile(): Promise<CoryProfilePayload | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/cory/profile`, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(3000),
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Remember/store an item directly into Cory (POST /api/cory/remember)
+   */
+  async rememberMemory(
+    content: string,
+    layer: "identity" | "durable" | "constraint" | "episodic" = "durable",
+    tags?: string[],
+    workspaceId?: string,
+  ): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/cory/remember`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, layer, tags, workspaceId }),
+        signal: AbortSignal.timeout(4000),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Delete a memory item by ID (DELETE /api/cory/items/:id)
+   */
+  async forgetMemory(id: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/cory/items/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        signal: AbortSignal.timeout(4000),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Resolve a pending memory proposal (POST /api/cory/proposals/:id/resolve)
+   */
+  async resolveMemoryProposal(id: string, decision: "approve" | "dismiss"): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/cory/proposals/${encodeURIComponent(id)}/resolve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decision }),
+        signal: AbortSignal.timeout(4000),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Compile Cory memory + dialectic profile into Knowledge Wiki (POST /api/cory/wiki/compile)
+   */
+  async compileMemoryWiki(): Promise<{ ok: boolean; path: string; markdown: string } | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/cory/wiki/compile`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
     }
   }
 

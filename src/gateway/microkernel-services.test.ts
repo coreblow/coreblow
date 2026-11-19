@@ -2032,5 +2032,118 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
         await microkernel.registry.stopAll();
       }
     });
+
+    it("handles Cory Dialectic v2 endpoints: profile, remember, delete item, resolve proposal, and wiki compile", async () => {
+      const microkernel = createMicrokernelServiceRegistry({
+        stateDir: testDir,
+        coryDir,
+      });
+      await microkernel.registry.startAll();
+
+      try {
+        // 1. POST /api/cory/remember
+        const remReqRes = createMockReqRes({
+          method: "POST",
+          url: "/api/cory/remember",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: {
+            content: "Primary framework is Electron with TypeScript",
+            layer: "durable",
+            tags: ["architecture", "desktop"],
+          },
+        });
+        const handledRem = await handleCoreHubRoute(remReqRes.req, remReqRes.res, microkernel, { auth: testAuth });
+        expect(handledRem).toBe(true);
+        const remRes = await remReqRes.getResult();
+        expect(remRes.statusCode).toBe(200);
+        expect(remRes.data.ok).toBe(true);
+        expect(remRes.data.item.content).toBe("Primary framework is Electron with TypeScript");
+        const itemId = remRes.data.item.id;
+
+        // 2. GET /api/cory/profile
+        const profReqRes = createMockReqRes({
+          method: "GET",
+          url: "/api/cory/profile",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+        });
+        const handledProf = await handleCoreHubRoute(profReqRes.req, profReqRes.res, microkernel, { auth: testAuth });
+        expect(handledProf).toBe(true);
+        const profRes = await profReqRes.getResult();
+        expect(profRes.statusCode).toBe(200);
+        expect(profRes.data.ok).toBe(true);
+        expect(profRes.data.itemsByLayer.durable.length).toBeGreaterThanOrEqual(1);
+        expect(profRes.data.counts.total).toBeGreaterThanOrEqual(1);
+
+        // 3. Stage and resolve a proposal via POST /api/cory/proposals/:id/resolve
+        const { getGlobalMemoryProposalStore } = await import("../memory/dialectic-user-model.js");
+        const proposalStore = getGlobalMemoryProposalStore(microkernel.cory.getStateDir());
+        const prop = proposalStore.enqueueProposal({
+          content: "Always write strict TypeScript types",
+          targetLayer: "constraint",
+          source: "test_harness",
+        });
+
+        const resolveReqRes = createMockReqRes({
+          method: "POST",
+          url: `/api/cory/proposals/${prop.id}/resolve`,
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: { decision: "approve" },
+        });
+        const handledResolve = await handleCoreHubRoute(resolveReqRes.req, resolveReqRes.res, microkernel, { auth: testAuth });
+        expect(handledResolve).toBe(true);
+        const resolveRes = await resolveReqRes.getResult();
+        expect(resolveRes.statusCode).toBe(200);
+        expect(resolveRes.data.ok).toBe(true);
+        expect(resolveRes.data.proposal.status).toBe("approved");
+
+        // Verify constraint was promoted to canonical layer
+        const constraints = microkernel.cory.memoryStore.listLayerItems("constraint");
+        expect(constraints.some((c) => c.content.includes("Always write strict TypeScript types"))).toBe(true);
+
+        // 4. POST /api/cory/wiki/compile
+        const compileReqRes = createMockReqRes({
+          method: "POST",
+          url: "/api/cory/wiki/compile",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+        });
+        const handledCompile = await handleCoreHubRoute(compileReqRes.req, compileReqRes.res, microkernel, { auth: testAuth });
+        expect(handledCompile).toBe(true);
+        const compileRes = await compileReqRes.getResult();
+        expect(compileRes.statusCode).toBe(200);
+        expect(compileRes.data.ok).toBe(true);
+        expect(compileRes.data.markdown).toContain("# CoreBlow Knowledge Wiki");
+        expect(compileRes.data.markdown).toContain("Always write strict TypeScript types");
+
+        // 5. DELETE /api/cory/items/:id
+        const delReqRes = createMockReqRes({
+          method: "DELETE",
+          url: `/api/cory/items/${itemId}`,
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+        });
+        const handledDel = await handleCoreHubRoute(delReqRes.req, delReqRes.res, microkernel, { auth: testAuth });
+        expect(handledDel).toBe(true);
+        const delRes = await delReqRes.getResult();
+        expect(delRes.statusCode).toBe(200);
+        expect(delRes.data.ok).toBe(true);
+        expect(delRes.data.removedCount).toBeGreaterThanOrEqual(1);
+      } finally {
+        await microkernel.registry.stopAll();
+      }
+    });
   });
 });

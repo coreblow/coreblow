@@ -139,3 +139,41 @@ export interface WarRoomState {
   messages: WarRoomChatMessage[];
   screenFeed: AgentScreenFrame[];
 }
+
+export interface DialecticTrait {
+  id: string;
+  dimension: string;
+  key: string;
+  value: string;
+  confidence: number;
+  updatedAt: number;
+  supersededBy?: string;
+}
+
+export interface MemoryProposal {
+  id: string;
+  content: string;
+  targetLayer: string;
+  dimension?: string;
+  source: string;
+  createdAt: number;
+  status: "pending" | "approved" | "dismissed";
+  resolvedAt?: number;
+}
+
+export interface CoryProfilePayload {
+  ok: boolean;
+  profile: {
+    updatedAt: number;
+    traits: DialecticTrait[];
+    allSignals?: DialecticTrait[];
+  };
+  itemsByLayer: {
+    identity: CoryMemoryItem[];
+    durable: CoryMemoryItem[];
+    constraint: CoryMemoryItem[];
+    episodic: CoryMemoryItem[];
+  };
+  pendingProposals: MemoryProposal[];
+  counts: Record<string, number>;
+}

@@ -35,6 +35,8 @@ import {
   CoryBootstrapService,
   CoryKnowledgeScribeService,
   type CoryMemoryLayer,
+  getGlobalDialecticUserModel,
+  getGlobalMemoryProposalStore,
 } from "../memory/index.js";
 import { UniversalAgentImporterService, type ExternalAgentSource } from "../migration/index.js";
 import {
@@ -720,7 +722,11 @@ export async function handleCoreHubRoute(
     pathname === "/api/corehub/desktop/diff-inspector" ||
     pathname === "/api/corehub/chat/react" ||
     (pathname === "/api/corehub/sessions" && method === "POST") ||
-    (pathname.startsWith("/api/corehub/sessions/") && method === "DELETE");
+    (pathname.startsWith("/api/corehub/sessions/") && method === "DELETE") ||
+    pathname === "/api/cory/remember" ||
+    (pathname.startsWith("/api/cory/items/") && method === "DELETE") ||
+    (pathname.startsWith("/api/cory/proposals/") && method === "POST") ||
+    pathname === "/api/cory/wiki/compile";
   const cfg = options.cfg ?? loadConfig();
 
   // Validate browser origin for CORS / cross-origin protection
@@ -1279,6 +1285,276 @@ export async function handleCoreHubRoute(
       items,
     });
     return true;
+  }
+
+  // GET /api/cory/profile (and /api/corehub/cory/profile)
+  if (method === "GET" && (pathname === "/api/cory/profile" || pathname === "/api/corehub/cory/profile")) {
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "doctor.memory.status",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+
+    const stateDir = services.cory.getStateDir();
+    const dialecticModel = getGlobalDialecticUserModel(stateDir);
+    const proposalStore = getGlobalMemoryProposalStore(stateDir);
+
+    const identity = services.cory.memoryStore.listLayerItems("identity");
+    const durable = services.cory.memoryStore.listLayerItems("durable");
+    const constraint = services.cory.memoryStore.listLayerItems("constraint");
+    const episodic = services.cory.memoryStore.listLayerItems("episodic");
+
+    const profileData = dialecticModel.getProfile();
+    const pendingProposals = proposalStore.listPendingProposals();
+
+    sendJson(res, 200, {
+      ok: true,
+      profile: {
+        updatedAt: profileData.updatedAt,
+        traits: dialecticModel.getActiveTraits(),
+        allSignals: dialecticModel.getAllSignals(),
+      },
+      itemsByLayer: {
+        identity,
+        durable,
+        constraint,
+        episodic,
+      },
+      pendingProposals,
+      counts: {
+        total: identity.length + durable.length + constraint.length + episodic.length,
+        identity: identity.length,
+        durable: durable.length,
+        constraint: constraint.length,
+        episodic: episodic.length,
+        activeTraits: dialecticModel.getActiveTraits().length,
+        pendingProposals: pendingProposals.length,
+      },
+    });
+    return true;
+  }
+
+  // POST /api/cory/remember (and /api/corehub/cory/remember)
+  if (method === "POST" && (pathname === "/api/cory/remember" || pathname === "/api/corehub/cory/remember")) {
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "agents.create",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+
+    try {
+      const body = (await parseJsonBody(req)) as Record<string, unknown>;
+      const content = typeof body.content === "string" ? body.content.trim() : "";
+      const layer = typeof body.layer === "string" ? (body.layer as CoryMemoryLayer) : "durable";
+      const tags = Array.isArray(body.tags) ? (body.tags as string[]) : undefined;
+      const workspaceId = typeof body.workspaceId === "string" ? body.workspaceId.trim() : undefined;
+
+      if (!content) {
+        sendJson(res, 400, { ok: false, error: "Missing required 'content' field." });
+        return true;
+      }
+
+      const item = services.cory.memoryStore.remember({
+        layer,
+        content,
+        tags,
+        scope: workspaceId ? { workspaceId } : undefined,
+      });
+
+      sendJson(res, 200, { ok: true, item });
+      return true;
+    } catch (err) {
+      sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+      return true;
+    }
+  }
+
+  // DELETE /api/cory/items/:id (and /api/corehub/cory/items/:id)
+  const coryItemDeleteMatch = /^\/api\/(?:cory|corehub\/cory)\/items\/([^/]+)$/.exec(pathname);
+  if (method === "DELETE" && coryItemDeleteMatch) {
+    const itemId = decodeURIComponent(coryItemDeleteMatch[1]);
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "agents.create",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "DELETE, OPTIONS");
+
+    const removedCount = services.cory.memoryStore.forget({ idOrQuery: itemId });
+    const dialecticModel = getGlobalDialecticUserModel(services.cory.getStateDir());
+    dialecticModel.removeSignal(itemId);
+
+    sendJson(res, 200, { ok: true, itemId, removedCount });
+    return true;
+  }
+
+  // POST /api/cory/proposals/:id/resolve (and /api/corehub/cory/proposals/:id/resolve)
+  const coryProposalResolveMatch = /^\/api\/(?:cory|corehub\/cory)\/proposals\/([^/]+)\/resolve$/.exec(pathname);
+  if (method === "POST" && coryProposalResolveMatch) {
+    const proposalId = decodeURIComponent(coryProposalResolveMatch[1]);
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "agents.create",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+
+    try {
+      const body = (await parseJsonBody(req)) as Record<string, unknown>;
+      const decision = body.decision === "approve" || body.decision === "dismiss" ? body.decision : undefined;
+      if (!decision) {
+        sendJson(res, 400, {
+          ok: false,
+          error: "Missing or invalid 'decision' (expected 'approve' | 'dismiss').",
+        });
+        return true;
+      }
+
+      const proposalStore = getGlobalMemoryProposalStore(services.cory.getStateDir());
+      const resolved = proposalStore.resolveProposal(proposalId, decision, services.cory.memoryStore);
+      if (!resolved) {
+        sendJson(res, 404, { ok: false, error: `Proposal "${proposalId}" not found.` });
+        return true;
+      }
+
+      sendJson(res, 200, { ok: true, proposal: resolved });
+      return true;
+    } catch (err) {
+      sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+      return true;
+    }
+  }
+
+  // POST /api/cory/wiki/compile (and /api/corehub/cory/wiki/compile)
+  if (method === "POST" && (pathname === "/api/cory/wiki/compile" || pathname === "/api/corehub/cory/wiki/compile")) {
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "agents.create",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+
+    try {
+      const stateDir = services.cory.getStateDir();
+      const dialecticModel = getGlobalDialecticUserModel(stateDir);
+      const wikiDir = path.join(stateDir, "wiki");
+      fs.mkdirSync(wikiDir, { recursive: true });
+
+      const allItems = services.cory.memoryStore.loadAllCanonicalItems();
+      const activeTraits = dialecticModel.getActiveTraits();
+
+      const identityItems = allItems.filter((i) => i.layer === "identity");
+      const constraintItems = allItems.filter((i) => i.layer === "constraint");
+      const durableItems = allItems.filter((i) => i.layer === "durable");
+
+      const mdSections = [
+        "# CoreBlow Knowledge Wiki",
+        "",
+        `Compiled: ${new Date().toISOString()}`,
+        `Total Canonical Items: ${allItems.length}`,
+        "",
+        "## 1. Identity & Persona",
+        ...(identityItems.length > 0 ? identityItems.map((i) => `- ${i.content}`) : ["_No identity records._"]),
+        "",
+        "## 2. System Constraints & Invariants",
+        ...(constraintItems.length > 0 ? constraintItems.map((i) => `- ${i.content}`) : ["_No active constraints._"]),
+        "",
+        "## 3. Durable Knowledge & Architecture",
+        ...(durableItems.length > 0 ? durableItems.map((i) => `- ${i.content}`) : ["_No durable notes._"]),
+        "",
+        "## 4. User Profile (Dialectic Traits)",
+        ...(activeTraits.length > 0
+          ? activeTraits.map((t) => `- **[${t.dimension}]** ${t.key}: ${t.value} _(confidence: ${(t.confidence * 100).toFixed(0)}%)_`)
+          : ["_No active dialectic traits._"]),
+        "",
+      ];
+
+      const markdown = mdSections.join("\n");
+      const indexPath = path.join(wikiDir, "INDEX.md");
+      fs.writeFileSync(indexPath, markdown, "utf8");
+
+      sendJson(res, 200, {
+        ok: true,
+        path: indexPath,
+        markdown,
+      });
+      return true;
+    } catch (err) {
+      sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+      return true;
+    }
   }
 
   // GET /api/corehub/pr-workflow/drafts
