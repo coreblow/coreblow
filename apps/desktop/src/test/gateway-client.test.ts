@@ -402,4 +402,66 @@ describe("CoreBlowGatewayClient", () => {
     const approvalRes = await client.resolveWarRoomApproval("coreblow-squad", "appr_1", "approved");
     expect(approvalRes).toBe(true);
   });
+
+  it("handles CoreHub 1-click install/uninstall, skill toggle/patch, and credential pools", async () => {
+    // 1. installStorefrontItem & uninstallStorefrontItem
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({ ok: true } as any);
+    const instOk = await client.installStorefrontItem("ext-1");
+    expect(instOk).toBe(true);
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://127.0.0.1:18789/api/corehub/storefront/ext-1/install",
+      expect.objectContaining({ method: "POST" }),
+    );
+
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({ ok: true } as any);
+    const uninstOk = await client.uninstallStorefrontItem("ext-1");
+    expect(uninstOk).toBe(true);
+
+    // 2. toggleLearnedSkill & patchLearnedSkill
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({ ok: true } as any);
+    const toggleOk = await client.toggleLearnedSkill("skill-1", true);
+    expect(toggleOk).toBe(true);
+
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({ ok: true } as any);
+    const patchOk = await client.patchLearnedSkill("skill-1", { description: "Updated playbook" });
+    expect(patchOk).toBe(true);
+
+    // 3. getCredentialPools
+    const mockPools = {
+      ok: true,
+      fallbackChain: ["anthropic", "openai"],
+      pools: {
+        anthropic: [{ id: "k1", providerId: "anthropic", label: "Key 1", apiKey: "sk-...1234", priority: 1, enabled: true }],
+      },
+      telemetry: {
+        daily: {},
+        monthly: {},
+        lifetime: { requests: 10, inputTokens: 5000, outputTokens: 2000, totalTokens: 7000, estimatedCostUsd: 0.05, failovers: 1 },
+        byProvider: {},
+      },
+    };
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockPools,
+    } as any);
+
+    const pools = await client.getCredentialPools();
+    expect(pools).not.toBeNull();
+    expect(pools?.fallbackChain.length).toBe(2);
+    expect(pools?.pools.anthropic.length).toBe(1);
+
+    // 4. addCredentialPoolKey & deleteCredentialPoolKey
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({ ok: true } as any);
+    const addKeyOk = await client.addCredentialPoolKey({ providerId: "openai", apiKey: "sk-proj-test", label: "Backup" });
+    expect(addKeyOk).toBe(true);
+
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({ ok: true } as any);
+    const delKeyOk = await client.deleteCredentialPoolKey("k1");
+    expect(delKeyOk).toBe(true);
+
+    // 5. saveFallbackChain
+    (global as any).fetch = vi.fn().mockResolvedValueOnce({ ok: true } as any);
+    const chainOk = await client.saveFallbackChain(["openai", "anthropic"]);
+    expect(chainOk).toBe(true);
+  });
 });

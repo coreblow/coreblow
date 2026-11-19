@@ -448,7 +448,7 @@ export class CognitiveCoordinator {
 
     // Spawn bounded background task
     this.enqueueTask(async () => {
-      // 1. EvoLoop Trajectory Ingestion
+      // 1. EvoLoop Trajectory Ingestion & Auto-Distill / Auto-Patch
       if (microkernel.skillSynthesizer) {
         try {
           const ingestResult = await microkernel.skillSynthesizer.ingestTrajectory(trajectory, {
@@ -456,6 +456,13 @@ export class CognitiveCoordinator {
           });
           if (ingestResult.ok) {
             this.counters.evoloopTrajectories += 1;
+          }
+
+          // Auto-distill novel multi-step procedures or auto-patch existing ones
+          try {
+            await microkernel.skillSynthesizer.autoDistillOrPatchFromTurn(trajectory);
+          } catch {
+            // Fail-open for auto-distill background task
           }
 
           // 2. Skill Outcome Feedback

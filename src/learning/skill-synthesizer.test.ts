@@ -1508,5 +1508,70 @@ Step 1
       );
       expect(sanitizedRes.injectedSkillsPrompt).toContain("</active_constraints>");
     });
+
+    it("autoDistillOrPatchFromTurn creates novel skill on multi-step success and auto-patches existing without duplicate", async () => {
+      // 1. Novel multi-step turn creates a distilled skill
+      const trajectory1: TurnTrajectoryRecord = {
+        id: "turn_distill_novel",
+        userGoal: "Deploy container to production cluster",
+        finalOutcome: "success",
+        steps: [
+          { toolName: "terminal", argsSummary: "docker build -t app:v1 .", succeeded: true },
+          { toolName: "terminal", argsSummary: "docker push registry/app:v1", succeeded: true },
+          { toolName: "terminal", argsSummary: "kubectl apply -f k8s/deploy.yaml", succeeded: true },
+        ],
+        timestampMs: Date.now(),
+      };
+
+      const distillResult = await synthesizer.autoDistillOrPatchFromTurn(trajectory1);
+      expect(distillResult.ok).toBe(true);
+      expect(distillResult.action).toBe("distilled");
+      expect(distillResult.skill).toBeDefined();
+      expect(distillResult.skill?.version).toBe("1.0.0");
+      expect(distillResult.skill?.verifiedProcedure?.length).toBe(3);
+
+      const skillId = distillResult.skill!.id;
+
+      // 2. Follow-up turn with same goal auto-patches the existing skill
+      const trajectory2: TurnTrajectoryRecord = {
+        id: "turn_distill_patch",
+        userGoal: "Deploy container to production cluster",
+        finalOutcome: "success",
+        steps: [
+          { toolName: "terminal", argsSummary: "docker build -t app:v2 .", succeeded: true },
+          { toolName: "terminal", argsSummary: "docker push registry/app:v2", succeeded: true },
+          { toolName: "terminal", argsSummary: "kubectl rollout status deployment/app", succeeded: true },
+        ],
+        timestampMs: Date.now(),
+      };
+
+      const patchResult = await synthesizer.autoDistillOrPatchFromTurn(trajectory2);
+      expect(patchResult.ok).toBe(true);
+      expect(patchResult.action).toBe("patched");
+      expect(patchResult.skill).toBeDefined();
+      expect(patchResult.skill?.id).toBe(skillId); // No duplicate skill created!
+      expect(patchResult.skill?.version).toBe("1.1.0");
+
+      // 3. Non-qualifying turn (< 3 steps) is rejected
+      const shortTurn: TurnTrajectoryRecord = {
+        id: "turn_short",
+        userGoal: "Simple cat file",
+        finalOutcome: "success",
+        steps: [
+          { toolName: "read_file", argsSummary: "package.json", succeeded: true },
+        ],
+        timestampMs: Date.now(),
+      };
+      const rejectResult = await synthesizer.autoDistillOrPatchFromTurn(shortTurn);
+      expect(rejectResult.ok).toBe(false);
+      expect(rejectResult.reason).toContain("requires steps.length >= 3");
+
+      // 4. toggleSkill disables and re-enables
+      const toggledOff = await synthesizer.toggleSkill(skillId, false);
+      expect(toggledOff.status).toBe("deprecated");
+
+      const toggledOn = await synthesizer.toggleSkill(skillId, true);
+      expect(toggledOn.status).toBe("verified_active");
+    });
   });
 });

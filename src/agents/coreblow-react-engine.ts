@@ -26,6 +26,7 @@ import {
   appendTurnToUnifiedSession,
   upsertUnifiedSession,
 } from "../sessions/unified-session-store.js";
+import { getGlobalCredentialPoolManager } from "../providers/credential-pool.js";
 import type { CoreBlowConfig } from "../config/config.js";
 
 export type ExecutionProfile = "Full access" | "Workspace" | "Guarded" | "Read-only";
@@ -3204,6 +3205,45 @@ export async function autoDiscoverRuntimeEndpoints(
   return null;
 }
 
+function detectProviderIdFromTarget(endpoint: string, model?: string): string {
+  const e = endpoint.toLowerCase();
+  const m = (model ?? "").toLowerCase();
+  if (e.includes("anthropic") || m.includes("claude")) return "anthropic";
+  if (e.includes("openai") || m.includes("gpt") || m.includes("o1") || m.includes("o3")) return "openai";
+  if (e.includes("generativelanguage") || e.includes("gemini") || m.includes("gemini")) return "gemini";
+  if (e.includes("groq") || m.includes("llama")) return "groq";
+  if (e.includes("deepseek") || m.includes("deepseek")) return "deepseek";
+  if (e.includes("openrouter")) return "openrouter";
+  if (e.includes("ollama") || e.includes("11434")) return "ollama";
+  return "custom";
+}
+
+function getFallbackDefaultEndpoint(providerId: string, currentEndpoint: string): string {
+  switch (providerId) {
+    case "anthropic": return "https://api.anthropic.com/v1/messages";
+    case "openai": return "https://api.openai.com/v1/chat/completions";
+    case "gemini": return "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+    case "groq": return "https://api.groq.com/openai/v1/chat/completions";
+    case "deepseek": return "https://api.deepseek.com/v1/chat/completions";
+    case "openrouter": return "https://openrouter.ai/api/v1/chat/completions";
+    case "ollama": return "http://127.0.0.1:11434/v1/chat/completions";
+    default: return currentEndpoint;
+  }
+}
+
+function getFallbackDefaultModel(providerId: string, currentModel?: string): string {
+  switch (providerId) {
+    case "anthropic": return "claude-3-7-sonnet";
+    case "openai": return "gpt-4o";
+    case "gemini": return "gemini-2.0-flash";
+    case "groq": return "llama-3.3-70b-versatile";
+    case "deepseek": return "deepseek-chat";
+    case "openrouter": return "auto";
+    case "ollama": return "llama3.3";
+    default: return currentModel ?? "coreblow-agent";
+  }
+}
+
 /**
  * Runs the CoreBlow Autonomous ReAct tool execution loop.
  */
@@ -3385,48 +3425,139 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
       { mode: (options as any).toolSelectionMode ?? "smart" },
     );
 
-    const payload = {
-      model,
-      messages: conversation,
-      tools: activeTools,
-      tool_choice: "auto",
-      stream: false,
-    };
+    const poolManager = getGlobalCredentialPoolManager();
+    let effectiveEndpoint = endpoint;
+    let effectiveModel = model;
+    let effectiveApiKey = apiKey;
+    let currentKeyId: string | undefined;
 
-    let response: Response;
-    try {
-      response = await fetchFn(endpoint, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(payload),
-      });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      return {
-        ok: false,
-        reply: `Network connection error contacting LLM provider at ${endpoint}: ${msg}`,
-        toolSteps,
-        steps,
-        detectedPath: detectedPath ?? undefined,
-        executionProfile,
-        error: msg,
+    let response: Response | undefined;
+    let lastErrText = "";
+
+    // Up to 2 automatic failover hops per turn on 429 / transient server errors
+    for (let hop = 0; hop <= 2; hop++) {
+      const providerId = detectProviderIdFromTarget(effectiveEndpoint, effectiveModel);
+      const selectedCred = poolManager.selectCredential(providerId);
+
+      if (selectedCred && (!effectiveApiKey || hop > 0)) {
+        currentKeyId = selectedCred.credential.id;
+        effectiveApiKey = selectedCred.credential.apiKey;
+        if (selectedCred.fallbackSwitched) {
+          effectiveEndpoint = getFallbackDefaultEndpoint(selectedCred.providerId, effectiveEndpoint);
+          effectiveModel = getFallbackDefaultModel(selectedCred.providerId, effectiveModel);
+        }
+      }
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
       };
+      if (effectiveApiKey) {
+        headers.Authorization = `Bearer ${effectiveApiKey}`;
+      }
+
+      const payload = {
+        model: effectiveModel,
+        messages: conversation,
+        tools: activeTools,
+        tool_choice: "auto",
+        stream: false,
+      };
+
+      try {
+        response = await fetchFn(effectiveEndpoint, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(payload),
+        });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (currentKeyId) {
+          poolManager.reportCredentialOutcome(currentKeyId, {
+            ok: false,
+            statusCode: 503,
+            errorMessage: msg,
+          });
+        }
+        if (hop < 2) continue; // retry on next pooled key or fallback provider
+        return {
+          ok: false,
+          reply: `Network connection error contacting LLM provider at ${effectiveEndpoint}: ${msg}`,
+          toolSteps,
+          steps,
+          detectedPath: detectedPath ?? undefined,
+          executionProfile,
+          error: msg,
+        };
+      }
+
+      if (!response.ok) {
+        lastErrText = await response.text();
+        const isTransientOrRateLimit =
+          response.status === 429 ||
+          response.status === 502 ||
+          response.status === 503 ||
+          response.status === 529;
+
+        if (isTransientOrRateLimit) {
+          if (currentKeyId) {
+            const retryAfterSec = Number(response.headers.get("retry-after") ?? 0);
+            poolManager.reportCredentialOutcome(currentKeyId, {
+              ok: false,
+              statusCode: response.status,
+              retryAfterMs: retryAfterSec > 0 ? retryAfterSec * 1000 : undefined,
+              errorMessage: lastErrText,
+            });
+          }
+          if (hop < 2) {
+            continue; // hop to next key or fallback provider
+          }
+        }
+
+        return {
+          ok: false,
+          reply: `LLM Provider returned error ${response.status}: ${lastErrText}`,
+          toolSteps,
+          steps,
+          detectedPath: detectedPath ?? undefined,
+          executionProfile,
+          error: `HTTP ${response.status}`,
+        };
+      }
+
+      // Success
+      break;
     }
 
-    if (!response.ok) {
-      const errText = await response.text();
+    if (!response || !response.ok) {
       return {
         ok: false,
-        reply: `LLM Provider returned error ${response.status}: ${errText}`,
+        reply: `LLM Provider request failed: ${lastErrText}`,
         toolSteps,
         steps,
         detectedPath: detectedPath ?? undefined,
         executionProfile,
-        error: `HTTP ${response.status}`,
+        error: "LLM_REQUEST_FAILED",
       };
     }
 
     const rawText = await response.text();
+
+    // Report token usage to CredentialPoolManager telemetry
+    let inTokens = 0;
+    let outTokens = 0;
+    try {
+      const parsedJson = JSON.parse(rawText);
+      inTokens = parsedJson.usage?.prompt_tokens ?? parsedJson.usage?.input_tokens ?? 0;
+      outTokens = parsedJson.usage?.completion_tokens ?? parsedJson.usage?.output_tokens ?? 0;
+    } catch {}
+
+    if (currentKeyId) {
+      poolManager.reportCredentialOutcome(currentKeyId, {
+        ok: true,
+        inputTokens: inTokens,
+        outputTokens: outTokens,
+      });
+    }
     let content = "";
     const nativeToolCalls: Array<{
       id: string;

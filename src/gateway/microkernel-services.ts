@@ -38,6 +38,10 @@ import {
   getGlobalDialecticUserModel,
   getGlobalMemoryProposalStore,
 } from "../memory/index.js";
+import {
+  getGlobalCredentialPoolManager,
+  maskApiKey,
+} from "../providers/credential-pool.js";
 import { UniversalAgentImporterService, type ExternalAgentSource } from "../migration/index.js";
 import {
   listUnifiedSessions,
@@ -726,7 +730,10 @@ export async function handleCoreHubRoute(
     pathname === "/api/cory/remember" ||
     (pathname.startsWith("/api/cory/items/") && method === "DELETE") ||
     (pathname.startsWith("/api/cory/proposals/") && method === "POST") ||
-    pathname === "/api/cory/wiki/compile";
+    pathname === "/api/cory/wiki/compile" ||
+    (pathname.startsWith("/api/corehub/storefront/") && method === "POST") ||
+    (pathname.startsWith("/api/corehub/skills/") && method === "POST") ||
+    (pathname.startsWith("/api/corehub/providers/") && (method === "POST" || method === "DELETE"));
   const cfg = options.cfg ?? loadConfig();
 
   // Validate browser origin for CORS / cross-origin protection
@@ -1557,6 +1564,16 @@ export async function handleCoreHubRoute(
     }
   }
 
+  // GET /api/corehub/providers/pools
+  if (method === "GET" && pathname === "/api/corehub/providers/pools") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    const poolManager = getGlobalCredentialPoolManager();
+    const result = poolManager.getMaskedPools();
+    sendJson(res, 200, { ok: true, ...result });
+    return true;
+  }
+
   // GET /api/corehub/pr-workflow/drafts
   if (method === "GET" && pathname === "/api/corehub/pr-workflow/drafts") {
     if (!services.prWorkflow) {
@@ -1975,6 +1992,168 @@ export async function handleCoreHubRoute(
         const msg = err instanceof Error ? err.message : String(err);
         const statusCode = msg.includes("SKILL_NOT_FOUND") || msg.includes("not found") ? 404 : 400;
         sendJson(res, statusCode, { ok: false, error: msg });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/storefront/:id/install
+    const storefrontInstallMatch = /^\/api\/corehub\/storefront\/([^/]+)\/install$/.exec(pathname);
+    if (method === "POST" && storefrontInstallMatch) {
+      const pluginId = decodeURIComponent(storefrontInstallMatch[1]);
+      try {
+        const catalogEntries = options.catalogEntries ?? loadStorefrontCatalogEntries(options.catalogPath);
+        const entry = catalogEntries.find((e) => e.id === pluginId);
+        const capabilities = (entry?.capabilities ?? []).filter(isCoreHubCapability);
+        const ledger = services.appStore.getConsentLedger();
+        ledger.grantConsent(pluginId, capabilities, operator);
+        if (entry) {
+          const manifest: CoreHubAppManifest = {
+            id: pluginId,
+            version: entry.version ?? "1.0.0",
+            minGatewayVersion: "2.0.0",
+            capabilities,
+            publisher: {
+              name: entry.publisher?.name ?? "coreblow",
+            },
+            hotReloadSafe: entry.hotReloadSafe ?? true,
+            integrity: "sha256-verified-storefront",
+            description: entry.description ?? entry.summary ?? "Installed extension",
+          };
+          try {
+            await services.appStore.enableApp(pluginId, manifest, { forceImmediate: true });
+          } catch {
+            // best-effort activation for built-in capability or catalog entries
+          }
+        }
+        sendJson(res, 200, { ok: true, pluginId, installed: true });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/storefront/:id/uninstall
+    const storefrontUninstallMatch = /^\/api\/corehub\/storefront\/([^/]+)\/uninstall$/.exec(pathname);
+    if (method === "POST" && storefrontUninstallMatch) {
+      const pluginId = decodeURIComponent(storefrontUninstallMatch[1]);
+      try {
+        const ledger = services.appStore.getConsentLedger();
+        ledger.revokeConsent(pluginId);
+        try {
+          services.appStore.disableApp(pluginId);
+        } catch {}
+        sendJson(res, 200, { ok: true, pluginId, uninstalled: true });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/skills/:id/toggle
+    const skillToggleMatch = /^\/api\/corehub\/skills\/([^/]+)\/toggle$/.exec(pathname);
+    if (method === "POST" && skillToggleMatch) {
+      if (!services.skillSynthesizer) {
+        sendJson(res, 503, { ok: false, error: "Cory Skill Synthesizer service not available" });
+        return true;
+      }
+      const skillId = decodeURIComponent(skillToggleMatch[1]);
+      try {
+        const body = (await parseJsonBody(req).catch(() => ({}))) as Record<string, unknown>;
+        const enabled = typeof body.enabled === "boolean" ? body.enabled : undefined;
+        const updated = await services.skillSynthesizer.toggleSkill(skillId, enabled);
+        sendJson(res, 200, { ok: true, skillId: updated.id, status: updated.status, skill: updated });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const code = msg.includes("SKILL_NOT_FOUND") ? 404 : 400;
+        sendJson(res, code, { ok: false, error: msg });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/skills/:id/patch
+    const skillPatchMatch = /^\/api\/corehub\/skills\/([^/]+)\/patch$/.exec(pathname);
+    if (method === "POST" && skillPatchMatch) {
+      if (!services.skillSynthesizer) {
+        sendJson(res, 503, { ok: false, error: "Cory Skill Synthesizer service not available" });
+        return true;
+      }
+      const skillId = decodeURIComponent(skillPatchMatch[1]);
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const description = typeof body.description === "string" ? body.description.trim() : undefined;
+        const triggers = Array.isArray(body.triggers) ? (body.triggers as string[]) : undefined;
+        const procedure = Array.isArray(body.procedure) ? (body.procedure as string[]) : undefined;
+        const updated = await services.skillSynthesizer.patchSkill(skillId, {
+          description,
+          triggers,
+          procedure,
+        });
+        sendJson(res, 200, { ok: true, skillId: updated.id, version: updated.version, skill: updated });
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const code = msg.includes("SKILL_NOT_FOUND") ? 404 : 400;
+        sendJson(res, code, { ok: false, error: msg });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/providers/pools/keys
+    if (pathname === "/api/corehub/providers/pools/keys") {
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const providerId = typeof body.providerId === "string" ? body.providerId.trim() : "";
+        const apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
+        const label = typeof body.label === "string" ? body.label.trim() : undefined;
+        const priority = typeof body.priority === "number" ? body.priority : undefined;
+        if (!providerId || !apiKey) {
+          sendJson(res, 400, { ok: false, error: "Missing required 'providerId' or 'apiKey' field." });
+          return true;
+        }
+        const poolManager = getGlobalCredentialPoolManager();
+        const cred = poolManager.addCredential({ providerId, apiKey, label, priority });
+        sendJson(res, 200, {
+          ok: true,
+          credential: {
+            ...cred,
+            apiKey: maskApiKey(cred.apiKey),
+          },
+        });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // DELETE /api/corehub/providers/pools/keys/:keyId
+    const deleteKeyMatch = /^\/api\/corehub\/providers\/pools\/keys\/([^/]+)$/.exec(pathname);
+    if (method === "DELETE" && deleteKeyMatch) {
+      const keyId = decodeURIComponent(deleteKeyMatch[1]);
+      const poolManager = getGlobalCredentialPoolManager();
+      const removed = poolManager.removeCredential(keyId);
+      sendJson(res, 200, { ok: true, keyId, removed });
+      return true;
+    }
+
+    // POST /api/corehub/providers/fallback-chain
+    if (pathname === "/api/corehub/providers/fallback-chain") {
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const chain = Array.isArray(body.chain) ? (body.chain as string[]) : [];
+        if (chain.length === 0) {
+          sendJson(res, 400, { ok: false, error: "Missing required 'chain' array." });
+          return true;
+        }
+        const poolManager = getGlobalCredentialPoolManager();
+        const updatedChain = poolManager.setFallbackChain(chain);
+        sendJson(res, 200, { ok: true, fallbackChain: updatedChain });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
         return true;
       }
     }

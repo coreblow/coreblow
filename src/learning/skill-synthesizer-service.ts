@@ -233,7 +233,7 @@ export class CorySkillSynthesizerService implements GatewayService {
             this.indexSkill(skill, content);
           }
         } catch {
-          // Skip corrupt or unparseable files
+          // Skip corrupt or unparsable files
         }
       }
     } catch {
@@ -605,6 +605,175 @@ export class CorySkillSynthesizerService implements GatewayService {
     this.indexSkill(updatedSkill, markdown);
 
     return updatedSkill;
+  }
+
+  // -------------------------------------------------------------------------
+  // Skill Toggle & Direct Patching
+  // -------------------------------------------------------------------------
+
+  public async toggleSkill(skillId: string, enabled?: boolean): Promise<EvolvingSkillRecord> {
+    const skill = this.skills.get(skillId);
+    if (!skill) {
+      throw new Error(`SKILL_NOT_FOUND: Skill with id '${skillId}' does not exist.`);
+    }
+
+    const nextStatus: SkillLifecycleStatus =
+      enabled !== undefined
+        ? (enabled ? "verified_active" : "deprecated")
+        : skill.status === "verified_active"
+          ? "deprecated"
+          : "verified_active";
+
+    const updatedSkill: EvolvingSkillRecord = Object.freeze({
+      ...skill,
+      status: nextStatus,
+      updatedAt: Date.now(),
+      updatedAtMs: Date.now(),
+    });
+
+    this.skills.set(skillId, updatedSkill);
+    this.ledger.skills[skillId] = updatedSkill.metrics;
+    await this.persistLedger();
+
+    const markdown = serializeEvolvingSkillMarkdown(updatedSkill);
+    await fs.writeFile(path.join(this.learnedDir, `${skillId}.md`), markdown, "utf-8");
+    if (updatedSkill.slug) {
+      const slugDir = path.join(this.stateDir, "skills", updatedSkill.slug);
+      try {
+        await fs.mkdir(slugDir, { recursive: true });
+        await fs.writeFile(path.join(slugDir, "SKILL.md"), markdown, "utf-8");
+      } catch {}
+    }
+
+    if (nextStatus === "verified_active") {
+      this.indexSkill(updatedSkill, markdown);
+    } else if (this.coryBootstrap?.searchIndex) {
+      try {
+        this.coryBootstrap.searchIndex.removeItem(`skill:${skillId}`);
+      } catch {}
+    }
+
+    return updatedSkill;
+  }
+
+  public async patchSkill(
+    skillId: string,
+    updates: {
+      instructions?: string;
+      description?: string;
+      triggers?: string[];
+      procedure?: string[];
+    },
+  ): Promise<EvolvingSkillRecord> {
+    const skill = this.skills.get(skillId);
+    if (!skill) {
+      throw new Error(`SKILL_NOT_FOUND: Skill with id '${skillId}' does not exist.`);
+    }
+
+    const versionParts = (skill.version || "1.0.0").split(".").map((n) => parseInt(n, 10) || 0);
+    const newVersion = `${versionParts[0] || 1}.${versionParts[1] || 0}.${(versionParts[2] || 0) + 1}`;
+
+    const updatedProcedure = updates.procedure
+      ? Object.freeze([...updates.procedure])
+      : (skill.verifiedProcedure ?? skill.executionStrategy);
+
+    const updatedSkill: EvolvingSkillRecord = Object.freeze({
+      ...skill,
+      version: newVersion,
+      description: updates.description ?? skill.description,
+      triggers: updates.triggers ? Object.freeze([...updates.triggers]) : skill.triggers,
+      verifiedProcedure: updatedProcedure,
+      executionStrategy: updatedProcedure,
+      updatedAt: Date.now(),
+      updatedAtMs: Date.now(),
+    });
+
+    this.skills.set(skillId, updatedSkill);
+    this.ledger.skills[skillId] = updatedSkill.metrics;
+    await this.persistLedger();
+
+    const markdown = serializeEvolvingSkillMarkdown(updatedSkill);
+    await fs.writeFile(path.join(this.learnedDir, `${skillId}.md`), markdown, "utf-8");
+    if (updatedSkill.slug) {
+      const slugDir = path.join(this.stateDir, "skills", updatedSkill.slug);
+      try {
+        await fs.mkdir(slugDir, { recursive: true });
+        await fs.writeFile(path.join(slugDir, "SKILL.md"), markdown, "utf-8");
+      } catch {}
+    }
+
+    this.indexSkill(updatedSkill, markdown);
+    return updatedSkill;
+  }
+
+  /**
+   * EvoLoop Closed-Loop Auto-Distill & Auto-Patch:
+   * When steps >= 3 and finalOutcome === "success":
+   * - If an existing skill matches the goal, auto-patch SKILL.md with new tool patterns (incrementing patch version)
+   * - If no skill matches and trajectory is reusable, auto-distill a new verified SKILL.md into ~/.coreblow/skills/<slug>/SKILL.md
+   */
+  public async autoDistillOrPatchFromTurn(
+    trajectory: TurnTrajectoryRecord,
+  ): Promise<{
+    ok: boolean;
+    action?: "distilled" | "patched";
+    skill?: EvolvingSkillRecord;
+    reason?: string;
+  }> {
+    const steps = trajectory.steps ?? trajectory.toolSteps ?? [];
+    if (steps.length < 3 || trajectory.finalOutcome !== "success") {
+      return {
+        ok: false,
+        reason: "Turn does not qualify for auto-distill/patch (requires steps.length >= 3 and success outcome)",
+      };
+    }
+
+    if (isZone0PublicTrajectory(trajectory)) {
+      return {
+        ok: false,
+        reason: "Zone 0 public trajectory blocked from mutating skills",
+      };
+    }
+
+    const goal = (trajectory.userGoal ?? trajectory.taskGoal ?? "").trim();
+    if (!goal) {
+      return { ok: false, reason: "Missing goal in trajectory" };
+    }
+
+    const existingSkill = this.findExistingSkillForTrajectory(trajectory);
+    if (existingSkill?.locked === true) {
+      return { ok: false, reason: "Skill is locked against auto-patching", skill: existingSkill };
+    }
+
+    const distillResult = distillTrajectoryToSkillCandidate(trajectory, existingSkill, {
+      initialStatus: "verified_active",
+    });
+
+    if (!distillResult.ok) {
+      return { ok: false, reason: distillResult.reason };
+    }
+
+    const candidate = distillResult.candidate;
+    this.skills.set(candidate.id, candidate);
+    this.ledger.skills[candidate.id] = candidate.metrics;
+    await this.persistLedger();
+
+    const markdown = serializeEvolvingSkillMarkdown(candidate);
+    await fs.writeFile(path.join(this.learnedDir, `${candidate.id}.md`), markdown, "utf-8");
+    if (candidate.slug) {
+      const slugDir = path.join(this.stateDir, "skills", candidate.slug);
+      try {
+        await fs.mkdir(slugDir, { recursive: true });
+        await fs.writeFile(path.join(slugDir, "SKILL.md"), markdown, "utf-8");
+      } catch {}
+    }
+
+    this.indexSkill(candidate, markdown);
+    return {
+      ok: true,
+      action: existingSkill ? "patched" : "distilled",
+      skill: candidate,
+    };
   }
 
   // -------------------------------------------------------------------------

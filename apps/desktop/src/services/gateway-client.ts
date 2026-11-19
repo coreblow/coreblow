@@ -6,7 +6,9 @@ import type {
   CoryMemoryLayer,
   CoryProfilePayload,
   CoreHubSkill,
+  CredentialPoolPayload,
   DialecticTrait,
+  MaskedPooledCredential,
   MemoryProposal,
   ModelTier,
   PermissionMode,
@@ -577,10 +579,155 @@ export class CoreBlowGatewayClient {
         description: String(s.description || s.summary || ""),
         category: String(s.category || "Learned"),
         version: String(s.version || "1.0.0"),
-        installed: true,
+        installed: s.status === "verified_active" || s.enabled !== false,
       }));
     } catch {
       return [];
+    }
+  }
+
+  /**
+   * 1-Click Install or Enable Storefront Item (POST /api/corehub/storefront/:id/install)
+   */
+  async installStorefrontItem(id: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/storefront/${encodeURIComponent(id)}/install`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(5000),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Uninstall or Disable Storefront Item (POST /api/corehub/storefront/:id/uninstall)
+   */
+  async uninstallStorefrontItem(id: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/storefront/${encodeURIComponent(id)}/uninstall`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(5000),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Toggle a Learned Skill (POST /api/corehub/skills/:id/toggle)
+   */
+  async toggleLearnedSkill(id: string, enabled?: boolean): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/skills/${encodeURIComponent(id)}/toggle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled }),
+        signal: AbortSignal.timeout(4000),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Direct Patch a Learned Skill (POST /api/corehub/skills/:id/patch)
+   */
+  async patchLearnedSkill(
+    id: string,
+    updates: {
+      instructions?: string;
+      description?: string;
+      triggers?: string[];
+      procedure?: string[];
+    },
+  ): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/skills/${encodeURIComponent(id)}/patch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+        signal: AbortSignal.timeout(4000),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Fetch Multi-Key Credential Pools & Telemetry (GET /api/corehub/providers/pools)
+   */
+  async getCredentialPools(): Promise<CredentialPoolPayload | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/providers/pools`, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(3000),
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Add or Update Key in Credential Pool (POST /api/corehub/providers/pools/keys)
+   */
+  async addCredentialPoolKey(params: {
+    providerId: string;
+    apiKey: string;
+    label?: string;
+    priority?: number;
+  }): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/providers/pools/keys`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+        signal: AbortSignal.timeout(4000),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Remove a Key from Credential Pool (DELETE /api/corehub/providers/pools/keys/:keyId)
+   */
+  async deleteCredentialPoolKey(keyId: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/providers/pools/keys/${encodeURIComponent(keyId)}`, {
+        method: "DELETE",
+        signal: AbortSignal.timeout(4000),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Save Ordered Provider Fallback Chain (POST /api/corehub/providers/fallback-chain)
+   */
+  async saveFallbackChain(chain: string[]): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/providers/fallback-chain`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chain }),
+        signal: AbortSignal.timeout(4000),
+      });
+      return res.ok;
+    } catch {
+      return false;
     }
   }
 

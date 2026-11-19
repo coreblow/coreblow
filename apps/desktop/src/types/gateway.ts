@@ -177,3 +177,41 @@ export interface CoryProfilePayload {
   pendingProposals: MemoryProposal[];
   counts: Record<string, number>;
 }
+
+export interface MaskedPooledCredential {
+  id: string;
+  providerId: string;
+  label: string;
+  apiKey: string;
+  priority: number;
+  enabled: boolean;
+  cooldownUntilMs?: number;
+  errorCount: number;
+  lastUsedAtMs?: number;
+  totalTokens: number;
+  inputTokens: number;
+  outputTokens: number;
+  estimatedCostUsd: number;
+  createdAtMs: number;
+}
+
+export interface ProviderUsageTelemetry {
+  requests: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  estimatedCostUsd: number;
+  failovers: number;
+}
+
+export interface CredentialPoolPayload {
+  ok: boolean;
+  fallbackChain: string[];
+  pools: Record<string, MaskedPooledCredential[]>;
+  telemetry: {
+    daily: Record<string, ProviderUsageTelemetry>;
+    monthly: Record<string, ProviderUsageTelemetry>;
+    lifetime: ProviderUsageTelemetry;
+    byProvider: Record<string, ProviderUsageTelemetry>;
+  };
+}

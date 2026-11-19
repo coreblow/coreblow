@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { gatewayClient } from "../services/gateway-client";
-import type { CoreHubSkill, PermissionMode } from "../types/gateway";
+import type { CoreHubSkill, PermissionMode, CredentialPoolPayload } from "../types/gateway";
 import type { UiPreferences } from "../services/storage";
 import {
   CloseIcon,
@@ -41,6 +41,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [learnedSkills, setLearnedSkills] = useState<CoreHubSkill[]>([]);
   const [loadingSkills, setLoadingSkills] = useState(false);
 
+  const [poolData, setPoolData] = useState<CredentialPoolPayload | null>(null);
+  const [loadingPool, setLoadingPool] = useState(false);
+  const [newKeyProvider, setNewKeyProvider] = useState("anthropic");
+  const [newKeyValue, setNewKeyValue] = useState("");
+  const [newKeyLabel, setNewKeyLabel] = useState("");
+
+  const fetchPools = async () => {
+    setLoadingPool(true);
+    try {
+      const data = await gatewayClient.getCredentialPools();
+      if (data) setPoolData(data);
+    } finally {
+      setLoadingPool(false);
+    }
+  };
+
   useEffect(() => {
     if (open && activeSection === "skills") {
       setLoadingSkills(true);
@@ -51,7 +67,44 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         })
         .finally(() => setLoadingSkills(false));
     }
+    if (open && activeSection === "models") {
+      fetchPools();
+    }
   }, [open, activeSection]);
+
+  const handleAddPoolKey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newKeyValue.trim()) return;
+    const ok = await gatewayClient.addCredentialPoolKey({
+      providerId: newKeyProvider,
+      apiKey: newKeyValue.trim(),
+      label: newKeyLabel.trim() || undefined,
+    });
+    if (ok) {
+      setNewKeyValue("");
+      setNewKeyLabel("");
+      await fetchPools();
+    }
+  };
+
+  const handleDeletePoolKey = async (keyId: string) => {
+    const ok = await gatewayClient.deleteCredentialPoolKey(keyId);
+    if (ok) {
+      await fetchPools();
+    }
+  };
+
+  const handleMoveFallback = async (index: number, direction: -1 | 1) => {
+    if (!poolData) return;
+    const chain = [...poolData.fallbackChain];
+    const targetIdx = index + direction;
+    if (targetIdx < 0 || targetIdx >= chain.length) return;
+    const temp = chain[index];
+    chain[index] = chain[targetIdx];
+    chain[targetIdx] = temp;
+    await gatewayClient.saveFallbackChain(chain);
+    await fetchPools();
+  };
 
   if (!open) return null;
 
@@ -244,13 +297,282 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {activeSection === "models" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <p style={{ fontSize: "12px", color: "var(--ink-secondary)", lineHeight: 1.5 }}>
-                Configure provider API keys. Keys are stored locally in your desktop vault and sent directly to the local Gateway daemon when executing ReAct turns.
-              </p>
+              {/* 1. Live Usage Telemetry Strip */}
+              {(() => {
+                const todayKey = new Date().toISOString().slice(0, 10);
+                const daily = poolData?.telemetry?.daily?.[todayKey] ?? {
+                  requests: 0,
+                  totalTokens: 0,
+                  failovers: 0,
+                  estimatedCostUsd: 0,
+                };
+                return (
+                  <div
+                    style={{
+                      background: "var(--bg-card)",
+                      borderRadius: "var(--radius-sm)",
+                      padding: "10px 12px",
+                      border: "1px solid var(--border-subtle)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "8px",
+                    }}
+                  >
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+                      Live Usage Telemetry (Today)
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", textAlign: "center" }}>
+                      <div style={{ background: "var(--bg-code)", padding: "6px", borderRadius: "var(--radius-xs)" }}>
+                        <div style={{ fontSize: "10px", color: "var(--ink-muted)" }}>Requests</div>
+                        <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--ink-primary)" }}>{daily.requests}</div>
+                      </div>
+                      <div style={{ background: "var(--bg-code)", padding: "6px", borderRadius: "var(--radius-xs)" }}>
+                        <div style={{ fontSize: "10px", color: "var(--ink-muted)" }}>Total Tokens</div>
+                        <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--accent-teal)" }}>
+                          {daily.totalTokens > 1000 ? `${(daily.totalTokens / 1000).toFixed(1)}k` : daily.totalTokens}
+                        </div>
+                      </div>
+                      <div style={{ background: "var(--bg-code)", padding: "6px", borderRadius: "var(--radius-xs)" }}>
+                        <div style={{ fontSize: "10px", color: "var(--ink-muted)" }}>Failovers</div>
+                        <div style={{ fontSize: "14px", fontWeight: 700, color: daily.failovers > 0 ? "#f59e0b" : "var(--ink-secondary)" }}>
+                          {daily.failovers}
+                        </div>
+                      </div>
+                      <div style={{ background: "var(--bg-code)", padding: "6px", borderRadius: "var(--radius-xs)" }}>
+                        <div style={{ fontSize: "10px", color: "var(--ink-muted)" }}>Est. Cost</div>
+                        <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--state-success, #10b981)" }}>
+                          ${daily.estimatedCostUsd.toFixed(4)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {/* 2. Automatic Fallback Chain */}
+              <div
+                style={{
+                  background: "var(--bg-card)",
+                  borderRadius: "var(--radius-sm)",
+                  padding: "10px 12px",
+                  border: "1px solid var(--border-subtle)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                }}
+              >
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+                  Daybreak Provider Fallback Chain
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                  {(poolData?.fallbackChain ?? ["anthropic", "openai", "gemini", "groq", "deepseek", "ollama"]).map((prov, idx, arr) => (
+                    <div
+                      key={prov}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        background: "var(--bg-code)",
+                        padding: "3px 6px",
+                        borderRadius: "var(--radius-xs)",
+                        border: "1px solid var(--border-subtle)",
+                        fontSize: "11px",
+                      }}
+                    >
+                      <span style={{ fontWeight: 600, color: "var(--ink-primary)" }}>{prov}</span>
+                      {idx > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleMoveFallback(idx, -1)}
+                          style={{ background: "transparent", border: "none", color: "var(--ink-muted)", cursor: "pointer", padding: "0 2px" }}
+                          title="Move left"
+                        >
+                          ‹
+                        </button>
+                      )}
+                      {idx < arr.length - 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleMoveFallback(idx, 1)}
+                          style={{ background: "transparent", border: "none", color: "var(--ink-muted)", cursor: "pointer", padding: "0 2px" }}
+                          title="Move right"
+                        >
+                          ›
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Multi-Key Credential Pools */}
+              <div
+                style={{
+                  background: "var(--bg-card)",
+                  borderRadius: "var(--radius-sm)",
+                  padding: "10px 12px",
+                  border: "1px solid var(--border-subtle)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+                  Multi-Key Credential Pools
+                </div>
+
+                {/* Add Key Form */}
+                <form onSubmit={handleAddPoolKey} style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                  <select
+                    value={newKeyProvider}
+                    onChange={(e) => setNewKeyProvider(e.target.value)}
+                    style={{
+                      height: "30px",
+                      background: "var(--bg-code)",
+                      border: "1px solid var(--border-subtle)",
+                      borderRadius: "var(--radius-xs)",
+                      color: "var(--ink-primary)",
+                      fontSize: "11px",
+                      padding: "0 6px",
+                    }}
+                  >
+                    <option value="anthropic">Anthropic</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="gemini">Gemini</option>
+                    <option value="groq">Groq</option>
+                    <option value="deepseek">DeepSeek</option>
+                    <option value="openrouter">OpenRouter</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                  <input
+                    type="password"
+                    placeholder="API Key (e.g. sk-ant-...)"
+                    value={newKeyValue}
+                    onChange={(e) => setNewKeyValue(e.target.value)}
+                    style={{
+                      flex: 1,
+                      minWidth: "160px",
+                      height: "30px",
+                      background: "var(--bg-code)",
+                      border: "1px solid var(--border-subtle)",
+                      borderRadius: "var(--radius-xs)",
+                      color: "var(--ink-primary)",
+                      fontSize: "11px",
+                      padding: "0 8px",
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Label (optional)"
+                    value={newKeyLabel}
+                    onChange={(e) => setNewKeyLabel(e.target.value)}
+                    style={{
+                      width: "120px",
+                      height: "30px",
+                      background: "var(--bg-code)",
+                      border: "1px solid var(--border-subtle)",
+                      borderRadius: "var(--radius-xs)",
+                      color: "var(--ink-primary)",
+                      fontSize: "11px",
+                      padding: "0 8px",
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newKeyValue.trim()}
+                    style={{
+                      height: "30px",
+                      padding: "0 10px",
+                      background: "var(--accent-teal)",
+                      color: "#000",
+                      border: "none",
+                      borderRadius: "var(--radius-xs)",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      cursor: newKeyValue.trim() ? "pointer" : "default",
+                      opacity: newKeyValue.trim() ? 1 : 0.5,
+                    }}
+                  >
+                    + Add Key
+                  </button>
+                </form>
+
+                {/* Pooled Keys List */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {(!poolData?.pools || Object.keys(poolData.pools).length === 0) ? (
+                    <div style={{ fontSize: "11px", color: "var(--ink-muted)", fontStyle: "italic" }}>
+                      No pooled keys added yet. Add multiple keys per provider for automatic failover on 429 rate limits.
+                    </div>
+                  ) : (
+                    Object.entries(poolData.pools).flatMap(([prov, keys]) =>
+                      keys.map((k) => {
+                        const inCooldown = Boolean(k.cooldownUntilMs && k.cooldownUntilMs > Date.now());
+                        return (
+                          <div
+                            key={k.id}
+                            style={{
+                              background: "var(--bg-code)",
+                              padding: "6px 10px",
+                              borderRadius: "var(--radius-xs)",
+                              border: "1px solid var(--border-subtle)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              fontSize: "11px",
+                            }}
+                          >
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <span style={{ fontWeight: 700, color: "var(--ink-primary)" }}>[{prov}]</span>
+                              <span>{k.label}</span>
+                              <code style={{ color: "var(--ink-muted)", fontSize: "10px" }}>{k.apiKey}</code>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <span
+                                style={{
+                                  padding: "1px 6px",
+                                  borderRadius: "3px",
+                                  fontSize: "9px",
+                                  fontWeight: 600,
+                                  background: inCooldown ? "rgba(245, 158, 11, 0.15)" : "rgba(16, 185, 129, 0.15)",
+                                  color: inCooldown ? "#f59e0b" : "var(--state-success, #10b981)",
+                                }}
+                              >
+                                {inCooldown ? "Cooldown" : "Healthy"}
+                              </span>
+                              <span style={{ color: "var(--ink-muted)", fontSize: "10px" }}>
+                                {k.totalTokens > 0 ? `${(k.totalTokens / 1000).toFixed(1)}k tok` : "0 tok"}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleDeletePoolKey(k.id)}
+                                title="Remove key"
+                                style={{
+                                  background: "transparent",
+                                  border: "none",
+                                  color: "var(--ink-muted)",
+                                  cursor: "pointer",
+                                  fontSize: "13px",
+                                  lineHeight: 1,
+                                }}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      }),
+                    )
+                  )}
+                </div>
+              </div>
+
+              {/* 4. Direct Single-Key Vault Preferences */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+                  Direct Vault Overrides
+                </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "4px" }}>
+                  <label style={{ display: "block", fontSize: "11px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "3px" }}>
                     Anthropic API Key (Claude)
                   </label>
                   <input
@@ -260,21 +582,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     placeholder="sk-ant-api03-..."
                     style={{
                       width: "100%",
-                      height: "34px",
+                      height: "30px",
                       background: "var(--bg-input)",
                       border: "1px solid var(--border-subtle)",
                       borderRadius: "var(--radius-xs)",
                       padding: "0 10px",
                       color: "var(--ink-primary)",
                       fontFamily: "var(--font-mono)",
-                      fontSize: "12px",
+                      fontSize: "11px",
                       outline: "none",
                     }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "4px" }}>
+                  <label style={{ display: "block", fontSize: "11px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "3px" }}>
                     OpenAI API Key (GPT-4o / o1 / o3)
                   </label>
                   <input
@@ -284,21 +606,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     placeholder="sk-proj-..."
                     style={{
                       width: "100%",
-                      height: "34px",
+                      height: "30px",
                       background: "var(--bg-input)",
                       border: "1px solid var(--border-subtle)",
                       borderRadius: "var(--radius-xs)",
                       padding: "0 10px",
                       color: "var(--ink-primary)",
                       fontFamily: "var(--font-mono)",
-                      fontSize: "12px",
+                      fontSize: "11px",
                       outline: "none",
                     }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "4px" }}>
+                  <label style={{ display: "block", fontSize: "11px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "3px" }}>
                     Google Gemini API Key
                   </label>
                   <input
@@ -308,21 +630,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     placeholder="AIzaSy..."
                     style={{
                       width: "100%",
-                      height: "34px",
+                      height: "30px",
                       background: "var(--bg-input)",
                       border: "1px solid var(--border-subtle)",
                       borderRadius: "var(--radius-xs)",
                       padding: "0 10px",
                       color: "var(--ink-primary)",
                       fontFamily: "var(--font-mono)",
-                      fontSize: "12px",
+                      fontSize: "11px",
                       outline: "none",
                     }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "4px" }}>
+                  <label style={{ display: "block", fontSize: "11px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "3px" }}>
                     Groq API Key (Llama 3.3 / Ultra-Fast)
                   </label>
                   <input
@@ -332,21 +654,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     placeholder="gsk_..."
                     style={{
                       width: "100%",
-                      height: "34px",
+                      height: "30px",
                       background: "var(--bg-input)",
                       border: "1px solid var(--border-subtle)",
                       borderRadius: "var(--radius-xs)",
                       padding: "0 10px",
                       color: "var(--ink-primary)",
                       fontFamily: "var(--font-mono)",
-                      fontSize: "12px",
+                      fontSize: "11px",
                       outline: "none",
                     }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "4px" }}>
+                  <label style={{ display: "block", fontSize: "11px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "3px" }}>
                     Local Ollama Endpoint URL
                   </label>
                   <input
@@ -356,38 +678,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     placeholder="http://127.0.0.1:11434"
                     style={{
                       width: "100%",
-                      height: "34px",
+                      height: "30px",
                       background: "var(--bg-input)",
                       border: "1px solid var(--border-subtle)",
                       borderRadius: "var(--radius-xs)",
                       padding: "0 10px",
                       color: "var(--ink-primary)",
                       fontFamily: "var(--font-mono)",
-                      fontSize: "12px",
-                      outline: "none",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "4px" }}>
-                    Gateway Auth Token / Custom Key
-                  </label>
-                  <input
-                    type="password"
-                    value={preferences.customApiKey || ""}
-                    onChange={(e) => onUpdatePreferences({ customApiKey: e.target.value })}
-                    placeholder="Optional token for authenticated microkernel endpoints"
-                    style={{
-                      width: "100%",
-                      height: "34px",
-                      background: "var(--bg-input)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-xs)",
-                      padding: "0 10px",
-                      color: "var(--ink-primary)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "12px",
+                      fontSize: "11px",
                       outline: "none",
                     }}
                   />

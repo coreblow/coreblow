@@ -17,7 +17,7 @@ export interface UiPreferences {
   modelTier: ModelTier;
   sidebarCollapsed: boolean;
   inspectorOpen: boolean;
-  inspectorTab: "git" | "warroom" | "memory";
+  inspectorTab: "git" | "warroom" | "memory" | "corehub";
   anthropicApiKey?: string;
   openAiApiKey?: string;
   geminiApiKey?: string;

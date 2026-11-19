@@ -2145,5 +2145,162 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
         await microkernel.registry.stopAll();
       }
     });
+
+    it("handles CoreHub 1-click storefront install/uninstall, skill toggle/patch, and credential pools", async () => {
+      const microkernel = createMicrokernelServiceRegistry({
+        stateDir: testDir,
+        coryDir,
+      });
+      await microkernel.registry.startAll();
+
+      try {
+        // 1. POST /api/corehub/storefront/:id/install
+        const instReqRes = createMockReqRes({
+          method: "POST",
+          url: "/api/corehub/storefront/cory-memory/install",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+        });
+        const handledInst = await handleCoreHubRoute(instReqRes.req, instReqRes.res, microkernel, { auth: testAuth });
+        expect(handledInst).toBe(true);
+        const instRes = await instReqRes.getResult();
+        expect(instRes.statusCode).toBe(200);
+        expect(instRes.data.ok).toBe(true);
+        expect(instRes.data.installed).toBe(true);
+
+        // 2. POST /api/corehub/storefront/:id/uninstall
+        const uninstReqRes = createMockReqRes({
+          method: "POST",
+          url: "/api/corehub/storefront/cory-memory/uninstall",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+        });
+        const handledUninst = await handleCoreHubRoute(uninstReqRes.req, uninstReqRes.res, microkernel, { auth: testAuth });
+        expect(handledUninst).toBe(true);
+        const uninstRes = await uninstReqRes.getResult();
+        expect(uninstRes.statusCode).toBe(200);
+        expect(uninstRes.data.ok).toBe(true);
+        expect(uninstRes.data.uninstalled).toBe(true);
+
+        // 3. Ingest a test skill, then toggle & patch it
+        const traj = {
+          id: "turn_toggle_test",
+          userGoal: "Automate benchmark tests",
+          finalOutcome: "success" as const,
+          steps: [
+            { toolName: "terminal", argsSummary: "pnpm test", succeeded: true },
+            { toolName: "terminal", argsSummary: "pnpm benchmark", succeeded: true },
+            { toolName: "terminal", argsSummary: "git status", succeeded: true },
+          ],
+          timestampMs: Date.now(),
+        };
+        const distilled = await microkernel.skillSynthesizer.autoDistillOrPatchFromTurn(traj);
+        expect(distilled.ok).toBe(true);
+        const testSkillId = distilled.skill!.id;
+
+        // POST /api/corehub/skills/:id/toggle
+        const toggleReqRes = createMockReqRes({
+          method: "POST",
+          url: `/api/corehub/skills/${testSkillId}/toggle`,
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: { enabled: false },
+        });
+        const handledToggle = await handleCoreHubRoute(toggleReqRes.req, toggleReqRes.res, microkernel, { auth: testAuth });
+        expect(handledToggle).toBe(true);
+        const toggleRes = await toggleReqRes.getResult();
+        expect(toggleRes.statusCode).toBe(200);
+        expect(toggleRes.data.status).toBe("deprecated");
+
+        // POST /api/corehub/skills/:id/patch
+        const patchReqRes = createMockReqRes({
+          method: "POST",
+          url: `/api/corehub/skills/${testSkillId}/patch`,
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: { description: "Updated benchmark automation instructions" },
+        });
+        const handledPatch = await handleCoreHubRoute(patchReqRes.req, patchReqRes.res, microkernel, { auth: testAuth });
+        expect(handledPatch).toBe(true);
+        const patchRes = await patchReqRes.getResult();
+        expect(patchRes.statusCode).toBe(200);
+        expect(patchRes.data.version).toBe("1.0.1");
+
+        // 4. Credential Pools: Add key, List masked pools, Set fallback chain, Delete key
+        const addKeyReqRes = createMockReqRes({
+          method: "POST",
+          url: "/api/corehub/providers/pools/keys",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: {
+            providerId: "anthropic",
+            apiKey: "sk-ant-test-gateway-key-12345",
+            label: "Gateway Test Anthropic Key",
+            priority: 1,
+          },
+        });
+        const handledAddKey = await handleCoreHubRoute(addKeyReqRes.req, addKeyReqRes.res, microkernel, { auth: testAuth });
+        expect(handledAddKey).toBe(true);
+        const addKeyRes = await addKeyReqRes.getResult();
+        expect(addKeyRes.statusCode).toBe(200);
+        expect(addKeyRes.data.ok).toBe(true);
+        expect(addKeyRes.data.credential.apiKey).toContain("sk-ant-...");
+        const keyId = addKeyRes.data.credential.id;
+
+        // GET /api/corehub/providers/pools
+        const listPoolsReqRes = createMockReqRes({
+          method: "GET",
+          url: "/api/corehub/providers/pools",
+        });
+        const handledListPools = await handleCoreHubRoute(listPoolsReqRes.req, listPoolsReqRes.res, microkernel, { auth: testAuth });
+        expect(handledListPools).toBe(true);
+        const listPoolsRes = await listPoolsReqRes.getResult();
+        expect(listPoolsRes.statusCode).toBe(200);
+        expect(listPoolsRes.data.pools.anthropic.length).toBeGreaterThanOrEqual(1);
+
+        // POST /api/corehub/providers/fallback-chain
+        const chainReqRes = createMockReqRes({
+          method: "POST",
+          url: "/api/corehub/providers/fallback-chain",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: { chain: ["anthropic", "openai", "groq", "ollama"] },
+        });
+        const handledChain = await handleCoreHubRoute(chainReqRes.req, chainReqRes.res, microkernel, { auth: testAuth });
+        expect(handledChain).toBe(true);
+        const chainRes = await chainReqRes.getResult();
+        expect(chainRes.statusCode).toBe(200);
+        expect(chainRes.data.fallbackChain).toEqual(["anthropic", "openai", "groq", "ollama"]);
+
+        // DELETE /api/corehub/providers/pools/keys/:keyId
+        const delKeyReqRes = createMockReqRes({
+          method: "DELETE",
+          url: `/api/corehub/providers/pools/keys/${keyId}`,
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+        });
+        const handledDelKey = await handleCoreHubRoute(delKeyReqRes.req, delKeyReqRes.res, microkernel, { auth: testAuth });
+        expect(handledDelKey).toBe(true);
+        const delKeyRes = await delKeyReqRes.getResult();
+        expect(delKeyRes.statusCode).toBe(200);
+        expect(delKeyRes.data.removed).toBe(true);
+      } finally {
+        await microkernel.registry.stopAll();
+      }
+    });
   });
 });

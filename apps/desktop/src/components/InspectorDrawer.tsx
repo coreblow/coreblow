@@ -3,13 +3,14 @@ import type { ActiveProjectState } from "../types/gateway";
 import { GitGatesTab } from "./tabs/GitGatesTab";
 import { WarRoomTab } from "./tabs/WarRoomTab";
 import { MemoryWikiTab } from "./tabs/MemoryWikiTab";
+import { CoreHubTab } from "./tabs/CoreHubTab";
 import { CloseIcon, TerminalIcon } from "./Icons";
 
 interface InspectorDrawerProps {
   open: boolean;
   onClose: () => void;
-  activeTab: "git" | "warroom" | "memory";
-  onChangeTab: (tab: "git" | "warroom" | "memory") => void;
+  activeTab: "git" | "warroom" | "memory" | "corehub";
+  onChangeTab: (tab: "git" | "warroom" | "memory" | "corehub") => void;
   project: ActiveProjectState;
 }
 
@@ -101,6 +102,22 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
           >
             Memory Wiki
           </button>
+          <button
+            type="button"
+            onClick={() => onChangeTab("corehub")}
+            style={{
+              padding: "4px 8px",
+              borderRadius: "var(--radius-xs)",
+              background: activeTab === "corehub" ? "var(--bg-chip)" : "transparent",
+              border: "none",
+              color: activeTab === "corehub" ? "var(--accent-teal)" : "var(--ink-secondary)",
+              fontSize: "12px",
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+          >
+            Skills &amp; Hub
+          </button>
         </div>
 
         <button
@@ -171,6 +188,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
         )}
         {activeTab === "warroom" && <WarRoomTab />}
         {activeTab === "memory" && <MemoryWikiTab />}
+        {activeTab === "corehub" && <CoreHubTab />}
       </div>
 
       {/* Bottom Integrated Terminal / Diff Preview Section */}
