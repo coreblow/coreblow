@@ -38,6 +38,10 @@ export const buildChildEnv = (baseEnv = process.env) => {
             ? `${currentOptions} --disable-warning=DEP0040`
             : "--disable-warning=DEP0040";
     }
+    const tsconfigPath = resolve(__dirname, "tsconfig.json");
+    if (!childEnv.TSX_TSCONFIG_PATH && existsSync(tsconfigPath)) {
+        childEnv.TSX_TSCONFIG_PATH = tsconfigPath;
+    }
     return childEnv;
 };
 
@@ -112,9 +116,13 @@ function run() {
 
     // Strategy 1: local node_modules/.bin/tsx
     const tsxBin = join(__dirname, "node_modules", ".bin", "tsx");
+    const tsconfigPath = resolve(__dirname, "tsconfig.json");
+    const tsxArgs = existsSync(tsconfigPath)
+        ? ["--tsconfig", tsconfigPath, entryFile, ...userArgs]
+        : [entryFile, ...userArgs];
 
     if (existsSync(tsxBin)) {
-        const child = spawn(tsxBin, [entryFile, ...userArgs], {
+        const child = spawn(tsxBin, tsxArgs, {
             stdio: "inherit",
             env: childEnv,
             cwd: process.cwd(),
