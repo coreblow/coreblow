@@ -139,18 +139,18 @@ export const Topbar: React.FC<TopbarProps> = ({
       </div>
 
       {/* Right Controls: Basic/Pro Toggle, Node Switcher Dropdown & Inspector Toggle */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         {/* 1-Click Basic / Pro Toggle Pill */}
         <button
           type="button"
           onClick={onToggleLayoutMode}
           title={`Active layout: ${layoutMode.toUpperCase()}. Click to switch to ${layoutMode === "basic" ? "Pro (Full 3-pane developer workspace)" : "Basic (Everyday clean chat & memory)"}`}
           style={{
-            height: "26px",
-            padding: "0 8px",
-            borderRadius: "var(--radius-xs)",
-            background: layoutMode === "basic" ? "rgba(45, 212, 191, 0.08)" : "rgba(255, 255, 255, 0.04)",
-            border: layoutMode === "basic" ? "1px solid rgba(45, 212, 191, 0.3)" : "1px solid var(--border-subtle)",
+            height: "28px",
+            padding: "0 10px",
+            borderRadius: "var(--radius-sm)",
+            background: layoutMode === "basic" ? "var(--accent-teal-subtle)" : "var(--bg-chip)",
+            border: layoutMode === "basic" ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
             color: layoutMode === "basic" ? "var(--accent-teal)" : "var(--ink-secondary)",
             fontSize: "11px",
             fontWeight: 600,
@@ -180,11 +180,11 @@ export const Topbar: React.FC<TopbarProps> = ({
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              height: "26px",
-              padding: "0 8px",
+              height: "28px",
+              padding: "0 10px",
               background: gatewayHealthy ? "rgba(16, 185, 129, 0.08)" : "rgba(239, 68, 68, 0.08)",
               border: `1px solid ${gatewayHealthy ? "rgba(16, 185, 129, 0.25)" : "rgba(239, 68, 68, 0.3)"}`,
-              borderRadius: "var(--radius-xs)",
+              borderRadius: "var(--radius-sm)",
               color: gatewayHealthy ? "var(--state-success)" : "var(--state-error)",
               fontSize: "11px",
               fontWeight: 500,
@@ -216,13 +216,13 @@ export const Topbar: React.FC<TopbarProps> = ({
             <div
               style={{
                 position: "absolute",
-                top: "32px",
+                top: "34px",
                 right: 0,
                 width: "280px",
                 background: "var(--bg-input)",
                 border: "1px solid var(--border-medium)",
                 borderRadius: "var(--radius-md)",
-                boxShadow: "0 12px 36px rgba(0, 0, 0, 0.55)",
+                boxShadow: "var(--shadow-composer)",
                 padding: "8px 0",
                 zIndex: 1000,
                 display: "flex",
@@ -296,7 +296,7 @@ export const Topbar: React.FC<TopbarProps> = ({
                             fontSize: "9px",
                             padding: "1px 5px",
                             borderRadius: "var(--radius-xs)",
-                            background: "rgba(45, 212, 191, 0.1)",
+                            background: "var(--accent-teal-subtle)",
                             color: "var(--accent-teal)",
                             textTransform: "uppercase",
                           }}
@@ -389,11 +389,11 @@ export const Topbar: React.FC<TopbarProps> = ({
           onClick={onToggleInspector}
           title="Toggle Right Inspector (⌘I)"
           style={{
-            width: "30px",
-            height: "30px",
+            width: "28px",
+            height: "28px",
             borderRadius: "var(--radius-sm)",
-            background: inspectorOpen ? "var(--bg-chip)" : "transparent",
-            border: inspectorOpen ? "1px solid var(--border-medium)" : "1px solid transparent",
+            background: inspectorOpen ? "var(--accent-teal-subtle)" : "transparent",
+            border: inspectorOpen ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
             color: inspectorOpen ? "var(--accent-teal)" : "var(--ink-secondary)",
             display: "grid",
             placeItems: "center",
@@ -401,7 +401,7 @@ export const Topbar: React.FC<TopbarProps> = ({
             transition: "all 0.15s ease",
           }}
         >
-          <InspectorIcon size={16} />
+          <InspectorIcon size={15} />
         </button>
       </div>
     </header>

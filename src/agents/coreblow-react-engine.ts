@@ -27,6 +27,15 @@ import {
   upsertUnifiedSession,
 } from "../sessions/unified-session-store.js";
 import { getGlobalCredentialPoolManager } from "../providers/credential-pool.js";
+import { redactSecrets } from "../security/secret-redactor.js";
+import { getCheckpointManager } from "../security/checkpoint-manager.js";
+import { getEmergencyStopController } from "../security/emergency-stop.js";
+import {
+  compressConversationIfNeeded,
+  applyPromptCacheControl,
+  isContextLengthExceededError,
+  type ContextMessage,
+} from "./context-compressor.js";
 import type { CoreBlowConfig } from "../config/config.js";
 
 export type ExecutionProfile = "Full access" | "Workspace" | "Guarded" | "Read-only";
@@ -70,6 +79,7 @@ export interface CoreBlowReActOptions {
   groqApiKey?: string;
   localOllamaUrl?: string;
   maxTurns?: number;
+  maxContextTokens?: number;
   runId?: string;
   sessionId?: string;
   trustZone?: string;
@@ -922,6 +932,8 @@ function isBinaryOrLargeFile(filePath: string): boolean {
  * Server-Side CoreBlow Autonomous Tool Executor.
  */
 export class CoreBlowToolExecutor {
+  public sessionId?: string;
+
   constructor(
     private readonly processRunner?: (
       command: string,
@@ -973,9 +985,25 @@ export class CoreBlowToolExecutor {
   }
 
   /**
-   * Dispatches a tool by name and arguments.
+   * Dispatches a tool by name and arguments with deterministic secret redaction.
    */
   async executeTool(
+    name: string,
+    args: Record<string, unknown>,
+    executionProfile: ExecutionProfile = "Full access",
+    defaultCwd?: string,
+  ): Promise<CoreBlowToolResult> {
+    const raw = await this.dispatchTool(name, args, executionProfile, defaultCwd);
+    const redactedOutput = redactSecrets(raw.output);
+    const redactedError = raw.error ? redactSecrets(raw.error).redacted : undefined;
+    return {
+      ...raw,
+      output: redactedOutput.redacted,
+      error: redactedError,
+    };
+  }
+
+  private async dispatchTool(
     name: string,
     args: Record<string, unknown>,
     executionProfile: ExecutionProfile = "Full access",
@@ -1352,6 +1380,11 @@ export class CoreBlowToolExecutor {
       if (!fs.existsSync(parentDir)) {
         fs.mkdirSync(parentDir, { recursive: true });
       }
+      try {
+        getCheckpointManager().createCheckpoint(normPath, "write_file", this.sessionId);
+      } catch {
+        // Snapshot failure should not block write execution
+      }
       await fsp.writeFile(normPath, content, "utf8");
       this.onFileModified?.(normPath);
       const lineCount = content.split("\n").length;
@@ -1410,6 +1443,11 @@ export class CoreBlowToolExecutor {
       }
 
       const updated = content.replace(oldText, newText);
+      try {
+        getCheckpointManager().createCheckpoint(normPath, "patch", this.sessionId);
+      } catch {
+        // Snapshot failure should not block patch execution
+      }
       await fsp.writeFile(normPath, updated, "utf8");
       this.onFileModified?.(normPath);
       return { success: true, output: `Successfully patched ${normPath}.` };
@@ -3253,6 +3291,45 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
   const defaultCwd = options.defaultCwd ? normalizePath(options.defaultCwd) : process.cwd();
   const maxTurns = options.maxTurns ?? 8;
 
+  // 0. Global Emergency Stop (E-Stop) Check
+  const estop = getEmergencyStopController();
+  if (estop.isPaused()) {
+    const state = estop.getState();
+    const pauseMsg = `Autonomous execution is PAUSED by Global Emergency Stop (E-Stop).${state.reason ? ` Reason: ${state.reason}` : ""}`;
+    return {
+      ok: false,
+      reply: pauseMsg,
+      toolSteps: [pauseMsg],
+      steps: [],
+      detectedPath: undefined,
+      executionProfile,
+      error: "ESTOP_PAUSED",
+    };
+  }
+
+  // 0b. Intercept /rollback and /undo directly
+  const trimmedPrompt = (options.prompt ?? "").trim();
+  if (
+    trimmedPrompt === "/rollback" ||
+    trimmedPrompt === "/undo" ||
+    trimmedPrompt.startsWith("/rollback ") ||
+    trimmedPrompt.startsWith("/undo ")
+  ) {
+    const parts = trimmedPrompt.split(/\s+/);
+    const requestedId = parts.length > 1 ? parts[1] : undefined;
+    const checkpointManager = getCheckpointManager();
+    const rollbackRes = checkpointManager.rollbackCheckpoint(requestedId, options.sessionId);
+    return {
+      ok: rollbackRes.success,
+      reply: rollbackRes.message,
+      toolSteps: [rollbackRes.message],
+      steps: [],
+      detectedPath: undefined,
+      executionProfile,
+      error: rollbackRes.success ? undefined : rollbackRes.message,
+    };
+  }
+
   // 1. Path detection and proactive snapshot
   const detectedPath = detectAndNormalizePath(options.prompt);
   let effectiveCwd = defaultCwd;
@@ -3384,6 +3461,7 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
 
   const endpoint = `${providerUrl.replace(/\/+$/, "")}/chat/completions`;
   const executor = new CoreBlowToolExecutor(options.processRunner, undefined, fetchFn);
+  executor.sessionId = sessionId;
 
   const systemMessageParts = [
     COREBLOW_SYSTEM_PROMPT,
@@ -3401,7 +3479,7 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
 
   const systemMessage = systemMessageParts.join("\n\n");
 
-  const conversation: Array<Record<string, unknown>> = [
+  let conversation: Array<Record<string, unknown>> = [
     { role: "system", content: systemMessage },
     ...(options.messages ?? []),
     { role: "user", content: options.prompt },
@@ -3433,6 +3511,20 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
 
     let response: Response | undefined;
     let lastErrText = "";
+
+    // Auto Context Compression before dispatching LLM request
+    const compression = compressConversationIfNeeded(conversation as ContextMessage[], {
+      maxContextTokens: options.maxContextTokens ?? 100_000,
+    });
+    if (compression.compressed) {
+      conversation = compression.messages as Array<Record<string, unknown>>;
+    }
+
+    const isAnthropic = Boolean(
+      (effectiveEndpoint || "").includes("anthropic") ||
+      (effectiveModel || "").toLowerCase().includes("claude"),
+    );
+    applyPromptCacheControl(conversation as ContextMessage[], isAnthropic);
 
     // Up to 2 automatic failover hops per turn on 429 / transient server errors
     for (let hop = 0; hop <= 2; hop++) {
@@ -3492,6 +3584,20 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
 
       if (!response.ok) {
         lastErrText = await response.text();
+
+        // Automatic context-overflow recovery: aggressively compress and retry turn
+        if (isContextLengthExceededError(response.status, lastErrText)) {
+          const aggressive = compressConversationIfNeeded(conversation as ContextMessage[], {
+            forceAggressive: true,
+          });
+          if (aggressive.compressed && aggressive.savedTokens > 0) {
+            conversation = aggressive.messages as Array<Record<string, unknown>>;
+            if (hop < 2) {
+              continue; // retry turn with compressed context window
+            }
+          }
+        }
+
         const isTransientOrRateLimit =
           response.status === 429 ||
           response.status === 502 ||
@@ -3644,6 +3750,14 @@ export async function runCoreBlowReActLoop(options: CoreBlowReActOptions): Promi
 
     // Execute each tool call
     for (const call of callsToExecute) {
+      // Check emergency stop before each tool execution
+      if (estop.isPaused()) {
+        const pauseMsg = `Autonomous execution halted before tool '${call.name}': Global Emergency Stop (E-Stop) activated.`;
+        toolSteps.push(`✗ ${call.name} (E-Stop Paused)`);
+        finalReply = pauseMsg;
+        break;
+      }
+
       const startMs = Date.now();
       const stepDesc = `Executing ${call.name} (${call.shortSummary ?? ""})`;
       options.onProgressStep?.(stepDesc);

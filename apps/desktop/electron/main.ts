@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, shell, clipboard } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, shell, clipboard, safeStorage } from "electron";
 import * as path from "node:path";
 import * as http from "node:http";
 import { spawn, type ChildProcess } from "node:child_process";
@@ -213,6 +213,42 @@ ipcMain.handle("coreblow:gateway:health", async () => {
 
 ipcMain.handle("coreblow:gateway:ensure", async () => {
   return await ensureGatewayDaemon();
+});
+
+// ─── OS Keychain Encryption (safeStorage) ──────────────────────────────────
+
+ipcMain.handle("coreblow:vault:isAvailable", () => {
+  try {
+    return safeStorage.isEncryptionAvailable();
+  } catch {
+    return false;
+  }
+});
+
+ipcMain.handle("coreblow:vault:encrypt", (_event, plain: string) => {
+  try {
+    if (!plain || typeof plain !== "string") return "";
+    if (!safeStorage.isEncryptionAvailable()) {
+      return plain;
+    }
+    const buffer = safeStorage.encryptString(plain);
+    return buffer.toString("base64");
+  } catch {
+    return plain;
+  }
+});
+
+ipcMain.handle("coreblow:vault:decrypt", (_event, cipherB64: string) => {
+  try {
+    if (!cipherB64 || typeof cipherB64 !== "string") return "";
+    if (!safeStorage.isEncryptionAvailable()) {
+      return cipherB64;
+    }
+    const buffer = Buffer.from(cipherB64, "base64");
+    return safeStorage.decryptString(buffer);
+  } catch {
+    return cipherB64;
+  }
 });
 
 ipcMain.handle("coreblow:window:minimize", () => {

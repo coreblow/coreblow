@@ -54,70 +54,35 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <button
-            type="button"
-            onClick={() => onChangeTab("git")}
-            style={{
-              padding: "4px 8px",
-              borderRadius: "var(--radius-xs)",
-              background: activeTab === "git" ? "var(--bg-chip)" : "transparent",
-              border: "none",
-              color: activeTab === "git" ? "var(--accent-teal)" : "var(--ink-secondary)",
-              fontSize: "12px",
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            Git & Gates
-          </button>
-          <button
-            type="button"
-            onClick={() => onChangeTab("warroom")}
-            style={{
-              padding: "4px 8px",
-              borderRadius: "var(--radius-xs)",
-              background: activeTab === "warroom" ? "var(--bg-chip)" : "transparent",
-              border: "none",
-              color: activeTab === "warroom" ? "var(--accent-teal)" : "var(--ink-secondary)",
-              fontSize: "12px",
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            War Room
-          </button>
-          <button
-            type="button"
-            onClick={() => onChangeTab("memory")}
-            style={{
-              padding: "4px 8px",
-              borderRadius: "var(--radius-xs)",
-              background: activeTab === "memory" ? "var(--bg-chip)" : "transparent",
-              border: "none",
-              color: activeTab === "memory" ? "var(--accent-teal)" : "var(--ink-secondary)",
-              fontSize: "12px",
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            Memory Wiki
-          </button>
-          <button
-            type="button"
-            onClick={() => onChangeTab("corehub")}
-            style={{
-              padding: "4px 8px",
-              borderRadius: "var(--radius-xs)",
-              background: activeTab === "corehub" ? "var(--bg-chip)" : "transparent",
-              border: "none",
-              color: activeTab === "corehub" ? "var(--accent-teal)" : "var(--ink-secondary)",
-              fontSize: "12px",
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            Skills &amp; Hub
-          </button>
+          {[
+            { id: "git" as const, label: "Git" },
+            { id: "warroom" as const, label: "Squad" },
+            { id: "memory" as const, label: "Memory" },
+            { id: "corehub" as const, label: "Hub" },
+          ].map((t) => {
+            const isActive = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => onChangeTab(t.id)}
+                style={{
+                  padding: "4px 9px",
+                  borderRadius: "var(--radius-xs)",
+                  background: isActive ? "var(--accent-teal-subtle)" : "transparent",
+                  border: isActive ? "1px solid var(--accent-teal)" : "1px solid transparent",
+                  color: isActive ? "var(--accent-teal)" : "var(--ink-secondary)",
+                  fontSize: "12px",
+                  fontWeight: isActive ? 600 : 500,
+                  whiteSpace: "nowrap",
+                  cursor: "pointer",
+                  transition: "all 0.12s ease",
+                }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
         </div>
 
         <button

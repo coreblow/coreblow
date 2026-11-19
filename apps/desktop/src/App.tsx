@@ -23,7 +23,13 @@ export const App: React.FC = () => {
   // Storage & State Initialization
   const [threads, setThreads] = useState<ChatThread[]>(() => storageService.getThreads());
   const [activeThreadId, setActiveThreadId] = useState<string | null>(() => storageService.getActiveThreadId());
-  const [preferences, setPreferences] = useState(() => storageService.getPreferences());
+  const [preferences, setPreferences] = useState(() => {
+    const p = storageService.getPreferences();
+    return {
+      ...p,
+      inspectorOpen: p.layoutMode === "pro",
+    };
+  });
   const [project, setProject] = useState<ActiveProjectState>(() => storageService.getProject());
 
   const [prompt, setPrompt] = useState("");
@@ -81,6 +87,29 @@ export const App: React.FC = () => {
   const [executionMode, setExecutionMode] = useState<"standard" | "autonomous" | "warroom">(
     preferences.executionMode || "standard",
   );
+  const [estopPaused, setEstopPaused] = useState(false);
+
+  useEffect(() => {
+    // 1. Initialize OS Keychain Vault and transparently decrypt secrets
+    storageService.initVault().then((decrypted) => {
+      setPreferences((prev) => ({
+        ...prev,
+        ...decrypted,
+        inspectorOpen: prev.inspectorOpen,
+      }));
+    });
+
+    // 2. Load initial E-Stop state
+    gatewayClient.getEstopState().then((state) => {
+      setEstopPaused(state.paused);
+    });
+  }, []);
+
+  const handleToggleEstop = async () => {
+    const next = !estopPaused;
+    const res = await gatewayClient.setEstopPaused(next, next ? "Paused via Desktop UI" : undefined);
+    setEstopPaused(res.paused);
+  };
 
   const handleToggleAgentTeamwork = (enabled: boolean) => {
     setAgentTeamwork(enabled);
@@ -154,7 +183,11 @@ export const App: React.FC = () => {
 
   const handleToggleLayoutMode = (mode?: "basic" | "pro") => {
     const next = mode || (preferences.layoutMode === "basic" ? "pro" : "basic");
-    setPreferences((p) => ({ ...p, layoutMode: next }));
+    setPreferences((p) => ({
+      ...p,
+      layoutMode: next,
+      inspectorOpen: next === "pro",
+    }));
   };
 
   const handleSaveApiKey = (provider: "anthropic" | "openai" | "gemini" | "groq", key: string) => {
@@ -637,7 +670,7 @@ export const App: React.FC = () => {
               },
               layoutMode: preferences.layoutMode || "basic",
               onUpdateLayoutMode: (mode: "basic" | "pro") => {
-                setPreferences((p) => ({ ...p, layoutMode: mode }));
+                setPreferences((p) => ({ ...p, layoutMode: mode, inspectorOpen: mode === "pro" }));
               },
               onSaveApiKey: handleSaveApiKey,
               onFinish: () => setPreferences((p) => ({ ...p, onboardingCompleted: true })),
@@ -661,6 +694,8 @@ export const App: React.FC = () => {
             activeModelName={activeModel}
             layoutMode={preferences.layoutMode || "basic"}
             onToggleLayoutMode={handleToggleLayoutMode}
+            estopPaused={estopPaused}
+            onToggleEstop={handleToggleEstop}
           />
         }
       />

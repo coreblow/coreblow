@@ -20,6 +20,11 @@ export interface CoreBlowDesktopApi {
     health: () => Promise<boolean>;
     ensure: () => Promise<boolean>;
   };
+  vault: {
+    isAvailable: () => Promise<boolean>;
+    encrypt: (plain: string) => Promise<string>;
+    decrypt: (cipherB64: string) => Promise<string>;
+  };
   window: {
     minimize: () => Promise<void>;
     maximize: () => Promise<void>;
@@ -48,6 +53,11 @@ const desktopApi: CoreBlowDesktopApi = {
   gateway: {
     health: () => ipcRenderer.invoke("coreblow:gateway:health"),
     ensure: () => ipcRenderer.invoke("coreblow:gateway:ensure"),
+  },
+  vault: {
+    isAvailable: () => ipcRenderer.invoke("coreblow:vault:isAvailable"),
+    encrypt: (plain: string) => ipcRenderer.invoke("coreblow:vault:encrypt", plain),
+    decrypt: (cipherB64: string) => ipcRenderer.invoke("coreblow:vault:decrypt", cipherB64),
   },
   window: {
     minimize: () => ipcRenderer.invoke("coreblow:window:minimize"),

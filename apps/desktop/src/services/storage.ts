@@ -5,6 +5,17 @@ const ACTIVE_THREAD_ID_KEY = "coreblow_studio_active_thread_id";
 const PREFERENCES_KEY = "coreblow_studio_preferences_v2";
 const PROJECT_KEY = "coreblow_studio_project_v2";
 
+const SENSITIVE_FIELDS: Array<keyof UiPreferences> = [
+  "anthropicApiKey",
+  "openAiApiKey",
+  "geminiApiKey",
+  "groqApiKey",
+  "customApiKey",
+  "remoteToken",
+];
+
+const ENC_PREFIX = "enc:v1:";
+
 export interface AutomationSettings {
   repoHealth: boolean;
   memoryCompaction: boolean;
@@ -71,6 +82,8 @@ const DEFAULT_PROJECT: ActiveProjectState = {
 };
 
 export class StorageService {
+  private decryptedCache: Record<string, string> = {};
+
   getThreads(): ChatThread[] {
     try {
       const data = localStorage.getItem(THREADS_KEY);
@@ -109,6 +122,57 @@ export class StorageService {
     }
   }
 
+  /**
+   * Initializes OS Keychain Vault, transparently decrypts any enc:v1: secrets
+   * and migrates any plaintext credentials to encrypted storage.
+   */
+  async initVault(): Promise<UiPreferences> {
+    if (typeof window === "undefined" || !window.coreblowDesktop?.vault) {
+      return this.getPreferences();
+    }
+
+    try {
+      const vault = window.coreblowDesktop.vault;
+      const isAvailable = await vault.isAvailable();
+      if (!isAvailable) {
+        return this.getPreferences();
+      }
+
+      const raw = localStorage.getItem(PREFERENCES_KEY);
+      if (!raw) {
+        return this.getPreferences();
+      }
+
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      let shouldMigrateDisk = false;
+
+      for (const field of SENSITIVE_FIELDS) {
+        const val = parsed[field];
+        if (typeof val === "string" && val.length > 0) {
+          if (val.startsWith(ENC_PREFIX)) {
+            const cipher = val.slice(ENC_PREFIX.length);
+            const plain = await vault.decrypt(cipher);
+            this.decryptedCache[field] = plain;
+          } else {
+            // Transparent migration of legacy plaintext credential to OS Keychain
+            const cipher = await vault.encrypt(val);
+            this.decryptedCache[field] = val;
+            parsed[field] = `${ENC_PREFIX}${cipher}`;
+            shouldMigrateDisk = true;
+          }
+        }
+      }
+
+      if (shouldMigrateDisk) {
+        localStorage.setItem(PREFERENCES_KEY, JSON.stringify(parsed));
+      }
+    } catch (err) {
+      console.warn("Vault initialization error:", err);
+    }
+
+    return this.getPreferences();
+  }
+
   getPreferences(): UiPreferences {
     try {
       const data = localStorage.getItem(PREFERENCES_KEY);
@@ -133,9 +197,24 @@ export class StorageService {
       const onboardingCompleted = parsed.onboardingCompleted ?? (hasExistingThreads ? true : false);
       const layoutMode = parsed.layoutMode ?? (hasExistingThreads ? "pro" : "basic");
 
+      // Resolve sensitive credentials from in-memory decrypted cache if present
+      const resolvedSecrets: Record<string, string> = {};
+      for (const field of SENSITIVE_FIELDS) {
+        if (this.decryptedCache[field] !== undefined) {
+          resolvedSecrets[field] = this.decryptedCache[field];
+        } else if (typeof parsed[field] === "string") {
+          const rawVal = parsed[field] as string;
+          // If not prefixed, it's plaintext
+          if (!rawVal.startsWith(ENC_PREFIX)) {
+            resolvedSecrets[field] = rawVal;
+          }
+        }
+      }
+
       return {
         ...DEFAULT_PREFERENCES,
         ...parsed,
+        ...resolvedSecrets,
         setupCompleted,
         onboardingCompleted,
         layoutMode,
@@ -152,6 +231,14 @@ export class StorageService {
   savePreferences(prefs: Partial<UiPreferences>): void {
     try {
       const current = this.getPreferences();
+
+      // Update in-memory decrypted cache for any modified sensitive fields
+      for (const field of SENSITIVE_FIELDS) {
+        if (typeof prefs[field] === "string") {
+          this.decryptedCache[field] = prefs[field] as string;
+        }
+      }
+
       const updated = {
         ...current,
         ...prefs,
@@ -160,7 +247,40 @@ export class StorageService {
           ...(prefs.automations || {}),
         },
       };
+
+      // Synchronous write of updated state
       localStorage.setItem(PREFERENCES_KEY, JSON.stringify(updated));
+
+      // Asynchronously encrypt sensitive fields with OS Keychain if available
+      if (typeof window !== "undefined" && window.coreblowDesktop?.vault) {
+        const vault = window.coreblowDesktop.vault;
+        void (async () => {
+          try {
+            const isAvail = await vault.isAvailable();
+            if (!isAvail) return;
+
+            const storedRaw = localStorage.getItem(PREFERENCES_KEY);
+            if (!storedRaw) return;
+            const toEncrypt = JSON.parse(storedRaw) as Record<string, unknown>;
+            let mutated = false;
+
+            for (const field of SENSITIVE_FIELDS) {
+              const plainVal = this.decryptedCache[field] ?? toEncrypt[field];
+              if (typeof plainVal === "string" && plainVal && !plainVal.startsWith(ENC_PREFIX)) {
+                const cipher = await vault.encrypt(plainVal);
+                toEncrypt[field] = `${ENC_PREFIX}${cipher}`;
+                mutated = true;
+              }
+            }
+
+            if (mutated) {
+              localStorage.setItem(PREFERENCES_KEY, JSON.stringify(toEncrypt));
+            }
+          } catch {
+            // Silently fall back to standard storage
+          }
+        })();
+      }
     } catch (err) {
       console.error("Failed to save preferences", err);
     }

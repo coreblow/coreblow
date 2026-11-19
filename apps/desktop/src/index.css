@@ -1,5 +1,5 @@
 :root {
-  /* Quiet Instrument Design Tokens */
+  /* Quiet Instrument Design Tokens (Dark Mode) */
   --bg-canvas: #08110F;
   --bg-sidebar: #09130F;
   --bg-card: #0A1815;
@@ -7,25 +7,29 @@
   --bg-input: #081512;
   --bg-code: #050B09;
   --bg-chip: #0E221D;
+  --bg-hover: #0E201C;
 
-  --border-subtle: rgba(45, 212, 191, 0.08);
-  --border-medium: rgba(45, 212, 191, 0.15);
-  --border-strong: rgba(45, 212, 191, 0.28);
-  --border-active: #2DD4BF;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.14);
+  --border-strong: rgba(255, 255, 255, 0.24);
+  --border-active: var(--accent-teal);
 
   --accent-teal: #2DD4BF;
-  --accent-teal-glow: rgba(45, 212, 191, 0.18);
-  --accent-teal-subtle: rgba(45, 212, 191, 0.08);
+  --accent-teal-glow: rgba(45, 212, 191, 0.22);
+  --accent-teal-subtle: rgba(45, 212, 191, 0.12);
 
   --ink-primary: #D9FBF3;
   --ink-secondary: #819B93;
   --ink-muted: #4D665E;
-  --ink-accent: #2DD4BF;
+  --ink-accent: var(--accent-teal);
+
+  --shadow-composer: 0 10px 40px rgba(0, 0, 0, 0.55);
+  --kbd-bg: rgba(255, 255, 255, 0.08);
 
   --state-success: #10B981;
   --state-warning: #F59E0B;
   --state-error: #EF4444;
-  --state-running: #2DD4BF;
+  --state-running: var(--accent-teal);
 
   --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", Menlo, Monaco, Consolas, monospace;
@@ -46,17 +50,18 @@
 }
 
 [data-theme="light"] {
-  --bg-canvas: #F8FAFC;
-  --bg-sidebar: #F1F5F9;
+  --bg-canvas: #FFFFFF;
+  --bg-sidebar: #F7F8FA;
   --bg-card: #FFFFFF;
   --bg-card-hover: #F8FAFC;
   --bg-input: #FFFFFF;
   --bg-code: #F1F5F9;
-  --bg-chip: #E2E8F0;
+  --bg-chip: #F1F5F9;
+  --bg-hover: #E2E8F0;
 
-  --border-subtle: rgba(15, 23, 42, 0.08);
-  --border-medium: rgba(15, 23, 42, 0.14);
-  --border-strong: rgba(15, 23, 42, 0.24);
+  --border-subtle: #E5E7EB;
+  --border-medium: #D1D5DB;
+  --border-strong: #9CA3AF;
   --border-active: var(--accent-teal);
 
   --accent-teal-glow: rgba(45, 212, 191, 0.22);
@@ -66,6 +71,14 @@
   --ink-secondary: #475569;
   --ink-muted: #94A3B8;
   --ink-accent: var(--accent-teal);
+
+  --shadow-composer: 0 8px 28px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --kbd-bg: rgba(15, 23, 42, 0.06);
+
+  --state-success: #10B981;
+  --state-warning: #F59E0B;
+  --state-error: #EF4444;
+  --state-running: var(--accent-teal);
 }
 
 * {
@@ -111,17 +124,17 @@ select {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(45, 212, 191, 0.12);
+  background: var(--border-medium);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(45, 212, 191, 0.25);
+  background: var(--border-strong);
 }
 
 /* Text Selection */
 ::selection {
-  background: rgba(45, 212, 191, 0.28);
+  background: var(--accent-teal-glow);
   color: var(--ink-primary);
 }
 

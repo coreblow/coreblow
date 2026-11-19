@@ -55,6 +55,8 @@ import {
   type RemoteNodeConfig,
   type RemoteNodeKind,
 } from "./remote-nodes.js";
+import { getCheckpointManager } from "../security/checkpoint-manager.js";
+import { getEmergencyStopController } from "../security/emergency-stop.js";
 import {
   isCoreHubCapability,
   type CoreHubAppManifest,
@@ -741,7 +743,9 @@ export async function handleCoreHubRoute(
     (pathname.startsWith("/api/corehub/providers/") && (method === "POST" || method === "DELETE")) ||
     (pathname === "/api/corehub/nodes" && method === "POST") ||
     (pathname.startsWith("/api/corehub/nodes/") && (method === "DELETE" || method === "POST")) ||
-    (pathname.startsWith("/api/corehub/voice/") && method === "POST");
+    (pathname.startsWith("/api/corehub/voice/") && method === "POST") ||
+    (pathname === "/api/corehub/checkpoints/rollback" && method === "POST") ||
+    (pathname === "/api/corehub/system/estop" && method === "POST");
   const cfg = options.cfg ?? loadConfig();
 
   // Validate browser origin for CORS / cross-origin protection
@@ -1691,6 +1695,27 @@ export async function handleCoreHubRoute(
       { id: "browser-default", name: "Browser / Device Default", lang: "any", gender: "neutral" },
     ];
     sendJson(res, 200, { ok: true, count: voices.length, voices });
+    return true;
+  }
+
+  // GET /api/corehub/checkpoints (List filesystem checkpoints)
+  if (method === "GET" && pathname === "/api/corehub/checkpoints") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    const sessionId = url.searchParams.get("sessionId") || undefined;
+    const cm = getCheckpointManager();
+    const checkpoints = cm.listCheckpoints(sessionId);
+    sendJson(res, 200, { ok: true, count: checkpoints.length, checkpoints });
+    return true;
+  }
+
+  // GET /api/corehub/system/estop (Get current Global Emergency Stop state)
+  if (method === "GET" && pathname === "/api/corehub/system/estop") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    const estop = getEmergencyStopController();
+    const state = estop.getState();
+    sendJson(res, 200, { ok: true, ...state });
     return true;
   }
 
@@ -2995,6 +3020,41 @@ export async function handleCoreHubRoute(
         return true;
       } catch (err) {
         sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/checkpoints/rollback (Execute filesystem checkpoint rollback)
+    if (pathname === "/api/corehub/checkpoints/rollback") {
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const checkpointId = typeof body.checkpointId === "string" ? body.checkpointId.trim() : undefined;
+        const sessionId = typeof body.sessionId === "string" ? body.sessionId.trim() : undefined;
+        const cm = getCheckpointManager();
+        const rollbackResult = cm.rollbackCheckpoint(checkpointId, sessionId);
+        sendJson(res, rollbackResult.success ? 200 : 400, {
+          ok: rollbackResult.success,
+          ...rollbackResult,
+        });
+        return true;
+      } catch (err) {
+        sendJson(res, 500, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/system/estop (Pause or resume autonomous execution)
+    if (pathname === "/api/corehub/system/estop") {
+      try {
+        const body = (await parseJsonBody(req)) as Record<string, unknown>;
+        const paused = Boolean(body.paused);
+        const reason = typeof body.reason === "string" ? body.reason.trim() : undefined;
+        const estop = getEmergencyStopController();
+        const nextState = paused ? estop.pause(reason) : estop.resume();
+        sendJson(res, 200, { ok: true, ...nextState });
+        return true;
+      } catch (err) {
+        sendJson(res, 500, { ok: false, error: err instanceof Error ? err.message : String(err) });
         return true;
       }
     }

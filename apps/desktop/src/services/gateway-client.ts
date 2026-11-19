@@ -1178,6 +1178,75 @@ export class CoreBlowGatewayClient {
       return { ok: false, error: err instanceof Error ? err.message : String(err) };
     }
   }
+
+  /**
+   * List recent file snapshots / checkpoints via GET /api/corehub/checkpoints
+   */
+  async listCheckpoints(sessionId?: string): Promise<{ ok: boolean; count: number; checkpoints: any[]; error?: string }> {
+    try {
+      const qs = sessionId ? `?sessionId=${encodeURIComponent(sessionId)}` : "";
+      const res = await fetch(`${this.baseUrl}/api/corehub/checkpoints${qs}`, {
+        headers: this.authHeaders({ Accept: "application/json" }),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, count: data?.count ?? 0, checkpoints: data?.checkpoints ?? [], error: data?.error };
+    } catch (err) {
+      return { ok: false, count: 0, checkpoints: [], error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Rollback file checkpoint via POST /api/corehub/checkpoints/rollback
+   */
+  async rollbackCheckpoint(params?: { checkpointId?: string; sessionId?: string }): Promise<{ ok: boolean; message?: string; rolledBack?: any; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/checkpoints/rollback`, {
+        method: "POST",
+        headers: this.authHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+        body: JSON.stringify(params ?? {}),
+        signal: AbortSignal.timeout(8000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, message: data?.message, rolledBack: data?.rolledBack, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Get Global Emergency Stop state via GET /api/corehub/system/estop
+   */
+  async getEstopState(): Promise<{ ok: boolean; paused: boolean; reason?: string; pausedAt?: number; resumedAt?: number }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/system/estop`, {
+        headers: this.authHeaders({ Accept: "application/json" }),
+        signal: AbortSignal.timeout(3000),
+      });
+      const data = await res.json();
+      return { ok: res.ok, paused: Boolean(data?.paused), reason: data?.reason, pausedAt: data?.pausedAt, resumedAt: data?.resumedAt };
+    } catch {
+      return { ok: false, paused: false };
+    }
+  }
+
+  /**
+   * Set Global Emergency Stop (pause/resume) via POST /api/corehub/system/estop
+   */
+  async setEstopPaused(paused: boolean, reason?: string): Promise<{ ok: boolean; paused: boolean; reason?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/system/estop`, {
+        method: "POST",
+        headers: this.authHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+        body: JSON.stringify({ paused, reason }),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, paused: Boolean(data?.paused), reason: data?.reason };
+    } catch (err) {
+      return { ok: false, paused, reason: err instanceof Error ? err.message : String(err) };
+    }
+  }
 }
 
 export const gatewayClient = new CoreBlowGatewayClient();

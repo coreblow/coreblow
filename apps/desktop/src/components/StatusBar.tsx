@@ -8,6 +8,8 @@ export interface StatusBarProps {
   layoutMode: "basic" | "pro";
   onToggleLayoutMode?: () => void;
   version?: string;
+  estopPaused?: boolean;
+  onToggleEstop?: () => void;
 }
 
 export const StatusBar: React.FC<StatusBarProps> = ({
@@ -17,6 +19,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   layoutMode,
   onToggleLayoutMode,
   version = "v2.0.0",
+  estopPaused = false,
+  onToggleEstop,
 }) => {
   return (
     <footer
@@ -43,8 +47,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({
               width: "6px",
               height: "6px",
               borderRadius: "50%",
-              background: gatewayHealthy ? "#10B981" : "#EF4444",
-              boxShadow: gatewayHealthy ? "0 0 6px #10B981" : "none",
+              background: gatewayHealthy ? "var(--state-success)" : "var(--state-error)",
+              boxShadow: gatewayHealthy ? "0 0 6px var(--state-success)" : "none",
             }}
           />
           <span style={{ color: gatewayHealthy ? "var(--ink-secondary)" : "var(--state-error)" }}>
@@ -65,10 +69,46 @@ export const StatusBar: React.FC<StatusBarProps> = ({
       </div>
 
       {/* Right items: Smart router badge, Layout Mode toggle, Version */}
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <button
+          type="button"
+          onClick={onToggleEstop}
+          title={
+            estopPaused
+              ? "Autonomous execution is PAUSED by Global Emergency Stop. Click to resume."
+              : "Emergency Stop (E-Stop): Click to pause autonomous agent execution"
+          }
+          style={{
+            background: estopPaused ? "rgba(239, 68, 68, 0.15)" : "var(--bg-chip)",
+            border: estopPaused ? "1px solid var(--state-error)" : "1px solid var(--border-subtle)",
+            color: estopPaused ? "var(--state-error)" : "var(--ink-secondary)",
+            fontSize: "10px",
+            fontWeight: 600,
+            cursor: "pointer",
+            padding: "2px 7px",
+            borderRadius: "var(--radius-xs)",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "5px",
+            userSelect: "none",
+            transition: "all 0.15s ease",
+          }}
+        >
+          <span
+            style={{
+              width: "6px",
+              height: "6px",
+              borderRadius: "50%",
+              background: estopPaused ? "var(--state-error)" : "var(--state-success)",
+              boxShadow: estopPaused ? "0 0 6px var(--state-error)" : "none",
+            }}
+          />
+          {estopPaused ? "PAUSED (E-Stop)" : "E-Stop"}
+        </button>
+
         <span
           style={{
-            background: "rgba(45, 212, 191, 0.08)",
+            background: "var(--accent-teal-subtle)",
             border: "1px solid var(--border-subtle)",
             borderRadius: "4px",
             padding: "1px 6px",

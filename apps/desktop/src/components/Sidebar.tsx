@@ -232,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               fontSize: "10px",
               padding: "1px 5px",
               borderRadius: "var(--radius-xs)",
-              background: "rgba(45, 212, 191, 0.12)",
+              background: "var(--accent-teal-subtle)",
               color: "var(--accent-teal)",
               fontWeight: 600,
             }}
@@ -324,7 +324,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0 12px",
-            background: "rgba(45, 212, 191, 0.08)",
+            background: "var(--accent-teal-subtle)",
             border: "1px solid var(--border-medium)",
             borderRadius: "var(--radius-sm)",
             color: "var(--ink-primary)",
@@ -343,8 +343,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               fontSize: "10px",
               padding: "1px 4px",
               borderRadius: "3px",
-              background: "rgba(0, 0, 0, 0.3)",
+              background: "var(--kbd-bg)",
               color: "var(--ink-muted)",
+              border: "1px solid var(--border-subtle)",
               fontFamily: "var(--font-mono)",
             }}
           >
@@ -353,102 +354,74 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      {/* Quick Navigation Links */}
+      {/* Quick Navigation Links: macOS-native borderless vertical list */}
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "4px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "2px",
           marginBottom: "10px",
         }}
       >
-        <button
-          type="button"
-          onClick={() => onOpenTab?.("corehub")}
-          title="Skills & Storefront Marketplace"
-          style={{
-            background: "transparent",
-            border: "1px solid var(--border-subtle)",
-            borderRadius: "6px",
-            padding: "4px 8px",
-            color: "var(--ink-secondary)",
-            fontSize: "11px",
-            display: "flex",
-            alignItems: "center",
-            gap: "5px",
-            cursor: "pointer",
-            textAlign: "left",
-          }}
-        >
-          <SparklesIcon size={11} color="var(--accent-teal)" />
-          <span>Capabilities</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onOpenTab?.("memory")}
-          title="Cory Memory Wiki"
-          style={{
-            background: "transparent",
-            border: "1px solid var(--border-subtle)",
-            borderRadius: "6px",
-            padding: "4px 8px",
-            color: "var(--ink-secondary)",
-            fontSize: "11px",
-            display: "flex",
-            alignItems: "center",
-            gap: "5px",
-            cursor: "pointer",
-            textAlign: "left",
-          }}
-        >
-          <FolderIcon size={11} color="var(--accent-teal)" />
-          <span>Memory</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onOpenSettings("automations")}
-          title="Scheduled Automations & Background Tasks"
-          style={{
-            background: "transparent",
-            border: "1px solid var(--border-subtle)",
-            borderRadius: "6px",
-            padding: "4px 8px",
-            color: "var(--ink-secondary)",
-            fontSize: "11px",
-            display: "flex",
-            alignItems: "center",
-            gap: "5px",
-            cursor: "pointer",
-            textAlign: "left",
-          }}
-        >
-          <TerminalIcon size={11} color="var(--accent-teal)" />
-          <span>Scheduled jobs</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onOpenSettings("remotes")}
-          title="24/7 Always-On Remote Nodes"
-          style={{
-            background: "transparent",
-            border: "1px solid var(--border-subtle)",
-            borderRadius: "6px",
-            padding: "4px 8px",
-            color: "var(--ink-secondary)",
-            fontSize: "11px",
-            display: "flex",
-            alignItems: "center",
-            gap: "5px",
-            cursor: "pointer",
-            textAlign: "left",
-          }}
-        >
-          <span style={{ fontSize: "11px" }}>🌐</span>
-          <span>Remote Nodes</span>
-        </button>
+        {[
+          {
+            label: "Capabilities",
+            icon: <SparklesIcon size={14} color="var(--accent-teal)" />,
+            onClick: () => onOpenTab?.("corehub"),
+            title: "Skills & Storefront Marketplace",
+          },
+          {
+            label: "Memory",
+            icon: <FolderIcon size={14} color="var(--accent-teal)" />,
+            onClick: () => onOpenTab?.("memory"),
+            title: "Cory Memory Wiki",
+          },
+          {
+            label: "Scheduled jobs",
+            icon: <TerminalIcon size={14} color="var(--accent-teal)" />,
+            onClick: () => onOpenSettings("automations"),
+            title: "Scheduled Automations & Background Tasks",
+          },
+          {
+            label: "Remote Nodes",
+            icon: <span style={{ fontSize: "13px", lineHeight: 1 }}>🌐</span>,
+            onClick: () => onOpenSettings("remotes"),
+            title: "24/7 Always-On Remote Nodes",
+          },
+        ].map((item) => (
+          <button
+            key={item.label}
+            type="button"
+            onClick={item.onClick}
+            title={item.title}
+            style={{
+              height: "30px",
+              padding: "0 10px",
+              borderRadius: "6px",
+              background: "transparent",
+              border: "none",
+              color: "var(--ink-secondary)",
+              fontSize: "12.5px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              cursor: "pointer",
+              textAlign: "left",
+              transition: "all 0.12s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "var(--bg-hover)";
+              e.currentTarget.style.color = "var(--ink-primary)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "var(--ink-secondary)";
+            }}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </button>
+        ))}
       </div>
 
       {/* Search Filter */}
@@ -741,8 +714,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               fontSize: "10px",
               padding: "1px 4px",
               borderRadius: "3px",
-              background: "rgba(0, 0, 0, 0.3)",
+              background: "var(--kbd-bg)",
               color: "var(--ink-muted)",
+              border: "1px solid var(--border-subtle)",
               fontFamily: "var(--font-mono)",
             }}
           >

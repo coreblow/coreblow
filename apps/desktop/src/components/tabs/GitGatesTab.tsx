@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import type { GitGateStatus } from "../../types/gateway";
 import { CheckIcon, GitBranchIcon, RefreshIcon } from "../Icons";
+import { gatewayClient } from "../../services/gateway-client";
 
 interface GitGatesTabProps {
   branch: string;
@@ -16,6 +17,26 @@ export const GitGatesTab: React.FC<GitGatesTabProps> = ({ branch, uncommittedFil
     types: "pass",
   });
   const [running, setRunning] = useState(false);
+  const [rollbackStatus, setRollbackStatus] = useState<string | null>(null);
+  const [rollingBack, setRollingBack] = useState(false);
+
+  const handleUndoLastEdit = async () => {
+    setRollingBack(true);
+    setRollbackStatus(null);
+    try {
+      const res = await gatewayClient.rollbackCheckpoint();
+      if (res.ok) {
+        setRollbackStatus(res.message || "Last edit undone.");
+      } else {
+        setRollbackStatus(res.error || res.message || "No edit available to undo.");
+      }
+    } catch (err) {
+      setRollbackStatus(err instanceof Error ? err.message : "Rollback failed.");
+    } finally {
+      setRollingBack(false);
+      setTimeout(() => setRollbackStatus(null), 4000);
+    }
+  };
 
   const handleRunGates = async () => {
     setRunning(true);
@@ -101,6 +122,45 @@ export const GitGatesTab: React.FC<GitGatesTabProps> = ({ branch, uncommittedFil
         </div>
         <div style={{ fontSize: "12px", color: "var(--ink-secondary)" }}>
           {uncommittedFiles === 0 ? "Working tree clean. All changes committed." : `${uncommittedFiles} unstaged change(s)`}
+        </div>
+
+        <div style={{ marginTop: "10px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <button
+            type="button"
+            onClick={handleUndoLastEdit}
+            disabled={rollingBack}
+            title="Undo last file edit made by autonomous agent (/rollback)"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "5px",
+              padding: "3px 8px",
+              background: "var(--bg-chip)",
+              border: "1px solid var(--border-subtle)",
+              borderRadius: "var(--radius-xs)",
+              color: "var(--accent-teal)",
+              fontSize: "11px",
+              fontWeight: 500,
+              cursor: rollingBack ? "default" : "pointer",
+            }}
+          >
+            {rollingBack ? "Rolling back..." : "↩ Undo Last Edit"}
+          </button>
+          {rollbackStatus && (
+            <span
+              style={{
+                fontSize: "10.5px",
+                color: "var(--accent-teal)",
+                maxWidth: "160px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+              title={rollbackStatus}
+            >
+              {rollbackStatus}
+            </span>
+          )}
         </div>
       </div>
 

@@ -312,7 +312,7 @@ export const Composer: React.FC<ComposerProps> = ({
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.color = "var(--ink-primary)";
-            e.currentTarget.style.background = "rgba(45, 212, 191, 0.08)";
+            e.currentTarget.style.background = "var(--bg-hover)";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.color = "var(--ink-secondary)";
@@ -331,7 +331,7 @@ export const Composer: React.FC<ComposerProps> = ({
             type="button"
             onClick={() => setIsModeMenuOpen((prev) => !prev)}
             style={{
-              background: isModeMenuOpen ? "rgba(45, 212, 191, 0.1)" : "transparent",
+              background: isModeMenuOpen ? "var(--bg-chip)" : "transparent",
               border: "none",
               padding: "3px 8px",
               borderRadius: "6px",
@@ -345,7 +345,7 @@ export const Composer: React.FC<ComposerProps> = ({
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.color = "var(--ink-primary)";
-              e.currentTarget.style.background = "rgba(45, 212, 191, 0.08)";
+              e.currentTarget.style.background = "var(--bg-hover)";
             }}
             onMouseLeave={(e) => {
               if (!isModeMenuOpen) {
@@ -365,10 +365,10 @@ export const Composer: React.FC<ComposerProps> = ({
                 top: "calc(100% + 4px)",
                 left: 0,
                 width: "230px",
-                background: "#091311",
+                background: "var(--bg-card)",
                 border: "1px solid var(--border-medium)",
                 borderRadius: "10px",
-                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.55)",
+                boxShadow: "var(--shadow-composer)",
                 overflow: "hidden",
                 zIndex: 60,
                 padding: "4px 0",
@@ -397,7 +397,7 @@ export const Composer: React.FC<ComposerProps> = ({
                       flexDirection: "column",
                       gap: "2px",
                       padding: "8px 12px",
-                      background: isSelected ? "rgba(45, 212, 191, 0.12)" : "transparent",
+                      background: isSelected ? "var(--accent-teal-subtle)" : "transparent",
                       border: "none",
                       cursor: "pointer",
                       textAlign: "left",
@@ -430,10 +430,10 @@ export const Composer: React.FC<ComposerProps> = ({
       {/* 3. Sleek Rounded Composer Card */}
       <div
         style={{
-          background: "var(--bg-card, #0D1A17)",
-          border: "1px solid rgba(45, 212, 191, 0.14)",
+          background: "var(--bg-input)",
+          border: "1px solid var(--border-medium)",
           borderRadius: "20px",
-          boxShadow: "0 10px 40px rgba(0, 0, 0, 0.55)",
+          boxShadow: "var(--shadow-composer)",
           display: "flex",
           flexDirection: "column",
           position: "relative",
@@ -545,8 +545,8 @@ export const Composer: React.FC<ComposerProps> = ({
                 width: "32px",
                 height: "32px",
                 borderRadius: "50%",
-                background: "rgba(255, 255, 255, 0.04)",
-                border: "1px solid rgba(45, 212, 191, 0.12)",
+                background: "var(--bg-chip)",
+                border: "1px solid var(--border-subtle)",
                 color: "var(--ink-secondary)",
                 display: "grid",
                 placeItems: "center",
@@ -554,13 +554,13 @@ export const Composer: React.FC<ComposerProps> = ({
                 transition: "all 0.15s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(45, 212, 191, 0.12)";
+                e.currentTarget.style.background = "var(--accent-teal-subtle)";
                 e.currentTarget.style.borderColor = "var(--accent-teal)";
                 e.currentTarget.style.color = "var(--accent-teal)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
-                e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.12)";
+                e.currentTarget.style.background = "var(--bg-chip)";
+                e.currentTarget.style.borderColor = "var(--border-subtle)";
                 e.currentTarget.style.color = "var(--ink-secondary)";
               }}
             >
@@ -573,7 +573,7 @@ export const Composer: React.FC<ComposerProps> = ({
                 type="button"
                 onClick={() => setIsPermissionMenuOpen((prev) => !prev)}
                 style={{
-                  background: isPermissionMenuOpen ? "rgba(45, 212, 191, 0.08)" : "transparent",
+                  background: isPermissionMenuOpen ? "var(--bg-chip)" : "transparent",
                   border: "none",
                   borderRadius: "6px",
                   padding: "4px 8px",
@@ -586,7 +586,7 @@ export const Composer: React.FC<ComposerProps> = ({
                   transition: "background 0.15s ease",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(45, 212, 191, 0.08)";
+                  e.currentTarget.style.background = "var(--bg-hover)";
                 }}
                 onMouseLeave={(e) => {
                   if (!isPermissionMenuOpen) {
@@ -606,10 +606,10 @@ export const Composer: React.FC<ComposerProps> = ({
                     bottom: "calc(100% + 8px)",
                     left: 0,
                     width: "160px",
-                    background: "#091311",
+                    background: "var(--bg-card)",
                     border: "1px solid var(--border-medium)",
                     borderRadius: "10px",
-                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.55)",
+                    boxShadow: "var(--shadow-composer)",
                     overflow: "hidden",
                     zIndex: 60,
                     padding: "4px 0",
@@ -631,7 +631,7 @@ export const Composer: React.FC<ComposerProps> = ({
                           alignItems: "center",
                           justifyContent: "space-between",
                           padding: "7px 10px",
-                          background: isSelected ? "rgba(45, 212, 191, 0.12)" : "transparent",
+                          background: isSelected ? "var(--accent-teal-subtle)" : "transparent",
                           border: "none",
                           color: isSelected ? "var(--accent-teal)" : "var(--ink-secondary)",
                           fontSize: "12px",
@@ -657,7 +657,7 @@ export const Composer: React.FC<ComposerProps> = ({
                 width: "30px",
                 height: "30px",
                 borderRadius: "8px",
-                background: isRecording ? "rgba(239, 68, 68, 0.2)" : "rgba(255, 255, 255, 0.04)",
+                background: isRecording ? "rgba(239, 68, 68, 0.15)" : "var(--bg-chip)",
                 border: isRecording ? "1px solid #EF4444" : "1px solid var(--border-subtle)",
                 color: isRecording ? "#EF4444" : "var(--ink-secondary)",
                 display: "grid",
@@ -685,11 +685,11 @@ export const Composer: React.FC<ComposerProps> = ({
                 height: "30px",
                 borderRadius: "8px",
                 background: isSpeaking
-                  ? "rgba(45, 212, 191, 0.2)"
+                  ? "var(--accent-teal-glow)"
                   : autoSpeak
-                    ? "rgba(45, 212, 191, 0.1)"
-                    : "rgba(255, 255, 255, 0.04)",
-                border: isSpeaking || autoSpeak ? "1px solid rgba(45, 212, 191, 0.3)" : "1px solid var(--border-subtle)",
+                    ? "var(--accent-teal-subtle)"
+                    : "var(--bg-chip)",
+                border: isSpeaking || autoSpeak ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
                 color: isSpeaking || autoSpeak ? "var(--accent-teal)" : "var(--ink-muted)",
                 display: "grid",
                 placeItems: "center",
@@ -718,8 +718,8 @@ export const Composer: React.FC<ComposerProps> = ({
                 style={{
                   height: "32px",
                   borderRadius: "16px",
-                  background: isModelPopoverOpen ? "rgba(45, 212, 191, 0.14)" : "rgba(45, 212, 191, 0.06)",
-                  border: isModelPopoverOpen ? "1px solid var(--accent-teal)" : "1px solid rgba(45, 212, 191, 0.16)",
+                  background: isModelPopoverOpen ? "var(--accent-teal-glow)" : "var(--accent-teal-subtle)",
+                  border: isModelPopoverOpen ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
                   color: "var(--ink-secondary)",
                   padding: "0 12px",
                   display: "inline-flex",
@@ -758,10 +758,10 @@ export const Composer: React.FC<ComposerProps> = ({
                     bottom: "calc(100% + 10px)",
                     right: 0,
                     width: "270px",
-                    background: "#091311",
+                    background: "var(--bg-card)",
                     border: "1px solid var(--border-medium)",
                     borderRadius: "14px",
-                    boxShadow: "0 12px 36px rgba(0, 0, 0, 0.55)",
+                    boxShadow: "var(--shadow-composer)",
                     padding: "14px",
                     boxSizing: "border-box",
                     zIndex: 60,
@@ -798,8 +798,8 @@ export const Composer: React.FC<ComposerProps> = ({
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
-                          background: "rgba(255, 255, 255, 0.04)",
-                          border: "1px solid rgba(45, 212, 191, 0.14)",
+                          background: "var(--bg-input)",
+                          border: "1px solid var(--border-subtle)",
                           borderRadius: "8px",
                           padding: "6px 10px",
                           color: "var(--ink-primary)",
@@ -821,11 +821,11 @@ export const Composer: React.FC<ComposerProps> = ({
                             top: "calc(100% + 4px)",
                             left: 0,
                             right: 0,
-                            background: "#08110F",
-                            border: "1px solid rgba(45, 212, 191, 0.2)",
+                            background: "var(--bg-input)",
+                            border: "1px solid var(--border-medium)",
                             borderRadius: "8px",
                             overflow: "hidden",
-                            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.6)",
+                            boxShadow: "var(--shadow-composer)",
                             zIndex: 70,
                           }}
                         >
@@ -845,7 +845,7 @@ export const Composer: React.FC<ComposerProps> = ({
                                   alignItems: "center",
                                   justifyContent: "space-between",
                                   padding: "8px 10px",
-                                  background: isSelected ? "rgba(45, 212, 191, 0.12)" : "transparent",
+                                  background: isSelected ? "var(--accent-teal-subtle)" : "transparent",
                                   border: "none",
                                   color: isSelected ? "var(--accent-teal)" : "var(--ink-secondary)",
                                   fontSize: "12px",
@@ -894,10 +894,10 @@ export const Composer: React.FC<ComposerProps> = ({
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr 1fr",
                         gap: "4px",
-                        background: "rgba(0, 0, 0, 0.3)",
+                        background: "var(--bg-chip)",
                         padding: "3px",
                         borderRadius: "8px",
-                        border: "1px solid rgba(45, 212, 191, 0.08)",
+                        border: "1px solid var(--border-subtle)",
                       }}
                     >
                       {EFFORT_OPTIONS.map((opt) => {
@@ -909,7 +909,7 @@ export const Composer: React.FC<ComposerProps> = ({
                             onClick={() => onChangeModelTier(opt.tier)}
                             title={opt.desc}
                             style={{
-                              background: isSelected ? "rgba(45, 212, 191, 0.18)" : "transparent",
+                              background: isSelected ? "var(--accent-teal-glow)" : "transparent",
                               border: isSelected ? "1px solid var(--accent-teal)" : "1px solid transparent",
                               borderRadius: "6px",
                               padding: "5px 0",
@@ -936,7 +936,7 @@ export const Composer: React.FC<ComposerProps> = ({
                       justifyContent: "space-between",
                       gap: "10px",
                       paddingTop: "10px",
-                      borderTop: "1px solid rgba(45, 212, 191, 0.08)",
+                      borderTop: "1px solid var(--border-subtle)",
                     }}
                   >
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
@@ -967,7 +967,7 @@ export const Composer: React.FC<ComposerProps> = ({
                         width: "36px",
                         height: "20px",
                         borderRadius: "10px",
-                        background: agentTeamwork ? "var(--accent-teal)" : "rgba(255, 255, 255, 0.12)",
+                        background: agentTeamwork ? "var(--accent-teal)" : "var(--border-strong)",
                         border: "none",
                         cursor: "pointer",
                         position: "relative",
@@ -985,7 +985,7 @@ export const Composer: React.FC<ComposerProps> = ({
                           width: "16px",
                           height: "16px",
                           borderRadius: "50%",
-                          background: "#08110F",
+                          background: "var(--bg-canvas)",
                           boxShadow: "0 1px 3px rgba(0, 0, 0, 0.4)",
                           transform: agentTeamwork ? "translateX(16px)" : "translateX(0)",
                           transition: "transform 0.2s ease",
@@ -1029,9 +1029,9 @@ export const Composer: React.FC<ComposerProps> = ({
                   width: "34px",
                   height: "34px",
                   borderRadius: "50%",
-                  background: prompt.trim() ? "var(--accent-teal)" : "rgba(45, 212, 191, 0.18)",
+                  background: prompt.trim() ? "var(--accent-teal)" : "var(--accent-teal-subtle)",
                   border: "none",
-                  color: prompt.trim() ? "#08110F" : "rgba(255, 255, 255, 0.35)",
+                  color: prompt.trim() ? "#08110F" : "var(--ink-muted)",
                   display: "grid",
                   placeItems: "center",
                   cursor: prompt.trim() ? "pointer" : "default",
@@ -1039,7 +1039,7 @@ export const Composer: React.FC<ComposerProps> = ({
                   transition: "all 0.15s ease",
                 }}
               >
-                <SendIcon size={16} color={prompt.trim() ? "#08110F" : "rgba(255, 255, 255, 0.35)"} />
+                <SendIcon size={16} color={prompt.trim() ? "#08110F" : "var(--ink-muted)"} />
               </button>
             )}
           </div>

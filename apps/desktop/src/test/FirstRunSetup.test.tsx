@@ -18,9 +18,10 @@ describe("FirstRunSetup Component", () => {
 
     vi.spyOn(gatewayClient, "checkHealth").mockResolvedValue(true);
     vi.spyOn(gatewayClient, "getCoryProfile").mockResolvedValue({
+      ok: true,
       totalMemories: 5,
       layers: { identity: 2, project: 1, preferences: 1, dynamic: 1 },
-    });
+    } as any);
     vi.spyOn(gatewayClient, "getCredentialPools").mockResolvedValue({
       credentials: [],
     } as any);

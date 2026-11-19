@@ -164,12 +164,12 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
                 gap: "10px",
               }}
             >
-              <CoreBlowEmblem size={28} color="#2DD4BF" />
+              <CoreBlowEmblem size={28} color="var(--accent-teal)" />
               <h1
                 style={{
                   fontSize: "26px",
                   fontWeight: 700,
-                  color: "#D9FBF3",
+                  color: "var(--ink-primary)",
                   letterSpacing: "-0.02em",
                   margin: 0,
                   lineHeight: 1.2,
@@ -179,9 +179,9 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
               </h1>
               <span
                 style={{
-                  background: "rgba(45, 212, 191, 0.14)",
-                  color: "#2DD4BF",
-                  border: "1px solid rgba(45, 212, 191, 0.25)",
+                  background: "var(--accent-teal-subtle)",
+                  color: "var(--accent-teal)",
+                  border: "1px solid var(--accent-teal-glow)",
                   borderRadius: "9999px",
                   padding: "2px 8px",
                   fontSize: "11px",

@@ -14,6 +14,7 @@ import * as path from "node:path";
 import { listAvailableBackends } from "../sandbox/multi-backend-executor.js";
 import { getActiveMicrokernel } from "../gateway/microkernel-services.js";
 import { classifyTaskRouteTier, resolveAdaptiveModelRoute } from "../providers/decision-router.js";
+import { getCheckpointManager } from "../security/checkpoint-manager.js";
 import type { CoreBlowToolResult, ExecutionProfile } from "./coreblow-react-engine.js";
 
 export type CoreBlowToolsetId =
@@ -971,6 +972,11 @@ export async function executeExtendedTool(
           };
         }
         content = content.replace(oldText, () => newText);
+      }
+      try {
+        getCheckpointManager().createCheckpoint(target, "multi_patch");
+      } catch {
+        // Snapshot failure should not block multi_patch execution
       }
       fs.writeFileSync(target, content, "utf8");
       return { success: true, output: `Successfully applied ${hunks.length} atomic hunk(s) to ${target}.`, exitCode: 0 };

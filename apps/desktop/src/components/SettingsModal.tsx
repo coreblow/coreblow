@@ -3,6 +3,7 @@ import { gatewayClient } from "../services/gateway-client";
 import type { CoreHubSkill, PermissionMode, CredentialPoolPayload, RemoteNodeConfig, RemoteNodeKind } from "../types/gateway";
 import type { UiPreferences } from "../services/storage";
 import {
+  CheckIcon,
   CloseIcon,
   CoreBlowEmblem,
   FolderIcon,
@@ -32,6 +33,17 @@ type SettingsSection =
   | "skills"
   | "about";
 
+const ACCENT_SWATCHES = [
+  { name: "Teal", color: "#2DD4BF" },
+  { name: "Emerald", color: "#10B981" },
+  { name: "Sky", color: "#38BDF8" },
+  { name: "Electric Blue", color: "#3B82F6" },
+  { name: "Violet", color: "#8B5CF6" },
+  { name: "Rose", color: "#EC4899" },
+  { name: "Amber", color: "#F59E0B" },
+  { name: "Safety Orange", color: "#F97316" },
+];
+
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   open,
   onClose,
@@ -44,6 +56,63 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [skills, setSkills] = useState<CoreHubSkill[]>([]);
   const [learnedSkills, setLearnedSkills] = useState<CoreHubSkill[]>([]);
   const [loadingSkills, setLoadingSkills] = useState(false);
+
+  const [channelsConfig, setChannelsConfig] = useState<
+    Record<string, { enabled: boolean; token?: string; webhook?: string }>
+  >(() => {
+    try {
+      const saved = localStorage.getItem("coreblow_channels_config");
+      return saved
+        ? JSON.parse(saved)
+        : {
+            Telegram: { enabled: false },
+            Discord: { enabled: false },
+            Slack: { enabled: false },
+            "WhatsApp (Web)": { enabled: false },
+            Signal: { enabled: false },
+            iMessage: { enabled: false },
+          };
+    } catch {
+      return {
+        Telegram: { enabled: false },
+        Discord: { enabled: false },
+        Slack: { enabled: false },
+        "WhatsApp (Web)": { enabled: false },
+        Signal: { enabled: false },
+        iMessage: { enabled: false },
+      };
+    }
+  });
+  const [expandedChannel, setExpandedChannel] = useState<string | null>(null);
+
+  const handleToggleChannel = (name: string) => {
+    setChannelsConfig((prev) => {
+      const current = prev[name] || { enabled: false };
+      const updated = {
+        ...prev,
+        [name]: { ...current, enabled: !current.enabled },
+      };
+      try {
+        localStorage.setItem("coreblow_channels_config", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const handleSaveChannel = (name: string, data: { token?: string; webhook?: string }) => {
+    setChannelsConfig((prev) => {
+      const current = prev[name] || { enabled: false };
+      const updated = {
+        ...prev,
+        [name]: { ...current, ...data, enabled: true },
+      };
+      try {
+        localStorage.setItem("coreblow_channels_config", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    setExpandedChannel(null);
+  };
 
   const [poolData, setPoolData] = useState<CredentialPoolPayload | null>(null);
   const [loadingPool, setLoadingPool] = useState(false);
@@ -165,7 +234,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           background: "var(--bg-card)",
           border: "1px solid var(--border-medium)",
           borderRadius: "var(--radius-panel)",
-          boxShadow: "0 24px 64px rgba(0, 0, 0, 0.6)",
+          boxShadow: "var(--shadow-composer)",
           display: "grid",
           gridTemplateColumns: "188px 1fr",
           gridTemplateRows: "54px 1fr",
@@ -175,6 +244,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         {/* Left Nav Header */}
         <div
           style={{
+            background: "var(--bg-sidebar)",
             borderBottom: "1px solid var(--border-subtle)",
             borderRight: "1px solid var(--border-subtle)",
             display: "flex",
@@ -228,7 +298,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             display: "flex",
             flexDirection: "column",
             gap: "2px",
-            background: "rgba(0, 0, 0, 0.15)",
+            background: "var(--bg-sidebar)",
           }}
         >
           {[
@@ -282,42 +352,88 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   Appearance & Theme
                 </h4>
                 <p style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "12px" }}>
-                  CoreBlow Studio uses the Quiet Instrument design system with dark OLED canvas.
+                  {preferences.themeMode === "light"
+                    ? "CoreBlow Studio in crisp light mode with your customized accent."
+                    : "CoreBlow Studio uses the Quiet Instrument design system with dark OLED canvas."}
                 </p>
-                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                  <div
-                    style={{
-                      padding: "8px 16px",
-                      borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--accent-teal)",
-                      background: "var(--bg-chip)",
-                      color: "var(--accent-teal)",
-                      fontSize: "12px",
-                      fontWeight: 500,
-                    }}
-                  >
-                    Quiet Instrument ({preferences.accentColor || "#2DD4BF"})
+
+                {/* Dark / Light Toggle */}
+                <div style={{ marginBottom: "14px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 600, color: "var(--ink-secondary)", marginBottom: "6px" }}>
+                    Theme Mode
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const next = preferences.themeMode === "light" ? "dark" : "light";
-                      onUpdatePreferences({ themeMode: next });
-                      document.documentElement.setAttribute("data-theme", next);
-                    }}
-                    style={{
-                      padding: "8px 14px",
-                      borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--border-medium)",
-                      background: "var(--bg-chip)",
-                      color: "var(--ink-primary)",
-                      fontSize: "12px",
-                      fontWeight: 500,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Theme: {preferences.themeMode === "light" ? "Light" : "Dark"}
-                  </button>
+                  <div style={{ display: "inline-flex", background: "var(--bg-chip)", borderRadius: "8px", padding: "3px" }}>
+                    {(["dark", "light"] as const).map((mode) => {
+                      const isSelected = (preferences.themeMode || "dark") === mode;
+                      return (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => {
+                            onUpdatePreferences({ themeMode: mode });
+                            if (typeof document !== "undefined") {
+                              document.documentElement.setAttribute("data-theme", mode);
+                            }
+                          }}
+                          style={{
+                            background: isSelected ? "var(--bg-card)" : "transparent",
+                            color: isSelected ? "var(--accent-teal)" : "var(--ink-muted)",
+                            border: isSelected ? "1px solid var(--border-medium)" : "1px solid transparent",
+                            borderRadius: "6px",
+                            padding: "6px 18px",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            textTransform: "capitalize",
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          {mode}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Accent Color Swatches */}
+                <div style={{ marginBottom: "6px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 600, color: "var(--ink-secondary)", marginBottom: "6px" }}>
+                    Accent Color
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
+                    {ACCENT_SWATCHES.map((swatch) => {
+                      const isSelected = (preferences.accentColor || "#2DD4BF").toLowerCase() === swatch.color.toLowerCase();
+                      return (
+                        <button
+                          key={swatch.name}
+                          type="button"
+                          onClick={() => {
+                            onUpdatePreferences({ accentColor: swatch.color });
+                            if (typeof document !== "undefined") {
+                              document.documentElement.style.setProperty("--accent-teal", swatch.color);
+                              document.documentElement.style.setProperty("--accent-teal-glow", `${swatch.color}33`);
+                              document.documentElement.style.setProperty("--accent-teal-subtle", `${swatch.color}18`);
+                            }
+                          }}
+                          title={swatch.name}
+                          style={{
+                            width: "30px",
+                            height: "30px",
+                            borderRadius: "50%",
+                            background: swatch.color,
+                            border: isSelected ? "3px solid #FFFFFF" : "2px solid transparent",
+                            boxShadow: isSelected ? `0 0 10px ${swatch.color}` : "none",
+                            cursor: "pointer",
+                            display: "grid",
+                            placeItems: "center",
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          {isSelected && <CheckIcon size={14} color="#08110F" />}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -336,7 +452,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       padding: "8px 16px",
                       borderRadius: "var(--radius-sm)",
                       border: preferences.layoutMode === "basic" ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
-                      background: preferences.layoutMode === "basic" ? "rgba(45, 212, 191, 0.1)" : "var(--bg-chip)",
+                      background: preferences.layoutMode === "basic" ? "var(--accent-teal-subtle)" : "var(--bg-chip)",
                       color: preferences.layoutMode === "basic" ? "var(--accent-teal)" : "var(--ink-secondary)",
                       fontSize: "12px",
                       fontWeight: 600,
@@ -352,7 +468,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       padding: "8px 16px",
                       borderRadius: "var(--radius-sm)",
                       border: preferences.layoutMode === "pro" ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
-                      background: preferences.layoutMode === "pro" ? "rgba(45, 212, 191, 0.1)" : "var(--bg-chip)",
+                      background: preferences.layoutMode === "pro" ? "var(--accent-teal-subtle)" : "var(--bg-chip)",
                       color: preferences.layoutMode === "pro" ? "var(--accent-teal)" : "var(--ink-secondary)",
                       fontSize: "12px",
                       fontWeight: 600,
@@ -824,28 +940,181 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           )}
 
           {activeSection === "channels" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              <p style={{ fontSize: "12px", color: "var(--ink-secondary)" }}>
-                CoreBlow Unified Channels integration managed by the Gateway.
-              </p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                {["Telegram", "Discord", "Slack", "WhatsApp (Web)", "Signal", "iMessage"].map((ch) => (
-                  <div
-                    key={ch}
-                    style={{
-                      padding: "10px",
-                      background: "var(--bg-input)",
-                      borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--border-subtle)",
-                      fontSize: "12px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <span>{ch}</span>
-                    <span style={{ color: "var(--ink-muted)", fontSize: "11px" }}>Configurable</span>
-                  </div>
-                ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div>
+                <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-primary)", margin: 0 }}>
+                  Messaging Channels
+                </h4>
+                <p style={{ fontSize: "12px", color: "var(--ink-secondary)", margin: "3px 0 0" }}>
+                  Connect CoreBlow to your messaging platforms. Managed sovereignly by your Single-Brain Gateway.
+                </p>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {[
+                  { id: "telegram", name: "Telegram", desc: "Interact with CoreBlow via your private Telegram bot.", tokenLabel: "Bot Token" },
+                  { id: "discord", name: "Discord", desc: "Two-way bot and slash commands inside your Discord servers.", tokenLabel: "Bot Token" },
+                  { id: "slack", name: "Slack", desc: "Workspace bot with threads and channel mentions.", tokenLabel: "App Token / Signing Secret" },
+                  { id: "whatsapp", name: "WhatsApp (Web)", desc: "Direct pairing via Web multi-device session.", tokenLabel: "Pairing Auth Key" },
+                  { id: "signal", name: "Signal", desc: "End-to-end encrypted messaging via local Signal CLI daemon.", tokenLabel: "Account Number / ID" },
+                  { id: "imessage", name: "iMessage", desc: "macOS local iMessage CLI bridge with auto-reply dispatch.", tokenLabel: "Service Target" },
+                ].map((ch) => {
+                  const cfg = channelsConfig[ch.name] || { enabled: false };
+                  const isExpanded = expandedChannel === ch.id;
+                  const statusLabel = cfg.token && cfg.enabled ? "Active" : cfg.enabled ? "Standby" : cfg.token ? "Configured" : "Not configured";
+                  const statusColor = statusLabel === "Active" ? "var(--state-success)" : statusLabel === "Standby" ? "var(--accent-teal)" : "var(--ink-muted)";
+
+                  return (
+                    <div
+                      key={ch.id}
+                      style={{
+                        background: "var(--bg-input)",
+                        borderRadius: "var(--radius-sm)",
+                        border: "1px solid var(--border-subtle)",
+                        padding: "12px 14px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span style={{ fontWeight: 600, fontSize: "13px", color: "var(--ink-primary)" }}>
+                            {ch.name}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "10px",
+                              padding: "2px 6px",
+                              borderRadius: "var(--radius-xs)",
+                              background: "var(--bg-chip)",
+                              color: statusColor,
+                              fontWeight: 600,
+                            }}
+                          >
+                            {statusLabel}
+                          </span>
+                        </div>
+
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <button
+                            type="button"
+                            onClick={() => setExpandedChannel(isExpanded ? null : ch.id)}
+                            style={{
+                              background: isExpanded ? "var(--accent-teal-subtle)" : "var(--bg-chip)",
+                              border: isExpanded ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
+                              borderRadius: "var(--radius-xs)",
+                              padding: "4px 10px",
+                              color: isExpanded ? "var(--accent-teal)" : "var(--ink-secondary)",
+                              fontSize: "11px",
+                              cursor: "pointer",
+                              transition: "all 0.12s ease",
+                            }}
+                          >
+                            {isExpanded ? "Hide" : "Configure"}
+                          </button>
+
+                          {/* Toggle switch */}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleChannel(ch.name)}
+                            style={{
+                              width: "36px",
+                              height: "20px",
+                              borderRadius: "10px",
+                              background: cfg.enabled ? "var(--accent-teal)" : "var(--border-strong)",
+                              border: "none",
+                              cursor: "pointer",
+                              position: "relative",
+                              padding: 0,
+                              transition: "background 0.2s ease",
+                              flexShrink: 0,
+                            }}
+                            aria-label={`Toggle ${ch.name}`}
+                          >
+                            <span
+                              style={{
+                                position: "absolute",
+                                top: "2px",
+                                left: "2px",
+                                width: "16px",
+                                height: "16px",
+                                borderRadius: "50%",
+                                background: "var(--bg-canvas)",
+                                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.4)",
+                                transform: cfg.enabled ? "translateX(16px)" : "translateX(0)",
+                                transition: "transform 0.2s ease",
+                              }}
+                            />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div style={{ fontSize: "11px", color: "var(--ink-secondary)" }}>
+                        {ch.desc}
+                      </div>
+
+                      {isExpanded && (
+                        <div
+                          style={{
+                            marginTop: "4px",
+                            paddingTop: "10px",
+                            borderTop: "1px solid var(--border-subtle)",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "8px",
+                          }}
+                        >
+                          <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--ink-secondary)" }}>
+                            {ch.tokenLabel}
+                          </label>
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <input
+                              type="password"
+                              defaultValue={cfg.token || ""}
+                              id={`channel-input-${ch.id}`}
+                              placeholder={`Enter ${ch.tokenLabel}...`}
+                              style={{
+                                flex: 1,
+                                height: "30px",
+                                background: "var(--bg-card)",
+                                border: "1px solid var(--border-medium)",
+                                borderRadius: "var(--radius-xs)",
+                                padding: "0 10px",
+                                fontSize: "12px",
+                                color: "var(--ink-primary)",
+                                outline: "none",
+                                fontFamily: "var(--font-mono)",
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const input = document.getElementById(`channel-input-${ch.id}`) as HTMLInputElement;
+                                if (input) {
+                                  handleSaveChannel(ch.name, { token: input.value.trim() });
+                                }
+                              }}
+                              style={{
+                                padding: "0 14px",
+                                height: "30px",
+                                background: "var(--accent-teal)",
+                                color: "#08110F",
+                                border: "none",
+                                borderRadius: "var(--radius-xs)",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                              }}
+                            >
+                              Save & Connect
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -1298,40 +1567,163 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {activeSection === "skills" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink-primary)" }}>
-                  CoreHub Skill Storefront & Learned Skills
-                </span>
+                <div>
+                  <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-primary)", margin: 0 }}>
+                    CoreHub Skills & Storefront
+                  </h4>
+                  <p style={{ fontSize: "12px", color: "var(--ink-secondary)", margin: "3px 0 0" }}>
+                    Installed native tools, learned skills, and one-click integrations.
+                  </p>
+                </div>
                 {loadingSkills && <span className="animate-spin" style={{ color: "var(--accent-teal)" }}>●</span>}
               </div>
 
               {skills.length > 0 || learnedSkills.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {[...learnedSkills, ...skills].map((skill, idx) => (
-                    <div
-                      key={`${skill.id}-${idx}`}
-                      style={{
-                        background: "var(--bg-input)",
-                        borderRadius: "var(--radius-sm)",
-                        padding: "10px",
-                        border: "1px solid var(--border-subtle)",
-                        fontSize: "12px",
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontWeight: 600, color: "var(--accent-teal)" }}>{skill.name}</span>
-                        {skill.category && (
-                          <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "var(--radius-xs)", background: "var(--bg-chip)", color: "var(--ink-muted)" }}>
-                            {skill.category}
-                          </span>
-                        )}
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {/* Learned skills section */}
+                  {learnedSkills.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "6px" }}>
+                        Learned Skills ({learnedSkills.length})
                       </div>
-                      <div style={{ color: "var(--ink-secondary)", marginTop: "2px" }}>{skill.description}</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        {learnedSkills.map((skill) => (
+                          <div
+                            key={skill.id}
+                            style={{
+                              background: "var(--bg-input)",
+                              borderRadius: "var(--radius-sm)",
+                              padding: "10px 14px",
+                              border: "1px solid var(--border-subtle)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: "12px",
+                            }}
+                          >
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <span style={{ fontWeight: 600, fontSize: "13px", color: "var(--accent-teal)" }}>
+                                  {skill.name}
+                                </span>
+                                <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "var(--radius-xs)", background: "var(--bg-chip)", color: "var(--ink-muted)" }}>
+                                  {skill.category || "Learned"}
+                                </span>
+                              </div>
+                              <div style={{ color: "var(--ink-secondary)", fontSize: "12px", marginTop: "2px" }}>
+                                {skill.description}
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                await gatewayClient.toggleLearnedSkill(skill.id, !skill.installed);
+                                const [storefront, learned] = await Promise.all([
+                                  gatewayClient.getStorefront(),
+                                  gatewayClient.getLearnedSkills(),
+                                ]);
+                                setSkills(storefront);
+                                setLearnedSkills(learned);
+                              }}
+                              style={{
+                                padding: "5px 12px",
+                                borderRadius: "var(--radius-xs)",
+                                border: skill.installed ? "1px solid var(--border-subtle)" : "1px solid var(--accent-teal)",
+                                background: skill.installed ? "var(--bg-chip)" : "var(--accent-teal-subtle)",
+                                color: skill.installed ? "var(--ink-secondary)" : "var(--accent-teal)",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                flexShrink: 0,
+                              }}
+                            >
+                              {skill.installed ? "Disable" : "Enable"}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
+                  )}
+
+                  {/* Storefront skills section */}
+                  {skills.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "6px" }}>
+                        Storefront Catalog ({skills.length})
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        {skills.map((skill) => (
+                          <div
+                            key={skill.id}
+                            style={{
+                              background: "var(--bg-input)",
+                              borderRadius: "var(--radius-sm)",
+                              padding: "10px 14px",
+                              border: "1px solid var(--border-subtle)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: "12px",
+                            }}
+                          >
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <span style={{ fontWeight: 600, fontSize: "13px", color: "var(--ink-primary)" }}>
+                                  {skill.name}
+                                </span>
+                                <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "var(--radius-xs)", background: "var(--bg-chip)", color: "var(--ink-muted)" }}>
+                                  {skill.category || "General"}
+                                </span>
+                                {skill.version && (
+                                  <span style={{ fontSize: "10px", color: "var(--ink-muted)", fontFamily: "var(--font-mono)" }}>
+                                    v{skill.version}
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ color: "var(--ink-secondary)", fontSize: "12px", marginTop: "2px" }}>
+                                {skill.description}
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (skill.installed) {
+                                  await gatewayClient.uninstallStorefrontItem(skill.id);
+                                } else {
+                                  await gatewayClient.installStorefrontItem(skill.id);
+                                }
+                                const [storefront, learned] = await Promise.all([
+                                  gatewayClient.getStorefront(),
+                                  gatewayClient.getLearnedSkills(),
+                                ]);
+                                setSkills(storefront);
+                                setLearnedSkills(learned);
+                              }}
+                              style={{
+                                padding: "5px 14px",
+                                borderRadius: "var(--radius-xs)",
+                                border: skill.installed ? "1px solid var(--border-subtle)" : "1px solid var(--accent-teal)",
+                                background: skill.installed ? "var(--bg-chip)" : "var(--accent-teal)",
+                                color: skill.installed ? "var(--ink-secondary)" : "#08110F",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                flexShrink: 0,
+                              }}
+                            >
+                              {skill.installed ? "Uninstall" : "Install"}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div style={{ fontSize: "12px", color: "var(--ink-muted)", fontStyle: "italic" }}>
-                  Connected to Gateway skill registry at /api/corehub/storefront
+                <div style={{ padding: "24px 0", textAlign: "center", fontSize: "12px", color: "var(--ink-muted)" }}>
+                  {loadingSkills ? "Loading skills registry..." : "Connected to Gateway skill registry at /api/corehub/storefront."}
                 </div>
               )}
             </div>
