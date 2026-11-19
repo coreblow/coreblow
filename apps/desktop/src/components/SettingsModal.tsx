@@ -128,6 +128,89 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [newNodeToken, setNewNodeToken] = useState("");
   const [nodeActionStatus, setNodeActionStatus] = useState<string | null>(null);
 
+  // MCP Servers state
+  const [mcpServers, setMcpServers] = useState<any[]>([]);
+  const [mcpCatalog, setMcpCatalog] = useState<any[]>([]);
+  const [loadingMcp, setLoadingMcp] = useState(false);
+  const [mcpProbeStatus, setMcpProbeStatus] = useState<Record<string, { status: string; latencyMs?: number; error?: string }>>({});
+
+  // Bot Pairing state
+  const [pairingState, setPairingState] = useState<{ pending: any[]; approved: any[] }>({ pending: [], approved: [] });
+  const [loadingPairing, setLoadingPairing] = useState(false);
+  const [channelTestStatus, setChannelTestStatus] = useState<Record<string, { testing?: boolean; message?: string; error?: string }>>({});
+
+  const fetchMcpData = async () => {
+    setLoadingMcp(true);
+    try {
+      const res = await gatewayClient.listMcpServers();
+      if (res.ok) {
+        setMcpServers(res.servers);
+        setMcpCatalog(res.catalog);
+      }
+    } finally {
+      setLoadingMcp(false);
+    }
+  };
+
+  const fetchPairingData = async () => {
+    setLoadingPairing(true);
+    try {
+      const res = await gatewayClient.listPairingState();
+      if (res.ok) {
+        setPairingState({ pending: res.pending, approved: res.approved });
+      }
+    } finally {
+      setLoadingPairing(false);
+    }
+  };
+
+  const handleInstallMcp = async (catalogId: string) => {
+    await gatewayClient.installMcpServer({ catalogId });
+    await fetchMcpData();
+  };
+
+  const handleDeleteMcp = async (id: string) => {
+    await gatewayClient.deleteMcpServer(id);
+    await fetchMcpData();
+  };
+
+  const handleProbeMcp = async (id: string) => {
+    setMcpProbeStatus((prev) => ({ ...prev, [id]: { status: "probing" } }));
+    const res = await gatewayClient.probeMcpServer(id);
+    if (res.ok && res.probe) {
+      setMcpProbeStatus((prev) => ({
+        ...prev,
+        [id]: { status: res.probe.status, latencyMs: res.probe.latencyMs, error: res.probe.error },
+      }));
+    } else {
+      setMcpProbeStatus((prev) => ({
+        ...prev,
+        [id]: { status: "error", error: res.error || "Probe failed" },
+      }));
+    }
+    await fetchMcpData();
+  };
+
+  const handleApprovePairing = async (codeOrId: string) => {
+    await gatewayClient.approvePairing(codeOrId);
+    await fetchPairingData();
+  };
+
+  const handleRevokePairing = async (externalUserId: string) => {
+    await gatewayClient.revokePairing(externalUserId);
+    await fetchPairingData();
+  };
+
+  const handleTestChannel = async (platform: string, inputToken?: string) => {
+    setChannelTestStatus((prev) => ({ ...prev, [platform]: { testing: true } }));
+    const res = await gatewayClient.testChannel(platform, inputToken);
+    if (res.ok) {
+      setChannelTestStatus((prev) => ({ ...prev, [platform]: { testing: false, message: res.message || "Connected successfully!" } }));
+    } else {
+      setChannelTestStatus((prev) => ({ ...prev, [platform]: { testing: false, error: res.error || "Connection test failed." } }));
+    }
+  };
+
   const fetchNodes = async () => {
     setLoadingNodes(true);
     try {
@@ -162,6 +245,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   useEffect(() => {
     if (open && activeSection === "skills") {
+      fetchMcpData();
       setLoadingSkills(true);
       Promise.all([gatewayClient.getStorefront(), gatewayClient.getLearnedSkills()])
         .then(([storefront, learned]) => {
@@ -169,6 +253,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           setLearnedSkills(learned);
         })
         .finally(() => setLoadingSkills(false));
+    }
+    if (open && activeSection === "channels") {
+      fetchPairingData();
     }
     if (open && activeSection === "models") {
       fetchPools();
@@ -943,11 +1030,165 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <div>
                 <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-primary)", margin: 0 }}>
-                  Messaging Channels
+                  Messaging Channels & Pairing
                 </h4>
                 <p style={{ fontSize: "12px", color: "var(--ink-secondary)", margin: "3px 0 0" }}>
-                  Connect CoreBlow to your messaging platforms. Managed sovereignly by your Single-Brain Gateway.
+                  Connect CoreBlow to your messaging platforms and approve inbound bot pairing codes.
                 </p>
+              </div>
+
+              {/* Bot Pairing & Access Control Section */}
+              <div
+                style={{
+                  background: "var(--bg-card)",
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid var(--border-medium)",
+                  padding: "14px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <h5 style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "var(--ink-primary)" }}>
+                      Bot Pairing & Access Control
+                    </h5>
+                    <p style={{ margin: "2px 0 0", fontSize: "11px", color: "var(--ink-secondary)" }}>
+                      Review incoming pairing codes (COREBLOW-XXXX) to authorize private chat access.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={fetchPairingData}
+                    style={{
+                      background: "var(--bg-chip)",
+                      border: "1px solid var(--border-subtle)",
+                      borderRadius: "var(--radius-xs)",
+                      padding: "3px 8px",
+                      color: "var(--ink-secondary)",
+                      fontSize: "10px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {loadingPairing ? "Loading..." : "Refresh"}
+                  </button>
+                </div>
+
+                {/* Pending pairing requests */}
+                {pairingState.pending.length > 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--accent-teal)", textTransform: "uppercase" }}>
+                      Pending Pairing Requests ({pairingState.pending.length})
+                    </div>
+                    {pairingState.pending.map((p) => (
+                      <div
+                        key={p.id}
+                        style={{
+                          background: "var(--bg-input)",
+                          padding: "10px 12px",
+                          borderRadius: "var(--radius-xs)",
+                          border: "1px solid var(--border-subtle)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: "8px",
+                        }}
+                      >
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--accent-teal)", fontSize: "13px" }}>
+                              {p.code}
+                            </span>
+                            <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "var(--radius-xs)", background: "var(--bg-chip)", color: "var(--ink-muted)", textTransform: "capitalize" }}>
+                              {p.platform}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: "11px", color: "var(--ink-secondary)", marginTop: "2px" }}>
+                            User ID: {p.externalUserId} {p.displayName ? `(${p.displayName})` : ""}
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", gap: "6px" }}>
+                          <button
+                            type="button"
+                            onClick={() => handleApprovePairing(p.code)}
+                            style={{
+                              background: "var(--accent-teal)",
+                              color: "#08110F",
+                              border: "none",
+                              borderRadius: "var(--radius-xs)",
+                              padding: "4px 10px",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRevokePairing(p.externalUserId)}
+                            style={{
+                              background: "transparent",
+                              border: "1px solid var(--border-subtle)",
+                              color: "var(--ink-muted)",
+                              borderRadius: "var(--radius-xs)",
+                              padding: "4px 8px",
+                              fontSize: "11px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: "11px", color: "var(--ink-muted)", fontStyle: "italic" }}>
+                    No pending pairing requests. New external bot users will receive a COREBLOW-XXXX code.
+                  </div>
+                )}
+
+                {/* Approved pairings */}
+                {pairingState.approved.length > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+                      Approved Users ({pairingState.approved.length})
+                    </div>
+                    {pairingState.approved.map((a) => (
+                      <div
+                        key={a.id || a.externalUserId}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "6px 10px",
+                          background: "var(--bg-chip)",
+                          borderRadius: "var(--radius-xs)",
+                          fontSize: "11px",
+                        }}
+                      >
+                        <span style={{ color: "var(--ink-primary)" }}>
+                          <strong style={{ textTransform: "capitalize" }}>{a.platform}</strong>: {a.displayName || a.externalUserId}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRevokePairing(a.externalUserId)}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "var(--state-error, #F87171)",
+                            fontSize: "10px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Revoke
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -1109,7 +1350,39 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             >
                               Save & Connect
                             </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const input = document.getElementById(`channel-input-${ch.id}`) as HTMLInputElement;
+                                const tokenVal = input?.value?.trim() || cfg.token || "";
+                                handleTestChannel(ch.id, tokenVal);
+                              }}
+                              style={{
+                                padding: "0 12px",
+                                height: "30px",
+                                background: "var(--bg-chip)",
+                                border: "1px solid var(--border-subtle)",
+                                color: "var(--ink-primary)",
+                                borderRadius: "var(--radius-xs)",
+                                fontSize: "11px",
+                                fontWeight: 500,
+                                cursor: "pointer",
+                              }}
+                            >
+                              {channelTestStatus[ch.id]?.testing ? "Testing..." : "Test"}
+                            </button>
                           </div>
+
+                          {channelTestStatus[ch.id]?.message && (
+                            <div style={{ fontSize: "11px", color: "var(--state-success, #34D399)", marginTop: "4px" }}>
+                              ✓ {channelTestStatus[ch.id].message}
+                            </div>
+                          )}
+                          {channelTestStatus[ch.id]?.error && (
+                            <div style={{ fontSize: "11px", color: "var(--state-error, #F87171)", marginTop: "4px" }}>
+                              ✗ {channelTestStatus[ch.id].error}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1726,6 +1999,193 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {loadingSkills ? "Loading skills registry..." : "Connected to Gateway skill registry at /api/corehub/storefront."}
                 </div>
               )}
+
+              {/* MCP Servers Section */}
+              <div
+                style={{
+                  background: "var(--bg-card)",
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid var(--border-medium)",
+                  padding: "14px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                  marginTop: "8px",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <h5 style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "var(--ink-primary)" }}>
+                      MCP Servers (Model Context Protocol)
+                    </h5>
+                    <p style={{ margin: "2px 0 0", fontSize: "11px", color: "var(--ink-secondary)" }}>
+                      1-click install standard MCP tools or connect custom stdio / SSE servers.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={fetchMcpData}
+                    style={{
+                      background: "var(--bg-chip)",
+                      border: "1px solid var(--border-subtle)",
+                      borderRadius: "var(--radius-xs)",
+                      padding: "3px 8px",
+                      color: "var(--ink-secondary)",
+                      fontSize: "10px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {loadingMcp ? "Loading..." : "Refresh"}
+                  </button>
+                </div>
+
+                {/* Installed MCP Servers */}
+                {mcpServers.length > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+                      Installed Servers ({mcpServers.length})
+                    </div>
+                    {mcpServers.map((srv) => {
+                      const probe = mcpProbeStatus[srv.id];
+                      const status = probe?.status || srv.status || "disconnected";
+                      const statusColor =
+                        status === "connected"
+                          ? "var(--state-success, #34D399)"
+                          : status === "probing"
+                          ? "var(--accent-teal)"
+                          : status === "error"
+                          ? "var(--state-error, #F87171)"
+                          : "var(--ink-muted)";
+                      return (
+                        <div
+                          key={srv.id}
+                          style={{
+                            background: "var(--bg-input)",
+                            padding: "10px 12px",
+                            borderRadius: "var(--radius-xs)",
+                            border: "1px solid var(--border-subtle)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: "8px",
+                          }}
+                        >
+                          <div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <span style={{ fontWeight: 600, color: "var(--ink-primary)", fontSize: "13px" }}>
+                                {srv.name}
+                              </span>
+                              <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "var(--radius-xs)", background: "var(--bg-chip)", color: "var(--ink-muted)" }}>
+                                {srv.transport}
+                              </span>
+                              <span style={{ fontSize: "10px", fontWeight: 600, color: statusColor }}>
+                                ● {status === "probing" ? "probing..." : status}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: "11px", color: "var(--ink-secondary)", marginTop: "2px" }}>
+                              {srv.description || srv.command || srv.url}
+                            </div>
+                          </div>
+
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            <button
+                              type="button"
+                              onClick={() => handleProbeMcp(srv.id)}
+                              style={{
+                                background: "var(--bg-chip)",
+                                border: "1px solid var(--border-subtle)",
+                                color: "var(--ink-primary)",
+                                borderRadius: "var(--radius-xs)",
+                                padding: "4px 8px",
+                                fontSize: "11px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Probe
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMcp(srv.id)}
+                              style={{
+                                background: "transparent",
+                                border: "1px solid var(--border-subtle)",
+                                color: "var(--state-error, #F87171)",
+                                borderRadius: "var(--radius-xs)",
+                                padding: "4px 8px",
+                                fontSize: "11px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Curated 1-Click Catalog */}
+                {mcpCatalog.length > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--accent-teal)", textTransform: "uppercase" }}>
+                      Curated CoreBlow Catalog
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                      {mcpCatalog.map((item) => {
+                        const isInstalled = mcpServers.some((s) => s.id === item.id);
+                        return (
+                          <div
+                            key={item.id}
+                            style={{
+                              background: "var(--bg-input)",
+                              padding: "10px 12px",
+                              borderRadius: "var(--radius-xs)",
+                              border: "1px solid var(--border-subtle)",
+                              display: "flex",
+                              flexDirection: "column",
+                              justifyContent: "space-between",
+                              gap: "8px",
+                            }}
+                          >
+                            <div>
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                <span style={{ fontWeight: 600, fontSize: "12px", color: "var(--ink-primary)" }}>
+                                  {item.name}
+                                </span>
+                                <span style={{ fontSize: "9px", padding: "1px 5px", borderRadius: "var(--radius-xs)", background: "var(--bg-chip)", color: "var(--ink-muted)" }}>
+                                  {item.category}
+                                </span>
+                              </div>
+                              <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--ink-secondary)", lineHeight: 1.3 }}>
+                                {item.description}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              disabled={isInstalled}
+                              onClick={() => handleInstallMcp(item.id)}
+                              style={{
+                                alignSelf: "flex-start",
+                                padding: "4px 10px",
+                                borderRadius: "var(--radius-xs)",
+                                border: isInstalled ? "1px solid var(--border-subtle)" : "none",
+                                background: isInstalled ? "var(--bg-chip)" : "var(--accent-teal)",
+                                color: isInstalled ? "var(--ink-muted)" : "#08110F",
+                                fontSize: "10px",
+                                fontWeight: 600,
+                                cursor: isInstalled ? "default" : "pointer",
+                              }}
+                            >
+                              {isInstalled ? "Installed" : "1-Click Install"}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

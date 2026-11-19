@@ -2,6 +2,16 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { resolveStateDir } from "../config/paths.js";
+import {
+  appendTurnToSqliteSession,
+  clearSqliteSessions,
+  deleteSqliteSession,
+  getOrCreateSqliteDb,
+  getSqliteSession,
+  isSqliteAvailable,
+  listSqliteSessions,
+  upsertSqliteSession,
+} from "./sqlite-session-store.js";
 
 export type SessionSurface = "desktop" | "cli" | "cron" | "channel" | "web";
 
@@ -32,7 +42,7 @@ export interface UnifiedSessionStoreFile {
 }
 
 /**
- * Resolves the absolute path to the unified session store file.
+ * Resolves the absolute path to the unified session store JSON file.
  * Defaults to ~/.coreblow/sessions/sessions-store.json (or inside COREBLOW_STATE_DIR).
  */
 export function resolveUnifiedSessionStorePath(customPath?: string): string {
@@ -59,9 +69,26 @@ export function resolveUnifiedSessionStorePath(customPath?: string): string {
 }
 
 /**
- * Loads the unified session store from disk synchronously.
+ * Loads the unified session store synchronously.
+ * Prefers SQLite WAL store when available, falling back to JSON.
  */
 export function loadUnifiedSessionStoreSync(storePath?: string): UnifiedSessionStoreFile {
+  if (isSqliteAvailable()) {
+    try {
+      getOrCreateSqliteDb(storePath);
+      const list = listSqliteSessions({ storePath, limit: 10000 });
+      if (list.length > 0) {
+        const sessions: Record<string, UnifiedSessionRecord> = {};
+        for (const s of list) {
+          sessions[s.id] = s;
+        }
+        return { version: 1, sessions };
+      }
+    } catch {
+      // Fall through to JSON
+    }
+  }
+
   const filePath = resolveUnifiedSessionStorePath(storePath);
   if (!fs.existsSync(filePath)) {
     return { version: 1, sessions: {} };
@@ -85,11 +112,27 @@ export function loadUnifiedSessionStoreSync(storePath?: string): UnifiedSessionS
 
 /**
  * Atomically saves the unified session store to disk synchronously.
+ * Updates both the SQLite WAL database and sessions-store.json.
  */
 export function saveUnifiedSessionStoreSync(
   store: UnifiedSessionStoreFile,
   storePath?: string,
 ): void {
+  // Sync to SQLite store
+  if (isSqliteAvailable()) {
+    try {
+      const db = getOrCreateSqliteDb(storePath);
+      if (db) {
+        clearSqliteSessions(storePath);
+        for (const s of Object.values(store.sessions)) {
+          upsertSqliteSession(s, storePath);
+        }
+      }
+    } catch {
+      // Non-fatal if SQLite sync fails
+    }
+  }
+
   const filePath = resolveUnifiedSessionStorePath(storePath);
   const dir = path.dirname(filePath);
   if (!fs.existsSync(dir)) {
@@ -102,7 +145,6 @@ export function saveUnifiedSessionStoreSync(
     fs.writeFileSync(tmpFile, json, "utf-8");
     fs.renameSync(tmpFile, filePath);
   } catch {
-    // Fallback to direct write if rename fails (e.g. cross-device link)
     fs.writeFileSync(filePath, json, "utf-8");
     try {
       if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
@@ -112,13 +154,21 @@ export function saveUnifiedSessionStoreSync(
 
 /**
  * Lists unified session records sorted by updatedAt descending.
- * Optionally filters by search query matching title, id, or message contents.
+ * Optionally filters by search query matching title, id, or message contents via FTS5.
  */
 export function listUnifiedSessions(options?: {
   query?: string;
   limit?: number;
   storePath?: string;
 }): UnifiedSessionRecord[] {
+  if (isSqliteAvailable()) {
+    try {
+      return listSqliteSessions(options);
+    } catch {
+      // Fall through to JSON-based implementation
+    }
+  }
+
   const store = loadUnifiedSessionStoreSync(options?.storePath);
   let list = Object.values(store.sessions);
 
@@ -149,6 +199,16 @@ export function getUnifiedSession(
 ): UnifiedSessionRecord | undefined {
   const targetId = id.trim();
   if (!targetId) return undefined;
+
+  if (isSqliteAvailable()) {
+    try {
+      const record = getSqliteSession(targetId, storePath);
+      if (record) return record;
+    } catch {
+      // Fall through to JSON
+    }
+  }
+
   const store = loadUnifiedSessionStoreSync(storePath);
   if (store.sessions[targetId]) {
     return store.sessions[targetId];
@@ -168,6 +228,25 @@ export function upsertUnifiedSession(
   session: Partial<UnifiedSessionRecord> & { id: string },
   storePath?: string,
 ): UnifiedSessionRecord {
+  if (isSqliteAvailable()) {
+    try {
+      const record = upsertSqliteSession(session, storePath);
+      // Also update JSON mirror if file exists
+      const filePath = resolveUnifiedSessionStorePath(storePath);
+      if (fs.existsSync(filePath)) {
+        try {
+          const store = loadUnifiedSessionStoreSync(storePath);
+          store.sessions[record.id] = record;
+          const json = JSON.stringify(store, null, 2);
+          fs.writeFileSync(filePath, json, "utf-8");
+        } catch {}
+      }
+      return record;
+    } catch {
+      // Fall through to JSON
+    }
+  }
+
   const store = loadUnifiedSessionStoreSync(storePath);
   const id = session.id.trim();
   const existing = store.sessions[id];
@@ -212,6 +291,14 @@ export function appendTurnToUnifiedSession(params: {
   model?: string;
   storePath?: string;
 }): UnifiedSessionRecord {
+  if (isSqliteAvailable()) {
+    try {
+      return appendTurnToSqliteSession(params);
+    } catch {
+      // Fall through to JSON
+    }
+  }
+
   const id =
     params.sessionId?.trim() ||
     `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -287,6 +374,15 @@ export function deleteUnifiedSession(id: string, storePath?: string): boolean {
   const targetId = id.trim();
   if (!targetId) return false;
 
+  if (isSqliteAvailable()) {
+    try {
+      const deleted = deleteSqliteSession(targetId, storePath);
+      if (deleted) return true;
+    } catch {
+      // Fall through to JSON
+    }
+  }
+
   const store = loadUnifiedSessionStoreSync(storePath);
   if (store.sessions[targetId]) {
     delete store.sessions[targetId];
@@ -311,5 +407,10 @@ export function deleteUnifiedSession(id: string, storePath?: string): boolean {
  * Clears all sessions from the unified store (primarily for unit tests).
  */
 export function clearUnifiedSessions(storePath?: string): void {
+  if (isSqliteAvailable()) {
+    try {
+      clearSqliteSessions(storePath);
+    } catch {}
+  }
   saveUnifiedSessionStoreSync({ version: 1, sessions: {} }, storePath);
 }

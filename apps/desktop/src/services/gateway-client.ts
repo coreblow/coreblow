@@ -1247,6 +1247,196 @@ export class CoreBlowGatewayClient {
       return { ok: false, paused, reason: err instanceof Error ? err.message : String(err) };
     }
   }
+
+  /**
+   * List installed MCP servers and catalog via GET /api/corehub/mcp/servers
+   */
+  async listMcpServers(): Promise<{ ok: boolean; servers: any[]; catalog: any[]; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/mcp/servers`, {
+        headers: this.authHeaders({ Accept: "application/json" }),
+        signal: AbortSignal.timeout(4000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, servers: data?.servers ?? [], catalog: data?.catalog ?? [], error: data?.error };
+    } catch (err) {
+      return { ok: false, servers: [], catalog: [], error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Install or configure an MCP server via POST /api/corehub/mcp/servers
+   */
+  async installMcpServer(payload: { catalogId?: string; id?: string; name?: string; command?: string; args?: string[]; transport?: string; url?: string; env?: Record<string, string> }): Promise<{ ok: boolean; server?: any; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/mcp/servers`, {
+        method: "POST",
+        headers: this.authHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(6000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, server: data?.server, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Delete an MCP server via DELETE /api/corehub/mcp/servers/:id
+   */
+  async deleteMcpServer(id: string): Promise<{ ok: boolean; deleted?: boolean; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/mcp/servers/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: this.authHeaders({ Accept: "application/json" }),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, deleted: data?.deleted, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Probe an MCP server's connectivity via POST /api/corehub/mcp/servers/:id/probe
+   */
+  async probeMcpServer(id: string): Promise<{ ok: boolean; probe?: any; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/mcp/servers/${encodeURIComponent(id)}/probe`, {
+        method: "POST",
+        headers: this.authHeaders({ Accept: "application/json" }),
+        signal: AbortSignal.timeout(6000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, probe: data?.probe, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * List bot pairing requests and approved users via GET /api/corehub/pairing
+   */
+  async listPairingState(): Promise<{ ok: boolean; pending: any[]; approved: any[]; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/pairing`, {
+        headers: this.authHeaders({ Accept: "application/json" }),
+        signal: AbortSignal.timeout(4000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, pending: data?.pending ?? [], approved: data?.approved ?? [], error: data?.error };
+    } catch (err) {
+      return { ok: false, pending: [], approved: [], error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Approve a pending bot pairing code via POST /api/corehub/pairing/approve
+   */
+  async approvePairing(codeOrId: string): Promise<{ ok: boolean; approved?: boolean; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/pairing/approve`, {
+        method: "POST",
+        headers: this.authHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+        body: JSON.stringify({ codeOrId }),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, approved: data?.approved, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Revoke approval for a paired user via POST /api/corehub/pairing/revoke
+   */
+  async revokePairing(externalUserId: string): Promise<{ ok: boolean; revoked?: boolean; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/pairing/revoke`, {
+        method: "POST",
+        headers: this.authHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+        body: JSON.stringify({ externalUserId }),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, revoked: data?.revoked, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * List channels configuration and status via GET /api/corehub/channels
+   */
+  async listChannels(): Promise<{ ok: boolean; channels: any[]; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/channels`, {
+        headers: this.authHeaders({ Accept: "application/json" }),
+        signal: AbortSignal.timeout(4000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, channels: data?.channels ?? [], error: data?.error };
+    } catch (err) {
+      return { ok: false, channels: [], error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Configure a messaging channel via POST /api/corehub/channels/:platform/configure
+   */
+  async configureChannel(platform: string, payload: { token?: string; enabled?: boolean }): Promise<{ ok: boolean; channel?: any; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/channels/${encodeURIComponent(platform)}/configure`, {
+        method: "POST",
+        headers: this.authHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, channel: data?.channel, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Test a messaging channel's token and connectivity via POST /api/corehub/channels/:platform/test
+   */
+  async testChannel(platform: string, token?: string): Promise<{ ok: boolean; status?: string; message?: string; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/channels/${encodeURIComponent(platform)}/test`, {
+        method: "POST",
+        headers: this.authHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+        body: JSON.stringify({ token }),
+        signal: AbortSignal.timeout(6000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, status: data?.status, message: data?.message, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Audit a skill statically using AST & regex security guard via POST /api/corehub/skills/audit
+   */
+  async auditSkill(content: string, sourceName?: string): Promise<{ ok: boolean; audit?: any; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/corehub/skills/audit`, {
+        method: "POST",
+        headers: this.authHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+        body: JSON.stringify({ content, sourceName }),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      return { ok: res.ok && !!data?.ok, audit: data?.audit, error: data?.error };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
 }
 
 export const gatewayClient = new CoreBlowGatewayClient();

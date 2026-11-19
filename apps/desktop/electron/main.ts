@@ -1,12 +1,15 @@
-import { app, BrowserWindow, ipcMain, dialog, shell, clipboard, safeStorage } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, shell, clipboard, safeStorage, desktopCapturer } from "electron";
 import * as path from "node:path";
 import * as http from "node:http";
 import { spawn, type ChildProcess } from "node:child_process";
 import * as fs from "node:fs";
+import * as os from "node:os";
 
 let mainWindow: BrowserWindow | null = null;
 let gatewayProcess: ChildProcess | null = null;
 let isGatewayManagedByDesktop = false;
+let isHudMode = false;
+let savedBounds: { x: number; y: number; width: number; height: number } | null = null;
 
 const GATEWAY_PORT = 18789;
 const GATEWAY_HEALTH_URL = `http://127.0.0.1:${GATEWAY_PORT}/health`;
@@ -269,6 +272,42 @@ ipcMain.handle("coreblow:window:close", () => {
 
 ipcMain.handle("coreblow:window:isMaximized", () => {
   return mainWindow?.isMaximized() ?? false;
+});
+
+ipcMain.handle("coreblow:window:toggleHud", () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return false;
+  if (!isHudMode) {
+    savedBounds = mainWindow.getBounds();
+    mainWindow.setAlwaysOnTop(true, "floating");
+    mainWindow.setSize(460, 640);
+    mainWindow.center();
+    isHudMode = true;
+  } else {
+    mainWindow.setAlwaysOnTop(false);
+    if (savedBounds) {
+      mainWindow.setBounds(savedBounds);
+    } else {
+      mainWindow.setSize(1280, 820);
+      mainWindow.center();
+    }
+    isHudMode = false;
+  }
+  return isHudMode;
+});
+
+ipcMain.handle("coreblow:screen:captureActive", async () => {
+  const sources = await desktopCapturer.getSources({
+    types: ["screen", "window"],
+    thumbnailSize: { width: 1280, height: 800 },
+  });
+  if (!sources || sources.length === 0) {
+    throw new Error("No screen capture source available");
+  }
+  const primarySource = sources[0];
+  const pngBuffer = primarySource.thumbnail.toPNG();
+  const capturePath = path.join(os.tmpdir(), `coreblow-capture-${Date.now()}.png`);
+  await fs.promises.writeFile(capturePath, pngBuffer);
+  return capturePath;
 });
 
 // ─── App Lifecycle ─────────────────────────────────────────────────────────

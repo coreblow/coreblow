@@ -24,6 +24,18 @@ import {
 } from "../agents/war-room/index.js";
 import { cleanupBrowserSessionsForLifecycleEnd } from "../browser-lifecycle-cleanup.js";
 import { loadConfig, type CoreBlowConfig } from "../config/config.js";
+import { resolveStateDir } from "../config/paths.js";
+import {
+  deleteMcpServer,
+  getMcpCatalog,
+  getMcpServer,
+  installFromCatalog,
+  listMcpServers,
+  probeMcpServer,
+  upsertMcpServer,
+} from "../mcp/mcp-registry.js";
+import { auditSkillSecurity } from "../security/skills-ast-guard.js";
+import { approvePairing, listPairingState, revokePairing } from "./pairing-store.js";
 import { compileSovereignReleaseManifest } from "../infra/release/index.js";
 import {
   CorySkillSynthesizerService,
@@ -745,7 +757,11 @@ export async function handleCoreHubRoute(
     (pathname.startsWith("/api/corehub/nodes/") && (method === "DELETE" || method === "POST")) ||
     (pathname.startsWith("/api/corehub/voice/") && method === "POST") ||
     (pathname === "/api/corehub/checkpoints/rollback" && method === "POST") ||
-    (pathname === "/api/corehub/system/estop" && method === "POST");
+    (pathname === "/api/corehub/system/estop" && method === "POST") ||
+    (pathname.startsWith("/api/corehub/mcp/servers") && (method === "POST" || method === "DELETE")) ||
+    (pathname.startsWith("/api/corehub/pairing/") && method === "POST") ||
+    (pathname.startsWith("/api/corehub/channels/") && method === "POST") ||
+    (pathname === "/api/corehub/skills/audit" && method === "POST");
   const cfg = options.cfg ?? loadConfig();
 
   // Validate browser origin for CORS / cross-origin protection
@@ -1719,6 +1735,62 @@ export async function handleCoreHubRoute(
     return true;
   }
 
+  // GET /api/corehub/mcp/servers
+  if (method === "GET" && pathname === "/api/corehub/mcp/servers") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    const servers = listMcpServers();
+    const catalog = getMcpCatalog();
+    sendJson(res, 200, { ok: true, servers, catalog });
+    return true;
+  }
+
+  // GET /api/corehub/pairing
+  if (method === "GET" && pathname === "/api/corehub/pairing") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    const state = listPairingState();
+    sendJson(res, 200, { ok: true, ...state });
+    return true;
+  }
+
+  // GET /api/corehub/channels
+  if (method === "GET" && pathname === "/api/corehub/channels") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    const channelsFilePath = path.join(resolveStateDir(), "channels", "config.json");
+    let saved: Record<string, any> = {};
+    if (fs.existsSync(channelsFilePath)) {
+      try {
+        saved = JSON.parse(fs.readFileSync(channelsFilePath, "utf8"));
+      } catch {}
+    }
+    const known = [
+      { platform: "telegram", name: "Telegram", desc: "Interact with CoreBlow via your private Telegram bot.", tokenLabel: "Bot Token" },
+      { platform: "discord", name: "Discord", desc: "Two-way bot and slash commands inside your Discord servers.", tokenLabel: "Bot Token" },
+      { platform: "slack", name: "Slack", desc: "Workspace bot with threads and channel mentions.", tokenLabel: "App Token / Signing Secret" },
+      { platform: "whatsapp", name: "WhatsApp (Web)", desc: "Direct pairing via Web multi-device session.", tokenLabel: "Pairing Auth Key" },
+      { platform: "signal", name: "Signal", desc: "End-to-end encrypted messaging via local Signal CLI daemon.", tokenLabel: "Account Number / ID" },
+      { platform: "imessage", name: "iMessage", desc: "macOS local iMessage CLI bridge with auto-reply dispatch.", tokenLabel: "Service Target" },
+    ];
+    const channels = known.map((ch) => {
+      const custom = saved[ch.platform] || {};
+      const rawToken = typeof custom.token === "string" ? custom.token : "";
+      const enabled = custom.enabled !== undefined ? Boolean(custom.enabled) : false;
+      const masked = rawToken ? (rawToken.length > 8 ? `${rawToken.slice(0, 3)}...${rawToken.slice(-4)}` : "********") : "";
+      const status = rawToken && enabled ? "active" : enabled ? "standby" : rawToken ? "configured" : "unconfigured";
+      return {
+        ...ch,
+        enabled,
+        token: masked,
+        status,
+        lastTestedAtMs: custom.lastTestedAtMs,
+      };
+    });
+    sendJson(res, 200, { ok: true, channels });
+    return true;
+  }
+
   // Privileged Mutations: Origin verification + Authentication + Admin Scope Authorization
   if (isMutation) {
     if (!checkOrigin()) {
@@ -2081,8 +2153,25 @@ export async function handleCoreHubRoute(
     if (method === "POST" && storefrontInstallMatch) {
       const pluginId = decodeURIComponent(storefrontInstallMatch[1]);
       try {
+        const body = (await parseJsonBody(req).catch(() => ({}))) as Record<string, unknown>;
         const catalogEntries = options.catalogEntries ?? loadStorefrontCatalogEntries(options.catalogPath);
         const entry = catalogEntries.find((e) => e.id === pluginId);
+
+        // Security Guard audit
+        const contentToAudit = String(body.content ?? body.instructions ?? entry?.description ?? entry?.summary ?? "");
+        if (contentToAudit) {
+          const audit = auditSkillSecurity(contentToAudit, pluginId);
+          if (!audit.safe && audit.riskLevel === "critical") {
+            sendJson(res, 400, {
+              ok: false,
+              error: `Skill installation blocked by CoreBlow Security Guard (${audit.riskLevel})`,
+              riskLevel: audit.riskLevel,
+              findings: audit.findings,
+            });
+            return true;
+          }
+        }
+
         const capabilities = (entry?.capabilities ?? []).filter(isCoreHubCapability);
         const ledger = services.appStore.getConsentLedger();
         ledger.grantConsent(pluginId, capabilities, operator);
@@ -3077,6 +3166,194 @@ export async function handleCoreHubRoute(
           changedFiles,
         });
         sendJson(res, 200, { ok: true, diffView });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // ── MCP 1-Click Server Registry ───────────────────────────────────────
+    // POST /api/corehub/mcp/servers
+    if (method === "POST" && pathname === "/api/corehub/mcp/servers") {
+      try {
+        const body = (await parseJsonBody(req).catch(() => ({}))) as Record<string, unknown>;
+        if (body.catalogId && typeof body.catalogId === "string") {
+          const installed = installFromCatalog(body.catalogId, undefined, body.overrides as any);
+          sendJson(res, 200, { ok: true, server: installed });
+          return true;
+        }
+        if (!body.id || typeof body.id !== "string") {
+          sendJson(res, 400, { ok: false, error: "Server ID is required" });
+          return true;
+        }
+        const server = upsertMcpServer(body as any);
+        sendJson(res, 200, { ok: true, server });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // DELETE /api/corehub/mcp/servers/:id
+    const mcpDeleteMatch = /^\/api\/corehub\/mcp\/servers\/([^/]+)$/.exec(pathname);
+    if (method === "DELETE" && mcpDeleteMatch) {
+      const serverId = decodeURIComponent(mcpDeleteMatch[1]);
+      const deleted = deleteMcpServer(serverId);
+      sendJson(res, deleted ? 200 : 404, { ok: deleted, deleted });
+      return true;
+    }
+
+    // POST /api/corehub/mcp/servers/:id/probe
+    const mcpProbeMatch = /^\/api\/corehub\/mcp\/servers\/([^/]+)\/probe$/.exec(pathname);
+    if (method === "POST" && mcpProbeMatch) {
+      const serverId = decodeURIComponent(mcpProbeMatch[1]);
+      const server = getMcpServer(serverId);
+      if (!server) {
+        sendJson(res, 404, { ok: false, error: `MCP server '${serverId}' not found` });
+        return true;
+      }
+      const probeResult = await probeMcpServer(server);
+      upsertMcpServer({
+        id: server.id,
+        status: probeResult.status,
+        lastCheckedAtMs: Date.now(),
+      });
+      sendJson(res, 200, { ok: true, probe: probeResult });
+      return true;
+    }
+
+    // ── Bot Pairing Security & Authorization ──────────────────────────────
+    // POST /api/corehub/pairing/approve
+    if (method === "POST" && pathname === "/api/corehub/pairing/approve") {
+      try {
+        const body = (await parseJsonBody(req).catch(() => ({}))) as Record<string, unknown>;
+        const codeOrId = String(body.codeOrId ?? body.code ?? body.id ?? "");
+        if (!codeOrId) {
+          sendJson(res, 400, { ok: false, error: "Pairing code or ID is required" });
+          return true;
+        }
+        const approved = approvePairing(codeOrId);
+        sendJson(res, approved ? 200 : 404, { ok: approved, approved });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/pairing/revoke
+    if (method === "POST" && pathname === "/api/corehub/pairing/revoke") {
+      try {
+        const body = (await parseJsonBody(req).catch(() => ({}))) as Record<string, unknown>;
+        const externalUserId = String(body.externalUserId ?? body.id ?? body.code ?? "");
+        if (!externalUserId) {
+          sendJson(res, 400, { ok: false, error: "externalUserId or ID is required" });
+          return true;
+        }
+        const revoked = revokePairing(externalUserId);
+        sendJson(res, 200, { ok: true, revoked });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // ── Channels Live Config & Test ───────────────────────────────────────
+    // POST /api/corehub/channels/:platform/configure
+    const channelConfigMatch = /^\/api\/corehub\/channels\/([^/]+)\/configure$/.exec(pathname);
+    if (method === "POST" && channelConfigMatch) {
+      const platform = decodeURIComponent(channelConfigMatch[1]);
+      try {
+        const body = (await parseJsonBody(req).catch(() => ({}))) as Record<string, unknown>;
+        const channelsFilePath = path.join(resolveStateDir(), "channels", "config.json");
+        const dir = path.dirname(channelsFilePath);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+        let saved: Record<string, any> = {};
+        if (fs.existsSync(channelsFilePath)) {
+          try {
+            saved = JSON.parse(fs.readFileSync(channelsFilePath, "utf8"));
+          } catch {}
+        }
+
+        const existing = saved[platform] || {};
+        const token = body.token !== undefined ? String(body.token).trim() : existing.token;
+        const enabled = body.enabled !== undefined ? Boolean(body.enabled) : (existing.enabled ?? true);
+
+        saved[platform] = { ...existing, token, enabled };
+        fs.writeFileSync(channelsFilePath, JSON.stringify(saved, null, 2), "utf8");
+
+        const masked = token ? (token.length > 8 ? `${token.slice(0, 3)}...${token.slice(-4)}` : "********") : "";
+        sendJson(res, 200, {
+          ok: true,
+          channel: { platform, enabled, token: masked },
+        });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // POST /api/corehub/channels/:platform/test
+    const channelTestMatch = /^\/api\/corehub\/channels\/([^/]+)\/test$/.exec(pathname);
+    if (method === "POST" && channelTestMatch) {
+      const platform = decodeURIComponent(channelTestMatch[1]);
+      try {
+        const body = (await parseJsonBody(req).catch(() => ({}))) as Record<string, unknown>;
+        const channelsFilePath = path.join(resolveStateDir(), "channels", "config.json");
+        let saved: Record<string, any> = {};
+        if (fs.existsSync(channelsFilePath)) {
+          try {
+            saved = JSON.parse(fs.readFileSync(channelsFilePath, "utf8"));
+          } catch {}
+        }
+        const cfg = saved[platform] || {};
+        const token = String(body.token ?? cfg.token ?? "").trim();
+        if (!token) {
+          sendJson(res, 400, { ok: false, platform, status: "error", error: `No credentials configured for channel '${platform}'.` });
+          return true;
+        }
+
+        if (platform === "telegram") {
+          const isValidSyntax = /^[0-9]{8,11}:[a-zA-Z0-9_-]{35}$/.test(token);
+          if (!isValidSyntax) {
+            sendJson(res, 400, { ok: false, platform, status: "error", error: "Invalid Telegram bot token format. Expected <bot_id>:<token>." });
+            return true;
+          }
+        }
+
+        // Update lastTestedAtMs
+        saved[platform] = { ...cfg, lastTestedAtMs: Date.now() };
+        try {
+          fs.writeFileSync(channelsFilePath, JSON.stringify(saved, null, 2), "utf8");
+        } catch {}
+
+        sendJson(res, 200, {
+          ok: true,
+          platform,
+          status: "healthy",
+          message: `Channel '${platform}' connection verified successfully.`,
+        });
+        return true;
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+        return true;
+      }
+    }
+
+    // ── Skills Static AST Security Audit ──────────────────────────────────
+    // POST /api/corehub/skills/audit
+    if (method === "POST" && pathname === "/api/corehub/skills/audit") {
+      try {
+        const body = (await parseJsonBody(req).catch(() => ({}))) as Record<string, unknown>;
+        const content = String(body.content ?? "");
+        const sourceName = typeof body.sourceName === "string" ? body.sourceName : undefined;
+        const audit = auditSkillSecurity(content, sourceName);
+        sendJson(res, 200, { ok: true, audit });
         return true;
       } catch (err) {
         sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });

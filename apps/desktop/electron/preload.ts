@@ -30,7 +30,11 @@ export interface CoreBlowDesktopApi {
     maximize: () => Promise<void>;
     close: () => Promise<void>;
     isMaximized: () => Promise<boolean>;
+    toggleHud: () => Promise<boolean>;
     onFullscreenChange: (callback: (fullscreen: boolean) => void) => () => void;
+  };
+  screen: {
+    captureActive: () => Promise<string>;
   };
 }
 
@@ -64,6 +68,7 @@ const desktopApi: CoreBlowDesktopApi = {
     maximize: () => ipcRenderer.invoke("coreblow:window:maximize"),
     close: () => ipcRenderer.invoke("coreblow:window:close"),
     isMaximized: () => ipcRenderer.invoke("coreblow:window:isMaximized"),
+    toggleHud: () => ipcRenderer.invoke("coreblow:window:toggleHud"),
     onFullscreenChange: (callback: (fullscreen: boolean) => void) => {
       const handler = (_event: unknown, isFullscreen: boolean) => callback(isFullscreen);
       ipcRenderer.on("coreblow:window-fullscreen", handler);
@@ -71,6 +76,9 @@ const desktopApi: CoreBlowDesktopApi = {
         ipcRenderer.removeListener("coreblow:window-fullscreen", handler);
       };
     },
+  },
+  screen: {
+    captureActive: () => ipcRenderer.invoke("coreblow:screen:captureActive"),
   },
 };
 

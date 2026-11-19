@@ -15,6 +15,7 @@ import { listAvailableBackends } from "../sandbox/multi-backend-executor.js";
 import { getActiveMicrokernel } from "../gateway/microkernel-services.js";
 import { classifyTaskRouteTier, resolveAdaptiveModelRoute } from "../providers/decision-router.js";
 import { getCheckpointManager } from "../security/checkpoint-manager.js";
+import { auditSkillSecurity } from "../security/skills-ast-guard.js";
 import type { CoreBlowToolResult, ExecutionProfile } from "./coreblow-react-engine.js";
 
 export type CoreBlowToolsetId =
@@ -1488,10 +1489,22 @@ export async function executeExtendedTool(
       if (!rawName || !instructions) {
         return { success: false, output: "Skill name and instructions are required.", error: "Invalid args" };
       }
-      const skillDir = path.join(os.homedir(), ".coreblow", "skills", rawName);
-      fs.mkdirSync(skillDir, { recursive: true });
       const tags = Array.isArray(args.tags) ? (args.tags as string[]).join(", ") : "custom";
       const content = `---\nname: ${rawName}\ndescription: ${description}\nversion: 1.0.0\ntags: [${tags}]\n---\n\n${instructions}\n`;
+
+      const audit = auditSkillSecurity(content, rawName);
+      if (!audit.safe && audit.riskLevel === "critical") {
+        const details = audit.findings.map((f) => `- [${f.rule}] line ${f.line}: ${f.detail}`).join("\n");
+        return {
+          success: false,
+          output: `Skill '${rawName}' blocked by CoreBlow Security Guard (${audit.riskLevel}):\n${details}`,
+          error: "Security risk detected",
+          exitCode: 1,
+        };
+      }
+
+      const skillDir = path.join(os.homedir(), ".coreblow", "skills", rawName);
+      fs.mkdirSync(skillDir, { recursive: true });
       const skillFile = path.join(skillDir, "SKILL.md");
       fs.writeFileSync(skillFile, content, "utf8");
       return { success: true, output: `Created reusable skill '${rawName}' at ${skillFile}.`, exitCode: 0 };

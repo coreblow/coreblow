@@ -7,6 +7,7 @@ import { InspectorDrawer } from "./components/InspectorDrawer";
 import { SettingsModal } from "./components/SettingsModal";
 import { StatusBar } from "./components/StatusBar";
 import { FirstRunSetup } from "./components/FirstRunSetup";
+import { CommandPalette } from "./components/CommandPalette";
 import { storageService } from "./services/storage";
 import { gatewayClient } from "./services/gateway-client";
 import type {
@@ -39,6 +40,7 @@ export const App: React.FC = () => {
   const [settingsSection, setSettingsSection] = useState<any>(undefined);
   const [gatewayHealthy, setGatewayHealthy] = useState(true);
   const [showSetupWizard, setShowSetupWizard] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   // Always-On 24/7 Remote Nodes state
   const [nodes, setNodes] = useState<RemoteNodeConfig[]>([
@@ -356,11 +358,33 @@ export const App: React.FC = () => {
     setActiveThreadId(id);
   };
 
+  const handleInstantScreenCapture = async () => {
+    if (window.coreblowDesktop?.screen?.captureActive) {
+      try {
+        const filePath = await window.coreblowDesktop.screen.captureActive();
+        if (filePath) {
+          setAttachedFiles((prev) => Array.from(new Set([...prev, filePath])));
+        }
+      } catch {
+        // Screenshot capture error
+      }
+    }
+  };
+
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
-      if (isCmdOrCtrl && e.key.toLowerCase() === "n") {
+      if (isCmdOrCtrl && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+      } else if (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === "h") {
+        e.preventDefault();
+        window.coreblowDesktop?.window?.toggleHud?.();
+      } else if (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        handleInstantScreenCapture();
+      } else if (isCmdOrCtrl && e.key.toLowerCase() === "n") {
         e.preventDefault();
         handleNewThread();
       } else if (isCmdOrCtrl && e.key === ",") {
@@ -722,6 +746,30 @@ export const App: React.FC = () => {
           onSkip={handleSetupSkip}
         />
       )}
+
+      <CommandPalette
+        open={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        threads={threads}
+        activeThreadId={activeThreadId}
+        onSelectThread={handleSelectThread}
+        onNewChat={handleNewThread}
+        onToggleLayoutMode={handleToggleLayoutMode}
+        layoutMode={preferences.layoutMode || "basic"}
+        onToggleHud={() => window.coreblowDesktop?.window?.toggleHud?.()}
+        onCaptureScreen={handleInstantScreenCapture}
+        onRollback={() => gatewayClient.rollbackCheckpoint().catch(() => {})}
+        onToggleEstop={handleToggleEstop}
+        estopPaused={estopPaused}
+        onOpenSettings={(section) => {
+          setSettingsSection(section);
+          setSettingsOpen(true);
+        }}
+        onSyncSessions={() => handleSyncSessions()}
+        onRunSetupWizard={() => {
+          setShowSetupWizard(true);
+        }}
+      />
     </>
   );
 };
