@@ -1,6 +1,7 @@
 export type TuiOptions = {
   backend?: import("./tui-backend.js").TuiBackend;
   local?: boolean;
+  legacyTui?: boolean;
   url?: string;
   token?: string;
   password?: string;

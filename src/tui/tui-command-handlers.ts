@@ -537,6 +537,10 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         }
         break;
       }
+      case "setup": {
+        chatLog.addSystem("To reconfigure providers and models, run `coreblow setup` or launch CoreBlow TUI (`coreblow`).");
+        break;
+      }
       case "abort":
         await abortActive();
         break;

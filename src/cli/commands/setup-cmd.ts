@@ -97,6 +97,13 @@ export function registerSetupCommand(parent: Command): void {
             console.log(`  ${dim}Logs:   ${LOGS_DIR}${reset}\n`);
 
             if (!opts.skipOnboard) {
+                if (process.stdin.isTTY && process.stdout.isTTY && !process.env.VITEST) {
+                    try {
+                        const { runInkTui } = await import('../../tui/ink/run-ink-tui.js');
+                        await runInkTui({ local: true });
+                        return;
+                    } catch {}
+                }
                 console.log(`  ${cyan}Next step:${reset} Run ${bold}coreblow onboard${reset} to configure your first provider.\n`);
             }
         });

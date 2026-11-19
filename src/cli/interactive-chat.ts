@@ -40,6 +40,7 @@ export async function handleSlashCommand(
           "  /clear      Start a fresh session",
           "  /sessions   List recent sessions from SQLite store",
           "  /desktop    Launch CoreBlow Studio desktop",
+          "  /setup      Provider and model configuration helper",
           "  /help       Show this help message",
           "  /exit       Exit interactive chat",
         ].join("\n"),
@@ -86,6 +87,13 @@ export async function handleSlashCommand(
         output: res.launched
           ? `CoreBlow Studio launched (${res.strategy}).`
           : "Could not launch desktop app.",
+      };
+    }
+
+    case "/setup": {
+      return {
+        handled: true,
+        output: "To reconfigure LLM providers and models, run `coreblow setup` or launch CoreBlow TUI (`coreblow`).",
       };
     }
 

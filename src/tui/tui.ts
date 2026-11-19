@@ -43,6 +43,7 @@ import { buildWaitingStatusMessage, defaultWaitingPhrases } from "./tui-waiting.
 
 export { resolveFinalAssistantText } from "./tui-formatters.js";
 export { resolveTuiBackend } from "./tui-backend.js";
+export { runInkTui } from "./ink/run-ink-tui.js";
 export type { TuiOptions } from "./tui-types.js";
 export {
   createEditorSubmitHandler,
@@ -189,7 +190,16 @@ export function resolveCtrlCAction(params: {
   };
 }
 
-export async function runTui(opts: TuiOptions) {
+export async function runTui(opts: TuiOptions = {}): Promise<void> {
+  const isLegacy = Boolean(opts.legacyTui || process.argv.includes("--legacy-tui"));
+  if (isLegacy) {
+    return runLegacyPiTui(opts);
+  }
+  const { runInkTui } = await import("./ink/run-ink-tui.js");
+  return runInkTui(opts);
+}
+
+export async function runLegacyPiTui(opts: TuiOptions) {
   const config = loadConfig();
   const initialSessionInput = (opts.session ?? "").trim();
   let sessionScope: SessionScope = (config.session?.scope ?? "per-sender") as SessionScope;

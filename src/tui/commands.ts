@@ -69,6 +69,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
     { name: "rollback", description: "Undo last file edit checkpoint" },
     { name: "desktop", description: "Launch CoreBlow Studio desktop" },
     { name: "clear", description: "Start a fresh session" },
+    { name: "setup", description: "Run initial setup wizard" },
     {
       name: "model",
       description: "Set model (or open picker)",
@@ -152,6 +153,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/rollback [id]",
     "/desktop",
     "/clear",
+    "/setup",
     "/agent <id> (or /agents)",
     "/session <key> (or /sessions)",
     "/model <provider/model> (or /models)",

@@ -177,8 +177,10 @@ export async function runCli(argv: string[] = process.argv) {
             const { runTui } = await import("../tui/tui.js");
             await runTui({});
             return;
-          } catch {
-            // Fall back to lightweight interactive chat if full TUI cannot attach
+          } catch (err) {
+            console.error(
+              `[coreblow] Notice: TUI unavailable (${err instanceof Error ? err.message : String(err)}); falling back to simple chat.`,
+            );
           }
         }
         const { runInteractiveCliChat } = await import("./interactive-chat.js");
