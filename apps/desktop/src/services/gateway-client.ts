@@ -166,6 +166,7 @@ export class CoreBlowGatewayClient {
       cwd?: string;
       model?: string;
       modelTier?: ModelTier;
+      agentTeamwork?: boolean;
       credentials?: StreamChatCredentials;
       signal?: AbortSignal;
     },
@@ -203,6 +204,7 @@ export class CoreBlowGatewayClient {
           executionProfile: params.executionProfile,
           cwd: params.cwd,
           model: effectiveModel,
+          agentTeamwork: params.agentTeamwork,
           apiKey: params.credentials?.customApiKey,
           anthropicApiKey: params.credentials?.anthropicApiKey,
           openAiApiKey: params.credentials?.openAiApiKey,

@@ -62,6 +62,54 @@ export const App: React.FC = () => {
   });
   const [isSpeaking, setIsSpeaking] = useState(false);
 
+  // Active Model, Agent Teamwork, and Execution Mode
+  const [activeModel, setActiveModel] = useState<string>(
+    preferences.activeModel || "Auto (DecisionRouter)",
+  );
+  const [agentTeamwork, setAgentTeamwork] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem("coreblow_agent_teamwork");
+      if (stored !== null) return stored === "true";
+      return preferences.agentTeamwork ?? false;
+    } catch {
+      return false;
+    }
+  });
+  const [executionMode, setExecutionMode] = useState<"standard" | "autonomous" | "warroom">(
+    preferences.executionMode || "standard",
+  );
+
+  const handleToggleAgentTeamwork = (enabled: boolean) => {
+    setAgentTeamwork(enabled);
+    setPreferences((p) => ({ ...p, agentTeamwork: enabled }));
+    try {
+      localStorage.setItem("coreblow_agent_teamwork", String(enabled));
+    } catch {}
+  };
+
+  const handleChangeExecutionMode = (mode: "standard" | "autonomous" | "warroom") => {
+    setExecutionMode(mode);
+    setPreferences((p) => ({ ...p, executionMode: mode }));
+    if (mode === "warroom") {
+      handleToggleAgentTeamwork(true);
+    }
+  };
+
+  const handleChangeActiveModel = (model: string) => {
+    setActiveModel(model);
+    setPreferences((p) => ({ ...p, activeModel: model }));
+  };
+
+  const handleSelectWorkspace = async () => {
+    if (window.coreblowDesktop?.dialog?.selectDirectory) {
+      const newPath = await window.coreblowDesktop.dialog.selectDirectory();
+      if (newPath) {
+        const name = newPath.split("/").pop() || newPath;
+        setProject((p) => ({ ...p, path: newPath, name }));
+      }
+    }
+  };
+
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Active Thread
@@ -337,6 +385,7 @@ export const App: React.FC = () => {
           executionProfile: preferences.permissionMode,
           cwd: project.path,
           modelTier: preferences.modelTier,
+          agentTeamwork: agentTeamwork,
           signal: abortController.signal,
           credentials: {
             anthropicApiKey: preferences.anthropicApiKey || undefined,
@@ -501,6 +550,12 @@ export const App: React.FC = () => {
             }
             modelTier={preferences.modelTier}
             onChangeModelTier={(tier) => setPreferences((p) => ({ ...p, modelTier: tier }))}
+            activeModel={activeModel}
+            onChangeActiveModel={handleChangeActiveModel}
+            agentTeamwork={agentTeamwork}
+            onToggleAgentTeamwork={handleToggleAgentTeamwork}
+            executionMode={executionMode}
+            onChangeExecutionMode={handleChangeExecutionMode}
             attachedFiles={attachedFiles}
             onAddFiles={(files) => setAttachedFiles((prev) => [...prev, ...files])}
             onRemoveFile={(file) =>
@@ -508,6 +563,7 @@ export const App: React.FC = () => {
             }
             projectName={project.name}
             projectBranch={project.branch}
+            onSelectWorkspace={handleSelectWorkspace}
             autoSpeak={autoSpeak}
             onToggleAutoSpeak={handleToggleAutoSpeak}
             isSpeaking={isSpeaking}

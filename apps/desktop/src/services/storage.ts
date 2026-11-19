@@ -15,6 +15,9 @@ export interface AutomationSettings {
 export interface UiPreferences {
   permissionMode: PermissionMode;
   modelTier: ModelTier;
+  activeModel?: string;
+  agentTeamwork?: boolean;
+  executionMode?: "standard" | "autonomous" | "warroom";
   sidebarCollapsed: boolean;
   inspectorOpen: boolean;
   inspectorTab: "git" | "warroom" | "memory" | "corehub";
@@ -32,6 +35,9 @@ export interface UiPreferences {
 const DEFAULT_PREFERENCES: UiPreferences = {
   permissionMode: "Guarded",
   modelTier: "High Reasoning",
+  activeModel: "Auto (DecisionRouter)",
+  agentTeamwork: false,
+  executionMode: "standard",
   sidebarCollapsed: false,
   inspectorOpen: true,
   inspectorTab: "git",

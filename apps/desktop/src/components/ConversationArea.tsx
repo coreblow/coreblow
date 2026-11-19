@@ -2,9 +2,9 @@ import React, { useRef, useEffect } from "react";
 import type { ChatMessage, ModelTier, PermissionMode } from "../types/gateway";
 import { MessageBubble } from "./MessageBubble";
 import { Composer } from "./Composer";
-import { CoreBlowEmblem, SparklesIcon, TerminalIcon } from "./Icons";
+import { CoreBlowEmblem } from "./Icons";
 
-interface ConversationAreaProps {
+export interface ConversationAreaProps {
   messages: ChatMessage[];
   prompt: string;
   onChangePrompt: (val: string) => void;
@@ -15,11 +15,18 @@ interface ConversationAreaProps {
   onChangePermissionMode: (mode: PermissionMode) => void;
   modelTier: ModelTier;
   onChangeModelTier: (tier: ModelTier) => void;
+  activeModel?: string;
+  onChangeActiveModel?: (model: string) => void;
+  agentTeamwork?: boolean;
+  onToggleAgentTeamwork?: (enabled: boolean) => void;
+  executionMode?: "standard" | "autonomous" | "warroom";
+  onChangeExecutionMode?: (mode: "standard" | "autonomous" | "warroom") => void;
   attachedFiles: string[];
   onAddFiles: (paths: string[]) => void;
   onRemoveFile: (path: string) => void;
   projectName: string;
   projectBranch: string;
+  onSelectWorkspace?: () => void;
   autoSpeak?: boolean;
   onToggleAutoSpeak?: () => void;
   isSpeaking?: boolean;
@@ -37,11 +44,18 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
   onChangePermissionMode,
   modelTier,
   onChangeModelTier,
+  activeModel,
+  onChangeActiveModel,
+  agentTeamwork,
+  onToggleAgentTeamwork,
+  executionMode,
+  onChangeExecutionMode,
   attachedFiles,
   onAddFiles,
   onRemoveFile,
   projectName,
   projectBranch,
+  onSelectWorkspace,
   autoSpeak = false,
   onToggleAutoSpeak,
   isSpeaking = false,
@@ -56,6 +70,36 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
     }
   }, [messages, isStreaming]);
 
+  const composerElement = (
+    <Composer
+      prompt={prompt}
+      onChangePrompt={onChangePrompt}
+      onSend={onSend}
+      onStop={onStop}
+      isStreaming={isStreaming}
+      permissionMode={permissionMode}
+      onChangePermissionMode={onChangePermissionMode}
+      modelTier={modelTier}
+      onChangeModelTier={onChangeModelTier}
+      activeModel={activeModel}
+      onChangeActiveModel={onChangeActiveModel}
+      agentTeamwork={agentTeamwork}
+      onToggleAgentTeamwork={onToggleAgentTeamwork}
+      executionMode={executionMode}
+      onChangeExecutionMode={onChangeExecutionMode}
+      attachedFiles={attachedFiles}
+      onAddFiles={onAddFiles}
+      onRemoveFile={onRemoveFile}
+      projectName={projectName}
+      projectBranch={projectBranch}
+      onSelectWorkspace={onSelectWorkspace}
+      autoSpeak={autoSpeak}
+      onToggleAutoSpeak={onToggleAutoSpeak}
+      isSpeaking={isSpeaking}
+      onStopSpeaking={onStopSpeaking}
+    />
+  );
+
   return (
     <div
       style={{
@@ -65,164 +109,112 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
         flexDirection: "column",
         position: "relative",
         overflow: "hidden",
-        background: "var(--bg-canvas)",
+        background: "var(--bg-canvas, #08110F)",
       }}
     >
-      {/* Scrollable messages container */}
-      <div
-        ref={scrollContainerRef}
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "20px 32px 140px", // 140px bottom pad leaves space for floating composer
-          boxSizing: "border-box",
-        }}
-      >
-        {messages.length === 0 ? (
+      {messages.length === 0 ? (
+        /* 1. Centered Hero Empty State */
+        <div
+          ref={scrollContainerRef}
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "32px 24px",
+            boxSizing: "border-box",
+          }}
+        >
           <div
             style={{
-              height: "100%",
+              maxWidth: "780px",
+              width: "100%",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              justifyContent: "center",
-              textAlign: "center",
-              padding: "40px 20px",
+            }}
+          >
+            {/* Brand Hero Row */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "10px",
+              }}
+            >
+              <CoreBlowEmblem size={28} color="#2DD4BF" />
+              <h1
+                style={{
+                  fontSize: "26px",
+                  fontWeight: 700,
+                  color: "#D9FBF3",
+                  letterSpacing: "-0.02em",
+                  margin: 0,
+                  lineHeight: 1.2,
+                }}
+              >
+                CoreBlow Studio
+              </h1>
+              <span
+                style={{
+                  background: "rgba(45, 212, 191, 0.14)",
+                  color: "#2DD4BF",
+                  border: "1px solid rgba(45, 212, 191, 0.25)",
+                  borderRadius: "9999px",
+                  padding: "2px 8px",
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  letterSpacing: "0.03em",
+                }}
+              >
+                v2.0
+              </span>
+            </div>
+
+            {/* The Composer rendered directly below the hero title with marginTop: 28px */}
+            <div style={{ width: "100%", marginTop: "28px" }}>
+              {composerElement}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Scrolling conversation thread with floating dock composer */
+        <>
+          <div
+            ref={scrollContainerRef}
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              padding: "20px 32px 140px", // leaves space for bottom floating dock
               boxSizing: "border-box",
             }}
           >
-            <div
-              style={{
-                width: "48px",
-                height: "48px",
-                borderRadius: "var(--radius-md)",
-                background: "var(--bg-chip)",
-                border: "1px solid var(--border-medium)",
-                display: "grid",
-                placeItems: "center",
-                color: "var(--accent-teal)",
-                marginBottom: "16px",
-              }}
-            >
-              <CoreBlowEmblem size={26} />
-            </div>
-
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: 700,
-                color: "var(--ink-primary)",
-                letterSpacing: "0.02em",
-                marginBottom: "6px",
-              }}
-            >
-              CoreBlow Studio
-            </h2>
-
-            <p
-              style={{
-                fontSize: "13px",
-                color: "var(--ink-secondary)",
-                maxWidth: "440px",
-                lineHeight: 1.6,
-                marginBottom: "24px",
-              }}
-            >
-              Autonomous Single-Brain engineering console. Wired to Gateway daemon on port 18789.
-            </p>
-
-            {/* Quick Action Suggestion Cards */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "10px",
-                maxWidth: "520px",
-                width: "100%",
-              }}
-            >
-              {[
-                {
-                  icon: <TerminalIcon size={14} color="var(--accent-teal)" />,
-                  title: "Run Verification Gates",
-                  desc: "Audit test coverage and package builds",
-                  prompt: "Run full 5-gate verification on our workspace and report status.",
-                },
-                {
-                  icon: <SparklesIcon size={14} color="var(--accent-teal)" />,
-                  title: "Inspect Cory Memory",
-                  desc: "Query cognitive memory layers and active skills",
-                  prompt: "Inspect Cory memory layers and list learned skills from the Gateway.",
-                },
-              ].map((card, i) => (
-                <div
-                  key={i}
-                  onClick={() => onChangePrompt(card.prompt)}
-                  style={{
-                    background: "var(--bg-card)",
-                    border: "1px solid var(--border-subtle)",
-                    borderRadius: "var(--radius-sm)",
-                    padding: "12px",
-                    textAlign: "left",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                    {card.icon}
-                    <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--ink-primary)" }}>
-                      {card.title}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: "11px", color: "var(--ink-secondary)", lineHeight: 1.4 }}>
-                    {card.desc}
-                  </div>
-                </div>
+            <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+              {messages.map((msg) => (
+                <MessageBubble key={msg.id} message={msg} />
               ))}
             </div>
           </div>
-        ) : (
-          <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-            {messages.map((msg) => (
-              <MessageBubble key={msg.id} message={msg} />
-            ))}
-          </div>
-        )}
-      </div>
 
-      {/* Floating Composer Dock */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          pointerEvents: "none",
-        }}
-      >
-        <div style={{ pointerEvents: "auto" }}>
-          <Composer
-            prompt={prompt}
-            onChangePrompt={onChangePrompt}
-            onSend={onSend}
-            onStop={onStop}
-            isStreaming={isStreaming}
-            permissionMode={permissionMode}
-            onChangePermissionMode={onChangePermissionMode}
-            modelTier={modelTier}
-            onChangeModelTier={onChangeModelTier}
-            attachedFiles={attachedFiles}
-            onAddFiles={onAddFiles}
-            onRemoveFile={onRemoveFile}
-            projectName={projectName}
-            projectBranch={projectBranch}
-            autoSpeak={autoSpeak}
-            onToggleAutoSpeak={onToggleAutoSpeak}
-            isSpeaking={isSpeaking}
-            onStopSpeaking={onStopSpeaking}
-          />
-        </div>
-      </div>
+          {/* Bottom Floating Composer Dock */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              pointerEvents: "none",
+            }}
+          >
+            <div style={{ pointerEvents: "auto" }}>
+              {composerElement}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
