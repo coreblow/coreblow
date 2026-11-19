@@ -1,16 +1,30 @@
 import React, { useState } from "react";
 import type { ChatThread } from "../types/gateway";
-import { CoreBlowEmblem, PlusIcon, SearchIcon, SettingsIcon, SidebarToggleIcon, TrashIcon } from "./Icons";
+import {
+  CoreBlowEmblem,
+  FolderIcon,
+  PinIcon,
+  PlusIcon,
+  SearchIcon,
+  SettingsIcon,
+  SidebarToggleIcon,
+  SparklesIcon,
+  TerminalIcon,
+  TrashIcon,
+  UsersIcon,
+} from "./Icons";
 
-interface SidebarProps {
+export interface SidebarProps {
   threads: ChatThread[];
   activeThreadId: string | null;
   onSelectThread: (id: string) => void;
   onNewThread: () => void;
   onDeleteThread: (id: string) => void;
+  onTogglePinThread?: (id: string) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
-  onOpenSettings: () => void;
+  onOpenSettings: (section?: string) => void;
+  onOpenTab?: (tab: "git" | "warroom" | "memory" | "corehub") => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -19,16 +33,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectThread,
   onNewThread,
   onDeleteThread,
+  onTogglePinThread,
   collapsed,
   onToggleCollapse,
   onOpenSettings,
+  onOpenTab,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeSegment, setActiveSegment] = useState<"sessions" | "squad">("sessions");
   const isMac = window.coreblowDesktop?.platform === "darwin";
 
   const filteredThreads = threads.filter((t) =>
     t.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const pinnedThreads = filteredThreads.filter((t) => t.pinned);
+  const recentThreads = filteredThreads.filter((t) => !t.pinned);
+
+  const handleSquadClick = () => {
+    setActiveSegment("squad");
+    onOpenTab?.("warroom");
+  };
+
+  const handleSessionsClick = () => {
+    setActiveSegment("sessions");
+  };
 
   if (collapsed) {
     return (
@@ -85,11 +114,68 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <PlusIcon size={18} />
         </button>
 
+        <button
+          type="button"
+          onClick={handleSquadClick}
+          title="War Room Squad"
+          style={{
+            width: "36px",
+            height: "36px",
+            borderRadius: "var(--radius-sm)",
+            background: "transparent",
+            border: "none",
+            color: "var(--ink-secondary)",
+            display: "grid",
+            placeItems: "center",
+            cursor: "pointer",
+          }}
+        >
+          <UsersIcon size={18} />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onOpenTab?.("corehub")}
+          title="Capabilities (Skills & Marketplace)"
+          style={{
+            width: "36px",
+            height: "36px",
+            borderRadius: "var(--radius-sm)",
+            background: "transparent",
+            border: "none",
+            color: "var(--ink-secondary)",
+            display: "grid",
+            placeItems: "center",
+            cursor: "pointer",
+          }}
+        >
+          <SparklesIcon size={18} />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onOpenTab?.("memory")}
+          title="Cory Memory Wiki"
+          style={{
+            width: "36px",
+            height: "36px",
+            borderRadius: "var(--radius-sm)",
+            background: "transparent",
+            border: "none",
+            color: "var(--ink-secondary)",
+            display: "grid",
+            placeItems: "center",
+            cursor: "pointer",
+          }}
+        >
+          <FolderIcon size={18} />
+        </button>
+
         <div style={{ flex: 1 }} />
 
         <button
           type="button"
-          onClick={onOpenSettings}
+          onClick={() => onOpenSettings()}
           title="Settings (⌘,)"
           style={{
             width: "36px",
@@ -132,7 +218,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: isMac ? "0 4px 0 72px" : "0 4px 0 12px", // 72px left clearance for macOS traffic lights, 12px on Win/Linux
+          padding: isMac ? "0 4px 0 72px" : "0 4px 0 12px",
           boxSizing: "border-box",
         }}
       >
@@ -174,8 +260,60 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
+      {/* Top Segmented Switcher: SESSIONS | SQUAD */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "4px",
+          background: "var(--bg-chip)",
+          padding: "3px",
+          borderRadius: "8px",
+          margin: "4px 0 8px",
+        }}
+      >
+        <button
+          type="button"
+          onClick={handleSessionsClick}
+          style={{
+            background: activeSegment === "sessions" ? "var(--bg-card)" : "transparent",
+            color: activeSegment === "sessions" ? "var(--accent-teal)" : "var(--ink-muted)",
+            border: "none",
+            borderRadius: "6px",
+            padding: "5px 0",
+            fontSize: "11px",
+            fontWeight: 700,
+            letterSpacing: "0.05em",
+            cursor: "pointer",
+            transition: "all 0.12s ease",
+            textAlign: "center",
+          }}
+        >
+          SESSIONS
+        </button>
+        <button
+          type="button"
+          onClick={handleSquadClick}
+          style={{
+            background: activeSegment === "squad" ? "var(--bg-card)" : "transparent",
+            color: activeSegment === "squad" ? "var(--accent-teal)" : "var(--ink-muted)",
+            border: "none",
+            borderRadius: "6px",
+            padding: "5px 0",
+            fontSize: "11px",
+            fontWeight: 700,
+            letterSpacing: "0.05em",
+            cursor: "pointer",
+            transition: "all 0.12s ease",
+            textAlign: "center",
+          }}
+        >
+          SQUAD
+        </button>
+      </div>
+
       {/* New Chat Button */}
-      <div style={{ margin: "4px 0 8px" }}>
+      <div style={{ marginBottom: "8px" }}>
         <button
           type="button"
           onClick={onNewThread}
@@ -215,6 +353,104 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
+      {/* Quick Navigation Links */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "4px",
+          marginBottom: "10px",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => onOpenTab?.("corehub")}
+          title="Skills & Storefront Marketplace"
+          style={{
+            background: "transparent",
+            border: "1px solid var(--border-subtle)",
+            borderRadius: "6px",
+            padding: "4px 8px",
+            color: "var(--ink-secondary)",
+            fontSize: "11px",
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+            cursor: "pointer",
+            textAlign: "left",
+          }}
+        >
+          <SparklesIcon size={11} color="var(--accent-teal)" />
+          <span>Capabilities</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onOpenTab?.("memory")}
+          title="Cory Memory Wiki"
+          style={{
+            background: "transparent",
+            border: "1px solid var(--border-subtle)",
+            borderRadius: "6px",
+            padding: "4px 8px",
+            color: "var(--ink-secondary)",
+            fontSize: "11px",
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+            cursor: "pointer",
+            textAlign: "left",
+          }}
+        >
+          <FolderIcon size={11} color="var(--accent-teal)" />
+          <span>Memory</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onOpenSettings("automations")}
+          title="Scheduled Automations & Background Tasks"
+          style={{
+            background: "transparent",
+            border: "1px solid var(--border-subtle)",
+            borderRadius: "6px",
+            padding: "4px 8px",
+            color: "var(--ink-secondary)",
+            fontSize: "11px",
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+            cursor: "pointer",
+            textAlign: "left",
+          }}
+        >
+          <TerminalIcon size={11} color="var(--accent-teal)" />
+          <span>Scheduled jobs</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onOpenSettings("remotes")}
+          title="24/7 Always-On Remote Nodes"
+          style={{
+            background: "transparent",
+            border: "1px solid var(--border-subtle)",
+            borderRadius: "6px",
+            padding: "4px 8px",
+            color: "var(--ink-secondary)",
+            fontSize: "11px",
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+            cursor: "pointer",
+            textAlign: "left",
+          }}
+        >
+          <span style={{ fontSize: "11px" }}>🌐</span>
+          <span>Remote Nodes</span>
+        </button>
+      </div>
+
       {/* Search Filter */}
       <div style={{ position: "relative", marginBottom: "8px" }}>
         <input
@@ -250,7 +486,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </span>
       </div>
 
-      {/* Threads List */}
+      {/* Threads List (PINNED + SESSIONS) */}
       <div
         style={{
           flex: 1,
@@ -273,62 +509,200 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {searchQuery ? "No matching conversations" : "No recent conversations"}
           </div>
         ) : (
-          filteredThreads.map((thread) => {
-            const isActive = thread.id === activeThreadId;
-            return (
+          <>
+            {/* Pinned section */}
+            {pinnedThreads.length > 0 && (
+              <div style={{ marginBottom: "8px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "4px 8px",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    letterSpacing: "0.06em",
+                    color: "var(--ink-muted)",
+                  }}
+                >
+                  <PinIcon size={10} color="var(--accent-teal)" />
+                  <span>PINNED</span>
+                  <span style={{ opacity: 0.6 }}>({pinnedThreads.length})</span>
+                </div>
+                {pinnedThreads.map((thread) => {
+                  const isActive = thread.id === activeThreadId;
+                  return (
+                    <div
+                      key={thread.id}
+                      onClick={() => onSelectThread(thread.id)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "6px 10px",
+                        borderRadius: "var(--radius-sm)",
+                        background: isActive ? "var(--bg-chip)" : "transparent",
+                        border: isActive ? "1px solid var(--border-medium)" : "1px solid transparent",
+                        color: isActive ? "var(--ink-primary)" : "var(--ink-secondary)",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                        transition: "background 0.12s ease",
+                        userSelect: "none",
+                      }}
+                    >
+                      <span
+                        style={{
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          maxWidth: "180px",
+                          fontWeight: isActive ? 600 : 400,
+                        }}
+                      >
+                        {thread.title}
+                      </span>
+
+                      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onTogglePinThread?.(thread.id);
+                          }}
+                          title="Unpin conversation"
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "var(--accent-teal)",
+                            cursor: "pointer",
+                            padding: "2px",
+                            display: "grid",
+                            placeItems: "center",
+                          }}
+                        >
+                          <PinIcon size={11} color="var(--accent-teal)" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteThread(thread.id);
+                          }}
+                          title="Delete conversation"
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "var(--ink-muted)",
+                            cursor: "pointer",
+                            padding: "2px",
+                            display: "grid",
+                            placeItems: "center",
+                          }}
+                        >
+                          <TrashIcon size={11} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Recent Sessions header if pinned items exist */}
+            {pinnedThreads.length > 0 && recentThreads.length > 0 && (
               <div
-                key={thread.id}
-                onClick={() => onSelectThread(thread.id)}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "7px 10px",
-                  borderRadius: "var(--radius-sm)",
-                  background: isActive ? "var(--bg-chip)" : "transparent",
-                  border: isActive ? "1px solid var(--border-medium)" : "1px solid transparent",
-                  color: isActive ? "var(--ink-primary)" : "var(--ink-secondary)",
-                  cursor: "pointer",
-                  fontSize: "13px",
-                  transition: "background 0.12s ease",
-                  userSelect: "none",
+                  padding: "4px 8px",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  color: "var(--ink-muted)",
                 }}
               >
-                <span
-                  style={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    maxWidth: "200px",
-                    fontWeight: isActive ? 500 : 400,
-                  }}
-                >
-                  {thread.title}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteThread(thread.id);
-                  }}
-                  title="Delete conversation"
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: "var(--ink-muted)",
-                    cursor: "pointer",
-                    padding: "2px",
-                    display: "grid",
-                    placeItems: "center",
-                    borderRadius: "2px",
-                  }}
-                >
-                  <TrashIcon size={12} />
-                </button>
+                SESSIONS
               </div>
-            );
-          })
+            )}
+
+            {/* Recent Sessions list */}
+            {recentThreads.map((thread) => {
+              const isActive = thread.id === activeThreadId;
+              return (
+                <div
+                  key={thread.id}
+                  onClick={() => onSelectThread(thread.id)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "7px 10px",
+                    borderRadius: "var(--radius-sm)",
+                    background: isActive ? "var(--bg-chip)" : "transparent",
+                    border: isActive ? "1px solid var(--border-medium)" : "1px solid transparent",
+                    color: isActive ? "var(--ink-primary)" : "var(--ink-secondary)",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    transition: "background 0.12s ease",
+                    userSelect: "none",
+                  }}
+                >
+                  <span
+                    style={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      maxWidth: "180px",
+                      fontWeight: isActive ? 500 : 400,
+                    }}
+                  >
+                    {thread.title}
+                  </span>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTogglePinThread?.(thread.id);
+                      }}
+                      title="Pin conversation"
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "var(--ink-muted)",
+                        cursor: "pointer",
+                        padding: "2px",
+                        display: "grid",
+                        placeItems: "center",
+                      }}
+                    >
+                      <PinIcon size={11} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteThread(thread.id);
+                      }}
+                      title="Delete conversation"
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "var(--ink-muted)",
+                        cursor: "pointer",
+                        padding: "2px",
+                        display: "grid",
+                        placeItems: "center",
+                      }}
+                    >
+                      <TrashIcon size={11} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </>
         )}
       </div>
 
@@ -341,7 +715,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         <button
           type="button"
-          onClick={onOpenSettings}
+          onClick={() => onOpenSettings()}
           style={{
             width: "100%",
             height: "38px",

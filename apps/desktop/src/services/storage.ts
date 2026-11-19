@@ -18,6 +18,12 @@ export interface UiPreferences {
   activeModel?: string;
   agentTeamwork?: boolean;
   executionMode?: "standard" | "autonomous" | "warroom";
+  setupCompleted?: boolean;
+  onboardingCompleted?: boolean;
+  userName?: string;
+  accentColor?: string;
+  themeMode?: "dark" | "light";
+  layoutMode?: "basic" | "pro";
   sidebarCollapsed: boolean;
   inspectorOpen: boolean;
   inspectorTab: "git" | "warroom" | "memory" | "corehub";
@@ -38,8 +44,14 @@ const DEFAULT_PREFERENCES: UiPreferences = {
   activeModel: "Auto (DecisionRouter)",
   agentTeamwork: false,
   executionMode: "standard",
+  setupCompleted: false,
+  onboardingCompleted: false,
+  userName: "",
+  accentColor: "#2DD4BF",
+  themeMode: "dark",
+  layoutMode: "basic",
   sidebarCollapsed: false,
-  inspectorOpen: true,
+  inspectorOpen: false,
   inspectorTab: "git",
   localOllamaUrl: "http://127.0.0.1:11434",
   automations: {
@@ -100,11 +112,33 @@ export class StorageService {
   getPreferences(): UiPreferences {
     try {
       const data = localStorage.getItem(PREFERENCES_KEY);
-      if (!data) return DEFAULT_PREFERENCES;
+      const threadsData = localStorage.getItem(THREADS_KEY);
+      const hasExistingThreads = Boolean(threadsData && threadsData.length > 2 && threadsData !== "[]");
+
+      if (!data) {
+        if (hasExistingThreads) {
+          return {
+            ...DEFAULT_PREFERENCES,
+            setupCompleted: true,
+            onboardingCompleted: true,
+            layoutMode: "pro",
+            inspectorOpen: true,
+          };
+        }
+        return DEFAULT_PREFERENCES;
+      }
+
       const parsed = JSON.parse(data);
+      const setupCompleted = parsed.setupCompleted ?? (hasExistingThreads ? true : false);
+      const onboardingCompleted = parsed.onboardingCompleted ?? (hasExistingThreads ? true : false);
+      const layoutMode = parsed.layoutMode ?? (hasExistingThreads ? "pro" : "basic");
+
       return {
         ...DEFAULT_PREFERENCES,
         ...parsed,
+        setupCompleted,
+        onboardingCompleted,
+        layoutMode,
         automations: {
           ...DEFAULT_PREFERENCES.automations,
           ...(parsed.automations || {}),

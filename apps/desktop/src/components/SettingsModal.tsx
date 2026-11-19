@@ -19,6 +19,7 @@ interface SettingsModalProps {
   preferences: UiPreferences;
   onUpdatePreferences: (prefs: Partial<UiPreferences>) => void;
   initialSection?: SettingsSection;
+  onRunSetupWizard?: () => void;
 }
 
 type SettingsSection =
@@ -37,6 +38,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   preferences,
   onUpdatePreferences,
   initialSection,
+  onRunSetupWizard,
 }) => {
   const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection || "general");
   const [skills, setSkills] = useState<CoreHubSkill[]>([]);
@@ -282,7 +284,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <p style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "12px" }}>
                   CoreBlow Studio uses the Quiet Instrument design system with dark OLED canvas.
                 </p>
-                <div style={{ display: "flex", gap: "10px" }}>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                   <div
                     style={{
                       padding: "8px 16px",
@@ -294,9 +296,104 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       fontWeight: 500,
                     }}
                   >
-                    Quiet Instrument (#08110F)
+                    Quiet Instrument ({preferences.accentColor || "#2DD4BF"})
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = preferences.themeMode === "light" ? "dark" : "light";
+                      onUpdatePreferences({ themeMode: next });
+                      document.documentElement.setAttribute("data-theme", next);
+                    }}
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: "var(--radius-sm)",
+                      border: "1px solid var(--border-medium)",
+                      background: "var(--bg-chip)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Theme: {preferences.themeMode === "light" ? "Light" : "Dark"}
+                  </button>
                 </div>
+              </div>
+
+              <div>
+                <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-primary)", marginBottom: "4px" }}>
+                  Workspace Layout Mode
+                </h4>
+                <p style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "10px" }}>
+                  Choose between everyday clean chat or full developer multi-pane workspace.
+                </p>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    type="button"
+                    onClick={() => onUpdatePreferences({ layoutMode: "basic", inspectorOpen: false })}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: "var(--radius-sm)",
+                      border: preferences.layoutMode === "basic" ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
+                      background: preferences.layoutMode === "basic" ? "rgba(45, 212, 191, 0.1)" : "var(--bg-chip)",
+                      color: preferences.layoutMode === "basic" ? "var(--accent-teal)" : "var(--ink-secondary)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Basic (Everyday)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onUpdatePreferences({ layoutMode: "pro", inspectorOpen: true })}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: "var(--radius-sm)",
+                      border: preferences.layoutMode === "pro" ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
+                      background: preferences.layoutMode === "pro" ? "rgba(45, 212, 191, 0.1)" : "var(--bg-chip)",
+                      color: preferences.layoutMode === "pro" ? "var(--accent-teal)" : "var(--ink-secondary)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Pro (Developer)
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-primary)", marginBottom: "4px" }}>
+                  Onboarding & First-Run Setup
+                </h4>
+                <p style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "10px" }}>
+                  Re-run the automated 6-step environment checklist and interactive conversational setup.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onRunSetupWizard?.();
+                  }}
+                  style={{
+                    background: "var(--bg-chip)",
+                    border: "1px solid var(--border-medium)",
+                    borderRadius: "var(--radius-sm)",
+                    color: "var(--accent-teal)",
+                    padding: "8px 16px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <SparklesIcon size={13} color="var(--accent-teal)" />
+                  <span>Run Setup Wizard</span>
+                </button>
               </div>
 
               <div>

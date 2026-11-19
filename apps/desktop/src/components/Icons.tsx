@@ -179,3 +179,10 @@ export const UsersIcon: React.FC<IconProps> = ({ size = 14, color = "currentColo
     <path d="M16 3.13a4 4 0 0 1 0 7.75" />
   </svg>
 );
+
+export const PinIcon: React.FC<IconProps> = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="17" x2="12" y2="22" />
+    <path d="M5 17h14v-2l-2-3V5a2 2 0 0 0-2-2h-6a2 2 0 0 0-2 2v7l-2 3v2z" />
+  </svg>
+);

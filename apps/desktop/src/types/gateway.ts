@@ -33,6 +33,7 @@ export interface ChatThread {
   executionProfile: PermissionMode;
   model: string;
   cwd?: string;
+  pinned?: boolean;
 }
 
 export interface CoryMemoryLayer {

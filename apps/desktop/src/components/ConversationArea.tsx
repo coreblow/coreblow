@@ -3,6 +3,7 @@ import type { ChatMessage, ModelTier, PermissionMode } from "../types/gateway";
 import { MessageBubble } from "./MessageBubble";
 import { Composer } from "./Composer";
 import { CoreBlowEmblem } from "./Icons";
+import { GettingStartedFlow, type GettingStartedFlowProps } from "./GettingStartedFlow";
 
 export interface ConversationAreaProps {
   messages: ChatMessage[];
@@ -31,6 +32,8 @@ export interface ConversationAreaProps {
   onToggleAutoSpeak?: () => void;
   isSpeaking?: boolean;
   onStopSpeaking?: () => void;
+  showOnboarding?: boolean;
+  onboardingProps?: GettingStartedFlowProps;
 }
 
 export const ConversationArea: React.FC<ConversationAreaProps> = ({
@@ -60,6 +63,8 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
   onToggleAutoSpeak,
   isSpeaking = false,
   onStopSpeaking,
+  showOnboarding = false,
+  onboardingProps,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -112,7 +117,21 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
         background: "var(--bg-canvas, #08110F)",
       }}
     >
-      {messages.length === 0 ? (
+      {showOnboarding && onboardingProps ? (
+        <div
+          ref={scrollContainerRef}
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            boxSizing: "border-box",
+          }}
+        >
+          <GettingStartedFlow {...onboardingProps} />
+        </div>
+      ) : messages.length === 0 ? (
         /* 1. Centered Hero Empty State */
         <div
           ref={scrollContainerRef}

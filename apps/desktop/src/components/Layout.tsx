@@ -5,9 +5,16 @@ interface LayoutProps {
   topbar: React.ReactNode;
   content: React.ReactNode;
   inspector: React.ReactNode;
+  statusBar?: React.ReactNode;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ sidebar, topbar, content, inspector }) => {
+export const Layout: React.FC<LayoutProps> = ({
+  sidebar,
+  topbar,
+  content,
+  inspector,
+  statusBar,
+}) => {
   return (
     <div
       style={{
@@ -33,9 +40,16 @@ export const Layout: React.FC<LayoutProps> = ({ sidebar, topbar, content, inspec
         }}
       >
         {topbar}
-        <main style={{ flex: 1, height: "calc(100% - var(--topbar-height))", position: "relative" }}>
+        <main
+          style={{
+            flex: 1,
+            height: statusBar ? "calc(100% - var(--topbar-height) - 24px)" : "calc(100% - var(--topbar-height))",
+            position: "relative",
+          }}
+        >
           {content}
         </main>
+        {statusBar}
       </div>
 
       {/* Right Inspector Drawer */}

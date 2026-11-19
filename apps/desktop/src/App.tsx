@@ -5,6 +5,8 @@ import { Topbar } from "./components/Topbar";
 import { ConversationArea } from "./components/ConversationArea";
 import { InspectorDrawer } from "./components/InspectorDrawer";
 import { SettingsModal } from "./components/SettingsModal";
+import { StatusBar } from "./components/StatusBar";
+import { FirstRunSetup } from "./components/FirstRunSetup";
 import { storageService } from "./services/storage";
 import { gatewayClient } from "./services/gateway-client";
 import type {
@@ -30,6 +32,7 @@ export const App: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsSection, setSettingsSection] = useState<any>(undefined);
   const [gatewayHealthy, setGatewayHealthy] = useState(true);
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
 
   // Always-On 24/7 Remote Nodes state
   const [nodes, setNodes] = useState<RemoteNodeConfig[]>([
@@ -130,6 +133,49 @@ export const App: React.FC = () => {
   useEffect(() => {
     storageService.savePreferences(preferences);
   }, [preferences]);
+
+  // Synchronize dynamic theme and accent color on document root
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme", preferences.themeMode || "dark");
+      if (preferences.accentColor) {
+        document.documentElement.style.setProperty("--accent-teal", preferences.accentColor);
+        document.documentElement.style.setProperty("--accent-teal-glow", `${preferences.accentColor}33`);
+        document.documentElement.style.setProperty("--accent-teal-subtle", `${preferences.accentColor}18`);
+      }
+    }
+  }, [preferences.themeMode, preferences.accentColor]);
+
+  const handleTogglePinThread = (id: string) => {
+    setThreads((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, pinned: !t.pinned } : t)),
+    );
+  };
+
+  const handleToggleLayoutMode = (mode?: "basic" | "pro") => {
+    const next = mode || (preferences.layoutMode === "basic" ? "pro" : "basic");
+    setPreferences((p) => ({ ...p, layoutMode: next }));
+  };
+
+  const handleSaveApiKey = (provider: "anthropic" | "openai" | "gemini" | "groq", key: string) => {
+    const map = {
+      anthropic: "anthropicApiKey",
+      openai: "openAiApiKey",
+      gemini: "geminiApiKey",
+      groq: "groqApiKey",
+    } as const;
+    setPreferences((p) => ({ ...p, [map[provider]]: key }));
+  };
+
+  const handleSetupComplete = () => {
+    setPreferences((p) => ({ ...p, setupCompleted: true }));
+    setShowSetupWizard(false);
+  };
+
+  const handleSetupSkip = () => {
+    setPreferences((p) => ({ ...p, setupCompleted: true }));
+    setShowSetupWizard(false);
+  };
 
   // Persist project
   useEffect(() => {
@@ -501,13 +547,17 @@ export const App: React.FC = () => {
             onSelectThread={handleSelectThread}
             onNewThread={handleNewThread}
             onDeleteThread={handleDeleteThread}
+            onTogglePinThread={handleTogglePinThread}
             collapsed={preferences.sidebarCollapsed}
             onToggleCollapse={() =>
               setPreferences((p) => ({ ...p, sidebarCollapsed: !p.sidebarCollapsed }))
             }
-            onOpenSettings={() => {
-              setSettingsSection(undefined);
+            onOpenSettings={(section) => {
+              setSettingsSection(section as any);
               setSettingsOpen(true);
+            }}
+            onOpenTab={(tab) => {
+              setPreferences((p) => ({ ...p, inspectorOpen: true, inspectorTab: tab }));
             }}
           />
         }
@@ -534,6 +584,8 @@ export const App: React.FC = () => {
               setSettingsOpen(true);
             }}
             isSyncingSessions={isSyncingSessions}
+            layoutMode={preferences.layoutMode || "basic"}
+            onToggleLayoutMode={handleToggleLayoutMode}
           />
         }
         content={
@@ -568,6 +620,29 @@ export const App: React.FC = () => {
             onToggleAutoSpeak={handleToggleAutoSpeak}
             isSpeaking={isSpeaking}
             onStopSpeaking={handleStopSpeaking}
+            showOnboarding={preferences.setupCompleted && !preferences.onboardingCompleted}
+            onboardingProps={{
+              userName: preferences.userName,
+              onUpdateUserName: (name: string) => {
+                setPreferences((p) => ({ ...p, userName: name }));
+                gatewayClient.rememberMemory(`User prefers to be called ${name}`, "identity").catch(() => {});
+              },
+              accentColor: preferences.accentColor || "#2DD4BF",
+              onUpdateAccentColor: (color: string) => {
+                setPreferences((p) => ({ ...p, accentColor: color }));
+              },
+              themeMode: preferences.themeMode || "dark",
+              onUpdateThemeMode: (mode: "dark" | "light") => {
+                setPreferences((p) => ({ ...p, themeMode: mode }));
+              },
+              layoutMode: preferences.layoutMode || "basic",
+              onUpdateLayoutMode: (mode: "basic" | "pro") => {
+                setPreferences((p) => ({ ...p, layoutMode: mode }));
+              },
+              onSaveApiKey: handleSaveApiKey,
+              onFinish: () => setPreferences((p) => ({ ...p, onboardingCompleted: true })),
+              onSkip: () => setPreferences((p) => ({ ...p, onboardingCompleted: true })),
+            }}
           />
         }
         inspector={
@@ -577,6 +652,15 @@ export const App: React.FC = () => {
             activeTab={preferences.inspectorTab}
             onChangeTab={(tab) => setPreferences((p) => ({ ...p, inspectorTab: tab }))}
             project={project}
+          />
+        }
+        statusBar={
+          <StatusBar
+            gatewayHealthy={gatewayHealthy}
+            activeNodeName={nodes.find((n) => n.id === activeNodeId)?.name || "Local :18789"}
+            activeModelName={activeModel}
+            layoutMode={preferences.layoutMode || "basic"}
+            onToggleLayoutMode={handleToggleLayoutMode}
           />
         }
       />
@@ -591,7 +675,18 @@ export const App: React.FC = () => {
         preferences={preferences}
         onUpdatePreferences={(p) => setPreferences((prev) => ({ ...prev, ...p }))}
         initialSection={settingsSection}
+        onRunSetupWizard={() => {
+          setSettingsOpen(false);
+          setShowSetupWizard(true);
+        }}
       />
+
+      {(!preferences.setupCompleted || showSetupWizard) && (
+        <FirstRunSetup
+          onComplete={handleSetupComplete}
+          onSkip={handleSetupSkip}
+        />
+      )}
     </>
   );
 };
