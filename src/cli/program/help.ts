@@ -62,6 +62,18 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
     .description("")
     .version(ctx.programVersion, "-V, --version", t("cli_help.root.options.version"))
     .option(
+      "-p, --print <prompt>",
+      "Print response to stdout and exit (headless mode)",
+    )
+    .option(
+      "-c, --continue",
+      "Resume the latest session for current workspace",
+    )
+    .option(
+      "-r, --resume [id]",
+      "Resume session by id or open interactive session picker",
+    )
+    .option(
       "--container <name>",
       t("cli_help.root.options.container"),
     )

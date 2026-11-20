@@ -265,6 +265,18 @@ export class CredentialPoolManager {
     return false;
   }
 
+  public resetCooldown(keyId?: string): void {
+    for (const pool of Object.values(this.store.pools)) {
+      for (const cred of pool) {
+        if (!keyId || cred.id === keyId) {
+          cred.cooldownUntilMs = undefined;
+          cred.errorCount = 0;
+        }
+      }
+    }
+    this.saveStoreAtomic();
+  }
+
   public getFallbackChain(): string[] {
     return [...this.store.fallbackChain];
   }

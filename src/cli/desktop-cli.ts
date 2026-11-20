@@ -9,6 +9,7 @@ export interface LaunchDesktopOptions {
   repoRoot?: string;
   platform?: string;
   spawnFn?: typeof spawn;
+  sessionId?: string;
 }
 
 export interface LaunchDesktopResult {
@@ -25,6 +26,11 @@ export function launchDesktopApp(options: LaunchDesktopOptions = {}): LaunchDesk
     resolveCoreBlowPackageRootSync({ cwd: process.cwd() }) ??
     process.cwd();
 
+  const childEnv = {
+    ...process.env,
+    ...(options.sessionId ? { COREBLOW_SESSION_ID: options.sessionId } : {}),
+  };
+
   if (platform === "darwin") {
     const candidatePaths = [
       "/Applications/CoreBlow.app",
@@ -34,9 +40,14 @@ export function launchDesktopApp(options: LaunchDesktopOptions = {}): LaunchDesk
 
     for (const appPath of candidatePaths) {
       if (fs.existsSync(appPath)) {
-        const child = spawnFn("open", ["-a", appPath], {
+        const openArgs = ["-a", appPath];
+        if (options.sessionId) {
+          openArgs.push("--args", "--session", options.sessionId);
+        }
+        const child = spawnFn("open", openArgs, {
           detached: true,
           stdio: "ignore",
+          env: childEnv,
         });
         child.unref();
         return { launched: true, strategy: "app", target: appPath };
@@ -49,6 +60,7 @@ export function launchDesktopApp(options: LaunchDesktopOptions = {}): LaunchDesk
         detached: true,
         stdio: "ignore",
         cwd: repoRoot,
+        env: childEnv,
       });
       child.unref();
       return { launched: true, strategy: "dev", target: "pnpm --filter @coreblow/desktop dev" };
@@ -72,9 +84,11 @@ export function launchDesktopApp(options: LaunchDesktopOptions = {}): LaunchDesk
 
   for (const binPath of candidateBinaries) {
     if (binPath && fs.existsSync(binPath)) {
-      const child = spawnFn(binPath, [], {
+      const args = options.sessionId ? ["--session", options.sessionId] : [];
+      const child = spawnFn(binPath, args, {
         detached: true,
         stdio: "ignore",
+        env: childEnv,
       });
       child.unref();
       return { launched: true, strategy: "packaged", target: binPath };
@@ -85,6 +99,7 @@ export function launchDesktopApp(options: LaunchDesktopOptions = {}): LaunchDesk
     detached: true,
     stdio: "ignore",
     cwd: repoRoot,
+    env: childEnv,
   });
   child.unref();
   return { launched: true, strategy: "start", target: "pnpm --filter @coreblow/desktop start" };

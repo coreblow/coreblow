@@ -8,6 +8,9 @@ import { RewindModal, type RewindMode } from "./RewindModal.js";
 import { DiffView } from "./DiffView.js";
 import { ApprovalModal, type ApprovalDecision } from "./ApprovalModal.js";
 import { SessionPickerModal } from "./SessionPickerModal.js";
+import { PoolModal } from "./PoolModal.js";
+import { MemoryModal } from "./MemoryModal.js";
+import { SandboxModal } from "./SandboxModal.js";
 import { StatusBar } from "./StatusBar.js";
 import { ToolRow, TurnSummaryRule, type ToolCallItem } from "./ToolRow.js";
 import {
@@ -38,6 +41,14 @@ import {
   recordTerminalSessionBreadcrumb,
   resolveSessionByIdOrQuery,
 } from "../../cli/session-resume.js";
+import {
+  parseSquadMention,
+  executeWarRoomTurn,
+} from "./warroom-cli.js";
+import {
+  buildSandboxedCommand,
+  type SandboxMode,
+} from "../../security/os-sandbox.js";
 import {
   getSqliteSession,
   isSqliteAvailable,
@@ -72,7 +83,10 @@ type ActiveModal =
   | "diff"
   | "rewind"
   | "approval"
-  | "sessions";
+  | "sessions"
+  | "pool"
+  | "memory"
+  | "sandbox";
 
 function shortenCwd(cwd: string = process.cwd()): string {
   const home = process.env.HOME || "";
@@ -98,6 +112,11 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         : "none";
 
   const [modal, setModal] = useState<ActiveModal>(initialModalState);
+  const [uiMode, setUiMode] = useState<"basic" | "pro">((cfg as any).uiMode || "pro");
+  const [sandboxMode, setSandboxMode] = useState<SandboxMode>(
+    (cfg as any).sandbox?.mode || ((cfg as any).sandbox?.enabled ? "regular" : "off"),
+  );
+
   const [messages, setMessages] = useState<MessageItem[]>([
     {
       id: "init",
@@ -280,6 +299,27 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         case "/rewind":
           setModal("rewind");
           break;
+        case "/pool":
+          setModal("pool");
+          break;
+        case "/memory":
+          setModal("memory");
+          break;
+        case "/sandbox":
+          setModal("sandbox");
+          break;
+        case "/mode": {
+          const target = args[0]?.toLowerCase();
+          const nextMode = target === "basic" || target === "pro" ? target : uiMode === "pro" ? "basic" : "pro";
+          setUiMode(nextMode);
+          const updatedCfg = { ...loadConfig(), uiMode: nextMode };
+          void writeConfigFile(updatedCfg as any);
+          setMessages((prev) => [
+            ...prev,
+            { id: String(Date.now()), role: "system", text: `UI mode changed to [${nextMode.toUpperCase()}].` },
+          ]);
+          break;
+        }
         case "/diff": {
           try {
             const out = execSync("git diff", { encoding: "utf8", timeout: 5000 });
@@ -387,14 +427,14 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         case "/desktop": {
           try {
             const { launchDesktopApp } = await import("../../cli/desktop-cli.js");
-            const res = launchDesktopApp();
+            const res = launchDesktopApp({ sessionId: sessionKeyRef.current });
             setMessages((prev) => [
               ...prev,
               {
                 id: String(Date.now()),
                 role: "system",
                 text: res.launched
-                  ? `CoreBlow Studio launched (${res.strategy}).`
+                  ? `CoreBlow Studio launched (${res.strategy}). Handed off session ${sessionKeyRef.current}.`
                   : "Could not launch desktop app.",
               },
             ]);
@@ -431,7 +471,7 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
           ]);
       }
     },
-    [backend, exit, messages, activeModel, resumeSessionRecord],
+    [backend, exit, messages, activeModel, resumeSessionRecord, uiMode],
   );
 
   const handleSubmit = useCallback(async () => {
@@ -453,7 +493,42 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
       return;
     }
 
-    // 2. Local shell escape (!command)
+    // 2. War Room squad mention (@lead, @coder, @researcher, @auditor, @verifier, @all)
+    const squadCheck = parseSquadMention(rawText);
+    if (squadCheck.isSquad) {
+      setMessages((prev) => [
+        ...prev,
+        { id: String(Date.now()), role: "user", text: rawText },
+      ]);
+      setIsBusy(true);
+      setStatusMsg(`War Room specialist [@${squadCheck.role}] working...`);
+
+      try {
+        const squadRes = await executeWarRoomTurn({
+          role: squadCheck.role || "lead",
+          prompt: squadCheck.cleanPrompt,
+          sessionId: sessionKeyRef.current,
+        });
+        setIsBusy(false);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: String(Date.now()),
+            role: "assistant",
+            text: squadRes.response,
+          },
+        ]);
+      } catch (err) {
+        setIsBusy(false);
+        setMessages((prev) => [
+          ...prev,
+          { id: String(Date.now()), role: "error", text: `War Room turn failed: ${String(err)}` },
+        ]);
+      }
+      return;
+    }
+
+    // 3. Local shell escape (!command)
     const shellParsed = parseShellEscape(rawText);
     if (shellParsed.isShell) {
       const danger = isDangerousShellCommand(shellParsed.command);
@@ -471,22 +546,28 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         { id: String(Date.now()), role: "user", text: `!${shellParsed.command}` },
       ]);
 
-      const execResult = await executeLocalShell(shellParsed.command);
+      const sandboxed = buildSandboxedCommand(shellParsed.command, {
+        enabled: sandboxMode !== "off",
+        mode: sandboxMode,
+      });
+
+      const execResult = await executeLocalShell(sandboxed.command);
       const out = (execResult.stdout + (execResult.stderr ? `\n${execResult.stderr}` : "")).trim();
       const statusIcon = execResult.exitCode === 0 ? "✓" : `✗ [${execResult.exitCode}]`;
+      const sandboxedBadge = sandboxed.sandboxed ? ` [sandbox:${sandboxed.engine}]` : "";
 
       setMessages((prev) => [
         ...prev,
         {
           id: String(Date.now()),
           role: "tool",
-          text: `! ${shellParsed.command} ${statusIcon}\n${out || "(no output)"}`,
+          text: `! ${shellParsed.command} ${statusIcon}${sandboxedBadge}\n${out || "(no output)"}`,
         },
       ]);
       return;
     }
 
-    // 3. Context references (@file, @diff, etc.)
+    // 4. Context references (@file, @diff, etc.)
     const contextRes = expandContextReferences(rawText);
     if (contextRes.refused) {
       setMessages((prev) => [
@@ -530,7 +611,7 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         { id: String(Date.now()), role: "error", text: `Send failed: ${String(err)}` },
       ]);
     }
-  }, [inputVal, backend, opts.deliver, reasoningEffort, handleSlashCommand]);
+  }, [inputVal, backend, opts.deliver, reasoningEffort, handleSlashCommand, sandboxMode]);
 
   // Main input handler when no modal is active
   useInput((input, key) => {
@@ -681,6 +762,8 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
     return messages.reduce((acc, m) => acc + Math.ceil(m.text.length / 3.8), 0);
   }, [messages]);
 
+  const modelShortName = activeModel.split("/").pop() || activeModel;
+
   return (
     <Box flexDirection="column" paddingX={1} paddingY={0}>
       {/* 1. HeaderBar */}
@@ -690,14 +773,19 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
             CoreBlow v2.0.0
           </Text>
           <Text color={inkPalette.dim}> · {shortenCwd()}</Text>
+          {uiMode === "pro" && sandboxMode !== "off" && (
+            <Text color={inkPalette.link}> · [sandbox:{sandboxMode}]</Text>
+          )}
         </Box>
         <Box>
-          {draftCount > 0 && (
+          {uiMode === "pro" && draftCount > 0 && (
             <Text color={inkPalette.accentSoft}>📌 {draftCount} · </Text>
           )}
-          <Text bold color={backendBadge === "Local" ? inkPalette.accentSoft : inkPalette.success}>
-            [{backendBadge}]
-          </Text>
+          {uiMode === "pro" && (
+            <Text bold color={backendBadge === "Local" ? inkPalette.accentSoft : inkPalette.success}>
+              [{backendBadge}]
+            </Text>
+          )}
         </Box>
       </Box>
 
@@ -856,6 +944,45 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         </Box>
       )}
 
+      {modal === "pool" && (
+        <Box marginY={1}>
+          <PoolModal onClose={() => setModal("none")} />
+        </Box>
+      )}
+
+      {modal === "memory" && (
+        <Box marginY={1}>
+          <MemoryModal onClose={() => setModal("none")} />
+        </Box>
+      )}
+
+      {modal === "sandbox" && (
+        <Box marginY={1}>
+          <SandboxModal
+            currentMode={sandboxMode}
+            onSelectMode={(mode) => {
+              setSandboxMode(mode);
+              setModal("none");
+              const currentCfg = loadConfig() as any;
+              const nextCfg = {
+                ...currentCfg,
+                sandbox: {
+                  ...currentCfg.sandbox,
+                  mode,
+                  enabled: mode !== "off",
+                },
+              };
+              void writeConfigFile(nextCfg);
+              setMessages((prev) => [
+                ...prev,
+                { id: String(Date.now()), role: "system", text: `OS-level sandbox mode set to [${mode.toUpperCase()}].` },
+              ]);
+            }}
+            onClose={() => setModal("none")}
+          />
+        </Box>
+      )}
+
       {modal === "approval" && pendingApproval && (
         <Box marginY={1}>
           <ApprovalModal
@@ -932,17 +1059,24 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         </Box>
       )}
 
-      {/* 5. Responsive 3-Tier StatusBar (HIDDEN when ModalSlot is active to prevent collision) */}
+      {/* 5. Responsive StatusBar (HIDDEN when ModalSlot is active to prevent collision) */}
       {modal === "none" && (
-        <StatusBar
-          model={activeModel}
-          provider={splitModelRef(activeModel).provider}
-          permissionMode={permissionMode}
-          backendBadge={backendBadge}
-          usedTokens={estimatedTokens}
-          isBusy={isBusy}
-          statusMsg={statusMsg}
-        />
+        uiMode === "basic" ? (
+          <Box borderStyle="single" borderTop borderColor={inkPalette.border} justifyContent="space-between">
+            <Text color={inkPalette.text}>{modelShortName} · active</Text>
+            <Text color={inkPalette.dim}>Type message or /help</Text>
+          </Box>
+        ) : (
+          <StatusBar
+            model={activeModel}
+            provider={splitModelRef(activeModel).provider}
+            permissionMode={permissionMode}
+            backendBadge={backendBadge}
+            usedTokens={estimatedTokens}
+            isBusy={isBusy}
+            statusMsg={statusMsg}
+          />
+        )
       )}
     </Box>
   );

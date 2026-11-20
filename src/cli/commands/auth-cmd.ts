@@ -174,6 +174,7 @@ export function registerAuthCommand(parent: Command): void {
 
     // coreblow auth set <provider> [key] — set API key
     cmd.command('set <provider> [key]')
+        .alias('add')
         .description('Set an API key for a provider (prompted if key not given)')
         .action(async (providerId: string, key?: string) => {
             const provider = PROVIDERS.find(p => p.id === providerId);
@@ -211,6 +212,18 @@ export function registerAuthCommand(parent: Command): void {
             }
 
             saveConfig(config);
+
+            // Sync with CredentialPoolManager
+            try {
+                const { getGlobalCredentialPoolManager } = await import('../../providers/credential-pool.js');
+                getGlobalCredentialPoolManager().addCredential({
+                    providerId: provider.id as any,
+                    label: `${provider.name} Key`,
+                    apiKey: apiKey.trim(),
+                    priority: 1,
+                });
+            } catch {}
+
             console.log(`${green}✓${reset} Saved ${cyan}${provider.name}${reset} API key. ${dim}(${maskKey(apiKey)})${reset}`);
         });
 
@@ -218,7 +231,7 @@ export function registerAuthCommand(parent: Command): void {
     cmd.command('remove <provider>')
         .alias('rm')
         .description('Remove a stored API key for a provider')
-        .action((providerId: string) => {
+        .action(async (providerId: string) => {
             const provider = PROVIDERS.find(p => p.id === providerId);
             if (!provider) {
                 console.error(`${red}✗${reset} Unknown provider "${providerId}".`);
@@ -245,6 +258,17 @@ export function registerAuthCommand(parent: Command): void {
             }
 
             saveConfig(config);
+
+            // Sync with CredentialPoolManager
+            try {
+                const { getGlobalCredentialPoolManager } = await import('../../providers/credential-pool.js');
+                const pool = getGlobalCredentialPoolManager();
+                const masked = pool.getMaskedPools().pools[provider.id];
+                if (masked && masked[0]) {
+                    pool.removeCredential(masked[0].id);
+                }
+            } catch {}
+
             console.log(`${green}✓${reset} Removed ${cyan}${provider.name}${reset} API key.`);
         });
 

@@ -161,6 +161,14 @@ export const SUB_CLI_DESCRIPTORS = [
     ),
     hasSubcommands: false,
   },
+  {
+    name: "auth",
+    description: commandDescription(
+      "auth",
+      "Manage API key authentication and credential pool",
+    ),
+    hasSubcommands: true,
+  },
 ] as const satisfies ReadonlyArray<SubCliDescriptor>;
 
 export function getSubCliEntries(): ReadonlyArray<SubCliDescriptor> {
