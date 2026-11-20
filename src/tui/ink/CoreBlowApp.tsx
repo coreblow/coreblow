@@ -12,6 +12,7 @@ import { PoolModal } from "./PoolModal.js";
 import { MemoryModal } from "./MemoryModal.js";
 import { SandboxModal } from "./SandboxModal.js";
 import { StatusBar } from "./StatusBar.js";
+import { WelcomeHero } from "./WelcomeHero.js";
 import { ToolRow, TurnSummaryRule, type ToolCallItem } from "./ToolRow.js";
 import {
   cleanupStaleProviderConfig,
@@ -139,11 +140,22 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [toolsExpanded, setToolsExpanded] = useState(false);
   const [diffString, setDiffString] = useState("");
+  const [terminalColumns, setTerminalColumns] = useState(process.stdout.columns || 80);
   const [pendingApproval, setPendingApproval] = useState<{
     tool: string;
     target: string;
     description?: string;
   } | null>(null);
+
+  useEffect(() => {
+    const onResize = () => {
+      setTerminalColumns(process.stdout.columns || 80);
+    };
+    process.stdout.on("resize", onResize);
+    return () => {
+      process.stdout.off("resize", onResize);
+    };
+  }, []);
 
   // Stashed drafts and pasted chips
   const draftStackRef = useRef(new DraftStashStack());
@@ -296,6 +308,44 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         case "/setup":
           setModal("setup");
           break;
+        case "/chat": {
+          setMessages([]);
+          try {
+            await backend.resetSession(sessionKeyRef.current, "reset");
+          } catch {}
+          break;
+        }
+        case "/agent": {
+          const lines = [
+            "── CoreBlow War Room Squad ──",
+            "  • @lead — Lead Architect & Orchestrator",
+            "  • @coder — Implementation & Shortest Diffs",
+            "  • @researcher — Documentation & API Contracts",
+            "  • @auditor — Security & Vulnerability Auditor",
+            "  • @verifier — Test & Verification Gatekeeper",
+            "  • @all — Broadcast to full squad",
+          ];
+          setMessages((prev) => [
+            ...prev,
+            { id: String(Date.now()), role: "system", text: lines.join("\n") },
+          ]);
+          break;
+        }
+        case "/tool": {
+          const lines = [
+            "── CoreBlow Autonomous Toolsets ──",
+            "  • File Ops: read_file, write_file, patch, multi_patch",
+            "  • Shell: bash, sandbox-exec / bwrap isolation",
+            "  • Checkpoints: create_checkpoint, rollback, rewind",
+            "  • Sessions: sessions_list, sessions_history, sessions_send",
+            "  • Web & Search: web_search, web_fetch",
+          ];
+          setMessages((prev) => [
+            ...prev,
+            { id: String(Date.now()), role: "system", text: lines.join("\n") },
+          ]);
+          break;
+        }
         case "/rewind":
           setModal("rewind");
           break;
@@ -762,57 +812,102 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
     return messages.reduce((acc, m) => acc + Math.ceil(m.text.length / 3.8), 0);
   }, [messages]);
 
+  const hasTurns = messages.some((m) => m.role === "user" || m.role === "assistant");
   const modelShortName = activeModel.split("/").pop() || activeModel;
 
   return (
-    <Box flexDirection="column" paddingX={1} paddingY={0}>
-      {/* 1. HeaderBar */}
-      <Box justifyContent="space-between" borderStyle="single" borderBottom borderColor={inkPalette.border}>
-        <Box>
-          <Text bold color={inkPalette.accent}>
-            CoreBlow v2.0.0
-          </Text>
-          <Text color={inkPalette.dim}> · {shortenCwd()}</Text>
-          {uiMode === "pro" && sandboxMode !== "off" && (
-            <Text color={inkPalette.link}> · [sandbox:{sandboxMode}]</Text>
-          )}
-        </Box>
-        <Box>
-          {uiMode === "pro" && draftCount > 0 && (
-            <Text color={inkPalette.accentSoft}>📌 {draftCount} · </Text>
-          )}
-          {uiMode === "pro" && (
-            <Text bold color={backendBadge === "Local" ? inkPalette.accentSoft : inkPalette.success}>
-              [{backendBadge}]
+    <Box
+      flexDirection="column"
+      justifyContent="space-between"
+      minHeight={Math.max((process.stdout.rows || 24) - 1, 18)}
+      paddingX={1}
+      paddingY={0}
+    >
+      {/* 1. HeaderBar (active state only) */}
+      {hasTurns && (
+        <Box
+          justifyContent="space-between"
+          paddingX={1}
+          paddingY={0}
+          borderStyle="single"
+          borderBottom
+          borderColor={inkPalette.border}
+        >
+          <Box>
+            <Text color={inkPalette.accent}>◆ </Text>
+            <Text bold color={inkPalette.text}>
+              CoreBlow v2.1
             </Text>
-          )}
+            <Text color={inkPalette.dim}> · {shortenCwd()}</Text>
+            {uiMode === "pro" && sandboxMode !== "off" && (
+              <Text color={inkPalette.link}> · [sandbox:{sandboxMode}]</Text>
+            )}
+          </Box>
+          <Box>
+            {uiMode === "pro" && draftCount > 0 && (
+              <Text color={inkPalette.accentSoft}>📌 {draftCount} · </Text>
+            )}
+            {uiMode === "pro" && (
+              <Text
+                bold
+                color={backendBadge === "Local" ? inkPalette.accentSoft : inkPalette.success}
+              >
+                [{backendBadge}]
+              </Text>
+            )}
+          </Box>
         </Box>
-      </Box>
+      )}
 
-      {/* 2. TranscriptView */}
-      <Box flexDirection="column" marginY={1}>
-        {messages.slice(-12).map((msg) => {
-          if (msg.role === "user") {
-            return (
-              <Box key={msg.id} marginY={0}>
-                <Text bold color={inkPalette.accent}>
-                  coreblow ❯{" "}
-                </Text>
-                <Text color={inkPalette.text}>{msg.text}</Text>
-              </Box>
-            );
-          }
-          if (msg.role === "assistant") {
-            return (
-              <Box key={msg.id} marginY={0}>
-                <Text color={inkPalette.text}>{msg.text}</Text>
-              </Box>
-            );
-          }
-          if (msg.role === "tool") {
-            if (msg.toolCall) {
+      {/* 2. Middle Content Area: WelcomeHero (idle) OR TranscriptView (active) */}
+      {modal === "none" && !hasTurns && (
+        <WelcomeHero
+          model={activeModel}
+          uiMode={uiMode}
+          backendBadge={backendBadge}
+          columns={terminalColumns}
+        />
+      )}
+
+      {modal === "none" && hasTurns && (
+        <Box flexDirection="column" flexGrow={1} marginY={1}>
+          {messages.slice(-12).map((msg) => {
+            if (msg.role === "user") {
               return (
-                <ToolRow key={msg.id} tool={msg.toolCall} expanded={toolsExpanded} />
+                <Box key={msg.id} marginY={0}>
+                  <Text bold color={inkPalette.accent}>
+                    coreblow ❯{" "}
+                  </Text>
+                  <Text color={inkPalette.text}>{msg.text}</Text>
+                </Box>
+              );
+            }
+            if (msg.role === "assistant") {
+              return (
+                <Box key={msg.id} marginY={0}>
+                  <Text color={inkPalette.text}>{msg.text}</Text>
+                </Box>
+              );
+            }
+            if (msg.role === "tool") {
+              if (msg.toolCall) {
+                return (
+                  <ToolRow key={msg.id} tool={msg.toolCall} expanded={toolsExpanded} />
+                );
+              }
+              return (
+                <Box key={msg.id} marginY={0}>
+                  <Text color={inkPalette.dim}>{msg.text}</Text>
+                </Box>
+              );
+            }
+            if (msg.role === "error") {
+              return (
+                <Box key={msg.id} marginY={0}>
+                  <Text bold color={inkPalette.error}>
+                    Error: {msg.text}
+                  </Text>
+                </Box>
               );
             }
             return (
@@ -820,23 +915,9 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
                 <Text color={inkPalette.dim}>{msg.text}</Text>
               </Box>
             );
-          }
-          if (msg.role === "error") {
-            return (
-              <Box key={msg.id} marginY={0}>
-                <Text bold color={inkPalette.error}>
-                  Error: {msg.text}
-                </Text>
-              </Box>
-            );
-          }
-          return (
-            <Box key={msg.id} marginY={0}>
-              <Text color={inkPalette.dim}>{msg.text}</Text>
-            </Box>
-          );
-        })}
-      </Box>
+          })}
+        </Box>
+      )}
 
       {/* 3. ModalSlot (exclusive overlay - HIDES StatusBar) */}
       {modal === "model" && (
@@ -1032,19 +1113,18 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         </Box>
       )}
 
-      {/* 4. ComposerBox (prompt input) */}
+      {/* 4. Bottom-Pinned Rounded Orange Composer & Whisper-Quiet Footer */}
       {modal === "none" && (
-        <Box flexDirection="column" marginY={1}>
-          <Box>
-            <Text bold color={inkPalette.accent}>
-              coreblow ❯{" "}
-            </Text>
-            <Text color={inkPalette.text}>{inputVal}</Text>
-          </Box>
-
-          {/* Autocomplete suggestions preview */}
-          {slashMatches.length > 0 && inputVal.length > 1 && (
-            <Box flexDirection="column" borderStyle="single" borderColor={inkPalette.border} paddingX={1} marginY={0}>
+        <Box flexDirection="column" marginTop={1}>
+          {/* Autocomplete suggestions rendered ABOVE the composer */}
+          {slashMatches.length > 0 && inputVal.startsWith("/") && (
+            <Box
+              flexDirection="column"
+              borderStyle="round"
+              borderColor={inkPalette.border}
+              paddingX={1}
+              marginBottom={0}
+            >
               {slashMatches.slice(0, 5).map((m, idx) => (
                 <Box key={m.cmd} justifyContent="space-between">
                   <Text color={idx === 0 ? inkPalette.accent : inkPalette.dim}>
@@ -1056,27 +1136,45 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
               ))}
             </Box>
           )}
-        </Box>
-      )}
 
-      {/* 5. Responsive StatusBar (HIDDEN when ModalSlot is active to prevent collision) */}
-      {modal === "none" && (
-        uiMode === "basic" ? (
-          <Box borderStyle="single" borderTop borderColor={inkPalette.border} justifyContent="space-between">
-            <Text color={inkPalette.text}>{modelShortName} · active</Text>
-            <Text color={inkPalette.dim}>Type message or /help</Text>
+          {/* Bottom-Pinned Rounded Orange Composer Box */}
+          <Box
+            borderStyle="round"
+            borderColor={inkPalette.accent}
+            paddingX={1}
+            width="100%"
+          >
+            <Text bold color={inkPalette.accent}>
+              ❯{" "}
+            </Text>
+            {inputVal ? (
+              <Text color={inkPalette.text}>
+                {inputVal.slice(0, cursorPos)}
+                <Text inverse color={inkPalette.accent}>
+                  {inputVal[cursorPos] || " "}
+                </Text>
+                {inputVal.slice(cursorPos + 1)}
+              </Text>
+            ) : (
+              <Text italic color={inkPalette.dim}>
+                Type a message, /command, @file, or !shell...
+              </Text>
+            )}
           </Box>
-        ) : (
+
+          {/* Whisper-Quiet Borderless 1-Line Footer */}
           <StatusBar
             model={activeModel}
             provider={splitModelRef(activeModel).provider}
             permissionMode={permissionMode}
             backendBadge={backendBadge}
+            uiMode={uiMode}
             usedTokens={estimatedTokens}
             isBusy={isBusy}
             statusMsg={statusMsg}
+            columns={terminalColumns}
           />
-        )
+        </Box>
       )}
     </Box>
   );

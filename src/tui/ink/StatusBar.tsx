@@ -16,6 +16,7 @@ export interface StatusBarProps {
   provider?: string;
   permissionMode: PermissionMode;
   backendBadge: string;
+  uiMode?: "basic" | "pro";
   usedTokens?: number;
   inputTokens?: number;
   outputTokens?: number;
@@ -30,6 +31,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   provider,
   permissionMode,
   backendBadge,
+  uiMode = "pro",
   usedTokens = 0,
   inputTokens,
   outputTokens,
@@ -49,15 +51,24 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   const modeBadge = getPermissionModeBadge(permissionMode);
   const modelShortName = model.split("/").pop() || model;
 
+  // Basic Mode
+  if (uiMode === "basic") {
+    return (
+      <Box paddingX={1} justifyContent="space-between">
+        <Text color={inkPalette.dim}>
+          Shift+Tab {modeBadge.label} · Ctrl+P sessions
+        </Text>
+        <Text color={inkPalette.dim}>
+          {modelShortName} · {backendBadge}
+        </Text>
+      </Box>
+    );
+  }
+
   // Minimal (< 56 columns)
   if (columns < 56) {
     return (
-      <Box
-        borderStyle="single"
-        borderTop
-        borderColor={inkPalette.border}
-        justifyContent="space-between"
-      >
+      <Box paddingX={1} justifyContent="space-between">
         <Text color={inkPalette.text}>
           {modelShortName} ·{" "}
           <Text color={metrics.color}>{metrics.percentage}%</Text>
@@ -74,12 +85,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   // Compact (56 - 79 columns)
   if (columns < 80) {
     return (
-      <Box
-        borderStyle="single"
-        borderTop
-        borderColor={inkPalette.border}
-        justifyContent="space-between"
-      >
+      <Box paddingX={1} justifyContent="space-between">
         <Box>
           <Text color={inkPalette.text}>{modelShortName} </Text>
           <Text color={modeBadge.color}>[{modeBadge.label}] </Text>
@@ -95,15 +101,10 @@ export const StatusBar: React.FC<StatusBarProps> = ({
 
   // Full (>= 80 columns)
   return (
-    <Box
-      borderStyle="single"
-      borderTop
-      borderColor={inkPalette.border}
-      justifyContent="space-between"
-    >
+    <Box paddingX={1} justifyContent="space-between">
       <Box>
-        <Text bold color={inkPalette.text}>
-          {model}{" "}
+        <Text color={inkPalette.text}>
+          {modelShortName}{" "}
         </Text>
         <Text color={modeBadge.color}>[{modeBadge.label}] · </Text>
         <Text color={inkPalette.dim}>
@@ -113,12 +114,15 @@ export const StatusBar: React.FC<StatusBarProps> = ({
           {metrics.bar} {metrics.percentage}%{" "}
         </Text>
         <Text color={inkPalette.dim}>
-          · ${metrics.costUsd.toFixed(2)} · {backendBadge}
+          · ${metrics.costUsd.toFixed(2)}
         </Text>
         {isBusy && (
           <Text color={inkPalette.accent}> · ⠹ {statusMsg || "busy"}</Text>
         )}
       </Box>
+      <Text color={inkPalette.dim}>
+        {backendBadge} · /help
+      </Text>
     </Box>
   );
 };

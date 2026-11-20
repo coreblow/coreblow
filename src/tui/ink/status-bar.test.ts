@@ -96,10 +96,11 @@ describe("StatusBar & Context Telemetry", () => {
         }),
       );
 
-      expect(output).toContain("anthropic/claude-3-7-sonnet");
+      expect(output).toContain("claude-3-7-sonnet");
       expect(output).toContain("[manual]");
       expect(output).toContain("12K/200K");
       expect(output).toContain("Local");
+      expect(output).toContain("/help");
     });
 
     it("renders compact layout when columns are between 56 and 79", () => {
@@ -139,6 +140,21 @@ describe("StatusBar & Context Telemetry", () => {
       // Mode badge and cost are omitted in minimal tier
       expect(output).not.toContain("[manual]");
       expect(output).not.toContain("$");
+    });
+
+    it("renders borderless basic mode layout", () => {
+      const output = renderToString(
+        React.createElement(StatusBar, {
+          model: "anthropic/claude-3-7-sonnet",
+          permissionMode: "manual",
+          backendBadge: "Local",
+          uiMode: "basic",
+        }),
+      );
+
+      expect(output).toContain("Shift+Tab manual · Ctrl+P sessions");
+      expect(output).toContain("claude-3-7-sonnet · Local");
+      expect(output).not.toContain("─");
     });
   });
 });

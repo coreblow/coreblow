@@ -18,12 +18,20 @@ describe("input-prefixes", () => {
       expect(all.length).toBeGreaterThan(5);
       expect(all.some((c) => c.cmd === "/model")).toBe(true);
       expect(all.some((c) => c.cmd === "/help")).toBe(true);
+      expect(all.some((c) => c.cmd === "/chat")).toBe(true);
+      expect(all.some((c) => c.cmd === "/agent")).toBe(true);
+      expect(all.some((c) => c.cmd === "/tool")).toBe(true);
     });
 
     it("filters commands matching query substring", () => {
       const matches = filterSlashCommands("/mod");
-      expect(matches.length).toBe(1);
-      expect(matches[0]?.cmd).toBe("/model");
+      expect(matches.length).toBe(2);
+      expect(matches.some((c) => c.cmd === "/model")).toBe(true);
+      expect(matches.some((c) => c.cmd === "/mode")).toBe(true);
+
+      const chatMatch = filterSlashCommands("/cha");
+      expect(chatMatch.length).toBe(1);
+      expect(chatMatch[0]?.cmd).toBe("/chat");
     });
 
     it("includes discovered CoreBlow skills in matching", () => {
