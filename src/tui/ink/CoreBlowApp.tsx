@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Box, Text, useInput, useApp } from "ink";
 import process from "node:process";
 import { execSync } from "node:child_process";
@@ -7,6 +7,8 @@ import { FirstRunWizard } from "./FirstRunWizard.js";
 import { RewindModal, type RewindMode } from "./RewindModal.js";
 import { DiffView } from "./DiffView.js";
 import { ApprovalModal, type ApprovalDecision } from "./ApprovalModal.js";
+import { SessionPickerModal } from "./SessionPickerModal.js";
+import { StatusBar } from "./StatusBar.js";
 import { ToolRow, TurnSummaryRule, type ToolCallItem } from "./ToolRow.js";
 import {
   cleanupStaleProviderConfig,
@@ -27,6 +29,20 @@ import {
   type PermissionMode,
 } from "./input-prefixes.js";
 import { expandContextReferences } from "./context-expander.js";
+import {
+  calculateContextMetrics,
+  compactHistory,
+  getContextBreakdown,
+} from "./context-telemetry.js";
+import {
+  recordTerminalSessionBreadcrumb,
+  resolveSessionByIdOrQuery,
+} from "../../cli/session-resume.js";
+import {
+  getSqliteSession,
+  isSqliteAvailable,
+} from "../../sessions/sqlite-session-store.js";
+import { getUnifiedSession } from "../../sessions/unified-session-store.js";
 import { inkPalette } from "./theme.js";
 import type { TuiBackend, TuiModelChoice } from "../tui-backend.js";
 import type { TuiOptions } from "../tui-types.js";
@@ -48,7 +64,15 @@ export interface CoreBlowAppProps {
   needsSetup?: boolean;
 }
 
-type ActiveModal = "none" | "model" | "setup" | "help" | "diff" | "rewind" | "approval";
+type ActiveModal =
+  | "none"
+  | "model"
+  | "setup"
+  | "help"
+  | "diff"
+  | "rewind"
+  | "approval"
+  | "sessions";
 
 function shortenCwd(cwd: string = process.cwd()): string {
   const home = process.env.HOME || "";
@@ -66,12 +90,19 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
   const { exit } = useApp();
   const cfg = loadConfig();
 
-  const [modal, setModal] = useState<ActiveModal>(needsSetup ? "setup" : "none");
+  const initialModalState: ActiveModal =
+    opts.initialModal && opts.initialModal !== "none"
+      ? (opts.initialModal as ActiveModal)
+      : needsSetup
+        ? "setup"
+        : "none";
+
+  const [modal, setModal] = useState<ActiveModal>(initialModalState);
   const [messages, setMessages] = useState<MessageItem[]>([
     {
       id: "init",
       role: "system",
-      text: "CoreBlow v2.0.0 ready · Type / for commands, @ for context, ! for local shell, Shift+Tab for mode.",
+      text: "CoreBlow v2.0.0 ready · Type / for commands, @ for context, ! for local shell, Ctrl+P for sessions.",
     },
   ]);
   const [inputVal, setInputVal] = useState("");
@@ -107,6 +138,51 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
     : backend.connection.url.includes("18789")
       ? "Gateway :18789"
       : "Remote Node";
+
+  // Resume / Load previous conversation recap
+  const resumeSessionRecord = useCallback((sessionId: string) => {
+    sessionKeyRef.current = sessionId;
+    recordTerminalSessionBreadcrumb({ sessionId, cwd: process.cwd() });
+    try {
+      const rec = isSqliteAvailable()
+        ? getSqliteSession(sessionId)
+        : getUnifiedSession(sessionId);
+      if (rec && Array.isArray(rec.messages) && rec.messages.length > 0) {
+        const lastExchanges = rec.messages.slice(-6);
+        const recapTitle = rec.title || rec.id;
+        const recapMessages: MessageItem[] = [
+          {
+            id: `recap_header_${Date.now()}`,
+            role: "system",
+            text: `── Previous Conversation Recap (${recapTitle}) ──`,
+          },
+          ...lastExchanges.map((m) => ({
+            id: m.id || String(Date.now() + Math.random()),
+            role: (m.role === "assistant" ? "assistant" : "user") as any,
+            text: m.content,
+          })),
+          {
+            id: `recap_footer_${Date.now()}`,
+            role: "system",
+            text: `Resumed session ${recapTitle}. Enter a prompt to continue.`,
+          },
+        ];
+        setMessages(recapMessages);
+        if (rec.model) {
+          setActiveModel(rec.model);
+        }
+      }
+    } catch {
+      // Best-effort
+    }
+  }, []);
+
+  // Initial resume on startup if opts.session is passed
+  useEffect(() => {
+    if (opts.session && opts.session !== "agent:main:main") {
+      resumeSessionRecord(opts.session);
+    }
+  }, [opts.session, resumeSessionRecord]);
 
   // Load models from backend
   useEffect(() => {
@@ -217,6 +293,66 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
           }
           break;
         }
+        case "/context": {
+          const breakdown = getContextBreakdown(messages);
+          const lines = [
+            `── CoreBlow Context Breakdown (${breakdown.totalTokens} tokens) ──`,
+            `  • System Prompt: ${breakdown.systemPromptTokens} tokens`,
+            `  • Project Rules & Memory: ${breakdown.rulesAndMemoryTokens} tokens`,
+            `  • Skills Definitions: ${breakdown.skillsTokens} tokens`,
+            `  • Conversation History: ${breakdown.conversationTokens} tokens`,
+            `  • Tool Outputs: ${breakdown.toolOutputsTokens} tokens`,
+            `  • Window Usage: ${breakdown.bar} ${breakdown.percentage}% of ${breakdown.maxTokens} limit`,
+          ];
+          setMessages((prev) => [
+            ...prev,
+            { id: String(Date.now()), role: "system", text: lines.join("\n") },
+          ]);
+          break;
+        }
+        case "/compact": {
+          const focus = args.join(" ");
+          const res = compactHistory(messages, { focus });
+          if (res.compressed) {
+            setMessages([
+              ...res.messages,
+              {
+                id: String(Date.now()),
+                role: "system",
+                text: `History compacted successfully (saved ~${res.savedTokens} tokens). Preserved project rules (AGENTS.md/SOUL.md) and active memory.`,
+              },
+            ]);
+          } else {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: String(Date.now()),
+                role: "system",
+                text: "History already within safe token limits; no compaction needed.",
+              },
+            ]);
+          }
+          break;
+        }
+        case "/usage":
+        case "/cost": {
+          const estimatedTokens = messages.reduce((acc, m) => acc + Math.ceil(m.text.length / 3.8), 0);
+          const metrics = calculateContextMetrics({
+            usedTokens: estimatedTokens,
+            provider: splitModelRef(activeModel).provider,
+          });
+          const lines = [
+            `── Session Usage & Estimated Cost ──`,
+            `  • Total Tokens: ${metrics.formattedUsed} (${metrics.usedTokens} tokens)`,
+            `  • Estimated Cost: $${metrics.costUsd.toFixed(4)} USD`,
+            `  • Active Context Window: ${metrics.formattedMax} (${metrics.percentage}% used)`,
+          ];
+          setMessages((prev) => [
+            ...prev,
+            { id: String(Date.now()), role: "system", text: lines.join("\n") },
+          ]);
+          break;
+        }
         case "/clear": {
           setMessages([
             {
@@ -270,32 +406,22 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
           }
           break;
         }
-        case "/sessions": {
-          try {
-            const list = await backend.listSessions();
-            const sessionRows = (list.sessions || []).slice(0, 8);
-            if (sessionRows.length === 0) {
-              setMessages((prev) => [
-                ...prev,
-                { id: String(Date.now()), role: "system", text: "No previous sessions found." },
-              ]);
-            } else {
-              const lines = ["Recent Sessions:"];
-              for (const s of sessionRows) {
-                const title = s.derivedTitle || s.label || "(untitled)";
-                lines.push(`  • ${s.key} - ${title}`);
-              }
-              setMessages((prev) => [
-                ...prev,
-                { id: String(Date.now()), role: "system", text: lines.join("\n") },
-              ]);
+        case "/sessions":
+        case "/resume": {
+          if (args.length > 0) {
+            const q = args.join(" ");
+            const found = resolveSessionByIdOrQuery(q);
+            if (found) {
+              resumeSessionRecord(found.id);
+              break;
             }
-          } catch (err) {
             setMessages((prev) => [
               ...prev,
-              { id: String(Date.now()), role: "error", text: `List sessions failed: ${String(err)}` },
+              { id: String(Date.now()), role: "error", text: `Session not found matching "${q}"` },
             ]);
+            break;
           }
+          setModal("sessions");
           break;
         }
         default:
@@ -305,7 +431,7 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
           ]);
       }
     },
-    [backend, exit],
+    [backend, exit, messages, activeModel, resumeSessionRecord],
   );
 
   const handleSubmit = useCallback(async () => {
@@ -415,6 +541,12 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
     // Shift+Tab: cycle permission mode
     if (key.tab && (key.shift || input === "\x1b[Z")) {
       setPermissionMode((prev) => cyclePermissionMode(prev));
+      return;
+    }
+
+    // Ctrl+P: Sessions modal
+    if (key.ctrl && input === "p") {
+      setModal("sessions");
       return;
     }
 
@@ -545,7 +677,9 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
     ? filterSlashCommands(inputVal)
     : [];
 
-  const modeBadge = getPermissionModeBadge(permissionMode);
+  const estimatedTokens = useMemo(() => {
+    return messages.reduce((acc, m) => acc + Math.ceil(m.text.length / 3.8), 0);
+  }, [messages]);
 
   return (
     <Box flexDirection="column" paddingX={1} paddingY={0}>
@@ -710,6 +844,18 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         </Box>
       )}
 
+      {modal === "sessions" && (
+        <Box marginY={1}>
+          <SessionPickerModal
+            onSelect={(selectedId) => {
+              setModal("none");
+              resumeSessionRecord(selectedId);
+            }}
+            onClose={() => setModal("none")}
+          />
+        </Box>
+      )}
+
       {modal === "approval" && pendingApproval && (
         <Box marginY={1}>
           <ApprovalModal
@@ -786,24 +932,17 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         </Box>
       )}
 
-      {/* 5. StatusBar (HIDDEN when ModalSlot is active to prevent collision) */}
+      {/* 5. Responsive 3-Tier StatusBar (HIDDEN when ModalSlot is active to prevent collision) */}
       {modal === "none" && (
-        <Box borderStyle="single" borderTop borderColor={inkPalette.border} justifyContent="space-between">
-          <Box>
-            <Text color={inkPalette.dim}>model: </Text>
-            <Text bold color={inkPalette.text}>
-              {activeModel}
-            </Text>
-            {reasoningEffort !== "off" && (
-              <Text color={inkPalette.accentSoft}> [{reasoningEffort}]</Text>
-            )}
-            <Text color={modeBadge.color}> [{modeBadge.label}]</Text>
-            {isBusy && <Text color={inkPalette.accent}> · {statusMsg || "busy"}</Text>}
-          </Box>
-          <Text color={inkPalette.dim}>
-            / commands · @ context · ! shell · Shift+Tab mode
-          </Text>
-        </Box>
+        <StatusBar
+          model={activeModel}
+          provider={splitModelRef(activeModel).provider}
+          permissionMode={permissionMode}
+          backendBadge={backendBadge}
+          usedTokens={estimatedTokens}
+          isBusy={isBusy}
+          statusMsg={statusMsg}
+        />
       )}
     </Box>
   );

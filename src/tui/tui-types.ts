@@ -11,6 +11,7 @@ export type TuiOptions = {
   timeoutMs?: number;
   historyLimit?: number;
   message?: string;
+  initialModal?: "none" | "model" | "setup" | "help" | "diff" | "rewind" | "approval" | "sessions";
 };
 
 export type ChatEvent = {

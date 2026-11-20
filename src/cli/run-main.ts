@@ -15,6 +15,7 @@ import {
   getCommandPathWithRootOptions,
   getFlagValue,
   getPrimaryCommand,
+  hasFlag,
   hasHelpOrVersion,
   isRootHelpInvocation,
 } from "./argv.js";
@@ -143,6 +144,21 @@ export async function runCli(argv: string[] = process.argv) {
       return;
     }
 
+    const printPrompt =
+      getFlagValue(normalizedArgv, "-p") ?? getFlagValue(normalizedArgv, "--print");
+    const outputFormat = getFlagValue(normalizedArgv, "--output-format");
+    const isPipedStdin = Boolean(!process.stdin.isTTY && !process.env.VITEST);
+
+    if (
+      printPrompt !== undefined ||
+      outputFormat !== undefined ||
+      (isPipedStdin && !hasHelpOrVersion(normalizedArgv))
+    ) {
+      const { runHeadlessCli } = await import("./headless-runner.js");
+      await runHeadlessCli(normalizedArgv);
+      return;
+    }
+
     const queryPrompt =
       getFlagValue(normalizedArgv, "-q") ?? getFlagValue(normalizedArgv, "--query");
     if (queryPrompt !== undefined) {
@@ -172,10 +188,44 @@ export async function runCli(argv: string[] = process.argv) {
         process.stdin.isTTY && process.stdout.isTTY && !process.env.VITEST,
       );
       if (isInteractiveTty) {
+        // Session resume flags: -c / --continue or -r / --resume
+        const continueFlag = hasFlag(normalizedArgv, "-c") || hasFlag(normalizedArgv, "--continue");
+        const resumeValue = getFlagValue(normalizedArgv, "-r") ?? getFlagValue(normalizedArgv, "--resume");
+        const hasResume = resumeValue !== undefined;
+
+        let targetSessionId: string | undefined;
+        let initialModal: any = "none";
+
+        if (continueFlag) {
+          const { resolveLatestSessionForCwd } = await import("./session-resume.js");
+          const latest = resolveLatestSessionForCwd();
+          if (latest) {
+            targetSessionId = latest.id;
+          }
+        } else if (hasResume) {
+          if (resumeValue) {
+            const { resolveSessionByIdOrQuery } = await import("./session-resume.js");
+            const found = resolveSessionByIdOrQuery(resumeValue);
+            if (found) {
+              targetSessionId = found.id;
+            } else {
+              console.error(`[coreblow] Error: Session not found matching "${resumeValue}".`);
+              process.exitCode = 1;
+              return;
+            }
+          } else {
+            // -r without value: open SessionPickerModal
+            initialModal = "sessions";
+          }
+        }
+
         if (!normalizedArgv.includes("--simple")) {
           try {
             const { runTui } = await import("../tui/tui.js");
-            await runTui({});
+            await runTui({
+              session: targetSessionId,
+              initialModal,
+            });
             return;
           } catch (err) {
             console.error(
