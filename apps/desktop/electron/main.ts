@@ -167,7 +167,7 @@ function createWindow(): void {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
+      sandbox: true,
       webSecurity: true,
       devTools: true,
     },
@@ -348,6 +348,21 @@ ipcMain.handle("coreblow:window:toggleHud", () => {
 });
 
 ipcMain.handle("coreblow:screen:captureActive", async () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    const consent = await dialog.showMessageBox(mainWindow, {
+      type: "question",
+      buttons: ["Allow", "Cancel"],
+      defaultId: 0,
+      cancelId: 1,
+      title: "Screen Capture Permission",
+      message:
+        "CoreBlow Studio is requesting permission to capture a screenshot of your active screen/window for analysis. Do you want to allow this?",
+    });
+    if (consent.response !== 0) {
+      throw new Error("Screen capture permission denied by user");
+    }
+  }
+
   const sources = await desktopCapturer.getSources({
     types: ["screen", "window"],
     thumbnailSize: { width: 1280, height: 800 },

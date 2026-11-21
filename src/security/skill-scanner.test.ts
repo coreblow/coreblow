@@ -195,6 +195,52 @@ console.log(json);
     const findings = scanSource(source, "plugin.ts");
     expect(findings).toEqual([]);
   });
+
+  it("does not flag legitimate API key read from process.env sent via fetch headers", () => {
+    const source = `
+const apiKey = process.env.ANTHROPIC_API_KEY;
+const res = await fetch("https://api.anthropic.com/v1/messages", {
+  method: "POST",
+  headers: { "x-api-key": apiKey },
+  body: JSON.stringify({ prompt: "hello" }),
+});
+`;
+    const findings = scanSource(source, "plugin.ts");
+    expect(findings.some((f) => f.ruleId === "env-harvesting")).toBe(false);
+  });
+
+  it("detects constructor.constructor dynamic code execution bypass", () => {
+    const source = `
+const exploit = [].constructor.constructor("return process.mainModule")();
+`;
+    const findings = scanSource(source, "plugin.ts");
+    expect(findings.some((f) => f.ruleId === "dynamic-code-execution")).toBe(true);
+  });
+
+  it("detects Reflect.construct(Function, ...) dynamic code execution bypass", () => {
+    const source = `
+const fn = Reflect.construct(Function, ["return 42"]);
+fn();
+`;
+    const findings = scanSource(source, "plugin.ts");
+    expect(findings.some((f) => f.ruleId === "dynamic-code-execution")).toBe(true);
+  });
+
+  it("detects obfuscated dynamic import concatenation", () => {
+    const source = `
+const mod = await import("child_" + "process");
+`;
+    const findings = scanSource(source, "plugin.ts");
+    expect(findings.some((f) => f.ruleId === "dynamic-code-execution")).toBe(true);
+  });
+
+  it("detects obfuscated dynamic import array join", () => {
+    const source = `
+const mod = await import(["child", "process"].join("_"));
+`;
+    const findings = scanSource(source, "plugin.ts");
+    expect(findings.some((f) => f.ruleId === "dynamic-code-execution")).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------

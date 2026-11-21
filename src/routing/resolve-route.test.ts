@@ -109,8 +109,8 @@ describe("resolveAgentRoute", () => {
     expectResolvedRoute(route, {
       agentId: "main",
       accountId: "default",
-      sessionKey: "agent:main:main",
-      lastRoutePolicy: "main",
+      sessionKey: "agent:main:whatsapp:direct:+15551234567",
+      lastRoutePolicy: "session",
       matchedBy: "default",
     });
   });
@@ -237,7 +237,7 @@ describe("resolveAgentRoute", () => {
       },
       expected: {
         agentId: "a",
-        sessionKey: "agent:a:main",
+        sessionKey: "agent:a:whatsapp:direct:+1000",
         matchedBy: "binding.peer",
       },
     },
@@ -526,7 +526,7 @@ describe("resolveAgentRoute", () => {
       expected: {
         agentId: "home",
         matchedBy: "default",
-        sessionKey: "agent:home:main",
+        sessionKey: "agent:home:whatsapp:direct:+1000",
       },
     },
   ] as const)("$name", ({ cfg, channel, accountId, peer, expected }) => {

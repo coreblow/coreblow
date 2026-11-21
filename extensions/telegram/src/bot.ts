@@ -139,6 +139,18 @@ function extractTelegramApiMethod(input: TelegramFetchInput): string | null {
 }
 
 export function createTelegramBot(opts: TelegramBotOptions) {
+  const internalAbortController = new AbortController();
+  if (opts.fetchAbortSignal) {
+    if (opts.fetchAbortSignal.aborted) {
+      internalAbortController.abort(opts.fetchAbortSignal.reason);
+    } else {
+      opts.fetchAbortSignal.addEventListener(
+        "abort",
+        () => internalAbortController.abort(opts.fetchAbortSignal?.reason),
+        { once: true },
+      );
+    }
+  }
   const botRuntime = telegramBotRuntimeForTest ?? DEFAULT_TELEGRAM_BOT_RUNTIME;
   const runtime: RuntimeEnv = opts.runtime ?? createNonExitingRuntime();
   const telegramDeps = opts.telegramDeps ?? defaultTelegramBotDeps;
@@ -185,7 +197,7 @@ export function createTelegramBot(opts: TelegramBotOptions) {
   // Wrap fetch so polling requests cannot hang indefinitely on a wedged network path,
   // and so shutdown still aborts in-flight Telegram API requests immediately.
   let finalFetch = shouldProvideFetch ? fetchForClient : undefined;
-  if (finalFetch || opts.fetchAbortSignal) {
+  if (finalFetch || opts.fetchAbortSignal || true) {
     const baseFetch = finalFetch ?? asTelegramClientFetch(globalThis.fetch);
     // Cast baseFetch to global fetch to avoid node-fetch ↔ global-fetch type divergence;
     // they are runtime-compatible (the codebase already casts at every fetch boundary).
@@ -196,8 +208,8 @@ export function createTelegramBot(opts: TelegramBotOptions) {
     finalFetch = (input: TelegramFetchInput, init?: TelegramFetchInit) => {
       const controller = new AbortController();
       const abortWith = (signal: AbortSignal) => controller.abort(signal.reason);
-      const shutdownSignal = opts.fetchAbortSignal;
-      const onShutdown = () => abortWith(shutdownSignal as AbortSignal);
+      const shutdownSignal = internalAbortController.signal;
+      const onShutdown = () => abortWith(shutdownSignal);
       const method = extractTelegramApiMethod(input);
       const requestTimeoutMs =
         method === "getupdates" ? TELEGRAM_GET_UPDATES_REQUEST_TIMEOUT_MS : undefined;
@@ -578,6 +590,7 @@ export function createTelegramBot(opts: TelegramBotOptions) {
 
   const originalStop = bot.stop.bind(bot);
   bot.stop = ((...args: Parameters<typeof originalStop>) => {
+    internalAbortController.abort();
     threadBindingManager?.stop();
     return originalStop(...args);
   }) as typeof bot.stop;

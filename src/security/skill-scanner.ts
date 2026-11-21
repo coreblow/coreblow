@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import ts from "typescript";
 import { hasErrnoCode } from "../infra/errors.js";
 import { isPathInside } from "./scan-paths.js";
 
@@ -205,13 +206,14 @@ const SOURCE_RULES: SourceRule[] = [
     severity: "critical",
     message:
       "Environment variable access combined with network send — possible credential harvesting",
-    pattern: /process\.env/,
+    pattern:
+      /(?:JSON\.stringify|Object\.(?:entries|values|keys))\s*\(\s*process\.env\b|body:\s*(?:JSON\.stringify\s*\(\s*)?process\.env\b/,
     requiresContext: /\bfetch\b|\bpost\b|http\.request/i,
   },
 ];
 
 // ---------------------------------------------------------------------------
-// Core scanner
+// Core scanner & AST Visitor
 // ---------------------------------------------------------------------------
 
 function truncateEvidence(evidence: string, maxLen = 120): string {
@@ -221,10 +223,163 @@ function truncateEvidence(evidence: string, maxLen = 120): string {
   return `${evidence.slice(0, maxLen)}…`;
 }
 
+/**
+ * Inspects parsed JavaScript / TypeScript AST for dynamic code execution
+ * and obfuscated dynamic import bypass patterns.
+ */
+export function scanAst(source: string, filePath: string): SkillScanFinding[] {
+  const findings: SkillScanFinding[] = [];
+  let sourceFile: ts.SourceFile;
+  try {
+    sourceFile = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true);
+  } catch {
+    return findings;
+  }
+
+  const lines = source.split("\n");
+  const getLine = (node: ts.Node): number => {
+    return sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;
+  };
+
+  const addFinding = (finding: Omit<SkillScanFinding, "file">) => {
+    findings.push({
+      ...finding,
+      file: filePath,
+    });
+  };
+
+  const seenRules = new Set<string>();
+
+  function visit(node: ts.Node) {
+    if (ts.isCallExpression(node) || ts.isNewExpression(node)) {
+      const expr = node.expression;
+
+      // 1. eval(...)
+      if (ts.isIdentifier(expr) && expr.text === "eval" && !seenRules.has("dynamic-code-execution:eval")) {
+        seenRules.add("dynamic-code-execution:eval");
+        const line = getLine(node);
+        addFinding({
+          ruleId: "dynamic-code-execution",
+          severity: "critical",
+          line,
+          message: "Dynamic code execution detected (eval)",
+          evidence: truncateEvidence(lines[line - 1]?.trim() || node.getText(sourceFile)),
+        });
+      }
+
+      // 2. new Function(...) or Function(...)
+      if (ts.isIdentifier(expr) && expr.text === "Function" && !seenRules.has("dynamic-code-execution:function")) {
+        seenRules.add("dynamic-code-execution:function");
+        const line = getLine(node);
+        addFinding({
+          ruleId: "dynamic-code-execution",
+          severity: "critical",
+          line,
+          message: "Dynamic code execution detected (Function constructor)",
+          evidence: truncateEvidence(lines[line - 1]?.trim() || node.getText(sourceFile)),
+        });
+      }
+
+      // 3. Reflect.construct(Function, ...)
+      if (
+        ts.isCallExpression(node) &&
+        ts.isPropertyAccessExpression(expr) &&
+        ts.isIdentifier(expr.expression) &&
+        expr.expression.text === "Reflect" &&
+        expr.name.text === "construct" &&
+        !seenRules.has("dynamic-code-execution:reflect-construct")
+      ) {
+        const firstArg = node.arguments?.[0];
+        if (firstArg && ts.isIdentifier(firstArg) && firstArg.text === "Function") {
+          seenRules.add("dynamic-code-execution:reflect-construct");
+          const line = getLine(node);
+          addFinding({
+            ruleId: "dynamic-code-execution",
+            severity: "critical",
+            line,
+            message: "Dynamic code execution detected (Reflect.construct Function)",
+            evidence: truncateEvidence(lines[line - 1]?.trim() || node.getText(sourceFile)),
+          });
+        }
+      }
+
+      // 4. *.constructor.constructor(...)
+      if (
+        (ts.isPropertyAccessExpression(expr) || ts.isElementAccessExpression(expr)) &&
+        !seenRules.has("dynamic-code-execution:constructor-constructor")
+      ) {
+        const isConstructor =
+          (ts.isPropertyAccessExpression(expr) && expr.name.text === "constructor") ||
+          (ts.isElementAccessExpression(expr) &&
+            expr.argumentExpression &&
+            ts.isStringLiteral(expr.argumentExpression) &&
+            expr.argumentExpression.text === "constructor");
+
+        if (isConstructor) {
+          const inner = expr.expression;
+          const isInnerConstructor =
+            (ts.isPropertyAccessExpression(inner) && inner.name.text === "constructor") ||
+            (ts.isElementAccessExpression(inner) &&
+              inner.argumentExpression &&
+              ts.isStringLiteral(inner.argumentExpression) &&
+              inner.argumentExpression.text === "constructor");
+
+          if (isInnerConstructor) {
+            seenRules.add("dynamic-code-execution:constructor-constructor");
+            const line = getLine(node);
+            addFinding({
+              ruleId: "dynamic-code-execution",
+              severity: "critical",
+              line,
+              message: "Dynamic code execution detected (constructor.constructor)",
+              evidence: truncateEvidence(lines[line - 1]?.trim() || node.getText(sourceFile)),
+            });
+          }
+        }
+      }
+
+      // 5. Dynamic import(...) with non-string-literal expression
+      if (node.expression.kind === ts.SyntaxKind.ImportKeyword && !seenRules.has("dynamic-code-execution:dynamic-import")) {
+        const arg = node.arguments?.[0];
+        if (arg && !ts.isStringLiteral(arg)) {
+          const isNonLiteral =
+            ts.isBinaryExpression(arg) ||
+            ts.isCallExpression(arg) ||
+            (ts.isTemplateExpression(arg) && arg.templateSpans.length > 0) ||
+            ts.isIdentifier(arg);
+          if (isNonLiteral) {
+            seenRules.add("dynamic-code-execution:dynamic-import");
+            const line = getLine(node);
+            addFinding({
+              ruleId: "dynamic-code-execution",
+              severity: "critical",
+              line,
+              message: "Dynamic code execution detected (obfuscated dynamic import)",
+              evidence: truncateEvidence(lines[line - 1]?.trim() || node.getText(sourceFile)),
+            });
+          }
+        }
+      }
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return findings;
+}
+
 export function scanSource(source: string, filePath: string): SkillScanFinding[] {
   const findings: SkillScanFinding[] = [];
   const lines = source.split("\n");
   const matchedLineRules = new Set<string>();
+
+  // Run AST scanner
+  const astFindings = scanAst(source, filePath);
+  for (const f of astFindings) {
+    findings.push(f);
+    matchedLineRules.add(f.ruleId);
+  }
 
   // --- Line rules ---
   for (const rule of LINE_RULES) {

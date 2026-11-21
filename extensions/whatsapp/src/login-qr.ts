@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { DisconnectReason } from "@whiskeysockets/baileys";
 import { loadConfig } from "coreblow/plugin-sdk/config-runtime";
@@ -92,6 +94,15 @@ async function restartLoginSocket(login: ActiveLogin, runtime: RuntimeEnv) {
   );
   closeSocket(login.sock);
   await waitForCredsSaveQueueWithTimeout(login.authDir);
+  try {
+    const credsPath = path.join(login.authDir, "creds.json");
+    if (fs.existsSync(credsPath)) {
+      const stat = fs.statSync(credsPath);
+      if (stat.size === 0) {
+        await new Promise((r) => setTimeout(r, 100));
+      }
+    }
+  } catch {}
   try {
     const sock = await createWaSocket(false, login.verbose, {
       authDir: login.authDir,
