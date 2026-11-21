@@ -219,12 +219,17 @@ export async function runCli(argv: string[] = process.argv) {
           }
         }
 
+        const backendType = getFlagValue(normalizedArgv, "--backend") as any;
+        const backendTarget = getFlagValue(normalizedArgv, "--backend-target") || undefined;
+
         if (!normalizedArgv.includes("--simple")) {
           try {
             const { runTui } = await import("../tui/tui.js");
             await runTui({
               session: targetSessionId,
               initialModal,
+              backendType,
+              backendTarget,
             });
             return;
           } catch (err) {

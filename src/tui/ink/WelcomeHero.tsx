@@ -92,9 +92,12 @@ export const WelcomeHero: React.FC<WelcomeHeroProps> = ({
         <Text color={inkPalette.dim}>▤ </Text>
         <Text color={inkPalette.text}>{uiMode}</Text>
         <Text color={inkPalette.border}>  │  </Text>
+        <Text color={inkPalette.dim}>⚙ </Text>
+        <Text color={inkPalette.text}>{backendBadge}</Text>
+        <Text color={inkPalette.border}>  │  </Text>
         <Text color={isHealthy ? inkPalette.success : inkPalette.error}>● </Text>
         <Text color={isHealthy ? inkPalette.success : inkPalette.dim}>
-          {isHealthy ? "stable" : backendBadge.toLowerCase()}
+          {isHealthy ? "stable" : "offline"}
         </Text>
       </Box>
 

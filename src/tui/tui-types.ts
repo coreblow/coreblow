@@ -11,7 +11,20 @@ export type TuiOptions = {
   timeoutMs?: number;
   historyLimit?: number;
   message?: string;
-  initialModal?: "none" | "model" | "setup" | "help" | "diff" | "rewind" | "approval" | "sessions";
+  initialModal?:
+    | "none"
+    | "model"
+    | "setup"
+    | "help"
+    | "diff"
+    | "rewind"
+    | "approval"
+    | "sessions"
+    | "cron"
+    | "bots"
+    | "backend";
+  backendType?: import("../execution/execution-backend.js").ExecutionBackendType;
+  backendTarget?: string;
 };
 
 export type ChatEvent = {

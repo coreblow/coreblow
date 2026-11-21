@@ -14,6 +14,7 @@ import { formatTokenCount, formatUsd } from "../../utils/usage-format.js";
 import { runCommandWithRuntime } from "../cli-utils.js";
 import { inheritOptionFromParent } from "../command-options.js";
 import { addGatewayServiceCommands } from "../daemon-cli.js";
+import { registerLogsCli } from "../logs-cli.js";
 import { formatHelpExamples } from "../help-format.js";
 import { withProgress } from "../progress.js";
 import { callGatewayCli, gatewayCallOpts } from "./call.js";
@@ -111,6 +112,8 @@ export function registerGatewayCli(program: Command) {
   addGatewayServiceCommands(gateway, {
     statusDescription: t("cli_help.gateway.commands.service_status"),
   });
+
+  registerLogsCli(gateway);
 
   gatewayCallOpts(
     gateway

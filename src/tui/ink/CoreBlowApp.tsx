@@ -11,6 +11,9 @@ import { SessionPickerModal } from "./SessionPickerModal.js";
 import { PoolModal } from "./PoolModal.js";
 import { MemoryModal } from "./MemoryModal.js";
 import { SandboxModal } from "./SandboxModal.js";
+import { CronModal } from "./CronModal.js";
+import { BotsModal } from "./BotsModal.js";
+import { BackendModal } from "./BackendModal.js";
 import { StatusBar } from "./StatusBar.js";
 import { WelcomeHero } from "./WelcomeHero.js";
 import { ToolRow, TurnSummaryRule, type ToolCallItem } from "./ToolRow.js";
@@ -51,6 +54,11 @@ import {
   type SandboxMode,
 } from "../../security/os-sandbox.js";
 import {
+  executeCommandOnBackend,
+  formatBackendBadge,
+  type ExecutionBackendConfig,
+} from "../../execution/execution-backend.js";
+import {
   getSqliteSession,
   isSqliteAvailable,
 } from "../../sessions/sqlite-session-store.js";
@@ -87,7 +95,10 @@ type ActiveModal =
   | "sessions"
   | "pool"
   | "memory"
-  | "sandbox";
+  | "sandbox"
+  | "cron"
+  | "bots"
+  | "backend";
 
 function shortenCwd(cwd: string = process.cwd()): string {
   const home = process.env.HOME || "";
@@ -157,6 +168,11 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
     };
   }, []);
 
+  const [backendConfig, setBackendConfig] = useState<ExecutionBackendConfig>({
+    type: opts.backendType || (cfg as any).executionBackend?.type || "local",
+    target: opts.backendTarget || (cfg as any).executionBackend?.target,
+  });
+
   // Stashed drafts and pasted chips
   const draftStackRef = useRef(new DraftStashStack());
   const pastedChipsRef = useRef(new Map<string, string>());
@@ -164,11 +180,12 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
   const [draftCount, setDraftCount] = useState(0);
 
   // Determine backend badge
+  const executionBadge = formatBackendBadge(backendConfig.type, backendConfig.target);
   const backendBadge = backend.connection.url.includes("embedded")
-    ? "Local"
+    ? executionBadge
     : backend.connection.url.includes("18789")
-      ? "Gateway :18789"
-      : "Remote Node";
+      ? `Gateway :18789 [${executionBadge}]`
+      : `Remote Node [${executionBadge}]`;
 
   // Resume / Load previous conversation recap
   const resumeSessionRecord = useCallback((sessionId: string) => {
@@ -357,6 +374,17 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
           break;
         case "/sandbox":
           setModal("sandbox");
+          break;
+        case "/cron":
+        case "/schedule":
+          setModal("cron");
+          break;
+        case "/bots":
+        case "/channels":
+          setModal("bots");
+          break;
+        case "/backend":
+          setModal("backend");
           break;
         case "/mode": {
           const target = args[0]?.toLowerCase();
@@ -596,24 +624,37 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
         { id: String(Date.now()), role: "user", text: `!${shellParsed.command}` },
       ]);
 
-      const sandboxed = buildSandboxedCommand(shellParsed.command, {
-        enabled: sandboxMode !== "off",
-        mode: sandboxMode,
-      });
+      const effectiveBackend: ExecutionBackendConfig =
+        sandboxMode !== "off" && backendConfig.type === "local"
+          ? { ...backendConfig, type: "sandbox" }
+          : backendConfig;
 
-      const execResult = await executeLocalShell(sandboxed.command);
-      const out = (execResult.stdout + (execResult.stderr ? `\n${execResult.stderr}` : "")).trim();
-      const statusIcon = execResult.exitCode === 0 ? "✓" : `✗ [${execResult.exitCode}]`;
-      const sandboxedBadge = sandboxed.sandboxed ? ` [sandbox:${sandboxed.engine}]` : "";
+      try {
+        const execResult = await executeCommandOnBackend(shellParsed.command, effectiveBackend, {
+          cwd: process.cwd(),
+        });
+        const out = (execResult.stdout + (execResult.stderr ? `\n${execResult.stderr}` : "")).trim();
+        const statusIcon = execResult.exitCode === 0 ? "✓" : `✗ [${execResult.exitCode}]`;
+        const badge = formatBackendBadge(execResult.backend, execResult.target);
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: String(Date.now()),
-          role: "tool",
-          text: `! ${shellParsed.command} ${statusIcon}${sandboxedBadge}\n${out || "(no output)"}`,
-        },
-      ]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: String(Date.now()),
+            role: "tool",
+            text: `! ${shellParsed.command} ${statusIcon} [${badge}]\n${out || "(no output)"}`,
+          },
+        ]);
+      } catch (err) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: String(Date.now()),
+            role: "error",
+            text: `Execution failed on [${formatBackendBadge(effectiveBackend.type, effectiveBackend.target)}]: ${String(err)}`,
+          },
+        ]);
+      }
       return;
     }
 
@@ -1057,6 +1098,46 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
               setMessages((prev) => [
                 ...prev,
                 { id: String(Date.now()), role: "system", text: `OS-level sandbox mode set to [${mode.toUpperCase()}].` },
+              ]);
+            }}
+            onClose={() => setModal("none")}
+          />
+        </Box>
+      )}
+
+      {modal === "cron" && (
+        <Box marginY={1}>
+          <CronModal onClose={() => setModal("none")} />
+        </Box>
+      )}
+
+      {modal === "bots" && (
+        <Box marginY={1}>
+          <BotsModal onClose={() => setModal("none")} />
+        </Box>
+      )}
+
+      {modal === "backend" && (
+        <Box marginY={1}>
+          <BackendModal
+            currentConfig={backendConfig}
+            onSelectBackend={(newCfg, saveDefault) => {
+              setBackendConfig(newCfg);
+              setModal("none");
+              if (saveDefault) {
+                const updated = {
+                  ...loadConfig(),
+                  executionBackend: newCfg,
+                };
+                void writeConfigFile(updated as any);
+              }
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: String(Date.now()),
+                  role: "system",
+                  text: `Execution backend switched to [${formatBackendBadge(newCfg.type, newCfg.target)}]${saveDefault ? " (saved default)" : ""}.`,
+                },
               ]);
             }}
             onClose={() => setModal("none")}

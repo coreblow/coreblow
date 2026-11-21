@@ -30,8 +30,9 @@ describe("input-prefixes", () => {
       expect(matches.some((c) => c.cmd === "/mode")).toBe(true);
 
       const chatMatch = filterSlashCommands("/cha");
-      expect(chatMatch.length).toBe(1);
-      expect(chatMatch[0]?.cmd).toBe("/chat");
+      expect(chatMatch.length).toBe(2);
+      expect(chatMatch.some((c) => c.cmd === "/chat")).toBe(true);
+      expect(chatMatch.some((c) => c.cmd === "/channels")).toBe(true);
     });
 
     it("includes discovered CoreBlow skills in matching", () => {

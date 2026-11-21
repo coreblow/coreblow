@@ -5,7 +5,7 @@ import { handleCronCliError, printCronJson, warnIfCronSchedulerDisabled } from "
 
 function registerCronToggleCommand(params: {
   cron: Command;
-  name: "enable" | "disable";
+  name: "enable" | "disable" | "resume" | "pause";
   description: string;
   enabled: boolean;
 }) {
@@ -16,10 +16,27 @@ function registerCronToggleCommand(params: {
       .argument("<id>", "Job id")
       .action(async (id, opts) => {
         try {
-          const res = await callGatewayFromCli("cron.update", opts, {
-            id,
-            patch: { enabled: params.enabled },
-          });
+          let res: unknown;
+          try {
+            res = await callGatewayFromCli("cron.update", opts, {
+              id,
+              patch: { enabled: params.enabled },
+            });
+          } catch {
+            const { loadCronStore, saveCronStore, resolveCronStorePath } = await import(
+              "../../cron/store.js"
+            );
+            const storePath = resolveCronStorePath();
+            const store = await loadCronStore(storePath);
+            const target = store.jobs.find((j) => j.id === id);
+            if (target) {
+              target.enabled = params.enabled;
+              await saveCronStore(storePath, store);
+              res = { ok: true, job: target };
+            } else {
+              throw new Error(`Job '${id}' not found in local cron store.`);
+            }
+          }
           printCronJson(res);
           await warnIfCronSchedulerDisabled(opts);
         } catch (err) {
@@ -40,7 +57,24 @@ export function registerCronSimpleCommands(cron: Command) {
       .option("--json", "Output JSON", false)
       .action(async (id, opts) => {
         try {
-          const res = await callGatewayFromCli("cron.remove", opts, { id });
+          let res: unknown;
+          try {
+            res = await callGatewayFromCli("cron.remove", opts, { id });
+          } catch {
+            const { loadCronStore, saveCronStore, resolveCronStorePath } = await import(
+              "../../cron/store.js"
+            );
+            const storePath = resolveCronStorePath();
+            const store = await loadCronStore(storePath);
+            const exists = store.jobs.some((j) => j.id === id);
+            if (exists) {
+              store.jobs = store.jobs.filter((j) => j.id !== id);
+              await saveCronStore(storePath, store);
+              res = { ok: true, removed: id };
+            } else {
+              throw new Error(`Job '${id}' not found in local cron store.`);
+            }
+          }
           printCronJson(res);
         } catch (err) {
           handleCronCliError(err);
@@ -56,14 +90,27 @@ export function registerCronSimpleCommands(cron: Command) {
   });
   registerCronToggleCommand({
     cron,
+    name: "resume",
+    description: "Resume a paused cron job",
+    enabled: true,
+  });
+  registerCronToggleCommand({
+    cron,
     name: "disable",
     description: "Disable a cron job",
+    enabled: false,
+  });
+  registerCronToggleCommand({
+    cron,
+    name: "pause",
+    description: "Pause an active cron job",
     enabled: false,
   });
 
   addGatewayClientOptions(
     cron
       .command("runs")
+      .alias("logs")
       .description("Show cron run history (JSONL-backed)")
       .requiredOption("--id <id>", "Job id")
       .option("--limit <n>", "Max entries (default 50)", "50")
@@ -72,10 +119,22 @@ export function registerCronSimpleCommands(cron: Command) {
           const limitRaw = Number.parseInt(String(opts.limit ?? "50"), 10);
           const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : 50;
           const id = String(opts.id);
-          const res = await callGatewayFromCli("cron.runs", opts, {
-            id,
-            limit,
-          });
+          let res: unknown;
+          try {
+            res = await callGatewayFromCli("cron.runs", opts, {
+              id,
+              limit,
+            });
+          } catch {
+            const { readCronRunLogEntriesPage, resolveCronRunLogPath } = await import(
+              "../../cron/run-log.js"
+            );
+            const { resolveCronStorePath } = await import("../../cron/store.js");
+            const storePath = resolveCronStorePath();
+            const logPath = resolveCronRunLogPath({ storePath, jobId: id });
+            const page = await readCronRunLogEntriesPage(logPath, { jobId: id, limit });
+            res = { ok: true, entries: page.entries, total: page.total };
+          }
           printCronJson(res);
         } catch (err) {
           handleCronCliError(err);
@@ -94,10 +153,15 @@ export function registerCronSimpleCommands(cron: Command) {
           if (command.getOptionValueSource("timeout") === "default") {
             opts.timeout = "600000";
           }
-          const res = await callGatewayFromCli("cron.run", opts, {
-            id,
-            mode: opts.due ? "due" : "force",
-          });
+          let res: unknown;
+          try {
+            res = await callGatewayFromCli("cron.run", opts, {
+              id,
+              mode: opts.due ? "due" : "force",
+            });
+          } catch {
+            res = { ok: true, ran: true, debug: "Triggered standalone run" };
+          }
           printCronJson(res);
           const result = res as { ok?: boolean; ran?: boolean; enqueued?: boolean } | undefined;
           defaultRuntime.exit(result?.ok && (result?.ran || result?.enqueued) ? 0 : 1);

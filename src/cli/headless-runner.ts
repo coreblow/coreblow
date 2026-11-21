@@ -5,6 +5,11 @@ import { resolveAgentModelPrimaryValue } from "../config/model-input.js";
 import { runCoreBlowReActLoop } from "../agents/coreblow-react-engine.js";
 import { estimateCostUsd } from "../tui/ink/context-telemetry.js";
 import { splitModelRef } from "../tui/ink/model-picker-utils.js";
+import {
+  executeCommandOnBackend,
+  type ExecutionBackendConfig,
+  type ExecutionBackendType,
+} from "../execution/execution-backend.js";
 
 const MAX_STDIN_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -15,6 +20,8 @@ export interface HeadlessRunOptions {
   permissionMode?: string;
   maxTurns?: number;
   bare?: boolean;
+  backend?: ExecutionBackendType | string;
+  backendTarget?: string;
   exitProcess?: boolean;
   stdinStream?: NodeJS.ReadableStream;
   fetchFn?: typeof fetch;
@@ -85,6 +92,8 @@ export function parseHeadlessArgs(argv: string[]): HeadlessRunOptions {
 
   const model = getFlagValue(argv, "--model") || undefined;
   const permissionMode = getFlagValue(argv, "--permission-mode") || undefined;
+  const backend = getFlagValue(argv, "--backend") || undefined;
+  const backendTarget = getFlagValue(argv, "--backend-target") || undefined;
   const maxTurnsRaw = getFlagValue(argv, "--max-turns");
   const maxTurns = maxTurnsRaw ? parseInt(maxTurnsRaw, 10) : undefined;
   const bare = hasFlag(argv, "--bare");
@@ -105,6 +114,8 @@ export function parseHeadlessArgs(argv: string[]): HeadlessRunOptions {
     outputFormat,
     model,
     permissionMode,
+    backend,
+    backendTarget,
     maxTurns,
     bare,
   };
@@ -181,6 +192,29 @@ export async function runHeadlessExecution(
   let resultText = "";
   let errorMsg: string | undefined;
 
+  const processRunner = options.backend
+    ? async (
+        command: string,
+        args: string[],
+        runOpts: { cwd?: string; env?: Record<string, string>; timeout?: number },
+      ) => {
+        const fullCmd = [command, ...args].join(" ");
+        const res = await executeCommandOnBackend(
+          fullCmd,
+          {
+            type: options.backend as any,
+            target: options.backendTarget,
+            timeoutMs: runOpts.timeout,
+          },
+          {
+            cwd: runOpts.cwd,
+            env: runOpts.env,
+          },
+        );
+        return { stdout: res.stdout, stderr: res.stderr, exitCode: res.exitCode };
+      }
+    : undefined;
+
   try {
     const reactRes = await runCoreBlowReActLoop({
       prompt: fullPrompt,
@@ -188,6 +222,7 @@ export async function runHeadlessExecution(
       model: selectedModel,
       defaultCwd: process.cwd(),
       maxTurns: options.maxTurns ?? (options.bare ? 5 : 20),
+      processRunner,
       onProgressStep: (step) => {
         if (options.outputFormat === "stream-json") {
           process.stdout.write(

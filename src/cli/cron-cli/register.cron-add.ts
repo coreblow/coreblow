@@ -40,9 +40,17 @@ export function registerCronListCommand(cron: Command) {
       .option("--json", "Output JSON", false)
       .action(async (opts) => {
         try {
-          const res = await callGatewayFromCli("cron.list", opts, {
-            includeDisabled: Boolean(opts.all),
-          });
+          let res: unknown;
+          try {
+            res = await callGatewayFromCli("cron.list", opts, {
+              includeDisabled: Boolean(opts.all),
+            });
+          } catch {
+            const { loadCronStore, resolveCronStorePath } = await import("../../cron/store.js");
+            const store = await loadCronStore(resolveCronStorePath());
+            const jobs = opts.all ? store.jobs : store.jobs.filter((j) => j.enabled);
+            res = { jobs };
+          }
           if (opts.json) {
             printCronJson(res);
             return;

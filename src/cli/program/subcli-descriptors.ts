@@ -169,6 +169,14 @@ export const SUB_CLI_DESCRIPTORS = [
     ),
     hasSubcommands: true,
   },
+  {
+    name: "bots",
+    description: commandDescription(
+      "bots",
+      "Manage 24/7 bot messaging channels and loop protection",
+    ),
+    hasSubcommands: true,
+  },
 ] as const satisfies ReadonlyArray<SubCliDescriptor>;
 
 export function getSubCliEntries(): ReadonlyArray<SubCliDescriptor> {
