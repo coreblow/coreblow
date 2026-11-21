@@ -246,7 +246,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
 
   async getStatus(): Promise<unknown> {
     return {
-      runtimeVersion: "2.0.0",
+      runtimeVersion: "2.1.0",
       mode: "embedded",
       providerSummary: [
         "Local Embedded CoreBlow ReAct engine",

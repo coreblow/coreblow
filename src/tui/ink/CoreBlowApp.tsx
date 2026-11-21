@@ -133,7 +133,7 @@ export const CoreBlowApp: React.FC<CoreBlowAppProps> = ({
     {
       id: "init",
       role: "system",
-      text: "CoreBlow v2.0.0 ready · Type / for commands, @ for context, ! for local shell, Ctrl+P for sessions.",
+      text: "CoreBlow v2.1.0 ready · Type / for commands, @ for context, ! for local shell, Ctrl+P for sessions.",
     },
   ]);
   const [inputVal, setInputVal] = useState("");
