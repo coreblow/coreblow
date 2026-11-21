@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { normalizeMessageChannel } from "../utils/message-channel.js";
 
-export type ClaudeChannelMode = "off" | "on" | "auto";
+export type CoreBlowChannelMode = "off" | "on" | "auto";
+export type ClaudeChannelMode = CoreBlowChannelMode;
 
 export type ConversationDescriptor = {
   sessionKey: string;
@@ -86,7 +87,7 @@ export type QueueEvent =
     }
   | {
       cursor: number;
-      type: "claude_permission_request";
+      type: "channel_permission_request" | "claude_permission_request";
       requestId: string;
       toolName: string;
       description: string;
@@ -103,19 +104,23 @@ export type QueueEvent =
       raw: Record<string, unknown>;
     };
 
-export type ClaudePermissionRequest = {
+export type ChannelPermissionRequest = {
   toolName: string;
   description: string;
   inputPreview: string;
 };
+export type ClaudePermissionRequest = ChannelPermissionRequest;
 
 export type WaitFilter = {
   afterCursor: number;
   sessionKey?: string;
 };
 
-export const ClaudePermissionRequestSchema = z.object({
-  method: z.literal("notifications/claude/channel/permission_request"),
+export const ChannelPermissionRequestSchema = z.object({
+  method: z.union([
+    z.literal("notifications/coreblow/channel/permission_request"),
+    z.literal("notifications/claude/channel/permission_request"),
+  ]),
   params: z.object({
     request_id: z.string(),
     tool_name: z.string(),
@@ -123,6 +128,7 @@ export const ClaudePermissionRequestSchema = z.object({
     input_preview: z.string(),
   }),
 });
+export const ClaudePermissionRequestSchema = ChannelPermissionRequestSchema;
 
 export function toText(value: unknown): string | undefined {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;

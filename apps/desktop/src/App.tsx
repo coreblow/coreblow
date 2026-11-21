@@ -107,6 +107,58 @@ export const App: React.FC = () => {
     });
   }, []);
 
+  const switchOrLoadSession = useCallback(async (sessionId: string) => {
+    if (!sessionId) return;
+    setActiveThreadId(sessionId);
+    setThreads((curr) => {
+      if (!curr.some((t) => t.id === sessionId)) {
+        return [
+          {
+            id: sessionId,
+            title: `Session ${sessionId.slice(0, 8)}`,
+            messages: [],
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          },
+          ...curr,
+        ];
+      }
+      return curr;
+    });
+
+    try {
+      const remote = await gatewayClient.getSession(sessionId);
+      if (remote) {
+        setThreads((curr) => {
+          const exists = curr.some((t) => t.id === remote.id);
+          if (exists) {
+            return curr.map((t) => (t.id === remote.id ? remote : t));
+          }
+          return [remote, ...curr];
+        });
+      }
+    } catch {}
+  }, []);
+
+  // Listen for CLI session handoff (initial or warm second-instance)
+  useEffect(() => {
+    if (window.coreblowDesktop?.session) {
+      window.coreblowDesktop.session.getInitialSessionId().then((initialId) => {
+        if (initialId) {
+          switchOrLoadSession(initialId);
+        }
+      });
+      const unsubscribe = window.coreblowDesktop.session.onHandoff((handedId) => {
+        if (handedId) {
+          switchOrLoadSession(handedId);
+        }
+      });
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [switchOrLoadSession]);
+
   const handleToggleEstop = async () => {
     const next = !estopPaused;
     const res = await gatewayClient.setEstopPaused(next, next ? "Paused via Desktop UI" : undefined);

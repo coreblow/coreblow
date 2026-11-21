@@ -8,12 +8,14 @@ import {
   toText,
 } from "./channel-shared.js";
 
-export function getChannelMcpCapabilities(claudeChannelMode: "off" | "on" | "auto") {
-  if (claudeChannelMode === "off") {
+export function getChannelMcpCapabilities(channelMode: "off" | "on" | "auto") {
+  if (channelMode === "off") {
     return undefined;
   }
   return {
     experimental: {
+      "coreblow/channel": {},
+      "coreblow/channel/permission": {},
       "claude/channel": {},
       "claude/channel/permission": {},
     },

@@ -168,7 +168,10 @@ export class TelegramAdapter {
         return { running: this.running };
     }
 
-    async start(): Promise<void> { this.running = true; }
+    async start(): Promise<void> {
+        this.running = true;
+        console.warn("[coreblow] Notice: TelegramAdapter is a REST bot client. For live long-polling and webhook dispatching, use extensions/telegram/src/bot.js (or `coreblow bots enable telegram`).");
+    }
     async stop(): Promise<void> { this.running = false; }
 
     // === Private ===

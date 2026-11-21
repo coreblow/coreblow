@@ -62,6 +62,13 @@ export class WhatsAppAdapter {
     }
 
     /**
+     * Connect stub.
+     */
+    async connect(): Promise<void> {
+        console.warn("[coreblow] Notice: WhatsAppAdapter is a Cloud API REST adapter. For live multi-device QR pairing, use extensions/whatsapp/src/channel.js (or `coreblow channels login --channel whatsapp`).");
+    }
+
+    /**
      * Send a text message.
      */
     async sendText(to: string, text: string): Promise<string> {

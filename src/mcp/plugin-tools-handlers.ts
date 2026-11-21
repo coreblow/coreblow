@@ -28,17 +28,27 @@ export function createPluginToolsMcpHandlers(tools: AnyAgentTool[]) {
     return wrapToolWithBeforeToolCallHook(tool);
   });
   const toolMap = new Map<string, AnyAgentTool>();
+  const toolDescriptors: Array<{ name: string; description: string; inputSchema: Record<string, unknown> }> = [];
+
   for (const tool of wrappedTools) {
-    toolMap.set(tool.name, tool);
+    let name = tool.name;
+    if (toolMap.has(name)) {
+      const pluginId = (tool as any).pluginId || (tool as any).plugin?.id || "plugin";
+      const namespacedName = `${pluginId}__${name}`;
+      console.warn(`[coreblow] Warning: MCP tool collision detected for "${name}". Registering as "${namespacedName}".`);
+      name = namespacedName;
+    }
+    toolMap.set(name, tool);
+    toolDescriptors.push({
+      name,
+      description: tool.description ?? "",
+      inputSchema: resolveJsonSchemaForTool(tool),
+    });
   }
 
   return {
     listTools: async () => ({
-      tools: wrappedTools.map((tool) => ({
-        name: tool.name,
-        description: tool.description ?? "",
-        inputSchema: resolveJsonSchemaForTool(tool),
-      })),
+      tools: toolDescriptors,
     }),
     callTool: async (params: CallPluginToolParams, signal?: AbortSignal) => {
       const tool = toolMap.get(params.name);

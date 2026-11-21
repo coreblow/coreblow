@@ -11,6 +11,41 @@ let isGatewayManagedByDesktop = false;
 let isHudMode = false;
 let savedBounds: { x: number; y: number; width: number; height: number } | null = null;
 
+function extractSessionIdFromArgv(argv: string[]): string | null {
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "--session" && argv[i + 1]) {
+      return argv[i + 1].trim() || null;
+    }
+    if (arg && arg.startsWith("--session=")) {
+      return arg.slice("--session=".length).trim() || null;
+    }
+  }
+  return null;
+}
+
+let currentHandoffSessionId: string | null =
+  extractSessionIdFromArgv(process.argv) || process.env.COREBLOW_SESSION_ID?.trim() || null;
+
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on("second-instance", (_event, commandLine) => {
+    const handedSessionId = extractSessionIdFromArgv(commandLine);
+    if (handedSessionId) {
+      currentHandoffSessionId = handedSessionId;
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("coreblow:session:handoff", handedSessionId);
+      }
+    }
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
 const GATEWAY_PORT = 18789;
 const GATEWAY_HEALTH_URL = `http://127.0.0.1:${GATEWAY_PORT}/health`;
 
@@ -82,12 +117,15 @@ async function ensureGatewayDaemon(): Promise<boolean> {
         isGatewayManagedByDesktop = false;
       });
 
-      // Poll until listening or timeout (up to 5 seconds)
-      for (let i = 0; i < 10; i++) {
-        await new Promise((r) => setTimeout(r, 500));
+      // Poll until listening or timeout with backoff (up to 15 seconds)
+      let delayMs = 300;
+      const deadline = Date.now() + 15_000;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, delayMs));
         if (await probeGatewayHealth()) {
           return true;
         }
+        delayMs = Math.min(1500, Math.round(delayMs * 1.5));
       }
     } catch {
       // Fall through to return false
@@ -216,6 +254,12 @@ ipcMain.handle("coreblow:gateway:health", async () => {
 
 ipcMain.handle("coreblow:gateway:ensure", async () => {
   return await ensureGatewayDaemon();
+});
+
+// ─── Session Handoff ───────────────────────────────────────────────────────
+
+ipcMain.handle("coreblow:session:getInitialSessionId", () => {
+  return currentHandoffSessionId;
 });
 
 // ─── OS Keychain Encryption (safeStorage) ──────────────────────────────────

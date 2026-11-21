@@ -144,6 +144,7 @@ export class DiscordAdapter {
      */
     async connect(): Promise<void> {
         this.connected = true;
+        console.warn("[coreblow] Notice: DiscordAdapter is a REST/embed client. For live Gateway event dispatching, use extensions/discord/src/channel.js (or `coreblow bots enable discord`).");
     }
 
     /**

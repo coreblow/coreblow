@@ -218,4 +218,34 @@ describe("plugin tools MCP server", () => {
       { type: "text", text: "Tool error: Plugin approval required (gateway unavailable)" },
     ]);
   });
+
+  it("namespaces colliding tool names instead of overwriting", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const toolA = {
+      name: "query",
+      description: "Query tool from plugin A",
+      parameters: { type: "object", properties: {} },
+      pluginId: "pluginA",
+      execute: vi.fn().mockResolvedValue({ content: "result A" }),
+    } as unknown as AnyAgentTool;
+
+    const toolB = {
+      name: "query",
+      description: "Query tool from plugin B",
+      parameters: { type: "object", properties: {} },
+      pluginId: "pluginB",
+      execute: vi.fn().mockResolvedValue({ content: "result B" }),
+    } as unknown as AnyAgentTool;
+
+    const handlers = createPluginToolsMcpHandlers([toolA, toolB]);
+    const list = await handlers.listTools();
+    const names = list.tools.map((t) => t.name);
+
+    expect(names).toContain("query");
+    expect(names).toContain("pluginB__query");
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('MCP tool collision detected for "query"'),
+    );
+    warnSpy.mockRestore();
+  });
 });

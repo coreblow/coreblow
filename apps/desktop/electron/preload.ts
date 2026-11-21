@@ -33,6 +33,10 @@ export interface CoreBlowDesktopApi {
     toggleHud: () => Promise<boolean>;
     onFullscreenChange: (callback: (fullscreen: boolean) => void) => () => void;
   };
+  session: {
+    getInitialSessionId: () => Promise<string | null>;
+    onHandoff: (callback: (sessionId: string) => void) => () => void;
+  };
   screen: {
     captureActive: () => Promise<string>;
   };
@@ -44,7 +48,7 @@ const desktopApi: CoreBlowDesktopApi = {
     node: process.versions.node,
     chrome: process.versions.chrome,
     electron: process.versions.electron,
-    coreblow: "2.0.0",
+    coreblow: "2.1.0",
   },
   dialog: {
     selectDirectory: () => ipcRenderer.invoke("coreblow:dialog:selectDirectory"),
@@ -74,6 +78,16 @@ const desktopApi: CoreBlowDesktopApi = {
       ipcRenderer.on("coreblow:window-fullscreen", handler);
       return () => {
         ipcRenderer.removeListener("coreblow:window-fullscreen", handler);
+      };
+    },
+  },
+  session: {
+    getInitialSessionId: () => ipcRenderer.invoke("coreblow:session:getInitialSessionId"),
+    onHandoff: (callback: (sessionId: string) => void) => {
+      const handler = (_event: unknown, sessionId: string) => callback(sessionId);
+      ipcRenderer.on("coreblow:session:handoff", handler);
+      return () => {
+        ipcRenderer.removeListener("coreblow:session:handoff", handler);
       };
     },
   },

@@ -13,7 +13,9 @@ import type {
   ApprovalDecision,
   ApprovalKind,
   ChatHistoryResult,
+  CoreBlowChannelMode,
   ClaudeChannelMode,
+  ChannelPermissionRequest,
   ClaudePermissionRequest,
   ConversationDescriptor,
   PendingApproval,
@@ -35,16 +37,17 @@ type ServerNotification = {
   params?: Record<string, unknown>;
 };
 
-const CLAUDE_PERMISSION_REPLY_RE = /^(yes|no)\s+([a-km-z]{5})$/i;
+export const CHANNEL_PERMISSION_REPLY_RE = /^(yes|no)\s+([a-km-z]{5})$/i;
+export const CLAUDE_PERMISSION_REPLY_RE = CHANNEL_PERMISSION_REPLY_RE;
 const QUEUE_LIMIT = 1_000;
 
 export class CoreBlowChannelBridge {
   private gateway: GatewayClient | null = null;
   private readonly verbose: boolean;
-  private readonly claudeChannelMode: ClaudeChannelMode;
+  private readonly channelMode: CoreBlowChannelMode;
   private readonly queue: QueueEvent[] = [];
   private readonly pendingWaiters = new Set<PendingWaiter>();
-  private readonly pendingClaudePermissions = new Map<string, ClaudePermissionRequest>();
+  private readonly pendingPermissions = new Map<string, ChannelPermissionRequest>();
   private readonly pendingApprovals = new Map<string, PendingApproval>();
   private server: McpServer | null = null;
   private cursor = 0;
@@ -56,18 +59,27 @@ export class CoreBlowChannelBridge {
   private rejectReady!: (error: Error) => void;
   private readySettled = false;
 
+  get pendingClaudePermissions(): Map<string, ChannelPermissionRequest> {
+    return this.pendingPermissions;
+  }
+
+  get claudeChannelMode(): ClaudeChannelMode {
+    return this.channelMode;
+  }
+
   constructor(
     private readonly cfg: CoreBlowConfig,
     private readonly params: {
       gatewayUrl?: string;
       gatewayToken?: string;
       gatewayPassword?: string;
-      claudeChannelMode: ClaudeChannelMode;
+      channelMode?: CoreBlowChannelMode;
+      claudeChannelMode?: ClaudeChannelMode;
       verbose: boolean;
     },
   ) {
     this.verbose = params.verbose;
-    this.claudeChannelMode = params.claudeChannelMode;
+    this.channelMode = params.channelMode ?? params.claudeChannelMode ?? "auto";
     this.readyPromise = new Promise<void>((resolve, reject) => {
       this.resolveReady = resolve;
       this.rejectReady = reject;
@@ -276,28 +288,37 @@ export class CoreBlowChannelBridge {
     });
   }
 
-  async handleClaudePermissionRequest(params: {
+  async handleChannelPermissionRequest(params: {
     requestId: string;
     toolName: string;
     description: string;
     inputPreview: string;
   }): Promise<void> {
-    this.pendingClaudePermissions.set(params.requestId, {
+    this.pendingPermissions.set(params.requestId, {
       toolName: params.toolName,
       description: params.description,
       inputPreview: params.inputPreview,
     });
     this.enqueue({
       cursor: this.nextCursor(),
-      type: "claude_permission_request",
+      type: "channel_permission_request",
       requestId: params.requestId,
       toolName: params.toolName,
       description: params.description,
       inputPreview: params.inputPreview,
     });
     if (this.verbose) {
-      process.stderr.write(`coreblow mcp: pending Claude permission ${params.requestId}\n`);
+      process.stderr.write(`coreblow mcp: pending channel permission ${params.requestId}\n`);
     }
+  }
+
+  async handleClaudePermissionRequest(params: {
+    requestId: string;
+    toolName: string;
+    description: string;
+    inputPreview: string;
+  }): Promise<void> {
+    return this.handleChannelPermissionRequest(params);
   }
 
   private async requestGateway<T = Record<string, unknown>>(
@@ -458,11 +479,18 @@ export class CoreBlowChannelBridge {
       }) ?? undefined;
     const role = toText(payload.message?.role);
     const text = extractFirstTextBlock(payload.message);
-    const permissionMatch = text ? CLAUDE_PERMISSION_REPLY_RE.exec(text) : null;
+    const permissionMatch = text ? CHANNEL_PERMISSION_REPLY_RE.exec(text) : null;
     if (permissionMatch) {
       const requestId = permissionMatch[2]?.toLowerCase();
-      if (requestId && this.pendingClaudePermissions.has(requestId)) {
-        this.pendingClaudePermissions.delete(requestId);
+      if (requestId && this.pendingPermissions.has(requestId)) {
+        this.pendingPermissions.delete(requestId);
+        await this.sendNotification({
+          method: "notifications/coreblow/channel/permission",
+          params: {
+            request_id: requestId,
+            behavior: permissionMatch[1]?.toLowerCase().startsWith("y") ? "allow" : "deny",
+          },
+        });
         await this.sendNotification({
           method: "notifications/claude/channel/permission",
           params: {
@@ -486,35 +514,47 @@ export class CoreBlowChannelBridge {
       raw: payload,
     });
 
-    if (!this.shouldEmitClaudeChannel(role, conversation)) {
+    if (!this.shouldEmitChannel(role, conversation)) {
       return;
     }
+    const notificationPayload = {
+      content: text ?? "[non-text message]",
+      meta: {
+        session_key: sessionKey,
+        channel: conversation?.channel ?? "",
+        to: conversation?.to ?? "",
+        account_id: conversation?.accountId ?? "",
+        thread_id: conversation?.threadId == null ? "" : String(conversation.threadId),
+        message_id: toText(payload.messageId) ?? "",
+      },
+    };
+    await this.sendNotification({
+      method: "notifications/coreblow/channel",
+      params: notificationPayload,
+    });
     await this.sendNotification({
       method: "notifications/claude/channel",
-      params: {
-        content: text ?? "[non-text message]",
-        meta: {
-          session_key: sessionKey,
-          channel: conversation?.channel ?? "",
-          to: conversation?.to ?? "",
-          account_id: conversation?.accountId ?? "",
-          thread_id: conversation?.threadId == null ? "" : String(conversation.threadId),
-          message_id: toText(payload.messageId) ?? "",
-        },
-      },
+      params: notificationPayload,
     });
   }
 
-  private shouldEmitClaudeChannel(
+  private shouldEmitChannel(
     role: string | undefined,
     conversation: ConversationDescriptor | undefined,
   ): boolean {
-    if (this.claudeChannelMode === "off") {
+    if (this.channelMode === "off") {
       return false;
     }
     if (role !== "user") {
       return false;
     }
     return Boolean(conversation);
+  }
+
+  private shouldEmitClaudeChannel(
+    role: string | undefined,
+    conversation: ConversationDescriptor | undefined,
+  ): boolean {
+    return this.shouldEmitChannel(role, conversation);
   }
 }

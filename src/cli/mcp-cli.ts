@@ -55,8 +55,12 @@ export function registerMcpCli(program: Command) {
     .option("--password <password>", "Gateway password (if required)")
     .option("--password-file <path>", "Read gateway password from file")
     .option(
+      "--channel-mode <mode>",
+      "CoreBlow channel notification mode: auto, on, or off",
+    )
+    .option(
       "--claude-channel-mode <mode>",
-      "Claude channel notification mode: auto, on, or off",
+      "Channel notification mode: auto, on, or off (legacy alias)",
       "auto",
     )
     .option("-v, --verbose", "Verbose logging to stderr", false)
@@ -82,21 +86,21 @@ export function registerMcpCli(program: Command) {
         if (opts.password) {
           warnSecretCliFlag("--password");
         }
-        const claudeChannelMode = String(opts.claudeChannelMode ?? "auto")
-          .trim()
-          .toLowerCase();
+        const rawChannelMode = opts.channelMode ?? opts.claudeChannelMode ?? "auto";
+        const channelMode = String(rawChannelMode).trim().toLowerCase();
         if (
-          claudeChannelMode !== "auto" &&
-          claudeChannelMode !== "on" &&
-          claudeChannelMode !== "off"
+          channelMode !== "auto" &&
+          channelMode !== "on" &&
+          channelMode !== "off"
         ) {
-          throw new Error("Invalid --claude-channel-mode value. Use auto, on, or off.");
+          throw new Error("Invalid --channel-mode value. Use auto, on, or off.");
         }
         await serveCoreBlowChannelMcp({
           gatewayUrl: opts.url as string | undefined,
           gatewayToken,
           gatewayPassword,
-          claudeChannelMode,
+          channelMode: channelMode as any,
+          claudeChannelMode: channelMode as any,
           verbose: Boolean(opts.verbose),
         });
       } catch (err) {

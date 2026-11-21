@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# CoreBlow v2.0.0 — Official macOS / Linux / WSL2 Installer
+# CoreBlow v2.1.0 — Official macOS / Linux / WSL2 Installer
 # Usage:
 #   curl -fsSL https://coreblow.com/install.sh | bash
 #   bash scripts/install.sh [--from-source] [--non-interactive]
 
-COREBLOW_VERSION="${COREBLOW_VERSION:-2.0.0}"
+COREBLOW_VERSION="${COREBLOW_VERSION:-2.1.0}"
 COREBLOW_REPO_URL="${COREBLOW_REPO_URL:-https://github.com/coreblow/coreblow.git}"
 COREBLOW_INSTALL_DIR="${COREBLOW_INSTALL_DIR:-$HOME/.coreblow/src}"
 FROM_SOURCE="${COREBLOW_INSTALL_SOURCE:-0}"
@@ -101,7 +101,19 @@ if [ "$FROM_SOURCE" = "1" ] || { [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/../co
   esac
 else
   echo "→ Installing coreblow@${COREBLOW_VERSION} globally via npm..."
-  npm install -g "coreblow@latest"
+  if ! npm install -g "coreblow@latest" 2>/dev/null; then
+    echo "  Notice: Global npm install failed with permission issues; falling back to \$HOME/.local prefix..."
+    mkdir -p "$HOME/.local/bin"
+    npm install -g --prefix "$HOME/.local" "coreblow@latest"
+    case ":$PATH:" in
+      *":$HOME/.local/bin:"*) ;;
+      *)
+        echo "  Note: Add $HOME/.local/bin to your PATH:"
+        echo "    export PATH=\"\$HOME/.local/bin:\$PATH\""
+        export PATH="$HOME/.local/bin:$PATH"
+        ;;
+    esac
+  fi
 fi
 
 # 3. Verify installation
@@ -122,7 +134,11 @@ fi
 echo ""
 echo "  CoreBlow is ready! Quick commands:"
 echo "    coreblow                  Launch interactive TUI"
-echo "    coreblow -q \"hello\"       Run a one-shot query"
+echo "    coreblow -p \"review\"      Headless query with stdin pipe & JSON/NDJSON support"
+echo "    coreblow -c               Continue last workspace session"
+echo "    coreblow -r               Resume session via interactive SQLite FTS5 picker"
+echo "    coreblow bots             Manage 24/7 bot messaging channels & loop guards"
+echo "    coreblow cron             Orchestrate 24/7 cron jobs"
 echo "    coreblow desktop          Open CoreBlow Studio Desktop"
 echo "    coreblow gateway          Start Single-Brain Gateway (:18789)"
 echo "    coreblow doctor           Run system health diagnostics"

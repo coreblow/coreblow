@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # CoreBlow macOS Standalone App & DMG Packaging Pipeline
-# Sovereign Autonomous Agent-OS v2.0.0 GA
+# Sovereign Autonomous Agent-OS v2.1.0 GA
 # ==============================================================================
 set -euo pipefail
 
@@ -11,17 +11,18 @@ REPO_ROOT="$(cd "${MACOS_DIR}/../.." && pwd)"
 DIST_DIR="${MACOS_DIR}/dist"
 APP_NAME="CoreBlow"
 BUNDLE_ID="ai.coreblow.studio"
-VERSION="2.0.0"
+VERSION="2.1.0"
 DMG_NAME="CoreBlow-${VERSION}-arm64.dmg"
 DMG_PATH="${DIST_DIR}/${DMG_NAME}"
 APP_BUNDLE="${DIST_DIR}/${APP_NAME}.app"
 BUILD_APP_BUNDLE="${MACOS_DIR}/.build/${APP_NAME}.app"
+ENTITLEMENTS="${MACOS_DIR}/CoreBlow.entitlements"
 
-echo "==> [1/6] Building CoreBlow product via Swift Package Manager..."
+echo "==> [1/6] Building CoreBlow product in release mode via Swift Package Manager..."
 cd "${MACOS_DIR}"
-swift build --product CoreBlow
+swift build -c release --product CoreBlow
 
-BUILD_DIR="${MACOS_DIR}/.build/arm64-apple-macosx/debug"
+BUILD_DIR="${MACOS_DIR}/.build/arm64-apple-macosx/release"
 BINARY="${BUILD_DIR}/CoreBlow"
 
 if [ ! -f "${BINARY}" ]; then
@@ -35,7 +36,7 @@ mkdir -p "${ICONSET_DIR}"
 
 SOURCE_ICON="${REPO_ROOT}/../coreblow.com/frontend/public/dev/mascot-clean.png"
 if [ ! -f "${SOURCE_ICON}" ]; then
-  SOURCE_ICON="/Users/febrinanda/coreblow.com/public/dev/mascot-clean.png"
+  SOURCE_ICON="${REPO_ROOT}/../coreblow.com/public/dev/mascot-clean.png"
 fi
 
 if [ -f "${SOURCE_ICON}" ]; then
@@ -118,9 +119,9 @@ cat << 'EOF' > "${APP_BUNDLE}/Contents/Info.plist"
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.0.0</string>
+    <string>2.1.0</string>
     <key>CFBundleVersion</key>
-    <string>200</string>
+    <string>210</string>
     <key>LSMinimumSystemVersion</key>
     <string>15.0</string>
     <key>NSHighResolutionCapable</key>
@@ -141,17 +142,28 @@ EOF
 mkdir -p "${BUILD_APP_BUNDLE}"
 rsync -a --delete "${APP_BUNDLE}/" "${BUILD_APP_BUNDLE}/"
 
-echo "==> [4/6] Code signing bundle (ad-hoc deep)..."
-if [ -d "${APP_BUNDLE}/Contents/Frameworks/Sparkle.framework" ]; then
-  codesign --force --sign - --timestamp=none "${APP_BUNDLE}/Contents/Frameworks/Sparkle.framework"
-  codesign --force --sign - --timestamp=none "${BUILD_APP_BUNDLE}/Contents/Frameworks/Sparkle.framework"
+SIGNING_IDENTITY="${APPLE_DEVELOPER_CERTIFICATE:-}"
+if [ -n "${SIGNING_IDENTITY}" ]; then
+  echo "==> [4/6] Code signing bundle with Apple Developer Certificate (${SIGNING_IDENTITY})..."
+  if [ -d "${APP_BUNDLE}/Contents/Frameworks/Sparkle.framework" ]; then
+    codesign --force --options runtime --timestamp --sign "${SIGNING_IDENTITY}" "${APP_BUNDLE}/Contents/Frameworks/Sparkle.framework"
+    codesign --force --options runtime --timestamp --sign "${SIGNING_IDENTITY}" "${BUILD_APP_BUNDLE}/Contents/Frameworks/Sparkle.framework"
+  fi
+  codesign --force --deep --options runtime --timestamp --entitlements "${ENTITLEMENTS}" --sign "${SIGNING_IDENTITY}" "${APP_BUNDLE}"
+  codesign --force --deep --options runtime --timestamp --entitlements "${ENTITLEMENTS}" --sign "${SIGNING_IDENTITY}" "${BUILD_APP_BUNDLE}"
+else
+  echo "==> [4/6] Code signing bundle (ad-hoc with entitlements)..."
+  if [ -d "${APP_BUNDLE}/Contents/Frameworks/Sparkle.framework" ]; then
+    codesign --force --sign - --timestamp=none "${APP_BUNDLE}/Contents/Frameworks/Sparkle.framework"
+    codesign --force --sign - --timestamp=none "${BUILD_APP_BUNDLE}/Contents/Frameworks/Sparkle.framework"
+  fi
+  codesign --force --deep --entitlements "${ENTITLEMENTS}" --sign - "${APP_BUNDLE}"
+  codesign --force --deep --entitlements "${ENTITLEMENTS}" --sign - "${BUILD_APP_BUNDLE}"
 fi
-codesign --force --deep --sign - "${APP_BUNDLE}"
-codesign --force --deep --sign - "${BUILD_APP_BUNDLE}"
 
 # Verify code signature
 codesign -v --deep "${APP_BUNDLE}"
-echo "Ad-hoc code signature verified for ${APP_BUNDLE}"
+echo "Code signature verified for ${APP_BUNDLE}"
 
 echo "==> [5/6] Registering with LaunchServices to prevent -600 errors..."
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "${APP_BUNDLE}"
@@ -167,12 +179,22 @@ rm -f "${DMG_PATH}"
 hdiutil create -volname "${APP_NAME}" -srcfolder "${DMG_STAGING}" -ov -format UDZO "${DMG_PATH}"
 rm -rf "${DMG_STAGING}"
 
+if [ -n "${APPLE_NOTARY_KEY:-}" ] || [ -n "${APPLE_ID:-}" ]; then
+  echo "==> Submitting DMG for Apple Notarization..."
+  if [ -n "${APPLE_NOTARY_KEY:-}" ]; then
+    xcrun notarytool submit "${DMG_PATH}" --key "${APPLE_NOTARY_KEY}" --key-id "${APPLE_NOTARY_KEY_ID:-}" --issuer "${APPLE_NOTARY_ISSUER:-}" --wait || true
+  elif [ -n "${APPLE_ID:-}" ]; then
+    xcrun notarytool submit "${DMG_PATH}" --apple-id "${APPLE_ID}" --password "${APPLE_APP_SPECIFIC_PASSWORD:-}" --team-id "${APPLE_TEAM_ID:-}" --wait || true
+  fi
+  xcrun stapler staple "${DMG_PATH}" || true
+fi
+
 SHA256_SUM=$(shasum -a 256 "${DMG_PATH}" | awk '{print $1}')
 echo "${SHA256_SUM}  ${DMG_NAME}" > "${DIST_DIR}/${DMG_NAME}.sha256"
 
 echo ""
 echo "=============================================================================="
-echo "CoreBlow v2.0.0 macOS Packaging Complete!"
+echo "CoreBlow v2.1.0 macOS Packaging Complete!"
 echo "  - Application: ${APP_BUNDLE}"
 echo "  - Disk Image:  ${DMG_PATH}"
 echo "  - SHA-256:     ${SHA256_SUM}"

@@ -3,7 +3,13 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { loadConfig, type CoreBlowConfig } from "../config/config.js";
 import { VERSION } from "../version.js";
 import { CoreBlowChannelBridge } from "./channel-bridge.js";
-import { ClaudePermissionRequestSchema, type ClaudeChannelMode } from "./channel-shared.js";
+import {
+  ChannelPermissionRequestSchema,
+  ClaudePermissionRequestSchema,
+  type ChannelPermissionRequest,
+  type CoreBlowChannelMode,
+  type ClaudeChannelMode,
+} from "./channel-shared.js";
 import { getChannelMcpCapabilities, registerChannelMcpTools } from "./channel-tools.js";
 
 export { CoreBlowChannelBridge } from "./channel-bridge.js";
@@ -13,6 +19,7 @@ export type CoreBlowMcpServeOptions = {
   gatewayToken?: string;
   gatewayPassword?: string;
   config?: CoreBlowConfig;
+  channelMode?: CoreBlowChannelMode;
   claudeChannelMode?: ClaudeChannelMode;
   verbose?: boolean;
 };
@@ -24,8 +31,8 @@ export async function createCoreBlowChannelMcpServer(opts: CoreBlowMcpServeOptio
   close: () => Promise<void>;
 }> {
   const cfg = opts.config ?? loadConfig();
-  const claudeChannelMode = opts.claudeChannelMode ?? "auto";
-  const capabilities = getChannelMcpCapabilities(claudeChannelMode);
+  const channelMode = opts.channelMode ?? opts.claudeChannelMode ?? "auto";
+  const capabilities = getChannelMcpCapabilities(channelMode);
   const server = new McpServer(
     { name: "coreblow", version: VERSION },
     capabilities ? { capabilities } : undefined,
@@ -34,19 +41,23 @@ export async function createCoreBlowChannelMcpServer(opts: CoreBlowMcpServeOptio
     gatewayUrl: opts.gatewayUrl,
     gatewayToken: opts.gatewayToken,
     gatewayPassword: opts.gatewayPassword,
-    claudeChannelMode,
+    channelMode,
     verbose: opts.verbose ?? false,
   });
   bridge.setServer(server);
 
-  server.server.setNotificationHandler(ClaudePermissionRequestSchema, async ({ params }) => {
-    await bridge.handleClaudePermissionRequest({
+  const permissionHandler = async ({ params }: { params: { request_id: string; tool_name: string; description: string; input_preview: string } }) => {
+    await bridge.handleChannelPermissionRequest({
       requestId: params.request_id,
       toolName: params.tool_name,
       description: params.description,
       inputPreview: params.input_preview,
     });
-  });
+  };
+  const requestSchema = ChannelPermissionRequestSchema ?? ClaudePermissionRequestSchema;
+  if (requestSchema) {
+    server.server.setNotificationHandler(requestSchema, permissionHandler);
+  }
   registerChannelMcpTools(server, bridge);
 
   return {

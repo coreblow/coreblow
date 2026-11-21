@@ -64,6 +64,10 @@ vi.mock("./channel-bridge.js", () => ({
       return bridgeState.close();
     }
 
+    async handleChannelPermissionRequest(payload: unknown) {
+      return bridgeState.handleClaudePermissionRequest(payload);
+    }
+
     async handleClaudePermissionRequest(payload: unknown) {
       return bridgeState.handleClaudePermissionRequest(payload);
     }
@@ -71,6 +75,7 @@ vi.mock("./channel-bridge.js", () => ({
 }));
 
 vi.mock("./channel-shared.js", () => ({
+  ChannelPermissionRequestSchema: {},
   ClaudePermissionRequestSchema: {},
 }));
 

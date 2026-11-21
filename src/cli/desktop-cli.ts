@@ -109,9 +109,10 @@ export function registerDesktopCli(program: Command) {
   program
     .command("desktop")
     .description("Launch the CoreBlow Studio desktop application")
-    .action(async () => {
+    .option("--session <id>", "Handoff session ID to desktop app")
+    .action(async (opts: { session?: string }) => {
       console.log("Launching CoreBlow Studio desktop...");
-      const result = launchDesktopApp();
+      const result = launchDesktopApp({ sessionId: opts.session });
       if (result.launched) {
         console.log(`CoreBlow Studio started via ${result.strategy} (${result.target}).`);
       } else {
