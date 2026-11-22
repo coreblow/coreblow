@@ -28,7 +28,7 @@
       "phase": 1,
       "priority": "foundation",
       "kind": "documentation",
-      "source": "/Users/febrinanda/coreblow-split/docs",
+      "source": "../coreblow-split/docs",
       "description": "CoreBlow documentation site and published docs mirror."
     },
     {
@@ -37,7 +37,7 @@
       "phase": 2,
       "priority": "foundation",
       "kind": "website",
-      "source": "/Users/febrinanda/coreblow.com",
+      "source": "../coreblow.com",
       "seedIgnore": ["frontend"],
       "description": "CoreBlow public website and install landing surface."
     },

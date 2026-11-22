@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const CB_ROOT = join(__dirname, "..");
-const OC_ROOT = "/Users/febrinanda/coreblow-main";
+const OC_ROOT = process.env.OC_ROOT || "";
 
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");

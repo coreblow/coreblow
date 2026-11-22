@@ -206,7 +206,8 @@ function seedTarget(repo) {
 }
 
 function splitTarget(repo) {
-  return path.resolve("/Users/febrinanda/coreblow-split", repo.name);
+  const base = process.env.COREBLOW_SPLIT_ROOT || path.resolve(repoRoot, "..", "coreblow-split");
+  return path.resolve(base, repo.name);
 }
 
 async function writeMaturityFile(root, filePath, contents) {

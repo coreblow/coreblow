@@ -25,7 +25,7 @@ const outputPath = readFlag(
 );
 const openClawRoot = readFlag(
   "oc-root",
-  process.env.OC_ROOT || "/Users/febrinanda/openclaw-refs/openclaw",
+  process.env.OC_ROOT || "",
 );
 
 if (!auditPath) {
@@ -751,7 +751,7 @@ const intentionalDomainDifferences = new Map([
         "../coreblow-split/docs/scripts/docs-link-audit.mjs",
         "../coreblow-split/docs/src/index.js",
       ],
-      gate: "pnpm --dir /Users/febrinanda/coreblow-split/docs check",
+      gate: "pnpm --dir ../coreblow-split/docs check",
     },
   ],
   [
@@ -772,7 +772,7 @@ const intentionalDomainDifferences = new Map([
         "../coreblow-split/docs/scripts/docs-link-audit.mjs",
       ],
       gate:
-        "pnpm test -- src/scripts && pnpm --dir /Users/febrinanda/coreblow-split/docs check",
+        "pnpm test -- src/scripts && pnpm --dir ../coreblow-split/docs check",
     },
   ],
   [

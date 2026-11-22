@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
 const manifestPath = path.join(__dirname, "repo-family.manifest.json");
-const splitRoot = "/Users/febrinanda/coreblow-split";
+const splitRoot = process.env.COREBLOW_SPLIT_ROOT || path.resolve(repoRoot, "..", "coreblow-split");
 const manifest = JSON.parse(await readFile(manifestPath, "utf-8"));
 
 const args = new Set(process.argv.slice(2));

@@ -3,25 +3,25 @@ import re
 
 pairs = [
     # File 2
-    ("/Users/febrinanda/openclaw-main/apps/macos/Sources/OpenClaw/Logging/OpenClawLogging.swift", "/Users/febrinanda/coreblow/apps/macos/Sources/CoreBlow/Logging/CoreBlowLogging.swift"),
+    ("apps/macos/Sources/CoreBlow/Logging/CoreBlowLogging.swift", "apps/macos/Sources/CoreBlow/Logging/CoreBlowLogging.swift"),
     # File 3
-    ("/Users/febrinanda/openclaw-main/apps/macos/Sources/OpenClaw/OpenClawPaths.swift", "/Users/febrinanda/coreblow/apps/macos/Sources/CoreBlow/CoreBlowPaths.swift"),
+    ("apps/macos/Sources/CoreBlow/CoreBlowPaths.swift", "apps/macos/Sources/CoreBlow/CoreBlowPaths.swift"),
     # File 4
-    ("/Users/febrinanda/openclaw-main/apps/macos/Sources/OpenClaw/ProcessInfo+OpenClaw.swift", "/Users/febrinanda/coreblow/apps/macos/Sources/CoreBlow/ProcessInfo+CoreBlow.swift"),
+    ("apps/macos/Sources/CoreBlow/ProcessInfo+CoreBlow.swift", "apps/macos/Sources/CoreBlow/ProcessInfo+CoreBlow.swift"),
     # File 5
-    ("/Users/febrinanda/openclaw-main/apps/macos/Tests/OpenClawIPCTests/OpenClawConfigFileTests.swift", "/Users/febrinanda/coreblow/apps/macos/Tests/CoreBlowIPCTests/CoreBlowConfigFileTests.swift"),
+    ("apps/macos/Tests/CoreBlowIPCTests/CoreBlowConfigFileTests.swift", "apps/macos/Tests/CoreBlowIPCTests/CoreBlowConfigFileTests.swift"),
     # File 6
-    ("/Users/febrinanda/openclaw-main/apps/macos/Sources/OpenClaw/ChannelsSettings.swift", "/Users/febrinanda/coreblow/apps/macos/Sources/CoreBlow/ChannelsSettings.swift"),
+    ("apps/macos/Sources/CoreBlow/ChannelsSettings.swift", "apps/macos/Sources/CoreBlow/ChannelsSettings.swift"),
     # File 7
-    ("/Users/febrinanda/openclaw-main/apps/macos/Sources/OpenClaw/CronSettings.swift", "/Users/febrinanda/coreblow/apps/macos/Sources/CoreBlow/CronSettings.swift"),
+    ("apps/macos/Sources/CoreBlow/CronSettings.swift", "apps/macos/Sources/CoreBlow/CronSettings.swift"),
     # File 8
-    ("/Users/febrinanda/openclaw-main/apps/macos/Sources/OpenClawMacCLI/GatewayScopes.swift", "/Users/febrinanda/coreblow/apps/macos/Sources/CoreBlowMacCLI/GatewayScopes.swift"),
+    ("apps/macos/Sources/CoreBlowMacCLI/GatewayScopes.swift", "apps/macos/Sources/CoreBlowMacCLI/GatewayScopes.swift"),
     # File 9
-    ("/Users/febrinanda/openclaw-main/apps/macos/Sources/OpenClaw/String+NonEmpty.swift", "/Users/febrinanda/coreblow/apps/macos/Sources/CoreBlow/String+NonEmpty.swift"),
+    ("apps/macos/Sources/CoreBlow/String+NonEmpty.swift", "apps/macos/Sources/CoreBlow/String+NonEmpty.swift"),
     # File 10
-    ("/Users/febrinanda/openclaw-main/apps/macos/Sources/OpenClaw/TalkModeTypes.swift", "/Users/febrinanda/coreblow/apps/macos/Sources/CoreBlow/TalkModeTypes.swift"),
+    ("apps/macos/Sources/CoreBlow/TalkModeTypes.swift", "apps/macos/Sources/CoreBlow/TalkModeTypes.swift"),
     # File 11
-    ("/Users/febrinanda/openclaw-main/apps/macos/Sources/OpenClawMacCLI/TypeAliases.swift", "/Users/febrinanda/coreblow/apps/macos/Sources/CoreBlowMacCLI/TypeAliases.swift"),
+    ("apps/macos/Sources/CoreBlowMacCLI/TypeAliases.swift", "apps/macos/Sources/CoreBlowMacCLI/TypeAliases.swift"),
 ]
 
 for src, dst in pairs:

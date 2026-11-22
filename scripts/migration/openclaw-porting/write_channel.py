@@ -410,5 +410,5 @@ public actor CoreBlowGatewayChannelManager {
 }
 """
 
-with open("/Users/febrinanda/coreblow/apps/shared/CoreBlowKit/Sources/CoreBlowKit/GatewayChannel.swift", "w") as f:
+with open("apps/shared/CoreBlowKit/Sources/CoreBlowKit/GatewayChannel.swift", "w") as f:
     f.write(swift_code)

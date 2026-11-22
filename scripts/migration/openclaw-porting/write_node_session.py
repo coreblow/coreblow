@@ -189,5 +189,5 @@ public actor CoreBlowNodeSession {
 }
 """
 
-with open("/Users/febrinanda/coreblow/apps/shared/CoreBlowKit/Sources/CoreBlowKit/GatewayNodeSession.swift", "w") as f:
+with open("apps/shared/CoreBlowKit/Sources/CoreBlowKit/GatewayNodeSession.swift", "w") as f:
     f.write(swift_code)

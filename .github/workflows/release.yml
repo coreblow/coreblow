@@ -34,6 +34,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Verify release sync contract
+        run: node scripts/check-release-sync.mjs
+
       - name: Typecheck
         run: pnpm typecheck
 

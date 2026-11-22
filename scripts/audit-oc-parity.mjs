@@ -8,7 +8,7 @@
  * Usage:
  *   node scripts/audit-oc-parity.mjs
  *   node scripts/audit-oc-parity.mjs --json
- *   node scripts/audit-oc-parity.mjs --oc-root=/Users/febrinanda/openclaw-refs/openclaw
+ *   node scripts/audit-oc-parity.mjs --oc-root=/path/to/openclaw
  *   node scripts/audit-oc-parity.mjs --domain-summary
  *   node scripts/audit-oc-parity.mjs --module src/tui
  *   node scripts/audit-oc-parity.mjs --tests-only
@@ -33,7 +33,7 @@ const SKIP_LIVE = !args.includes("--include-live"); // skip live/e2e by default
 const OC_ROOT = (() => {
   const flag = args.find((a) => a.startsWith("--oc-root="));
   if (flag) return flag.split("=").slice(1).join("=");
-  return process.env.OC_ROOT || "/Users/febrinanda/openclaw-main";
+  return process.env.OC_ROOT || "";
 })();
 
 if (!existsSync(OC_ROOT)) {

@@ -3,7 +3,7 @@
   "phase": "Phase 4",
   "generatedDate": "2026-06-07",
   "reference": {
-    "openClawRoot": "/Users/febrinanda/openclaw-refs/openclaw",
+    "openClawRoot": "",
     "matrix": "scripts/parity/openclaw-parity-matrix.json"
   },
   "status": {

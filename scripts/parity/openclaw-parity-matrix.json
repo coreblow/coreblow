@@ -3,7 +3,7 @@
   "generatedDate": "2026-11-14",
   "reference": {
     "coreBlowRoot": ".",
-    "openClawRoot": "/Users/febrinanda/openclaw-refs/openclaw",
+    "openClawRoot": "",
     "auditJson": null
   },
   "summary": {
@@ -5643,11 +5643,11 @@
           "../coreblow-split/docs/scripts/docs-link-audit.mjs",
           "../coreblow-split/docs/src/index.js"
         ],
-        "gate": "pnpm --dir /Users/febrinanda/coreblow-split/docs check"
+        "gate": "pnpm --dir ../coreblow-split/docs check"
       },
       "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
-        "pnpm --dir /Users/febrinanda/coreblow-split/docs check",
+        "pnpm --dir ../coreblow-split/docs check",
         "pnpm check"
       ]
     },
@@ -7597,11 +7597,11 @@
           "scripts/check-i18n.mjs",
           "../coreblow-split/docs/scripts/docs-link-audit.mjs"
         ],
-        "gate": "pnpm test -- src/scripts && pnpm --dir /Users/febrinanda/coreblow-split/docs check"
+        "gate": "pnpm test -- src/scripts && pnpm --dir ../coreblow-split/docs check"
       },
       "notes": "OpenClaw behavior is covered by a deliberate CoreBlow architecture placement.",
       "gates": [
-        "pnpm test -- src/scripts && pnpm --dir /Users/febrinanda/coreblow-split/docs check",
+        "pnpm test -- src/scripts && pnpm --dir ../coreblow-split/docs check",
         "pnpm check"
       ]
     },

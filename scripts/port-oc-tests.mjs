@@ -23,7 +23,7 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const CB_ROOT = join(__dirname, "..");
 // NOTE: This script intentionally contains "openclaw" strings as regex
 // patterns for find-replace during migration. These are NOT branding leaks.
-const OC_ROOT = process.env.OC_ROOT || "/Users/febrinanda/openclaw-refs/openclaw";
+const OC_ROOT = process.env.OC_ROOT || "";
 
 // ─── CLI args ───────────────────────────────────────────────────────────────
 
