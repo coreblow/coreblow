@@ -44,6 +44,8 @@ jobs:
         run: pnpm test
         env:
           CI: true
+          COREBLOW_TEST_PROFILE: serial
+          NODE_OPTIONS: '--max-old-space-size=4096'
 
       - uses: docker/setup-buildx-action@v3
 
