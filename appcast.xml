@@ -3,21 +3,19 @@
     <channel>
         <title>CoreBlow</title>
         <item>
-            <title>2.1.1</title>
-            <pubDate>Sun, 22 Nov 2026 00:00:00 +0000</pubDate>
+            <title>2.1.2</title>
+            <pubDate>Mon, 23 Nov 2026 00:00:00 +0000</pubDate>
             <link>https://raw.githubusercontent.com/coreblow/coreblow/main/appcast.xml</link>
-            <sparkle:version>211</sparkle:version>
-            <sparkle:shortVersionString>2.1.1</sparkle:shortVersionString>
+            <sparkle:version>212</sparkle:version>
+            <sparkle:shortVersionString>2.1.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h2>CoreBlow 2.1.1</h2>
+            <description><![CDATA[<h2>CoreBlow 2.1.2</h2>
 <h3>Highlights</h3>
 <ul>
-<li>CoreBlow Studio Desktop: Electron + Vite + React desktop companion with CLI session handoff and sandbox protection.</li>
-<li>Headless & Resumable CLI: coreblow -p headless prompt execution, -c / -r session continuation and interactive picker.</li>
-<li>SQLite WAL + FTS5: Persistent multi-process session store with fast BM25 full-text indexing and Cory memory knowledge scribe.</li>
-<li>Sovereign MCP Bridge: 75 native tools, dynamic plugin tool collision namespacing, and notification wire protocol.</li>
-<li>AST Skill Security Scanner: Static analysis guardrails for community cognitive skills.</li>
-<li>Per-Channel-Peer DM Isolation: Default cross-channel security boundaries.</li>
+<li>Security: Patched 4 critical CVEs (tar >=7.5.19, proxy-addr >=2.0.8, simple-git >=4.0.1, @simple-git/argv-parser >=2.0.1) with 0 critical vulnerabilities.</li>
+<li>Control UI: Bundled and verified release build of CoreBlow Control UI with zero doctor warnings.</li>
+<li>Governance: Enforced automated release-sync contract gate (scripts/check-release-sync.mjs) across versions, paths, and brand sovereignty.</li>
+<li>Architecture: Complete synchronization of sovereign microkernel specifications and companion surfaces.</li>
 </ul>
 ]]></description>
         </item>

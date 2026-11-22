@@ -236,7 +236,7 @@ async function executeInteractiveTurn(prompt: string, sessionId: string): Promis
 export async function runInteractiveCliChat(): Promise<void> {
   let sessionId = `cli_${Date.now().toString(36)}`;
 
-  console.log(chalk.bold.hex("#F6C453")("CoreBlow v2.1.1") + chalk.dim(" · Single-Brain :18789"));
+  console.log(chalk.bold.hex("#F6C453")("CoreBlow v2.1.2") + chalk.dim(" · Single-Brain :18789"));
   console.log(
     chalk.dim("Type ") +
       chalk.hex("#F6C453")("/help") +

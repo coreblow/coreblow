@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 Entries are listed newest-first within each version block.
 Changelog covers user-facing changes only; internal/meta notes are omitted.
 
+## [2.1.2] (2026-11-23)
+
+### Security
+
+- **Critical CVE Patches:** Patched 4 production dependency vulnerabilities, achieving 0 critical CVEs: upgraded `tar` to `>=7.5.19` (GHSA-23hp-3jrh-7fpw), `proxy-addr` to `>=2.0.8` (GHSA-jqcg-44mw-7w3h), `simple-git` to `>=4.0.1` (GHSA-x6jw-m9v5-85vh), and `@simple-git/argv-parser` to `>=2.0.1` (GHSA-v5rq-49vh-5v5c).
+
+### Changes
+
+- **Control UI Release Assets:** Pre-built and packaged CoreBlow Web Cockpit assets into release distribution (`dist/control-ui`) for out-of-the-box browser dashboard access without development toolchains.
+- **Automated Release-Sync Contract Gate:** Added `scripts/check-release-sync.mjs` contract verification enforcing strict version alignment, brand sovereignty, and path hygiene across monorepo surfaces and CI.
+- **Package Hygiene:** Cleaned root `package.json` scripts and hardened repository metadata across SDK packages.
+
 ## [2.1.1] (2026-11-22)
 
 ### Fixes

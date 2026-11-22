@@ -429,7 +429,7 @@ export async function runLegacyPiTui(opts: TuiOptions) {
   const modeBadge = isEmbedded ? "local embedded" : "gateway :18789";
   chatLog.addSystem(
     [
-      `CoreBlow v2.1.1 · [${modeBadge}] · ${process.cwd()}`,
+      `CoreBlow v2.1.2 · [${modeBadge}] · ${process.cwd()}`,
       `Shortcuts: /help commands · Ctrl+L model · Ctrl+P sessions · Ctrl+O tools · Ctrl+C exit`,
     ].join("\n"),
   );
