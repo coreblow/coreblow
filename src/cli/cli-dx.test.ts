@@ -1,7 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { EventEmitter } from "node:events";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { Command } from "commander";
-import { buildChildEnv, forwardSignalsToChild } from "../../coreblow.mjs";
+import {
+  buildChildEnv,
+  forwardSignalsToChild,
+  resolveTsxBin,
+  resolveTsxEsmUrl,
+} from "../../coreblow.mjs";
 import { launchDesktopApp } from "./desktop-cli.js";
 import { handleSlashCommand, runOneShotCliQuery } from "./interactive-chat.js";
 import { SUB_CLI_DESCRIPTORS } from "./program/subcli-descriptors.js";
@@ -83,6 +91,39 @@ describe("coreblow.mjs environment", () => {
 
     expect(process.listeners("SIGTERM").length).toBe(sigtermListenersBefore);
     expect(process.listeners("SIGINT").length).toBe(sigintListenersBefore);
+  });
+
+  it("resolves an absolute file URL for tsx/esm (not a bare specifier)", () => {
+    const url = resolveTsxEsmUrl("tsx/esm");
+    expect(url).toBeDefined();
+    expect(typeof url).toBe("string");
+    expect(url).toMatch(/^file:\/\/.+\/tsx\/.+/);
+    expect(url).not.toBe("tsx/esm");
+  });
+
+  it("resolves local node_modules/.bin/tsx when present", () => {
+    const bin = resolveTsxBin(process.cwd());
+    expect(bin).toBeDefined();
+    expect(bin).toContain(".bin");
+    expect(bin).toContain("tsx");
+  });
+
+  it("resolves hoisted parent ../.bin/tsx when local node_modules/.bin/tsx is absent", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "coreblow-hoisted-test-"));
+    try {
+      const hoistedBinDir = path.join(tempDir, ".bin");
+      fs.mkdirSync(hoistedBinDir, { recursive: true });
+      const hoistedTsx = path.join(hoistedBinDir, "tsx");
+      fs.writeFileSync(hoistedTsx, "#!/bin/sh\necho tsx\n", { mode: 0o755 });
+
+      const subPkgDir = path.join(tempDir, "coreblow");
+      fs.mkdirSync(subPkgDir, { recursive: true });
+
+      const resolved = resolveTsxBin(subPkgDir);
+      expect(resolved).toBe(hoistedTsx);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
   });
 });
 

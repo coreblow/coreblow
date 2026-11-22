@@ -66,7 +66,7 @@ export function createWebOnMessageHandler(params: {
     const peerId = resolvePeerId(msg);
     // Fresh config for bindings lookup; other routing inputs are payload-derived.
     const route = resolveAgentRoute({
-      cfg: loadConfig(),
+      cfg: params.cfg ?? loadConfig(),
       channel: "whatsapp",
       accountId: msg.accountId,
       peer: {

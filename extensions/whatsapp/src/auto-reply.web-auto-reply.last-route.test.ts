@@ -20,7 +20,7 @@ vi.mock("./auto-reply/monitor/last-route.js", async (importOriginal) => {
 function makeCfg(storePath: string): CoreBlowConfig {
   return {
     channels: { whatsapp: { allowFrom: ["*"] } },
-    session: { store: storePath },
+    session: { store: storePath, dmScope: "main" },
   };
 }
 

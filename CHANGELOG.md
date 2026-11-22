@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 Entries are listed newest-first within each version block.
 Changelog covers user-facing changes only; internal/meta notes are omitted.
 
+## [2.1.1] (2026-11-22)
+
+### Fixes
+
+- **Hoisted tsx Resolution in CLI:** Fixed `coreblow` launcher failure when installed globally via `npm` or `npx` in hoisted environments by checking parent `.bin/tsx` and resolving an absolute file URL for `tsx/esm`.
+- **Security Update for WhatsApp Channel:** Upgraded `@whiskeysockets/baileys` to patched release `7.0.0-rc14` to resolve GHSA-qvv5-jq5g-4cgg (message upsert and app state corruption).
+
 ## [2.1.0] (2026-11-22)
 
 ### Highlights

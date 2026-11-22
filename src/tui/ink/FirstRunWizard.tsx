@@ -161,7 +161,7 @@ export const FirstRunWizard: React.FC<FirstRunWizardProps> = ({ onComplete, onCa
     >
       <Box justifyContent="space-between">
         <Text bold color={inkPalette.accent}>
-          CoreBlow v2.1.0 · First-Run Setup Wizard
+          CoreBlow v2.1.1 · First-Run Setup Wizard
         </Text>
         <Text color={inkPalette.dim}>
           Step: {step === "mode_theme" ? "1/3" : step === "provider" || step === "credentials" ? "2/3" : "3/3"}

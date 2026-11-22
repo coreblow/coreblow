@@ -30,6 +30,22 @@ const MIN_NODE_VERSION = `${MIN_NODE_MAJOR}.${MIN_NODE_MINOR}`;
 
 // ─── Child Environment Builder ─────────────────────────────────────
 
+export const resolveTsxBin = (baseDir = __dirname) => {
+    const localBin = join(baseDir, "node_modules", ".bin", "tsx");
+    if (existsSync(localBin)) return localBin;
+    const hoistedBin = join(baseDir, "..", ".bin", "tsx");
+    if (existsSync(hoistedBin)) return hoistedBin;
+    return null;
+};
+
+export const resolveTsxEsmUrl = (specifier = "tsx/esm") => {
+    try {
+        return import.meta.resolve(specifier);
+    } catch {
+        return null;
+    }
+};
+
 export const buildChildEnv = (baseEnv = process.env) => {
     const childEnv = { ...baseEnv };
     const currentOptions = childEnv.NODE_OPTIONS || "";
@@ -142,14 +158,14 @@ function run() {
     const userArgs = process.argv.slice(2);
     const childEnv = buildChildEnv(process.env);
 
-    // Strategy 1: local node_modules/.bin/tsx
-    const tsxBin = join(__dirname, "node_modules", ".bin", "tsx");
+    // Strategy 1: local node_modules/.bin/tsx or hoisted ../.bin/tsx
+    const tsxBin = resolveTsxBin(__dirname);
     const tsconfigPath = resolve(__dirname, "tsconfig.json");
     const tsxArgs = existsSync(tsconfigPath)
         ? ["--tsconfig", tsconfigPath, entryFile, ...userArgs]
         : [entryFile, ...userArgs];
 
-    if (existsSync(tsxBin)) {
+    if (tsxBin) {
         const child = spawn(tsxBin, tsxArgs, {
             stdio: "inherit",
             env: childEnv,
@@ -170,17 +186,11 @@ function run() {
             }
         });
     } else {
-        // Strategy 2: try node --import tsx/esm (works when tsx is resolvable)
-        let tsxResolvable = false;
-        try {
-            import.meta.resolve("tsx/esm");
-            tsxResolvable = true;
-        } catch {
-            // tsx/esm not resolvable
-        }
+        // Strategy 2: try node --import <tsxEsmUrl> with resolved absolute file URL
+        const tsxEsmUrl = resolveTsxEsmUrl("tsx/esm");
 
-        if (tsxResolvable) {
-            const child = spawn(process.execPath, ["--import", "tsx/esm", entryFile, ...userArgs], {
+        if (tsxEsmUrl) {
+            const child = spawn(process.execPath, ["--import", tsxEsmUrl, entryFile, ...userArgs], {
                 stdio: "inherit",
                 env: childEnv,
                 cwd: process.cwd(),

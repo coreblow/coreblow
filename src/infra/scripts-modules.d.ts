@@ -41,4 +41,6 @@ declare module "*coreblow.mjs" {
     kill: (signal: string) => boolean | void;
     on: (event: string, listener: (...args: any[]) => void) => void;
   }): () => void;
+  export function resolveTsxBin(baseDir?: string): string | null;
+  export function resolveTsxEsmUrl(specifier?: string): string | null;
 }
