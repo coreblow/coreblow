@@ -153,7 +153,10 @@ export async function prepareSecretsRuntimeSnapshot(params: {
     context,
   });
 
-  const loadAuthStore = params.loadAuthStore ?? loadAuthProfileStoreForSecretsRuntime;
+  const loadAuthStore =
+    params.loadAuthStore ??
+    ((agentDir?: string) =>
+      loadAuthProfileStoreForSecretsRuntime(agentDir, { config: sourceConfig }));
   const candidateDirs = params.agentDirs?.length
     ? [...new Set(params.agentDirs.map((entry) => resolveUserPath(entry, runtimeEnv)))]
     : collectCandidateAgentDirs(resolvedConfig, runtimeEnv);

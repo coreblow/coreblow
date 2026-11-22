@@ -5,10 +5,8 @@ import { VERSION } from "../version.js";
 import { CoreBlowChannelBridge } from "./channel-bridge.js";
 import {
   ChannelPermissionRequestSchema,
-  ClaudePermissionRequestSchema,
   type ChannelPermissionRequest,
   type CoreBlowChannelMode,
-  type ClaudeChannelMode,
 } from "./channel-shared.js";
 import { getChannelMcpCapabilities, registerChannelMcpTools } from "./channel-tools.js";
 
@@ -20,7 +18,6 @@ export type CoreBlowMcpServeOptions = {
   gatewayPassword?: string;
   config?: CoreBlowConfig;
   channelMode?: CoreBlowChannelMode;
-  claudeChannelMode?: ClaudeChannelMode;
   verbose?: boolean;
 };
 
@@ -31,7 +28,7 @@ export async function createCoreBlowChannelMcpServer(opts: CoreBlowMcpServeOptio
   close: () => Promise<void>;
 }> {
   const cfg = opts.config ?? loadConfig();
-  const channelMode = opts.channelMode ?? opts.claudeChannelMode ?? "auto";
+  const channelMode = opts.channelMode ?? "auto";
   const capabilities = getChannelMcpCapabilities(channelMode);
   const server = new McpServer(
     { name: "coreblow", version: VERSION },
@@ -54,10 +51,7 @@ export async function createCoreBlowChannelMcpServer(opts: CoreBlowMcpServeOptio
       inputPreview: params.input_preview,
     });
   };
-  const requestSchema = ChannelPermissionRequestSchema ?? ClaudePermissionRequestSchema;
-  if (requestSchema) {
-    server.server.setNotificationHandler(requestSchema, permissionHandler);
-  }
+  server.server.setNotificationHandler(ChannelPermissionRequestSchema, permissionHandler);
   registerChannelMcpTools(server, bridge);
 
   return {

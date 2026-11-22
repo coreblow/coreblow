@@ -5,17 +5,25 @@ const storeState = vi.hoisted(() => ({
   store: {} as Record<string, SessionEntry>,
 }));
 
-vi.mock("../io.js", () => ({
-  loadConfig: () => ({}),
-}));
+vi.mock("../io.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../io.js")>();
+  return {
+    ...actual,
+    loadConfig: () => ({}),
+  };
+});
 
 vi.mock("./paths.js", () => ({
   resolveStorePath: () => "/tmp/sessions.json",
 }));
 
-vi.mock("./store.js", () => ({
-  loadSessionStore: () => storeState.store,
-}));
+vi.mock("./store.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./store.js")>();
+  return {
+    ...actual,
+    loadSessionStore: () => storeState.store,
+  };
+});
 
 let extractDeliveryInfo: typeof import("./delivery-info.js").extractDeliveryInfo;
 let parseSessionThreadInfo: typeof import("./delivery-info.js").parseSessionThreadInfo;

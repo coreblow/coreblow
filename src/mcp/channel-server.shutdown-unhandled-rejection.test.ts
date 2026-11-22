@@ -13,7 +13,7 @@ const bridgeState = vi.hoisted(() => ({
     throw new Error("close boom");
   }),
   setServer: vi.fn(),
-  handleClaudePermissionRequest: vi.fn(async (_payload: unknown) => {}),
+  handleChannelPermissionRequest: vi.fn(async (_payload: unknown) => {}),
 }));
 
 vi.mock("@modelcontextprotocol/sdk/server/stdio.js", () => ({
@@ -65,18 +65,13 @@ vi.mock("./channel-bridge.js", () => ({
     }
 
     async handleChannelPermissionRequest(payload: unknown) {
-      return bridgeState.handleClaudePermissionRequest(payload);
-    }
-
-    async handleClaudePermissionRequest(payload: unknown) {
-      return bridgeState.handleClaudePermissionRequest(payload);
+      return bridgeState.handleChannelPermissionRequest(payload);
     }
   },
 }));
 
 vi.mock("./channel-shared.js", () => ({
   ChannelPermissionRequestSchema: {},
-  ClaudePermissionRequestSchema: {},
 }));
 
 vi.mock("./channel-tools.js", () => ({
@@ -111,7 +106,7 @@ describe("serveCoreBlowChannelMcp shutdown", () => {
     bridgeState.start.mockClear();
     bridgeState.close.mockClear();
     bridgeState.setServer.mockClear();
-    bridgeState.handleClaudePermissionRequest.mockClear();
+    bridgeState.handleChannelPermissionRequest.mockClear();
   });
 
   it("does not leak unhandled rejections when shutdown close fails", async () => {

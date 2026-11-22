@@ -16,7 +16,8 @@ vi.mock("../agents/agent-scope.js", () => ({
   }),
 }));
 
-vi.mock("../agents/pi-embedded.js", () => ({
+vi.mock("../agents/pi-embedded.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../agents/pi-embedded.js")>()),
   runEmbeddedPiAgent: (...args: unknown[]) => runEmbeddedPiAgentMock(...args),
 }));
 

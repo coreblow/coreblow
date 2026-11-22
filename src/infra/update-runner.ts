@@ -1009,12 +1009,11 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
     const channel = opts.channel ?? DEFAULT_PACKAGE_CHANNEL;
     const tag = normalizeTag(opts.tag ?? channelToNpmTag(channel));
     const steps: UpdateStepResult[] = [];
-    const globalInstallEnv = await createGlobalInstallEnv();
     const spec = resolveGlobalInstallSpec({
       packageName,
       tag,
-      env: globalInstallEnv,
     });
+    const globalInstallEnv = await createGlobalInstallEnv();
     const updateStep = await runStep({
       runCommand,
       name: "global update",

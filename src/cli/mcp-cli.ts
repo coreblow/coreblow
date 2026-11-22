@@ -57,10 +57,6 @@ export function registerMcpCli(program: Command) {
     .option(
       "--channel-mode <mode>",
       "CoreBlow channel notification mode: auto, on, or off",
-    )
-    .option(
-      "--claude-channel-mode <mode>",
-      "Channel notification mode: auto, on, or off (legacy alias)",
       "auto",
     )
     .option("-v, --verbose", "Verbose logging to stderr", false)
@@ -86,7 +82,7 @@ export function registerMcpCli(program: Command) {
         if (opts.password) {
           warnSecretCliFlag("--password");
         }
-        const rawChannelMode = opts.channelMode ?? opts.claudeChannelMode ?? "auto";
+        const rawChannelMode = opts.channelMode ?? "auto";
         const channelMode = String(rawChannelMode).trim().toLowerCase();
         if (
           channelMode !== "auto" &&
@@ -100,7 +96,6 @@ export function registerMcpCli(program: Command) {
           gatewayToken,
           gatewayPassword,
           channelMode: channelMode as any,
-          claudeChannelMode: channelMode as any,
           verbose: Boolean(opts.verbose),
         });
       } catch (err) {

@@ -71,7 +71,7 @@ export async function resolveSessionAuthProfileOverride(params: {
     return sessionEntry?.authProfileOverride;
   }
 
-  const store = ensureAuthProfileStore(agentDir, { allowKeychainPrompt: false });
+  const store = ensureAuthProfileStore(agentDir, { allowKeychainPrompt: false, config: cfg });
   const order = resolveAuthProfileOrder({ cfg, store, provider });
   let current = sessionEntry.authProfileOverride?.trim();
 

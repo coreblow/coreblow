@@ -783,6 +783,65 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
         },
         additionalProperties: false,
       },
+      accessGroups: {
+        type: "object",
+        propertyNames: {
+          type: "string",
+          minLength: 1,
+        },
+        additionalProperties: {
+          oneOf: [
+            {
+              type: "object",
+              properties: {
+                type: {
+                  type: "string",
+                  const: "discord.channelAudience",
+                },
+                guildId: {
+                  type: "string",
+                  minLength: 1,
+                },
+                channelId: {
+                  type: "string",
+                  minLength: 1,
+                },
+                membership: {
+                  type: "string",
+                  const: "canViewChannel",
+                },
+              },
+              required: ["type", "guildId", "channelId"],
+              additionalProperties: false,
+            },
+            {
+              type: "object",
+              properties: {
+                type: {
+                  type: "string",
+                  const: "message.senders",
+                },
+                members: {
+                  type: "object",
+                  propertyNames: {
+                    type: "string",
+                    minLength: 1,
+                  },
+                  additionalProperties: {
+                    type: "array",
+                    items: {
+                      type: "string",
+                      minLength: 1,
+                    },
+                  },
+                },
+              },
+              required: ["type", "members"],
+              additionalProperties: false,
+            },
+          ],
+        },
+      },
       acp: {
         type: "object",
         properties: {
@@ -1026,6 +1085,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                     "github-copilot",
                     "bedrock-converse-stream",
                     "ollama",
+                    "azure-openai-responses",
                   ],
                 },
                 injectNumCtxForOpenAICompat: {
@@ -1130,6 +1190,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                           "github-copilot",
                           "bedrock-converse-stream",
                           "ollama",
+                          "azure-openai-responses",
                         ],
                       },
                       reasoning: {
@@ -2702,6 +2763,9 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                   suppressToolErrorWarnings: {
                     type: "boolean",
                   },
+                  includeSystemPromptSection: {
+                    type: "boolean",
+                  },
                   lightContext: {
                     type: "boolean",
                   },
@@ -3836,6 +3900,9 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
                       maximum: 9007199254740991,
                     },
                     suppressToolErrorWarnings: {
+                      type: "boolean",
+                    },
+                    includeSystemPromptSection: {
                       type: "boolean",
                     },
                     lightContext: {
@@ -15597,6 +15664,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA = {
       tags: ["security", "auth"],
     },
   },
-  version: "1.0.0",
+  version: "2.1.0",
   generatedAt: "2026-03-22T21:17:33.302Z",
 } as const satisfies BaseConfigSchemaResponse;

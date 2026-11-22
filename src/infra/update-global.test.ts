@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { BUNDLED_RUNTIME_SIDECAR_PATHS } from "../plugins/public-artifacts.js";
+import { BUNDLED_RUNTIME_SIDECAR_PATHS } from "../plugins/runtime-sidecar-paths.js";
 import { captureEnv } from "../test-utils/env.js";
 import {
   canResolveRegistryVersionForPackageTarget,
@@ -188,7 +188,7 @@ describe("update global helpers", () => {
     await expect(fs.stat(path.join(root, ".coreblow-file"))).resolves.toBeDefined();
   });
 
-  it("checks bundled runtime sidecars, including Matrix helper-api", async () => {
+  it("checks bundled runtime sidecars", async () => {
     const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-update-global-pkg-"));
     await fs.writeFile(
       path.join(packageRoot, "package.json"),
@@ -203,9 +203,10 @@ describe("update global helpers", () => {
 
     await expect(collectInstalledGlobalPackageErrors({ packageRoot })).resolves.toEqual([]);
 
-    await fs.rm(path.join(packageRoot, "dist/extensions/matrix/helper-api.js"));
+    const sampleSidecar = BUNDLED_RUNTIME_SIDECAR_PATHS[0];
+    await fs.rm(path.join(packageRoot, sampleSidecar));
     await expect(collectInstalledGlobalPackageErrors({ packageRoot })).resolves.toContain(
-      "missing bundled runtime sidecar dist/extensions/matrix/helper-api.js",
+      `missing bundled plugin runtime artifact ${sampleSidecar}`,
     );
   });
 });

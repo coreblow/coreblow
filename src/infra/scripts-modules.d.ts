@@ -34,4 +34,11 @@ declare module "../../scripts/lib/local-build-metadata-paths.mjs" {
 declare module "*coreblow.mjs" {
   export function buildChildEnv(baseEnv?: NodeJS.ProcessEnv): NodeJS.ProcessEnv;
   export function isDirectRun(argv1?: string): boolean;
+  export function forwardSignalsToChild(child: {
+    killed?: boolean;
+    exitCode: number | null;
+    signalCode: string | null;
+    kill: (signal: string) => boolean | void;
+    on: (event: string, listener: (...args: any[]) => void) => void;
+  }): () => void;
 }

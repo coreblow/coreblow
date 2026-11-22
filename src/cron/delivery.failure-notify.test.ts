@@ -29,11 +29,15 @@ vi.mock("../cli/outbound-send-deps.js", () => ({
   createOutboundSendDeps: mocks.createOutboundSendDeps,
 }));
 
-vi.mock("../logging.js", () => ({
-  getChildLogger: vi.fn(() => ({
-    warn: mocks.warn,
-  })),
-}));
+vi.mock("../logging.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../logging.js")>();
+  return {
+    ...actual,
+    getChildLogger: vi.fn(() => ({
+      warn: mocks.warn,
+    })),
+  };
+});
 
 const { sendFailureNotificationAnnounce } = await import("./delivery.js");
 

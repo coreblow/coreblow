@@ -16,7 +16,8 @@ import type { CommitmentExtractionBatchResult, CommitmentExtractionItem } from "
 const runEmbeddedPiAgentMock = vi.hoisted(() => vi.fn());
 const resolveDefaultModelMock = vi.hoisted(() => vi.fn());
 
-vi.mock("../agents/pi-embedded.js", () => ({
+vi.mock("../agents/pi-embedded.js", async (importOriginal) => ({
+  ...((await importOriginal()) as object),
   runEmbeddedPiAgent: runEmbeddedPiAgentMock,
 }));
 

@@ -39,6 +39,7 @@ export function hasAuthForModelProvider(params: {
         })
       : ensureAuthProfileStore(params.agentDir, {
           externalCli: externalCliDiscoveryForProviderAuth({ cfg: params.cfg, provider }),
+          config: params.cfg,
         }));
   if (listProfilesForProvider(store, provider).length > 0) {
     return true;

@@ -5,9 +5,7 @@ export interface ConversationDescriptor { id?: string; sessionKey: string; chann
 export interface PendingApproval { id: string; tool?: string; args?: unknown; kind?: string; request?: Record<string, unknown>; createdAtMs?: number; expiresAtMs?: number; }
 export interface SessionListResult { conversations?: ConversationDescriptor[]; total?: number; sessions?: unknown[]; }
 export interface CoreBlowChannelMode { enabled?: boolean; }
-export interface ClaudeChannelMode extends CoreBlowChannelMode {}
 export interface ChannelPermissionRequest { requestId: string; toolName: string; description?: string; inputPreview?: string; }
-export interface ClaudePermissionRequest extends ChannelPermissionRequest {}
 export interface ApprovalDecision { approved: boolean; [key: string]: unknown; }
 export interface ChatHistoryResult { messages: unknown[]; }
 export interface SessionMessagePayload { sessionKey: string; content: string; role?: string; }

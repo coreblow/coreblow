@@ -272,6 +272,7 @@ describe("provider usage loading", () => {
         );
         const store = ensureAuthProfileStore(agentDir, {
           allowKeychainPrompt: false,
+          config: { plugins: { enabled: false } },
         });
         expect(listProfilesForProvider(store, "anthropic")).toContain("anthropic:default");
 

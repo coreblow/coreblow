@@ -152,6 +152,7 @@ describe("model catalog normalization", () => {
       aliases: {
         "azure-openai-responses": {
           provider: "openai",
+          api: "azure-openai-responses",
         },
       },
       suppressions: [

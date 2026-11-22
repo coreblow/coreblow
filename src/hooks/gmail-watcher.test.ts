@@ -8,9 +8,13 @@ const mocks = vi.hoisted(() => ({
   spawn: vi.fn(),
 }));
 
-vi.mock("node:child_process", () => ({
-  spawn: mocks.spawn,
-}));
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return {
+    ...actual,
+    spawn: mocks.spawn,
+  };
+});
 
 vi.mock("../agents/skills.js", () => ({
   hasBinary: mocks.hasBinary,

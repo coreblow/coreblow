@@ -1,6 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { parseBooleanValue } from "./boolean.js";
-import { isReasoningTagProvider } from "./provider-utils.js";
+import {
+  isReasoningTagProvider,
+  setProviderReasoningOutputModeResolverForTest,
+} from "./provider-utils.js";
 import { splitShellArgs } from "./shell-argv.js";
 
 describe("parseBooleanValue", () => {
@@ -43,6 +46,14 @@ describe("parseBooleanValue", () => {
 });
 
 describe("isReasoningTagProvider", () => {
+  beforeEach(() => {
+    setProviderReasoningOutputModeResolverForTest(() => undefined);
+  });
+
+  afterEach(() => {
+    setProviderReasoningOutputModeResolverForTest(undefined);
+  });
+
   it.each([
     {
       name: "returns false for ollama - native reasoning field, no tags needed (#2279)",

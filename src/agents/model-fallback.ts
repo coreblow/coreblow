@@ -251,6 +251,7 @@ function resolveFallbackSoonestCooldownExpiry(params: {
   const refreshedStore = loadAuthProfileStoreForRuntime(params.agentDir, {
     readOnly: true,
     allowKeychainPrompt: false,
+    config: params.cfg,
   });
   let soonest: number | null = null;
   for (const candidate of params.candidates) {
@@ -602,7 +603,7 @@ export async function runWithModelFallback<T>(params: {
     fallbacksOverride: params.fallbacksOverride,
   });
   const authStore = params.cfg
-    ? ensureAuthProfileStore(params.agentDir, { allowKeychainPrompt: false })
+    ? ensureAuthProfileStore(params.agentDir, { allowKeychainPrompt: false, config: params.cfg })
     : null;
   const attempts: FallbackAttempt[] = [];
   let lastError: unknown;

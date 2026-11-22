@@ -22,7 +22,7 @@ type TargetNormalizerCacheEntry = {
 const targetNormalizerCacheByChannelId = new Map<string, TargetNormalizerCacheEntry>();
 
 function resolveChannelPluginForTargetRead(channelId: ChannelId): ChannelPlugin | undefined {
-  return getLoadedChannelPluginForRead(channelId) ?? getChannelPlugin(channelId);
+  return getChannelPlugin(channelId) ?? getLoadedChannelPluginForRead(channelId);
 }
 
 function resetTargetNormalizerCacheForTests(): void {
@@ -56,9 +56,13 @@ export function normalizeTargetForProvider(provider: string, raw?: string): stri
   if (!fallback) {
     return undefined;
   }
-  const providerId = normalizeOptionalLowercaseString(provider);
+  const providerId = normalizeChannelId(provider);
   const normalizer = providerId ? resolveTargetNormalizer(providerId) : undefined;
-  return normalizeOptionalString(normalizer?.(raw) ?? fallback);
+  if (normalizer) {
+    const normalized = normalizer(raw);
+    return normalizeOptionalString(normalized);
+  }
+  return fallback;
 }
 
 export type TargetResolveKindLike = ChannelDirectoryEntryKind | "channel";

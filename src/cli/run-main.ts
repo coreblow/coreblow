@@ -89,6 +89,46 @@ export function shouldUseRootHelpFastPath(argv: string[]): boolean {
   return isRootHelpInvocation(argv);
 }
 
+export function shouldDivertToHeadless(params: {
+  argv: string[];
+  isPipedStdin: boolean;
+  primaryCommand: string | null;
+}): boolean {
+  const printPrompt =
+    getFlagValue(params.argv, "-p") ?? getFlagValue(params.argv, "--print");
+  const outputFormat = getFlagValue(params.argv, "--output-format");
+  return Boolean(
+    printPrompt !== undefined ||
+      outputFormat !== undefined ||
+      (params.isPipedStdin && params.primaryCommand === null && !hasHelpOrVersion(params.argv)),
+  );
+}
+
+export function resolveSessionResumeParams(argv: string[]): {
+  continueFlag: boolean;
+  hasResume: boolean;
+  resumeValue: string | undefined;
+  initialModal: "none" | "sessions";
+} {
+  const continueFlag = hasFlag(argv, "-c") || hasFlag(argv, "--continue");
+  const hasResume = hasFlag(argv, "-r") || hasFlag(argv, "--resume");
+  const rawR = getFlagValue(argv, "-r");
+  const rawResume = getFlagValue(argv, "--resume");
+  const resumeValue =
+    typeof rawR === "string"
+      ? rawR
+      : typeof rawResume === "string"
+        ? rawResume
+        : undefined;
+
+  let initialModal: "none" | "sessions" = "none";
+  if (!continueFlag && hasResume && !resumeValue) {
+    initialModal = "sessions";
+  }
+
+  return { continueFlag, hasResume, resumeValue, initialModal };
+}
+
 function shouldLoadCliDotEnv(env: NodeJS.ProcessEnv = process.env): boolean {
   if (existsSync(path.join(process.cwd(), ".env"))) {
     return true;
@@ -144,6 +184,8 @@ export async function runCli(argv: string[] = process.argv) {
       return;
     }
 
+    const primaryCommand = getPrimaryCommand(normalizedArgv);
+
     const printPrompt =
       getFlagValue(normalizedArgv, "-p") ?? getFlagValue(normalizedArgv, "--print");
     const outputFormat = getFlagValue(normalizedArgv, "--output-format");
@@ -152,7 +194,7 @@ export async function runCli(argv: string[] = process.argv) {
     if (
       printPrompt !== undefined ||
       outputFormat !== undefined ||
-      (isPipedStdin && !hasHelpOrVersion(normalizedArgv))
+      (isPipedStdin && primaryCommand === null && !hasHelpOrVersion(normalizedArgv))
     ) {
       const { runHeadlessCli } = await import("./headless-runner.js");
       await runHeadlessCli(normalizedArgv);
@@ -172,7 +214,6 @@ export async function runCli(argv: string[] = process.argv) {
       return;
     }
 
-    const primaryCommand = getPrimaryCommand(normalizedArgv);
     if (primaryCommand === "ask" && !hasHelpOrVersion(normalizedArgv)) {
       const askIndex = normalizedArgv.indexOf("ask");
       const askPrompt = normalizedArgv.slice(askIndex + 1).join(" ").trim();
@@ -189,12 +230,11 @@ export async function runCli(argv: string[] = process.argv) {
       );
       if (isInteractiveTty) {
         // Session resume flags: -c / --continue or -r / --resume
-        const continueFlag = hasFlag(normalizedArgv, "-c") || hasFlag(normalizedArgv, "--continue");
-        const resumeValue = getFlagValue(normalizedArgv, "-r") ?? getFlagValue(normalizedArgv, "--resume");
-        const hasResume = resumeValue !== undefined;
+        const { continueFlag, hasResume, resumeValue, initialModal: initialModalFromResume } =
+          resolveSessionResumeParams(normalizedArgv);
 
         let targetSessionId: string | undefined;
-        let initialModal: any = "none";
+        let initialModal: any = initialModalFromResume;
 
         if (continueFlag) {
           const { resolveLatestSessionForCwd } = await import("./session-resume.js");
@@ -213,9 +253,6 @@ export async function runCli(argv: string[] = process.argv) {
               process.exitCode = 1;
               return;
             }
-          } else {
-            // -r without value: open SessionPickerModal
-            initialModal = "sessions";
           }
         }
 

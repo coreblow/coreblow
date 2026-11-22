@@ -16,8 +16,6 @@ export function getChannelMcpCapabilities(channelMode: "off" | "on" | "auto") {
     experimental: {
       "coreblow/channel": {},
       "coreblow/channel/permission": {},
-      "claude/channel": {},
-      "claude/channel/permission": {},
     },
   };
 }

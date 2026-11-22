@@ -77,9 +77,13 @@ vi.mock("../../config/paths.js", async (importOriginal) => {
   };
 });
 
-vi.mock("../../config/types.secrets.js", () => ({
-  resolveSecretInputRef: resolveSecretInputRefMock,
-}));
+vi.mock("../../config/types.secrets.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../config/types.secrets.js")>();
+  return {
+    ...actual,
+    resolveSecretInputRef: resolveSecretInputRefMock,
+  };
+});
 
 vi.mock("../../gateway/auth.js", () => ({
   resolveGatewayAuth: resolveGatewayAuthMock,

@@ -5,7 +5,7 @@ import path from "node:path";
  * On Windows, `process.env` stores it as `Path` (not `PATH`),
  * and after copying to a plain object the original casing is preserved.
  */
-export function findPathKey(env: Record<string, string>): string {
+export function findPathKey(env: Record<string, string | undefined>): string {
   if ("PATH" in env) {
     return "PATH";
   }
@@ -58,7 +58,7 @@ export function mergePathPrepend(existing: string | undefined, prepend: string[]
 }
 
 export function applyPathPrepend(
-  env: Record<string, string>,
+  env: Record<string, string | undefined>,
   prepend: string[] | undefined,
   options?: { requireExisting?: boolean },
 ) {

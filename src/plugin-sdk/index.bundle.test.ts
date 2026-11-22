@@ -47,6 +47,7 @@ describe("plugin-sdk bundled exports", () => {
       clean: false,
       config: false,
       dts: false,
+      shims: true,
       deps: {
         // Match the production host build contract: Matrix SDK packages stay
         // external so the heavy runtime surface does not fold multiple

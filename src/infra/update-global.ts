@@ -8,7 +8,6 @@ import { pathExists } from "../utils.js";
 import {
   applyNpmFreshnessBypassEnv,
   applyPosixNpmScriptShellEnv,
-  createNpmFreshnessBypassArgs,
 } from "./npm-install-env.js";
 import {
   collectPackageDistInventory,
@@ -240,7 +239,44 @@ export function resolveGlobalInstallSpec(params: {
   if (isMainPackageTarget(tag)) {
     return COREBLOW_MAIN_PACKAGE_SPEC;
   }
+  if (isExplicitPackageInstallSpec(tag)) {
+    return tag;
+  }
   return `${params.packageName}@${tag}`;
+}
+
+async function resolvePortableGitPathPrepend(
+  env: NodeJS.ProcessEnv | undefined,
+): Promise<string[]> {
+  if (process.platform !== "win32") {
+    return [];
+  }
+  const localAppData = env?.LOCALAPPDATA?.trim() || process.env.LOCALAPPDATA?.trim();
+  if (!localAppData) {
+    return [];
+  }
+  const portableGitRoot = path.join(localAppData, "CoreBlow", "deps", "portable-git");
+  const candidates = [
+    path.join(portableGitRoot, "mingw64", "bin"),
+    path.join(portableGitRoot, "usr", "bin"),
+    path.join(portableGitRoot, "cmd"),
+    path.join(portableGitRoot, "bin"),
+  ];
+  const existing: string[] = [];
+  for (const candidate of candidates) {
+    if (await pathExists(candidate)) {
+      existing.push(candidate);
+    }
+  }
+  return existing;
+}
+
+function applyWindowsPackageInstallEnv(env: Record<string, string | undefined>): void {
+  if (process.platform !== "win32") {
+    return;
+  }
+  env.NPM_CONFIG_SCRIPT_SHELL ??= "cmd.exe";
+  env.NODE_LLAMA_CPP_SKIP_DOWNLOAD ??= "1";
 }
 
 export async function createGlobalInstallEnv(
@@ -255,6 +291,9 @@ export async function createGlobalInstallEnv(
   base.COREPACK_ENABLE_DOWNLOAD_PROMPT ??= COREPACK_ENABLE_DOWNLOAD_PROMPT_DEFAULT;
   applyPosixNpmScriptShellEnv(base);
   applyNpmFreshnessBypassEnv(base);
+  const pathPrepend = await resolvePortableGitPathPrepend(options.env);
+  applyPathPrepend(base, pathPrepend);
+  applyWindowsPackageInstallEnv(base);
   return base;
 }
 
@@ -284,7 +323,8 @@ export async function resolveGlobalRoot(
 }
 
 export function resolveBunGlobalRoot(): string {
-  return path.join(os.homedir(), ".bun", "install", "global", "node_modules");
+  const bunInstall = process.env.BUN_INSTALL?.trim() || path.join(os.homedir(), ".bun");
+  return path.join(bunInstall, "install", "global", "node_modules");
 }
 
 export async function resolveGlobalPackageRoot(
@@ -576,7 +616,6 @@ export function globalInstallArgs(
     ...(installPrefix ? ["--prefix", installPrefix] : []),
     spec,
     ...NPM_GLOBAL_INSTALL_QUIET_FLAGS,
-    ...createNpmFreshnessBypassArgs(),
   ];
 }
 
@@ -598,7 +637,6 @@ export function globalInstallFallbackArgs(
     spec,
     "--omit=optional",
     ...NPM_GLOBAL_INSTALL_QUIET_FLAGS,
-    ...createNpmFreshnessBypassArgs(),
   ];
 }
 

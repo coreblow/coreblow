@@ -11,6 +11,7 @@ import {
   resolveCatalogHookProviderPluginIds,
   resolveOwningPluginIdsForProvider,
 } from "./providers.js";
+import { loadPluginManifestRegistry } from "./manifest-registry.js";
 import { resolvePluginProviders } from "./providers.runtime.js";
 import { resolvePluginCacheInputs } from "./roots.js";
 import type {
@@ -612,8 +613,22 @@ export function resolveExternalAuthProfilesWithPlugins(params: {
   env?: NodeJS.ProcessEnv;
   context: ProviderResolveExternalAuthProfilesContext;
 }): ProviderExternalAuthProfile[] {
+  const manifestRegistry = loadPluginManifestRegistry({
+    config: params.config,
+    workspaceDir: params.workspaceDir,
+    env: params.env,
+  });
+  const candidatePluginIds = manifestRegistry.plugins
+    .filter((plugin) => plugin.contracts?.externalAuthProviders?.length)
+    .map((plugin) => plugin.id);
+  if (candidatePluginIds.length === 0) {
+    return [];
+  }
   const matches: ProviderExternalAuthProfile[] = [];
-  for (const plugin of resolveProviderPluginsForCatalogHooks(params)) {
+  for (const plugin of resolveProviderPluginsForHooks({
+    ...params,
+    onlyPluginIds: candidatePluginIds,
+  })) {
     const profiles =
       plugin.resolveExternalAuthProfiles?.(params.context) ??
       plugin.resolveExternalOAuthProfiles?.(params.context);

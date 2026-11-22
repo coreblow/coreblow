@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  resolveSessionResumeParams,
   rewriteUpdateFlagArgv,
+  shouldDivertToHeadless,
   shouldEnsureCliPath,
   shouldRegisterPrimarySubcommand,
   shouldSkipPluginCommandRegistration,
@@ -134,5 +136,145 @@ describe("shouldUseRootHelpFastPath", () => {
     expect(shouldUseRootHelpFastPath(["node", "coreblow", "--profile", "work", "-h"])).toBe(true);
     expect(shouldUseRootHelpFastPath(["node", "coreblow", "status", "--help"])).toBe(false);
     expect(shouldUseRootHelpFastPath(["node", "coreblow", "--help", "status"])).toBe(false);
+  });
+});
+
+describe("shouldDivertToHeadless", () => {
+  it("diverts when print prompt or output format is passed", () => {
+    expect(
+      shouldDivertToHeadless({
+        argv: ["node", "coreblow", "-p", "hello"],
+        isPipedStdin: false,
+        primaryCommand: null,
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldDivertToHeadless({
+        argv: ["node", "coreblow", "--output-format", "json"],
+        isPipedStdin: false,
+        primaryCommand: null,
+      }),
+    ).toBe(true);
+  });
+
+  it("diverts on piped stdin when no primary subcommand is given", () => {
+    expect(
+      shouldDivertToHeadless({
+        argv: ["node", "coreblow"],
+        isPipedStdin: true,
+        primaryCommand: null,
+      }),
+    ).toBe(true);
+  });
+
+  it("does NOT divert non-TTY subcommands to headless runner", () => {
+    // Non-TTY gateway run (e.g. Electron launch or shell redirect)
+    expect(
+      shouldDivertToHeadless({
+        argv: ["node", "coreblow", "gateway", "run", "--port", "18799"],
+        isPipedStdin: true,
+        primaryCommand: "gateway",
+      }),
+    ).toBe(false);
+
+    // Non-TTY cron list
+    expect(
+      shouldDivertToHeadless({
+        argv: ["node", "coreblow", "cron", "list"],
+        isPipedStdin: true,
+        primaryCommand: "cron",
+      }),
+    ).toBe(false);
+
+    // Non-TTY doctor
+    expect(
+      shouldDivertToHeadless({
+        argv: ["node", "coreblow", "doctor"],
+        isPipedStdin: true,
+        primaryCommand: "doctor",
+      }),
+    ).toBe(false);
+
+    // Non-TTY mcp serve
+    expect(
+      shouldDivertToHeadless({
+        argv: ["node", "coreblow", "mcp", "serve"],
+        isPipedStdin: true,
+        primaryCommand: "mcp",
+      }),
+    ).toBe(false);
+  });
+
+  it("does NOT divert when help or version flags are present", () => {
+    expect(
+      shouldDivertToHeadless({
+        argv: ["node", "coreblow", "--help"],
+        isPipedStdin: true,
+        primaryCommand: null,
+      }),
+    ).toBe(false);
+
+    expect(
+      shouldDivertToHeadless({
+        argv: ["node", "coreblow", "-V"],
+        isPipedStdin: true,
+        primaryCommand: null,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("resolveSessionResumeParams", () => {
+  it("opens session picker modal for bare -r flag", () => {
+    const params = resolveSessionResumeParams(["node", "coreblow", "-r"]);
+    expect(params.hasResume).toBe(true);
+    expect(params.resumeValue).toBeUndefined();
+    expect(params.initialModal).toBe("sessions");
+    expect(params.continueFlag).toBe(false);
+  });
+
+  it("opens session picker modal for bare --resume flag", () => {
+    const params = resolveSessionResumeParams(["node", "coreblow", "--resume"]);
+    expect(params.hasResume).toBe(true);
+    expect(params.resumeValue).toBeUndefined();
+    expect(params.initialModal).toBe("sessions");
+    expect(params.continueFlag).toBe(false);
+  });
+
+  it("resolves specific session ID for -r <id>", () => {
+    const params = resolveSessionResumeParams(["node", "coreblow", "-r", "session-abc"]);
+    expect(params.hasResume).toBe(true);
+    expect(params.resumeValue).toBe("session-abc");
+    expect(params.initialModal).toBe("none");
+    expect(params.continueFlag).toBe(false);
+  });
+
+  it("resolves specific session ID for --resume <id>", () => {
+    const params = resolveSessionResumeParams(["node", "coreblow", "--resume", "session-xyz"]);
+    expect(params.hasResume).toBe(true);
+    expect(params.resumeValue).toBe("session-xyz");
+    expect(params.initialModal).toBe("none");
+    expect(params.continueFlag).toBe(false);
+  });
+
+  it("sets continueFlag for -c / --continue", () => {
+    const paramsC = resolveSessionResumeParams(["node", "coreblow", "-c"]);
+    expect(paramsC.continueFlag).toBe(true);
+    expect(paramsC.hasResume).toBe(false);
+    expect(paramsC.initialModal).toBe("none");
+
+    const paramsContinue = resolveSessionResumeParams(["node", "coreblow", "--continue"]);
+    expect(paramsContinue.continueFlag).toBe(true);
+    expect(paramsContinue.hasResume).toBe(false);
+    expect(paramsContinue.initialModal).toBe("none");
+  });
+
+  it("defaults to initialModal none when no resume or continue flags passed", () => {
+    const params = resolveSessionResumeParams(["node", "coreblow"]);
+    expect(params.continueFlag).toBe(false);
+    expect(params.hasResume).toBe(false);
+    expect(params.resumeValue).toBeUndefined();
+    expect(params.initialModal).toBe("none");
   });
 });

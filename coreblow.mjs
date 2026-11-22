@@ -47,6 +47,34 @@ export const buildChildEnv = (baseEnv = process.env) => {
 
 // ─── Direct Run Check ──────────────────────────────────────────────
 
+export const forwardSignalsToChild = (child) => {
+    const forwardSignal = (signal) => {
+        if (!child.killed && child.exitCode === null && child.signalCode === null) {
+            try {
+                child.kill(signal);
+            } catch {
+                // Ignore kill errors if child has already exited
+            }
+        }
+    };
+
+    const sigtermHandler = () => forwardSignal("SIGTERM");
+    const sigintHandler = () => forwardSignal("SIGINT");
+
+    process.on("SIGTERM", sigtermHandler);
+    process.on("SIGINT", sigintHandler);
+
+    const cleanup = () => {
+        process.off("SIGTERM", sigtermHandler);
+        process.off("SIGINT", sigintHandler);
+    };
+
+    child.on("exit", cleanup);
+    child.on("error", cleanup);
+
+    return cleanup;
+};
+
 export const isDirectRun = (argv1 = process.argv[1]) => {
     if (!argv1 || process.env.VITEST) return false;
     try {
@@ -127,6 +155,7 @@ function run() {
             env: childEnv,
             cwd: process.cwd(),
         });
+        forwardSignalsToChild(child);
 
         child.on("error", (err) => {
             process.stderr.write(`coreblow: failed to spawn tsx: ${err.message}\n`);
@@ -156,6 +185,7 @@ function run() {
                 env: childEnv,
                 cwd: process.cwd(),
             });
+            forwardSignalsToChild(child);
 
             child.on("error", (err) => {
                 process.stderr.write(`coreblow: failed to spawn node with tsx: ${err.message}\n`);

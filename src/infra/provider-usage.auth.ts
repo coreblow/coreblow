@@ -236,10 +236,12 @@ export async function resolveProviderAuths(params: {
     return params.auth;
   }
 
+  const cfg = params.config ?? loadConfig();
   const state: UsageAuthState = {
-    cfg: params.config ?? loadConfig(),
+    cfg,
     store: ensureAuthProfileStore(params.agentDir, {
       allowKeychainPrompt: false,
+      config: cfg,
     }),
     env: params.env ?? process.env,
     agentDir: params.agentDir,

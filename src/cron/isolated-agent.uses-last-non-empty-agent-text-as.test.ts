@@ -14,6 +14,7 @@ import {
   writeSessionStore,
   writeSessionStoreEntries,
 } from "./isolated-agent.test-harness.js";
+import { setupIsolatedAgentTurnMocks } from "./isolated-agent.test-setup.js";
 import type { CronJob } from "./types.js";
 
 function makeDeps(): CliDeps {
@@ -164,6 +165,7 @@ async function runStoredOverrideAndExpectModel(params: {
 
 describe("runCronIsolatedAgentTurn", () => {
   beforeEach(() => {
+    setupIsolatedAgentTurnMocks({ fast: true });
     vi.spyOn(modelSelection, "resolveThinkingDefault").mockReturnValue("off");
     vi.mocked(runEmbeddedPiAgent).mockClear();
     vi.mocked(loadModelCatalog).mockResolvedValue([]);

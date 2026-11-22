@@ -14,9 +14,7 @@ import type {
   ApprovalKind,
   ChatHistoryResult,
   CoreBlowChannelMode,
-  ClaudeChannelMode,
   ChannelPermissionRequest,
-  ClaudePermissionRequest,
   ConversationDescriptor,
   PendingApproval,
   QueueEvent,
@@ -38,7 +36,6 @@ type ServerNotification = {
 };
 
 export const CHANNEL_PERMISSION_REPLY_RE = /^(yes|no)\s+([a-km-z]{5})$/i;
-export const CLAUDE_PERMISSION_REPLY_RE = CHANNEL_PERMISSION_REPLY_RE;
 const QUEUE_LIMIT = 1_000;
 
 export class CoreBlowChannelBridge {
@@ -59,12 +56,8 @@ export class CoreBlowChannelBridge {
   private rejectReady!: (error: Error) => void;
   private readySettled = false;
 
-  get pendingClaudePermissions(): Map<string, ChannelPermissionRequest> {
+  get pendingPermissionsList(): Map<string, ChannelPermissionRequest> {
     return this.pendingPermissions;
-  }
-
-  get claudeChannelMode(): ClaudeChannelMode {
-    return this.channelMode;
   }
 
   constructor(
@@ -74,12 +67,11 @@ export class CoreBlowChannelBridge {
       gatewayToken?: string;
       gatewayPassword?: string;
       channelMode?: CoreBlowChannelMode;
-      claudeChannelMode?: ClaudeChannelMode;
       verbose: boolean;
     },
   ) {
     this.verbose = params.verbose;
-    this.channelMode = params.channelMode ?? params.claudeChannelMode ?? "auto";
+    this.channelMode = params.channelMode ?? "auto";
     this.readyPromise = new Promise<void>((resolve, reject) => {
       this.resolveReady = resolve;
       this.rejectReady = reject;
@@ -312,15 +304,6 @@ export class CoreBlowChannelBridge {
     }
   }
 
-  async handleClaudePermissionRequest(params: {
-    requestId: string;
-    toolName: string;
-    description: string;
-    inputPreview: string;
-  }): Promise<void> {
-    return this.handleChannelPermissionRequest(params);
-  }
-
   private async requestGateway<T = Record<string, unknown>>(
     method: string,
     params: Record<string, unknown>,
@@ -491,13 +474,6 @@ export class CoreBlowChannelBridge {
             behavior: permissionMatch[1]?.toLowerCase().startsWith("y") ? "allow" : "deny",
           },
         });
-        await this.sendNotification({
-          method: "notifications/claude/channel/permission",
-          params: {
-            request_id: requestId,
-            behavior: permissionMatch[1]?.toLowerCase().startsWith("y") ? "allow" : "deny",
-          },
-        });
         return;
       }
     }
@@ -532,10 +508,6 @@ export class CoreBlowChannelBridge {
       method: "notifications/coreblow/channel",
       params: notificationPayload,
     });
-    await this.sendNotification({
-      method: "notifications/claude/channel",
-      params: notificationPayload,
-    });
   }
 
   private shouldEmitChannel(
@@ -549,12 +521,5 @@ export class CoreBlowChannelBridge {
       return false;
     }
     return Boolean(conversation);
-  }
-
-  private shouldEmitClaudeChannel(
-    role: string | undefined,
-    conversation: ConversationDescriptor | undefined,
-  ): boolean {
-    return this.shouldEmitChannel(role, conversation);
   }
 }

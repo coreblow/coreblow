@@ -90,8 +90,11 @@ export function registerCommandGroups(
       if (placeholder) {
         registerLazyCommandGroup(program, entry, placeholder);
       }
+      return;
     }
-    return;
+    if (program.commands.some((cmd) => cmd.name() === params.primary)) {
+      return;
+    }
   }
 
   for (const entry of entries) {

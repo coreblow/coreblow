@@ -150,10 +150,10 @@ export async function registerCoreCliByName(
 }
 
 export function registerCoreCliCommands(program: Command, ctx: ProgramContext, argv: string[]) {
-  const { primary } = resolveCliArgvInvocation(argv);
+  const { primary, hasHelpOrVersion } = resolveCliArgvInvocation(argv);
   registerCommandGroups(program, resolveCoreCommandGroups(ctx, argv), {
     eager: false,
     primary,
-    registerPrimaryOnly: Boolean(primary && shouldRegisterPrimaryCommandOnly(argv)),
+    registerPrimaryOnly: Boolean(primary && !hasHelpOrVersion && shouldRegisterPrimaryCommandOnly(argv)),
   });
 }

@@ -357,7 +357,6 @@ async function runPackageInstallUpdate(params: {
   const installSpec = resolveGlobalInstallSpec({
     packageName,
     tag: params.tag,
-    env: installEnv,
   });
 
   const beforeVersion = pkgRoot ? await readPackageVersion(pkgRoot) : null;

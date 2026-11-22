@@ -108,7 +108,8 @@ describe("matrix account selection", () => {
     } satisfies NodeJS.ProcessEnv;
 
     expect(resolveConfiguredMatrixAccountIds(cfg, env)).toEqual(["default", "team-ops"]);
-    expect(requiresExplicitMatrixDefaultAccount(cfg, env)).toBe(true);
+    expect(resolveMatrixDefaultOrOnlyAccountId(cfg, env)).toBe("default");
+    expect(requiresExplicitMatrixDefaultAccount(cfg, env)).toBe(false);
   });
 
   it("discovers default Matrix accounts backed only by global env vars", () => {

@@ -583,11 +583,15 @@ export function loadAuthProfileStoreForRuntime(
   });
 }
 
-export function loadAuthProfileStoreForSecretsRuntime(agentDir?: string): AuthProfileStore {
+export function loadAuthProfileStoreForSecretsRuntime(
+  agentDir?: string,
+  options?: { config?: CoreBlowConfig },
+): AuthProfileStore {
   return loadAuthProfileStoreForRuntime(agentDir, {
     readOnly: true,
     allowKeychainPrompt: false,
     resolveLegacyOAuthSidecars: false,
+    config: options?.config,
   });
 }
 

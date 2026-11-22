@@ -31,6 +31,12 @@ export function resolveChannelSourceReplyDeliveryMode(params: {
   requested?: SourceReplyDeliveryMode;
   messageToolAvailable?: boolean;
 }): SourceReplyDeliveryMode {
+  if (params.requested === "message_tool_only") {
+    return "message_tool_only";
+  }
+  if (params.messageToolAvailable || params.ctx.messageToolAvailable) {
+    return "message_tool_only";
+  }
   return resolveSourceReplyDeliveryMode(params);
 }
 

@@ -16,9 +16,13 @@ vi.mock("node:fs/promises", () => ({
   realpath: fsMocks.realpath,
 }));
 
-vi.mock("node:child_process", () => ({
-  execFileSync: childProcessMocks.execFileSync,
-}));
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return {
+    ...actual,
+    execFileSync: childProcessMocks.execFileSync,
+  };
+});
 
 import { resolveGatewayProgramArguments } from "./program-args.js";
 

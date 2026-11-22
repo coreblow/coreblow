@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
+import { EventEmitter } from "node:events";
 import { Command } from "commander";
-import { buildChildEnv } from "../../coreblow.mjs";
+import { buildChildEnv, forwardSignalsToChild } from "../../coreblow.mjs";
 import { launchDesktopApp } from "./desktop-cli.js";
 import { handleSlashCommand, runOneShotCliQuery } from "./interactive-chat.js";
 import { SUB_CLI_DESCRIPTORS } from "./program/subcli-descriptors.js";
@@ -25,6 +26,63 @@ describe("coreblow.mjs environment", () => {
   it("does not append if --no-deprecation is present", () => {
     const childEnv = buildChildEnv({ NODE_OPTIONS: "--no-deprecation" });
     expect(childEnv.NODE_OPTIONS).toBe("--no-deprecation");
+  });
+
+  it("forwards SIGTERM and SIGINT to running child and cleans up listeners on exit", () => {
+    class MockChild extends EventEmitter {
+      killed = false;
+      exitCode: number | null = null;
+      signalCode: string | null = null;
+      kill = vi.fn((sig: string) => {
+        this.killed = true;
+        this.signalCode = sig;
+        return true;
+      });
+    }
+
+    const child = new MockChild();
+    const sigtermListenersBefore = process.listeners("SIGTERM").length;
+    const sigintListenersBefore = process.listeners("SIGINT").length;
+
+    const cleanup = forwardSignalsToChild(child as any);
+
+    expect(process.listeners("SIGTERM").length).toBe(sigtermListenersBefore + 1);
+    expect(process.listeners("SIGINT").length).toBe(sigintListenersBefore + 1);
+
+    // Emit SIGTERM on process
+    process.emit("SIGTERM", "SIGTERM");
+    expect(child.kill).toHaveBeenCalledWith("SIGTERM");
+
+    // Clean up via child exit
+    child.emit("exit", 0, null);
+
+    expect(process.listeners("SIGTERM").length).toBe(sigtermListenersBefore);
+    expect(process.listeners("SIGINT").length).toBe(sigintListenersBefore);
+
+    cleanup();
+  });
+
+  it("cleans up signal listeners on child error", () => {
+    class MockChild extends EventEmitter {
+      killed = false;
+      exitCode: number | null = null;
+      signalCode: string | null = null;
+      kill = vi.fn();
+    }
+
+    const child = new MockChild();
+    const sigtermListenersBefore = process.listeners("SIGTERM").length;
+    const sigintListenersBefore = process.listeners("SIGINT").length;
+
+    forwardSignalsToChild(child as any);
+
+    expect(process.listeners("SIGTERM").length).toBe(sigtermListenersBefore + 1);
+    expect(process.listeners("SIGINT").length).toBe(sigintListenersBefore + 1);
+
+    child.emit("error", new Error("spawn failed"));
+
+    expect(process.listeners("SIGTERM").length).toBe(sigtermListenersBefore);
+    expect(process.listeners("SIGINT").length).toBe(sigintListenersBefore);
   });
 });
 

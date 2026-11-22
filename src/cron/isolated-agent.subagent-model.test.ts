@@ -8,6 +8,7 @@ import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
 import type { CliDeps } from "../cli/deps.js";
 import type { CoreBlowConfig } from "../config/config.js";
 import { runCronIsolatedAgentTurn } from "./isolated-agent.js";
+import { setupIsolatedAgentTurnMocks } from "./isolated-agent.test-setup.js";
 import type { CronJob } from "./types.js";
 
 async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
@@ -50,6 +51,7 @@ function makeCfg(
       },
     },
     session: { store: storePath, mainKey: "main" },
+    plugins: { enabled: false },
   } as CoreBlowConfig;
   return { ...base, ...overrides };
 }
@@ -117,6 +119,7 @@ async function runSubagentModelCase(params: {
 
 describe("runCronIsolatedAgentTurn: subagent model resolution (#11461)", () => {
   beforeEach(() => {
+    setupIsolatedAgentTurnMocks({ fast: true });
     vi.mocked(runEmbeddedPiAgent).mockReset();
     vi.mocked(loadModelCatalog).mockResolvedValue([]);
   });

@@ -17,7 +17,7 @@ export type RouteSpec = {
 function createCommandLoadPlugins(commandPath: readonly string[]): (argv: string[]) => boolean {
   return (argv) => {
     const loadPlugins = resolveCliCommandPathPolicy([...commandPath]).loadPlugins;
-    return loadPlugins === "always" || (loadPlugins === "text-only" && !hasFlag(argv, "--json"));
+    return loadPlugins === "always" || !hasFlag(argv, "--json");
   };
 }
 

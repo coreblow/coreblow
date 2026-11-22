@@ -16,16 +16,16 @@ import { createCoreBlowChannelMcpServer, CoreBlowChannelBridge } from "./channel
 
 installGatewayTestHooks({ scope: "suite" });
 
-const ClaudeChannelNotificationSchema = z.object({
-  method: z.literal("notifications/claude/channel"),
+const CoreBlowChannelNotificationSchema = z.object({
+  method: z.literal("notifications/coreblow/channel"),
   params: z.object({
     content: z.string(),
     meta: z.record(z.string(), z.string()),
   }),
 });
 
-const ClaudePermissionNotificationSchema = z.object({
-  method: z.literal("notifications/claude/channel/permission"),
+const CoreBlowPermissionNotificationSchema = z.object({
+  method: z.literal("notifications/coreblow/channel/permission"),
   params: z.object({
     request_id: z.string(),
     behavior: z.enum(["allow", "deny"]),
@@ -91,12 +91,12 @@ async function seedSession(params: {
 async function connectMcp(params: {
   gatewayUrl: string;
   gatewayToken: string;
-  claudeChannelMode?: "auto" | "on" | "off";
+  channelMode?: "auto" | "on" | "off";
 }) {
   const serverHarness = await createCoreBlowChannelMcpServer({
     gatewayUrl: params.gatewayUrl,
     gatewayToken: params.gatewayToken,
-    claudeChannelMode: params.claudeChannelMode ?? "auto",
+    channelMode: params.channelMode ?? "auto",
   });
   const client = new Client({ name: "mcp-test-client", version: "1.0.0" });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
@@ -249,7 +249,7 @@ describe("coreblow channel mcp server", () => {
 
   test("sendMessage normalizes route metadata for gateway send", async () => {
     const bridge = new CoreBlowChannelBridge({} as never, {
-      claudeChannelMode: "off",
+      channelMode: "off",
       verbose: false,
     });
     const gatewayRequest = vi.fn().mockResolvedValue({ ok: true, channel: "telegram" });
@@ -304,7 +304,7 @@ describe("coreblow channel mcp server", () => {
 
   test("lists routed sessions that only expose modern channel fields", async () => {
     const bridge = new CoreBlowChannelBridge({} as never, {
-      claudeChannelMode: "off",
+      channelMode: "off",
       verbose: false,
     });
     const gatewayRequest = vi.fn().mockResolvedValue({
@@ -370,16 +370,16 @@ describe("coreblow channel mcp server", () => {
 
   test("swallows notification send errors after channel replies are matched", async () => {
     const bridge = new CoreBlowChannelBridge({} as never, {
-      claudeChannelMode: "on",
+      channelMode: "on",
       verbose: false,
     });
 
     (
       bridge as unknown as {
-        pendingClaudePermissions: Map<string, Record<string, unknown>>;
+        pendingPermissions: Map<string, Record<string, unknown>>;
         server: { server: { notification: Mock } };
       }
-    ).pendingClaudePermissions.set("abcde", {
+    ).pendingPermissions.set("abcde", {
       toolName: "Bash",
       description: "run npm test",
       inputPreview: '{"cmd":"npm test"}',
@@ -409,13 +409,13 @@ describe("coreblow channel mcp server", () => {
     ).resolves.toBeUndefined();
   });
 
-  test("emits Claude channel and permission notifications", async () => {
+  test("emits CoreBlow channel and permission notifications", async () => {
     const storePath = await createSessionStoreFile();
     const sessionKey = "agent:main:main";
     await seedSession({
       storePath,
       sessionKey,
-      sessionId: "sess-claude",
+      sessionId: "sess-coreblow",
       route: {
         channel: "imessage",
         to: "+15551234567",
@@ -432,22 +432,22 @@ describe("coreblow channel mcp server", () => {
       mcp = await connectMcp({
         gatewayUrl: `ws://127.0.0.1:${harness.port}`,
         gatewayToken: "test-gateway-token-1234567890",
-        claudeChannelMode: "on",
+        channelMode: "on",
       });
-      mcp.client.setNotificationHandler(ClaudeChannelNotificationSchema, ({ params }) => {
+      mcp.client.setNotificationHandler(CoreBlowChannelNotificationSchema, ({ params }) => {
         channelNotifications.push(params);
       });
-      mcp.client.setNotificationHandler(ClaudePermissionNotificationSchema, ({ params }) => {
+      mcp.client.setNotificationHandler(CoreBlowPermissionNotificationSchema, ({ params }) => {
         permissionNotifications.push(params);
       });
 
       emitSessionTranscriptUpdate({
-        sessionFile: path.join(path.dirname(storePath), "sess-claude.jsonl"),
+        sessionFile: path.join(path.dirname(storePath), "sess-coreblow.jsonl"),
         sessionKey,
         messageId: "msg-user-1",
         message: {
           role: "user",
-          content: [{ type: "text", text: "hello Claude" }],
+          content: [{ type: "text", text: "hello CoreBlow" }],
           timestamp: Date.now(),
         },
       });
@@ -456,7 +456,7 @@ describe("coreblow channel mcp server", () => {
         expect(channelNotifications).toHaveLength(1);
       });
       expect(channelNotifications[0]).toMatchObject({
-        content: "hello Claude",
+        content: "hello CoreBlow",
         meta: expect.objectContaining({
           session_key: sessionKey,
           channel: "imessage",
@@ -466,7 +466,7 @@ describe("coreblow channel mcp server", () => {
       });
 
       await mcp.client.notification({
-        method: "notifications/claude/channel/permission_request",
+        method: "notifications/coreblow/channel/permission_request",
         params: {
           request_id: "abcde",
           tool_name: "Bash",
@@ -476,7 +476,7 @@ describe("coreblow channel mcp server", () => {
       });
 
       emitSessionTranscriptUpdate({
-        sessionFile: path.join(path.dirname(storePath), "sess-claude.jsonl"),
+        sessionFile: path.join(path.dirname(storePath), "sess-coreblow.jsonl"),
         sessionKey,
         messageId: "msg-user-2",
         message: {
@@ -495,7 +495,7 @@ describe("coreblow channel mcp server", () => {
       });
 
       emitSessionTranscriptUpdate({
-        sessionFile: path.join(path.dirname(storePath), "sess-claude.jsonl"),
+        sessionFile: path.join(path.dirname(storePath), "sess-coreblow.jsonl"),
         sessionKey,
         messageId: "msg-user-3",
         message: {
@@ -519,5 +519,14 @@ describe("coreblow channel mcp server", () => {
       await mcp?.close();
       await harness.close();
     }
+  });
+
+  test("createCoreBlowChannelMcpServer initializes cleanly with zero schema error", async () => {
+    const serverHarness = await createCoreBlowChannelMcpServer({
+      channelMode: "on",
+    });
+    expect(serverHarness.server).toBeDefined();
+    expect(serverHarness.bridge).toBeDefined();
+    await serverHarness.close();
   });
 });

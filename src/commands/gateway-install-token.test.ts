@@ -32,10 +32,14 @@ vi.mock("../config/config.js", () => ({
   writeConfigFile: writeConfigFileMock,
 }));
 
-vi.mock("../config/types.secrets.js", () => ({
-  resolveSecretInputRef: resolveSecretInputRefMock,
-  hasConfiguredSecretInput: hasConfiguredSecretInputMock,
-}));
+vi.mock("../config/types.secrets.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config/types.secrets.js")>();
+  return {
+    ...actual,
+    resolveSecretInputRef: resolveSecretInputRefMock,
+    hasConfiguredSecretInput: hasConfiguredSecretInputMock,
+  };
+});
 
 vi.mock("../gateway/auth.js", () => ({
   resolveGatewayAuth: resolveGatewayAuthMock,

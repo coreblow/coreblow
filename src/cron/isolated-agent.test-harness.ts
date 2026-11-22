@@ -45,6 +45,7 @@ export function makeCfg(
       },
     },
     session: { store: storePath, mainKey: "main" },
+    plugins: { enabled: false },
   } as CoreBlowConfig;
   return { ...base, ...overrides };
 }

@@ -12,9 +12,13 @@ import {
   waitForDescendantSubagentSummary,
 } from "./subagent-followup.js";
 
-vi.mock("../../agents/subagent-registry.js", () => ({
-  listDescendantRunsForRequester: vi.fn().mockReturnValue([]),
-}));
+vi.mock("../../agents/subagent-registry.js", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    listDescendantRunsForRequester: vi.fn().mockReturnValue([]),
+  };
+});
 
 vi.mock("../../agents/tools/agent-step.js", () => ({
   readLatestAssistantReply: vi.fn().mockResolvedValue(undefined),

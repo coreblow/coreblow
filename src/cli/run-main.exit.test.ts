@@ -33,11 +33,16 @@ vi.mock("../infra/env.js", () => ({
   normalizeEnv: normalizeEnvMock,
 }));
 
-vi.mock("../infra/i18n/index.js", () => ({
-  i18n: {
-    initialize: i18nInitializeMock,
-  },
-}));
+vi.mock("../infra/i18n/index.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../infra/i18n/index.js")>();
+  return {
+    ...actual,
+    i18n: {
+      ...actual.i18n,
+      initialize: i18nInitializeMock,
+    },
+  };
+});
 
 vi.mock("../infra/path-env.js", () => ({
   ensureCoreBlowCliOnPath: ensurePathMock,

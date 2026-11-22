@@ -6,12 +6,41 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { withTempHome } from "../config/home-env.test-harness.js";
 import { createCliRuntimeCapture } from "./test-runtime-capture.js";
 
-const { defaultRuntime, resetRuntimeCapture } = createCliRuntimeCapture();
-const mockLog = defaultRuntime.log;
-const mockError = defaultRuntime.error;
-const { serveCoreBlowChannelMcp } = vi.hoisted(() => ({
-  serveCoreBlowChannelMcp: vi.fn(),
-}));
+const { defaultRuntime, resetRuntimeCapture, mockLog, mockError, serveCoreBlowChannelMcp } =
+  vi.hoisted(() => {
+    const runtimeLogs: string[] = [];
+    const runtimeErrors: string[] = [];
+    const stringifyArgs = (args: unknown[]) => args.map((value) => String(value)).join(" ");
+    const log = vi.fn((...args: unknown[]) => {
+      runtimeLogs.push(stringifyArgs(args));
+    });
+    const error = vi.fn((...args: unknown[]) => {
+      runtimeErrors.push(stringifyArgs(args));
+    });
+    const mockRuntime = {
+      log,
+      error,
+      writeStdout: vi.fn((value: string) => {
+        log(value.endsWith("\n") ? value.slice(0, -1) : value);
+      }),
+      writeJson: vi.fn((value: unknown, space = 2) => {
+        log(JSON.stringify(value, null, space > 0 ? space : undefined));
+      }),
+      exit: vi.fn((code: number) => {
+        throw new Error(`__exit__:${code}`);
+      }),
+    };
+    return {
+      defaultRuntime: mockRuntime,
+      resetRuntimeCapture: () => {
+        runtimeLogs.length = 0;
+        runtimeErrors.length = 0;
+      },
+      mockLog: log,
+      mockError: error,
+      serveCoreBlowChannelMcp: vi.fn(),
+    };
+  });
 
 vi.mock("../runtime.js", () => ({
   defaultRuntime,
@@ -96,7 +125,7 @@ describe("mcp cli", () => {
         "ws://127.0.0.1:18789",
         "--token-file",
         tokenFile,
-        "--claude-channel-mode",
+        "--channel-mode",
         "on",
         "--verbose",
       ]);
@@ -105,7 +134,7 @@ describe("mcp cli", () => {
         gatewayUrl: "ws://127.0.0.1:18789",
         gatewayToken: "secret-token",
         gatewayPassword: undefined,
-        claudeChannelMode: "on",
+        channelMode: "on",
         verbose: true,
       });
     });
