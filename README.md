@@ -143,21 +143,7 @@ CoreBlow is structured as a modular 12-Service Microkernel with explicit module 
 | `apps/` | Omni-platform native companion clients (macOS, macOS MLX TTS, iOS, Android, shared Swift). | Native Clients |
 | `extensions/` | Controlled workspace plugin packages managed via CoreHub. | App Store Layer |
 
-## Omni-Platform Client Surfaces & 26-Repo Ecosystem
-
-CoreBlow operates as the sovereign microkernel at the center of a coordinated 26-repository ecosystem:
-
-| Tier | Ecosystem Scope | Key Repositories & Surfaces |
-| --- | --- | --- |
-| **Monorepo** | Core Operating Kernel & Native Clients | `coreblow` (Monorepo with `apps/macos`, `apps/macos-mlx-tts`, `apps/ios`, `apps/android`) |
-| **Tier 1** | Native Desktop & Menubar Clients | `corebar`, `corechat`, `corekit`, `coredex` |
-| **Tier 2** | Lightweight Nodes & Hardware Edges | `coreblow-windows-node`, `esp-coreblow-node`, `dolphin`, `corebox` |
-| **Tier 3** | App Store, Trust & Distribution | `corehub`, `trust`, `plugin-lab` |
-| **Tier 4** | Packaging, Telemetry & Infrastructure | `homebrew-tap`, `nix-coreblow`, `nix-coreblow-tools`, `coreblow-ansible`, `corebench`, `coreblow-rtt`, `coregrit-reports`, `corewatch`, `corewatch-state`, `corepatch` |
-| **Tier 5** | Documentation, Community & Recipes | `coreblow.com`, `docs`, `community`, `cookbook` |
-
-For the complete architectural blueprint and extensibility guide, see:
-- [Ecosystem & Extensibility Blueprint](docs/ECOSYSTEM_MAP.md) - Full 26-repo fleet mapping, Two-Tier extensibility (CoreHub plugins vs. open community `SKILL.md` V2), and step-by-step developer guide.
+For the complete architectural specification and product roadmap, see:
 - [Architecture Blueprint](docs/ARCHITECTURE.md) - Deep architectural specification of the 12 microkernel services.
 - [Master PRD](docs/PRD.md) - Product Requirements Document and capability breakdown.
 - [Phased Roadmap](docs/PHASE5_TO_7_ROADMAP.md) - Completed and future milestones.

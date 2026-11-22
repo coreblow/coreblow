@@ -185,7 +185,7 @@ const forbiddenBrands = [
 const brandCheckFiles = [
   "package.json",
   "README.md",
-  "docs/ECOSYSTEM_MAP.md",
+  "docs/ARCHITECTURE.md",
   "appcast.xml",
 ];
 
