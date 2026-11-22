@@ -116,7 +116,7 @@ The desktop canvas utilizes an adaptive 3-pane layout designed for low cognitive
     5. **Automations & Cron:** Scheduled background jobs, event hooks.
     6. **Permissions:** Default execution boundary presets (Full, Workspace, Guarded, Read-only).
     7. **Skills:** CoreHub skill registry, learned capabilities, tool extensions.
-    8. **About:** Version `v2.0.0`, release notes, license, documentation links.
+    8. **About:** Version `v2.1.1`, release notes, license, documentation links.
 - **Right Content Panel (1fr scrollable):**
   - Section header matching the 54px top row.
   - Interactive configuration cards with immediate persistence to Gateway state.

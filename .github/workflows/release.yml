@@ -37,8 +37,11 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Build declarations
-        run: npx tsc -p tsconfig.build.json
+      - name: Build
+        run: pnpm build
+
+      - name: Build Control UI
+        run: pnpm ui:build
 
       - name: Run tests
         run: pnpm test

@@ -10,6 +10,7 @@ CoreBlow is designed as an enterprise-grade, self-hosted Sovereign Agent-OS. Rat
 ```mermaid
 flowchart TD
     subgraph Clients["Omni-Platform Client Surfaces"]
+        DESKTOP["CoreBlow Studio Desktop (Electron / Vite / React)\napps/desktop"]
         MACOS["macOS Companion (Swift 6.2 / SwiftUI)\napps/macos"]
         IOS["iOS & watchOS App\napps/ios"]
         ANDROID["Android Client (Kotlin / Compose)\napps/android"]
@@ -36,8 +37,8 @@ flowchart TD
             K11["cory-knowledge-scribe"]
             K12["pr-workflow-orchestrator"]
         end
-        MCP["Sovereign MCP Bridge\n(JSON-RPC / Stdio Transport)"]
-        ROUTER["Adaptive Decision Router\n(6 Tiers + Daybreak Failover)"]
+        MCP["Sovereign MCP Bridge\n(75 Native Tools + Plugin Namespace)"]
+        ROUTER["Adaptive Decision Router\n(8 Backends + Daybreak Failover)"]
         GATEWAY["Gateway Server & WebSocket / HTTP RPC"]
     end
 
@@ -79,10 +80,11 @@ The primary repository is structured strictly around clear architectural boundar
 | `src/plugins/` | **CoreHub Plugin Host & Tier Policy**: 7-Pillar App Store contract runtime, permission grants, capability manifests, and sandboxed plugin lifecycles. | Contract Verification, Isolation |
 | `src/plugins/chat-views/`| **Interactive Plugin Chat Views**: Multi-surface renderers (`cockpit_html`, `markdown_card`, `channel_blocks`) and strict XSS sanitization. | HTML Sanitizer, UI Cards |
 | `src/tts/` | **Sovereign Local Voice Telemetry**: Real-Time Factor (RTF) calculations and Apple Silicon Neural Engine voice telemetry certification ($\text{RTF} \le 0.4$). | Audio Latency Profiling |
-| `src/migration/` | **Universal Workspace Profile Importer**: Multi-format profile import (`coreblow-bundle`, `standard-agents-md`, `claude-code`, `cursor`, `codex`, `windsurf`) with secret redaction. | Workspace Parsing, Secret Sanitizer |
+| `src/migration/` | **Universal Workspace Profile Importer**: Multi-format profile import (`coreblow-bundle`, `standard-agents-md`, sovereign and standard workspace formats) with secret redaction. | Workspace Parsing, Secret Sanitizer |
 | `src/infra/release/` | **Sovereign Release Certifier**: 5-gate production GA readiness auditor, 12-service verification, and deterministic SHA-256 manifest compiler. | Cryptographic Manifests |
-| `src/mcp/` | **Sovereign MCP Bridge**: Model Context Protocol JSON-RPC & Stdio transport exposing all 6 Microkernel tools to external IDEs and agents. | MCP 2024-11-05 Specification |
+| `src/mcp/` | **Sovereign MCP Bridge**: Model Context Protocol JSON-RPC & Stdio transport exposing 75 built-in native tools, dynamic plugin MCP tools with collision namespacing (`${pluginId}__${toolName}`), and `notifications/coreblow/*` wire protocol. | MCP 2024-11-05 Specification |
 | `src/plugin-sdk/` | **Public Plugin SDK**: Stable public barrels for providers, tools, memory, channels, and agents. | Public API Contracts |
+| `apps/desktop/` | **CoreBlow Studio Desktop**: Electron + Vite + React desktop companion with CLI `--session` / `COREBLOW_SESSION_ID` handoff, `webPreferences.sandbox: true`, and screen capture consent guard. | Electron, Vite, React, IPC Security |
 | `apps/macos/` | Native macOS menu bar and desktop companion app written in modern Swift 6.2 and SwiftUI. | Swift 6.2, SwiftUI, AppKit |
 | `apps/macos-mlx-tts/` | Native Apple Silicon Neural Engine voice synthesizer using Apple MLX framework. | Swift, MLX, Apple Accelerate |
 | `apps/ios/` | Native iOS and watchOS companion app with interactive widgets, share extensions, and watch complications. | Swift 6.2, SwiftUI, WidgetKit |
@@ -104,6 +106,7 @@ The broader CoreBlow ecosystem spans 26 repositories grouped into 5 strategic fu
 └──────────────────────────────────────────────────────────────────────────────────────────────────┘
   [Tier 1: Core OS & Native Companion Apps]
    • coreblow/coreblow (Induk) — Core Agent-OS Monorepo, 12-Service Microkernel & Native Mobile Apps
+   • apps/desktop              — CoreBlow Studio Desktop (Electron + Vite + React with CLI --session handoff, sandbox, screen consent)
    • coreblow/corebar          — macOS Native Menu Bar App (Swift 6.2 / SwiftUI)
    • coreblow/corechat         — Ultra-fast Terminal Client in Pure Go 1.22+
    • coreblow/corekit          — Shared Go Toolkit & Socket Transport for CLI Tools
@@ -256,7 +259,21 @@ If the feature coordinates multiple autonomous bots with strict operator sign-of
 
 ---
 
-## 6. Summary: Architectural Invariants
+## 6. CoreBlow v2.1.x Architecture & Runtime Capabilities
+
+CoreBlow v2.1.x introduces core architectural additions that harden the microkernel for enterprise autonomy:
+
+1. **Headless Execution (`coreblow -p "<prompt>"`):** Direct non-interactive pipeline execution delivering structured results straight to stdout for scripting and CI automation without requiring interactive TTY allocation.
+2. **Session Continuation & Interactive Resumption (`coreblow -c` / `coreblow -r [id]`):** Seamless resumption of the workspace's latest session or interactive fuzzy selection across active and archived conversational threads.
+3. **SQLite WAL + FTS5 Session & Memory Engine:** Robust multi-process SQLite session store operating in Write-Ahead Logging (WAL) mode with BM25 full-text search indexing across conversational turns and Cory memory notes.
+4. **24/7 Cron Orchestration (`coreblow cron`):** Native gateway daemon scheduler supporting persistent cron jobs, isolated agent turns, and payload fallbacks with guaranteed execution boundaries.
+5. **Default Cross-Channel Isolation (`dmScope: "per-channel-peer"`):** Direct messaging contexts enforce per-channel peer scoping by default, preventing state leakage across mixed channel boundaries.
+6. **TypeScript AST-Based Skill Security Scanner (`src/security/skill-scanner.ts`):** Pre-execution AST security validation enforcing zero-trust analysis against shell injection, privilege escalation, and credential exposure.
+7. **8-Backend Sovereign Execution Router:** Dynamic runtime classifier routing across fast, deep, local, coding, vision, decision, embedding, and speech execution backends with Daybreak subscription and quota window failover.
+
+---
+
+## 7. Summary: Architectural Invariants
 
 1. **Sub-Millisecond Cold Starts:** The 12 Microkernel services initialize deterministically without dynamic runtime compilation overhead.
 2. **Crash-Proof Isolation:** Community plugins cannot crash the gateway; skills are pure text blueprints executed within standard turn boundaries.

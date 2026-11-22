@@ -107,13 +107,17 @@ explicitly configured.
 ## Highlights
 
 - **12-Service Hybrid OOP/DOP Microkernel**: Enterprise OOP lifecycle boundaries with lightweight Data-Oriented Programming (DOP) on hot paths, achieving `< 1ms` sub-millisecond cold boot.
-- **Cory Long-Term Memory & Scribes**: Persistent semantic memories, episodic journals, entity graph, browsable Wiki (`docs/wiki/`), and zero-stall prepared compaction (`src/memory/`).
-- **EvoLoop Skill Synthesizer**: Continuous closed-loop distillation, validation, and automated promotion of reusable skills (`src/learning/`).
-- **6-Tier Adaptive Decision Router**: Dynamic routing with Daybreak failover across local Ollama, cloud LLMs, and specialized reasoning models with quota-window tracking (`src/providers/decision-router.ts`).
+- **CoreBlow Studio Desktop**: Electron + Vite + React desktop companion with CLI `--session` / `COREBLOW_SESSION_ID` handoff, `webPreferences.sandbox: true`, and screen capture consent guard (`apps/desktop/`).
+- **Headless & Resumable CLI**: Headless execution (`coreblow -p`), session continuation (`coreblow -c`), and interactive session picker (`coreblow -r`).
+- **SQLite WAL + FTS5 Session & Memory Engine**: Multi-process SQLite session store operating in WAL mode with BM25 full-text search indexing and zero-stall prepared compaction (`src/memory/`).
+- **Cory Long-Term Memory & Scribes**: Persistent semantic memories, episodic journals, entity graph, browsable Wiki (`docs/wiki/`), and knowledge scribes (`src/memory/`).
+- **EvoLoop Skill Synthesizer & AST Security Scanner**: Continuous closed-loop skill synthesis (`src/learning/`) validated by TypeScript AST static analysis against shell injection and privilege escalation (`src/security/skill-scanner.ts`).
+- **8-Backend Adaptive Decision Router**: Dynamic routing with Daybreak failover across local Ollama, cloud LLMs, and specialized reasoning models with quota-window tracking (`src/providers/`).
 - **War Room & Kanban DAG**: Multi-agent consensus room, hierarchical delegation, DAG turn coordinator, and round-robin dispute resolver (`src/agents/war-room/`).
 - **5-Gate Autonomous PR Workflow**: Autonomous git/PR workflow engine with lint, type-check, test, security, and cleanliness validation gates (`src/agents/pr-workflow/`).
-- **Live Sovereign MCP Bridge**: Stdio and JSON-RPC Model Context Protocol server exposing microkernel tools and resources to external AI clients (`src/mcp/`).
+- **Live Sovereign MCP Bridge**: Stdio and JSON-RPC Model Context Protocol server exposing 75 built-in native tools, dynamic collision namespacing (`${pluginId}__${toolName}`), and `notifications/coreblow/*` protocol (`src/mcp/`).
 - **Controlled Plugin Host & Store**: CoreHub cryptographic signing, granular capability sandboxing, and dynamic chat views (`src/plugins/`).
+- **Per-Channel-Peer DM Isolation**: Default cross-channel security boundaries (`dmScope: "per-channel-peer"`) preventing state leakage across messaging surfaces.
 - **Sovereign Local Voice Companion**: Low-latency voice companion runtime with audio frame telemetry and local neural TTS (`src/tts/`).
 - **Omni-Platform Native Companions**: Native Swift apps for macOS (with local MLX TTS) & iOS, Jetpack Compose for Android, plus hardware edge nodes (ESP32, Windows).
 
@@ -126,7 +130,7 @@ CoreBlow is structured as a modular 12-Service Microkernel with explicit module 
 | `src/gateway/` | Gateway server, RPC/API surface, WebSocket control plane, and 12-Service DI container (`MicrokernelRegistryService`). | Kernel Host |
 | `src/memory/` | Cory long-term semantic memory, entity graph, Knowledge Scribes, browsable wiki, and compaction (`CoryMemoryService`, `KnowledgeScribeService`). | Cognitive Subsystem |
 | `src/learning/` | EvoLoop Skill Synthesizer, DOP skill distiller, and per-skill lock registry (`SkillSynthesizerService`). | Cognitive Subsystem |
-| `src/providers/` | 6-Tier Adaptive Decision Router, Daybreak failover, quota windows, and streaming handlers (`DecisionRouterService`). | Inference Routing |
+| `src/providers/` | 8-Backend Adaptive Decision Router, Daybreak failover, quota windows, and streaming handlers (`DecisionRouterService`). | Inference Routing |
 | `src/agents/` | Single-agent turn coordinator, War Room multi-agent DAG, and autonomous PR workflow engine (`WarRoomService`, `PrWorkflowService`). | Agent Orchestration |
 | `src/plugins/` | Plugin registry, CoreHub App Store lifecycle, trust policies, and interactive chat views (`AppStoreRuntimeService`, `ChatViewService`). | Extensibility Host |
 | `src/tts/` | Sovereign local voice companion runtime, audio frame buffers, and neural synthesis (`SovereignVoiceService`). | Sensory & Voice |
@@ -135,6 +139,7 @@ CoreBlow is structured as a modular 12-Service Microkernel with explicit module 
 | `src/infra/release/` | Release certification, brand purity audit, and GA readiness verification (`ReleaseCertifierService`). | Governance |
 | `src/cli/` | Operator CLI commands, interactive onboard wizard, and health audits. | User Interface |
 | `src/security/` | Audits, policy checks, profiles, approvals, and sandboxing guardrails. | Governance |
+| `apps/desktop/` | CoreBlow Studio Desktop (Electron + Vite + React with CLI session handoff and sandbox protection). | Native Clients |
 | `apps/` | Omni-platform native companion clients (macOS, macOS MLX TTS, iOS, Android, shared Swift). | Native Clients |
 | `extensions/` | Controlled workspace plugin packages managed via CoreHub. | App Store Layer |
 
@@ -186,6 +191,13 @@ Read the security guide before exposing the gateway:
 | Fetch health from the running gateway | `coreblow health --json` |
 | Inspect model provider state | `coreblow models status` |
 | Send a channel message | `coreblow message send --help` |
+| Run headless turn | `coreblow -p "prompt"` |
+| Continue latest session | `coreblow -c` |
+| Resume session or open picker | `coreblow -r [id]` |
+| Launch Studio Desktop | `coreblow desktop --session <id>` |
+| Manage 24/7 cron orchestration | `coreblow cron` |
+| Manage 24/7 channel bots | `coreblow bots` |
+| Serve Model Context Protocol | `coreblow mcp serve` |
 | Manage plugins | `coreblow plugins --help` |
 | Audit CoreHub plugin trust | `coreblow plugins policy audit --refresh` |
 | Manage exec approvals | `coreblow approvals --help` |

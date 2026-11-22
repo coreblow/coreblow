@@ -3,22 +3,21 @@
     <channel>
         <title>CoreBlow</title>
         <item>
-            <title>2026.5.14</title>
-            <pubDate>Wed, 14 May 2026 17:00:00 +0000</pubDate>
+            <title>2.1.1</title>
+            <pubDate>Sun, 22 Nov 2026 00:00:00 +0000</pubDate>
             <link>https://raw.githubusercontent.com/coreblow/coreblow/main/appcast.xml</link>
-            <sparkle:version>2026051400</sparkle:version>
-            <sparkle:shortVersionString>2026.5.14</sparkle:shortVersionString>
+            <sparkle:version>211</sparkle:version>
+            <sparkle:shortVersionString>2.1.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h2>CoreBlow 2026.5.14</h2>
-<h3>Changes</h3>
+            <description><![CDATA[<h2>CoreBlow 2.1.1</h2>
+<h3>Highlights</h3>
 <ul>
-<li>General Availability release: all platforms reach structural parity.</li>
-<li>Security: resolve all 12 npm vulnerabilities (0 remaining).</li>
-<li>SharedKit: 190/190 tests pass.</li>
-<li>iOS: 256 files, xcodebuild BUILD SUCCEEDED.</li>
-<li>macOS: build green, structural parity complete.</li>
-<li>Bump @opentelemetry/* 0.215 → 0.217.</li>
-<li>Override hono ≥4.12.18, fast-uri ≥3.1.2, fast-xml-builder ≥1.1.7, basic-ftp ≥5.3.1.</li>
+<li>CoreBlow Studio Desktop: Electron + Vite + React desktop companion with CLI session handoff and sandbox protection.</li>
+<li>Headless & Resumable CLI: coreblow -p headless prompt execution, -c / -r session continuation and interactive picker.</li>
+<li>SQLite WAL + FTS5: Persistent multi-process session store with fast BM25 full-text indexing and Cory memory knowledge scribe.</li>
+<li>Sovereign MCP Bridge: 75 native tools, dynamic plugin tool collision namespacing, and notification wire protocol.</li>
+<li>AST Skill Security Scanner: Static analysis guardrails for community cognitive skills.</li>
+<li>Per-Channel-Peer DM Isolation: Default cross-channel security boundaries.</li>
 </ul>
 ]]></description>
         </item>

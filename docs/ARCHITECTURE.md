@@ -1,7 +1,7 @@
 # Architecture and Security Blueprint: CoreBlow Agent-OS
 
-**Document Version:** 2.0.0 (Production GA Baseline)<br />
-**Status:** Production GA Certified (CoreBlow v2.0.0 GA Baseline)<br />
+**Document Version:** 2.1.1 (Production GA Baseline)<br />
+**Status:** Production GA Certified (CoreBlow v2.1.1 GA Baseline)<br />
 **Related Documents:** [PRD](/PRD)<br />
 **Product Canonical URLs:** [https://coreblow.com](https://coreblow.com) | [https://github.com/coreblow](https://github.com/coreblow)<br />
 **Documentation Portal:** [https://docs.coreblow.com](https://docs.coreblow.com)
@@ -251,7 +251,7 @@ The microkernel lifecycle is governed by topological sorting algorithms inside `
 - **Sovereign Latency Invariant:** Formally certifies `meetsSovereignTarget: RTF <= 0.40` for local Apple Silicon MLX neural speech generation.
 - **Companion State Machine:** Tracks transition states: `idle -> listening -> synthesizing -> speaking -> degraded`.
 
-### 2.5.9 CoreBlow v2.0.0 Sovereign Release Certifier: src/infra/release/sovereign-release-certifier.ts
+### 2.5.9 CoreBlow Sovereign Release Certifier: src/infra/release/sovereign-release-certifier.ts
 - **Architecture:** Pure DOP release verification engine and deterministic release manifest compiler.
 - **5 Sovereign Readiness Gates (`evaluateSovereignReleaseGates`):**
   1. `microkernel_health`: All 12 `REQUIRED_MICROKERNEL_SERVICES` registered and healthy.

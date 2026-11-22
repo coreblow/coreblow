@@ -1,6 +1,6 @@
 # CoreBlow Sovereign Agent-OS Master Roadmap (Stages 1–9)
 
-**Document Version:** 2.0.0 (Sovereign Hybrid OOP/DOP Microkernel & Evolution Edition)<br />
+**Document Version:** 2.1.1 (Sovereign Hybrid OOP/DOP Microkernel & Evolution Edition)<br />
 **Date:** November 6, 2026<br />
 **Status:** Stages 1–6 Certified Complete (100% Passing) | Stage 7 Active | Stages 8–9 Scheduled<br />
 **Product Canonical URLs:** [https://coreblow.com](https://coreblow.com) | [https://github.com/coreblow](https://github.com/coreblow)<br />
