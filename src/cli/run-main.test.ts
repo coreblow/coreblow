@@ -258,6 +258,20 @@ describe("resolveSessionResumeParams", () => {
     expect(params.continueFlag).toBe(false);
   });
 
+  it("resolves specific session ID for --resume=<id> and -r=<id>", () => {
+    const paramsEqual = resolveSessionResumeParams(["node", "coreblow", "--resume=session-eq-1"]);
+    expect(paramsEqual.hasResume).toBe(true);
+    expect(paramsEqual.resumeValue).toBe("session-eq-1");
+    expect(paramsEqual.initialModal).toBe("none");
+    expect(paramsEqual.continueFlag).toBe(false);
+
+    const paramsREqual = resolveSessionResumeParams(["node", "coreblow", "-r=session-eq-2"]);
+    expect(paramsREqual.hasResume).toBe(true);
+    expect(paramsREqual.resumeValue).toBe("session-eq-2");
+    expect(paramsREqual.initialModal).toBe("none");
+    expect(paramsREqual.continueFlag).toBe(false);
+  });
+
   it("sets continueFlag for -c / --continue", () => {
     const paramsC = resolveSessionResumeParams(["node", "coreblow", "-c"]);
     expect(paramsC.continueFlag).toBe(true);

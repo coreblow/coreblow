@@ -111,7 +111,6 @@ export function resolveSessionResumeParams(argv: string[]): {
   initialModal: "none" | "sessions";
 } {
   const continueFlag = hasFlag(argv, "-c") || hasFlag(argv, "--continue");
-  const hasResume = hasFlag(argv, "-r") || hasFlag(argv, "--resume");
   const rawR = getFlagValue(argv, "-r");
   const rawResume = getFlagValue(argv, "--resume");
   const resumeValue =
@@ -120,6 +119,7 @@ export function resolveSessionResumeParams(argv: string[]): {
       : typeof rawResume === "string"
         ? rawResume
         : undefined;
+  const hasResume = hasFlag(argv, "-r") || hasFlag(argv, "--resume") || Boolean(resumeValue);
 
   let initialModal: "none" | "sessions" = "none";
   if (!continueFlag && hasResume && !resumeValue) {
@@ -186,16 +186,9 @@ export async function runCli(argv: string[] = process.argv) {
 
     const primaryCommand = getPrimaryCommand(normalizedArgv);
 
-    const printPrompt =
-      getFlagValue(normalizedArgv, "-p") ?? getFlagValue(normalizedArgv, "--print");
-    const outputFormat = getFlagValue(normalizedArgv, "--output-format");
     const isPipedStdin = Boolean(!process.stdin.isTTY && !process.env.VITEST);
 
-    if (
-      printPrompt !== undefined ||
-      outputFormat !== undefined ||
-      (isPipedStdin && primaryCommand === null && !hasHelpOrVersion(normalizedArgv))
-    ) {
+    if (shouldDivertToHeadless({ argv: normalizedArgv, isPipedStdin, primaryCommand })) {
       const { runHeadlessCli } = await import("./headless-runner.js");
       await runHeadlessCli(normalizedArgv);
       return;
