@@ -700,7 +700,7 @@ export const slackPlugin: ChannelPlugin<ResolvedSlackAccount, SlackProbe> = crea
       },
       formatCapabilitiesProbe: ({ probe }) => {
         const slackProbe = probe as SlackProbe | undefined;
-        const lines = [];
+        const lines: Array<{ text: string }> = [];
         if (slackProbe?.bot?.name) {
           lines.push({ text: `Bot: @${slackProbe.bot.name}` });
         }
@@ -711,7 +711,7 @@ export const slackPlugin: ChannelPlugin<ResolvedSlackAccount, SlackProbe> = crea
         return lines;
       },
       buildCapabilitiesDiagnostics: async ({ account, timeoutMs }) => {
-        const lines = [];
+        const lines: Array<{ text: string; tone?: "error" }> = [];
         const details: Record<string, unknown> = {};
         const botToken = account.botToken?.trim();
         const userToken = account.config.userToken?.trim();

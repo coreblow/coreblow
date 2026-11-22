@@ -112,11 +112,12 @@ async function formDataToMultipartBody(body: FormData, headers: Headers): Promis
       typeof filename === "string" && filename.length > 0 ? filename : "blob",
     );
     push(`Content-Disposition: form-data; name="${escapedKey}"; filename="${escapedFilename}"\\r\\n`);
-    if (value.type) {
-      push(`Content-Type: ${value.type}\\r\\n`);
+    const blob = value as Blob;
+    if (blob.type) {
+      push(`Content-Type: ${blob.type}\\r\\n`);
     }
     push("\\r\\n");
-    push(Buffer.from(await value.arrayBuffer()));
+    push(Buffer.from(await blob.arrayBuffer()));
     push("\\r\\n");
   }
   push(`--${boundary}--\\r\\n`);

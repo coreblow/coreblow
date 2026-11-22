@@ -538,7 +538,7 @@ function createAbortError(signal: AbortSignal): Error {
 function readAnthropicSseChunk(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   signal?: AbortSignal,
-): Promise<ReadableStreamReadResult<Uint8Array>> {
+): ReturnType<ReadableStreamDefaultReader<Uint8Array>["read"]> {
   if (!signal) {
     return reader.read();
   }

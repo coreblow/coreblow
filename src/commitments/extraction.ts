@@ -8,6 +8,7 @@ import type {
   CommitmentExtractionBatchResult,
   CommitmentExtractionItem,
   CommitmentKind,
+  CommitmentRecord,
   CommitmentSensitivity,
   CommitmentSource,
 } from "./types.js";
@@ -327,7 +328,7 @@ export async function persistCommitmentExtractionResult(params: {
     existing.push(entry);
     byItem.set(entry.item.itemId, existing);
   }
-  const created = [];
+  const created: CommitmentRecord[] = [];
   for (const entries of byItem.values()) {
     const item = entries[0]?.item;
     if (!item) {

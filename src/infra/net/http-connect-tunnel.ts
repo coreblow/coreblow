@@ -269,14 +269,15 @@ class HttpConnectTunnelAttempt {
 
   private startTargetTls(socket: ProxySocket): void {
     try {
-      this.targetTlsSocket = tls.connect({
+      const targetTlsSocket = tls.connect({
         socket,
         servername: this.params.targetHost,
         ALPNProtocols: ["h2"],
       });
-      this.targetTlsSocket.once("secureConnect", this.onTargetSecureConnect);
-      this.targetTlsSocket.once("error", this.fail);
-      this.targetTlsSocket.once("close", this.onTargetTlsClosedBeforeSecureConnect);
+      this.targetTlsSocket = targetTlsSocket;
+      targetTlsSocket.once("secureConnect", this.onTargetSecureConnect);
+      targetTlsSocket.once("error", this.fail);
+      targetTlsSocket.once("close", this.onTargetTlsClosedBeforeSecureConnect);
     } catch (err) {
       this.fail(err);
     }

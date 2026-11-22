@@ -86,6 +86,7 @@ import {
   runCoreBlowReActLoop,
   autoDiscoverRuntimeEndpoints,
   type ExecutionProfile,
+  type CoreBlowReActResult,
 } from "../agents/coreblow-react-engine.js";
 import {
   buildStorefrontCatalogView,
@@ -2728,7 +2729,7 @@ export async function handleCoreHubRoute(
           },
         );
 
-        let reActResult = undefined;
+        let reActResult: CoreBlowReActResult | undefined = undefined;
         if (body.autonomousReAct === true || body.react === true) {
           reActResult = await runCoreBlowReActLoop({
             prompt,
