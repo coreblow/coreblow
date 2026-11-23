@@ -17,6 +17,7 @@ import {
   GridToolsIcon,
   InspectorIcon,
   MemoryBrainIcon,
+  PlusIcon,
   RefreshIcon,
   SplitPaneIcon,
   TerminalIcon,
@@ -52,6 +53,29 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [moreToolsOpen, setMoreToolsOpen] = useState(false);
   const [browserUrl, setBrowserUrl] = useState("http://127.0.0.1:9119");
+  const [terminalTabs, setTerminalTabs] = useState<Array<{ id: string; title: string }>>([
+    { id: "term-1", title: "zsh" },
+  ]);
+  const [activeTerminalId, setActiveTerminalId] = useState("term-1");
+
+  const handleAddTerminalTab = () => {
+    const nextIdx = terminalTabs.length + 1;
+    const newTab = {
+      id: `term-${Date.now()}`,
+      title: `zsh (${nextIdx})`,
+    };
+    setTerminalTabs((prev) => [...prev, newTab]);
+    setActiveTerminalId(newTab.id);
+  };
+
+  const handleCloseTerminalTab = (tabId: string) => {
+    if (terminalTabs.length <= 1) return;
+    const nextTabs = terminalTabs.filter((t) => t.id !== tabId);
+    setTerminalTabs(nextTabs);
+    if (activeTerminalId === tabId) {
+      setActiveTerminalId(nextTabs[nextTabs.length - 1].id);
+    }
+  };
 
   if (!open) return null;
 
@@ -129,6 +153,106 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
               <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink-primary)" }}>
                 Start
               </span>
+            </div>
+          ) : activeTab === "terminal" ? (
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0 }}>
+              <button
+                type="button"
+                onClick={() => onChangeTab("start")}
+                title="Return to Start Launcher"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--accent-teal)",
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  padding: "2px 4px",
+                  borderRadius: "var(--radius-xs)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "2px",
+                  flexShrink: 0,
+                }}
+              >
+                ‹ Start
+              </button>
+              <span style={{ color: "var(--border-strong)", fontSize: "11px", flexShrink: 0 }}>/</span>
+              {/* Terminal Tabs Bar */}
+              <div style={{ display: "flex", alignItems: "center", gap: "4px", minWidth: 0, overflowX: "auto" }}>
+                {terminalTabs.map((t) => (
+                  <div
+                    key={t.id}
+                    onClick={() => setActiveTerminalId(t.id)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "3px 8px",
+                      borderRadius: "6px",
+                      background: activeTerminalId === t.id ? "rgba(255, 255, 255, 0.08)" : "transparent",
+                      border: activeTerminalId === t.id ? "1px solid rgba(255, 255, 255, 0.12)" : "1px solid transparent",
+                      color: activeTerminalId === t.id ? "var(--ink-primary)" : "var(--ink-muted)",
+                      fontSize: "12px",
+                      fontFamily: "var(--font-mono)",
+                      cursor: "pointer",
+                      transition: "all 0.12s ease",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <TerminalIcon size={12} color={activeTerminalId === t.id ? "var(--ink-primary)" : "var(--ink-muted)"} />
+                    <span style={{ fontWeight: 500 }}>{t.title}</span>
+                    {terminalTabs.length > 1 && (
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCloseTerminalTab(t.id);
+                        }}
+                        title="Close tab"
+                        style={{
+                          fontSize: "10px",
+                          marginLeft: "2px",
+                          opacity: 0.6,
+                          cursor: "pointer",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                        onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}
+                      >
+                        ✕
+                      </span>
+                    )}
+                  </div>
+                ))}
+                {/* Add Tab Button */}
+                <button
+                  type="button"
+                  onClick={handleAddTerminalTab}
+                  title="New terminal tab"
+                  style={{
+                    width: "22px",
+                    height: "22px",
+                    borderRadius: "4px",
+                    background: "transparent",
+                    border: "none",
+                    color: "var(--ink-muted)",
+                    display: "grid",
+                    placeItems: "center",
+                    cursor: "pointer",
+                    transition: "all 0.12s ease",
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "var(--ink-primary)";
+                    e.currentTarget.style.background = "var(--bg-chip)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "var(--ink-muted)";
+                    e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  <PlusIcon size={13} />
+                </button>
+              </div>
             </div>
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -537,7 +661,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
             <GitGatesTab branch={project.branch} uncommittedFiles={project.uncommittedFiles} />
           </div>
         ) : activeTab === "terminal" ? (
-          <LocalTerminalTab project={project} />
+          <LocalTerminalTab project={project} sessionKey={activeTerminalId} />
         ) : activeTab === "browser" ? (
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             {/* Browser Address Bar */}

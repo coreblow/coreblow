@@ -163,4 +163,33 @@ describe("InspectorDrawer Component", () => {
     });
     expect(onChangeTab).toHaveBeenCalledWith("start");
   });
+
+  it("manages multi-tab terminal sessions with add and close actions", () => {
+    act(() => {
+      root.render(<InspectorDrawer {...defaultProps} activeTab="terminal" />);
+    });
+
+    expect(container.textContent).toContain("zsh");
+
+    const buttons = Array.from(container.querySelectorAll("button"));
+    const addTabBtn = buttons.find((b) => b.getAttribute("title") === "New terminal tab");
+    expect(addTabBtn).toBeDefined();
+
+    act(() => {
+      addTabBtn?.click();
+    });
+
+    expect(container.textContent).toContain("zsh (2)");
+
+    const closeSpans = Array.from(container.querySelectorAll("span")).filter(
+      (s) => s.getAttribute("title") === "Close tab",
+    );
+    expect(closeSpans.length).toBe(2);
+
+    act(() => {
+      closeSpans[1]?.click();
+    });
+
+    expect(container.textContent).not.toContain("zsh (2)");
+  });
 });

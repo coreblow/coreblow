@@ -1,554 +1,301 @@
 import React, { useState, useEffect, useRef } from "react";
 import type { ActiveProjectState } from "../../types/gateway";
-import { TerminalIcon, TrashIcon } from "../Icons";
 
 interface LocalTerminalTabProps {
   project: ActiveProjectState;
+  sessionKey?: string;
 }
 
-interface TerminalLine {
+interface OutputEntry {
   id: string;
-  type: "system" | "command" | "stdout" | "stderr";
+  type: "prompt" | "stdout" | "stderr";
   text: string;
 }
 
-export const LocalTerminalTab: React.FC<LocalTerminalTabProps> = ({ project }) => {
+export const LocalTerminalTab: React.FC<LocalTerminalTabProps> = ({
+  project,
+  sessionKey = "default",
+}) => {
   const [terminalInfo, setTerminalInfo] = useState<{
     shell: string;
     cwd: string;
     username: string;
     hostname: string;
     platform: string;
-  } | null>(null);
+  }>({
+    shell: "/bin/zsh",
+    cwd: project.path,
+    username: "developer",
+    hostname: "mac",
+    platform: "darwin",
+  });
 
-  const [inputVal, setInputVal] = useState("");
+  const [cwd, setCwd] = useState(project.path);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIdx, setHistoryIdx] = useState<number>(-1);
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [lines, setLines] = useState<TerminalLine[]>([]);
+  const [currentInput, setCurrentInput] = useState("");
+  const [entries, setEntries] = useState<OutputEntry[]>([]);
+  const [, setIsExecuting] = useState(false);
 
-  const terminalEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Load terminal environment information on mount or project change
+  // Fetch real machine username, hostname, shell
   useEffect(() => {
     let mounted = true;
-
-    async function loadInfo() {
+    async function initInfo() {
       if (window.coreblowDesktop?.terminal?.getInfo) {
         try {
-          const info = await window.coreblowDesktop.terminal.getInfo(project.path);
+          const info = await window.coreblowDesktop.terminal.getInfo(cwd);
           if (mounted) {
             setTerminalInfo(info);
-            const shellName = info.shell.split("/").pop() || info.shell;
-            setLines([
-              {
-                id: "init-1",
-                type: "system",
-                text: `● Connected to local terminal: ${shellName} (${info.shell})`,
-              },
-              {
-                id: "init-2",
-                type: "system",
-                text: `  Workspace: ${project.path}  ·  branch: ${project.branch}`,
-              },
-              {
-                id: "init-3",
-                type: "system",
-                text: "  Type any shell command (ls, pwd, git status, pnpm, node) or launch System Terminal ↗",
-              },
-            ]);
+            setCwd(info.cwd);
           }
         } catch (err) {
-          console.error("Failed to fetch terminal info:", err);
+          console.error("Failed to get terminal info:", err);
         }
       } else {
-        // Fallback for browser dev mode or tests
+        // Fallback for tests/browser
         setTerminalInfo({
           shell: "/bin/zsh",
           cwd: project.path,
-          username: "developer",
-          hostname: "coreblow-station",
+          username: "febrinanda",
+          hostname: "febrinandas-Mac-mini",
           platform: "darwin",
         });
-        setLines([
-          {
-            id: "init-1",
-            type: "system",
-            text: `● Connected to local terminal: zsh (/bin/zsh)`,
-          },
-          {
-            id: "init-2",
-            type: "system",
-            text: `  Workspace: ${project.path}  ·  branch: ${project.branch}`,
-          },
-          {
-            id: "init-3",
-            type: "system",
-            text: "  Type any shell command (ls, pwd, git status, pnpm, node) or launch System Terminal ↗",
-          },
-        ]);
       }
     }
-
-    loadInfo();
+    initInfo();
     return () => {
       mounted = false;
     };
-  }, [project.path, project.branch]);
+  }, [project.path]);
 
-  // Auto-scroll on new output
-  useEffect(() => {
-    terminalEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
-  }, [lines, isExecuting]);
-
-  // Focus input when tab is active
+  // Auto focus input
   useEffect(() => {
     inputRef.current?.focus();
-  }, []);
+  }, [sessionKey]);
 
-  const handleLaunchExternalTerminal = async () => {
-    if (window.coreblowDesktop?.terminal?.openExternal) {
-      await window.coreblowDesktop.terminal.openExternal(project.path);
-      setLines((prev) => [
-        ...prev,
-        {
-          id: `ext-${Date.now()}`,
-          type: "system",
-          text: `[Launched macOS native Terminal.app at ${project.path}]`,
-        },
-      ]);
-    }
+  // Auto scroll to bottom
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView?.({ behavior: "smooth" });
+  }, [entries, currentInput]);
+
+  // Strip ANSI color codes helper
+  const cleanAnsi = (str: string) => str.replace(/\u001b\[[0-9;]*[a-zA-Z]/g, "");
+
+  // Compute folder name for prompt
+  const folderName = cwd.split("/").filter(Boolean).pop() || project.name;
+  const promptSymbol = terminalInfo.shell.includes("zsh") ? "%" : "$";
+  const promptText = `${terminalInfo.username}@${terminalInfo.hostname} ${folderName} ${promptSymbol} `;
+
+  const handleContainerClick = () => {
+    inputRef.current?.focus();
   };
 
-  const handleClear = () => {
-    setLines([]);
-  };
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const cmd = currentInput;
+      const trimmed = cmd.trim();
+      setCurrentInput("");
+      setHistoryIdx(-1);
 
-  const executeCommand = async (cmdToRun: string) => {
-    const rawCmd = cmdToRun.trim();
-    if (!rawCmd) return;
-
-    // Command history
-    setHistory((prev) => [...prev, rawCmd]);
-    setHistoryIdx(-1);
-    setInputVal("");
-
-    if (rawCmd.toLowerCase() === "clear") {
-      handleClear();
-      return;
-    }
-
-    // Prompt line
-    const promptPrefix = terminalInfo
-      ? `${terminalInfo.username}@${terminalInfo.hostname} ${project.name} %`
-      : `$`;
-
-    const cmdEntry: TerminalLine = {
-      id: `cmd-${Date.now()}`,
-      type: "command",
-      text: `${promptPrefix} ${rawCmd}`,
-    };
-
-    setLines((prev) => [...prev, cmdEntry]);
-
-    if (window.coreblowDesktop?.terminal?.exec) {
-      setIsExecuting(true);
-      try {
-        const res = await window.coreblowDesktop.terminal.exec(rawCmd, project.path);
-        const newEntries: TerminalLine[] = [];
-
-        if (res.stdout) {
-          const stdoutLines = res.stdout.split("\n");
-          // Remove trailing empty line if present
-          if (stdoutLines.length > 0 && stdoutLines[stdoutLines.length - 1] === "") {
-            stdoutLines.pop();
-          }
-          for (let i = 0; i < stdoutLines.length; i++) {
-            newEntries.push({
-              id: `out-${Date.now()}-${i}`,
-              type: "stdout",
-              text: stdoutLines[i],
-            });
-          }
-        }
-
-        if (res.stderr) {
-          const stderrLines = res.stderr.split("\n");
-          if (stderrLines.length > 0 && stderrLines[stderrLines.length - 1] === "") {
-            stderrLines.pop();
-          }
-          for (let i = 0; i < stderrLines.length; i++) {
-            newEntries.push({
-              id: `err-${Date.now()}-${i}`,
-              type: "stderr",
-              text: stderrLines[i],
-            });
-          }
-        }
-
-        if (res.exitCode !== 0 && !res.stderr) {
-          newEntries.push({
-            id: `code-${Date.now()}`,
-            type: "stderr",
-            text: `[Process exited with code ${res.exitCode}]`,
-          });
-        }
-
-        setLines((prev) => [...prev, ...newEntries]);
-      } catch (err: any) {
-        setLines((prev) => [
+      if (!trimmed) {
+        setEntries((prev) => [
           ...prev,
-          {
-            id: `err-${Date.now()}`,
-            type: "stderr",
-            text: err?.message || "Execution failed",
-          },
+          { id: `cmd-${Date.now()}`, type: "prompt", text: promptText },
         ]);
-      } finally {
-        setIsExecuting(false);
+        return;
       }
-    } else {
-      // Fallback for tests/browser
-      const lower = rawCmd.toLowerCase();
-      const newEntries: TerminalLine[] = [];
 
-      if (lower === "pwd") {
-        newEntries.push({ id: `out-${Date.now()}`, type: "stdout", text: project.path });
-      } else if (lower === "ls" || lower === "ls -la") {
-        newEntries.push(
-          { id: `out-${Date.now()}-1`, type: "stdout", text: "apps/           coreblow.config.json  package.json       src/" },
-          { id: `out-${Date.now()}-2`, type: "stdout", text: "docs/           extensions/           pnpm-lock.yaml     ui/" },
-        );
-      } else if (lower.startsWith("git status")) {
-        newEntries.push(
-          { id: `out-${Date.now()}-1`, type: "stdout", text: `On branch ${project.branch}` },
-          { id: `out-${Date.now()}-2`, type: "stdout", text: `Your branch is up to date with 'origin/${project.branch}'.` },
-        );
+      setHistory((prev) => [...prev, trimmed]);
+
+      if (trimmed === "clear") {
+        setEntries([]);
+        return;
+      }
+
+      // Add the command line to output entries
+      const cmdEntry: OutputEntry = {
+        id: `cmd-${Date.now()}`,
+        type: "prompt",
+        text: `${promptText}${cmd}`,
+      };
+      setEntries((prev) => [...prev, cmdEntry]);
+
+      // Execute command
+      if (window.coreblowDesktop?.terminal?.exec) {
+        setIsExecuting(true);
+        try {
+          const res = await window.coreblowDesktop.terminal.exec(trimmed, cwd);
+          const newEntries: OutputEntry[] = [];
+
+          if (res.stdout) {
+            const lines = cleanAnsi(res.stdout).split("\n");
+            if (lines.length > 0 && lines[lines.length - 1] === "") lines.pop();
+            for (let i = 0; i < lines.length; i++) {
+              newEntries.push({ id: `out-${Date.now()}-${i}`, type: "stdout", text: lines[i] });
+            }
+          }
+
+          if (res.stderr) {
+            const lines = cleanAnsi(res.stderr).split("\n");
+            if (lines.length > 0 && lines[lines.length - 1] === "") lines.pop();
+            for (let i = 0; i < lines.length; i++) {
+              newEntries.push({ id: `err-${Date.now()}-${i}`, type: "stderr", text: lines[i] });
+            }
+          }
+
+          setEntries((prev) => [...prev, ...newEntries]);
+        } catch (err: any) {
+          setEntries((prev) => [
+            ...prev,
+            { id: `err-${Date.now()}`, type: "stderr", text: err?.message || "Execution error" },
+          ]);
+        } finally {
+          setIsExecuting(false);
+        }
       } else {
-        newEntries.push({
-          id: `out-${Date.now()}`,
-          type: "stdout",
-          text: `[simulated exec] ${rawCmd}: exit code 0`,
-        });
+        // Test fallback
+        const lower = trimmed.toLowerCase();
+        const newEntries: OutputEntry[] = [];
+        if (lower === "pwd") {
+          newEntries.push({ id: `out-${Date.now()}`, type: "stdout", text: cwd });
+        } else if (lower === "ls" || lower === "ls -la") {
+          newEntries.push(
+            { id: `out-${Date.now()}-1`, type: "stdout", text: "apps           coreblow.config.json package.json       src" },
+            { id: `out-${Date.now()}-2`, type: "stdout", text: "docs           extensions          pnpm-lock.yaml     ui" },
+          );
+        } else if (lower.startsWith("git status")) {
+          newEntries.push(
+            { id: `out-${Date.now()}-1`, type: "stdout", text: `On branch ${project.branch}` },
+            { id: `out-${Date.now()}-2`, type: "stdout", text: "nothing to commit, working tree clean" },
+          );
+        } else {
+          newEntries.push({ id: `out-${Date.now()}`, type: "stdout", text: `[simulated output] ${trimmed}` });
+        }
+        setEntries((prev) => [...prev, ...newEntries]);
       }
-
-      setLines((prev) => [...prev, ...newEntries]);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "ArrowUp") {
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
       if (history.length === 0) return;
       const nextIdx = historyIdx === -1 ? history.length - 1 : Math.max(0, historyIdx - 1);
       setHistoryIdx(nextIdx);
-      setInputVal(history[nextIdx]);
+      setCurrentInput(history[nextIdx] || "");
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
       if (historyIdx === -1) return;
       if (historyIdx < history.length - 1) {
         const nextIdx = historyIdx + 1;
         setHistoryIdx(nextIdx);
-        setInputVal(history[nextIdx]);
+        setCurrentInput(history[nextIdx] || "");
       } else {
         setHistoryIdx(-1);
-        setInputVal("");
+        setCurrentInput("");
       }
+    } else if (e.ctrlKey && e.key.toLowerCase() === "c") {
+      e.preventDefault();
+      setEntries((prev) => [
+        ...prev,
+        { id: `cancel-${Date.now()}`, type: "prompt", text: `${promptText}${currentInput}^C` },
+      ]);
+      setCurrentInput("");
+      setHistoryIdx(-1);
+    } else if (e.ctrlKey && e.key.toLowerCase() === "l") {
+      e.preventDefault();
+      setEntries([]);
     }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    executeCommand(inputVal);
   };
 
   return (
     <div
+      ref={containerRef}
+      onClick={handleContainerClick}
       style={{
         flex: 1,
+        height: "100%",
         display: "flex",
         flexDirection: "column",
-        background: "var(--bg-code)",
+        background: "var(--bg-canvas)",
+        padding: "12px 16px",
+        fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace',
+        fontSize: "12px",
+        lineHeight: 1.6,
+        color: "var(--ink-primary)",
         boxSizing: "border-box",
-        overflow: "hidden",
+        overflowY: "auto",
+        cursor: "text",
+        position: "relative",
       }}
-      onClick={() => inputRef.current?.focus()}
     >
-      {/* Top Hairline Status & Quick Actions Bar */}
+      {/* Hidden native input capturing all keyboard and composition events */}
+      <input
+        ref={inputRef}
+        type="text"
+        value={currentInput}
+        onChange={(e) => setCurrentInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        autoFocus
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          opacity: 0,
+          width: "1px",
+          height: "1px",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Rendered Past Lines */}
+      {entries.map((entry) => (
+        <div
+          key={entry.id}
+          style={{
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-all",
+            color:
+              entry.type === "stderr"
+                ? "#F87171"
+                : entry.type === "prompt"
+                ? "var(--ink-primary)"
+                : "var(--ink-primary)",
+          }}
+        >
+          {entry.text}
+        </div>
+      ))}
+
+      {/* Active Command Prompt Line */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
-          padding: "6px 12px",
-          borderBottom: "1px solid var(--border-subtle)",
-          background: "var(--bg-canvas)",
-          fontSize: "11px",
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
-          <span
-            style={{
-              width: "7px",
-              height: "7px",
-              borderRadius: "50%",
-              background: "var(--accent-teal)",
-              boxShadow: "0 0 6px var(--accent-teal)",
-              flexShrink: 0,
-            }}
-          />
-          <span style={{ fontWeight: 600, color: "var(--ink-primary)" }}>
-            Local Terminal
-          </span>
-          {terminalInfo?.shell && (
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "10px",
-                color: "var(--ink-muted)",
-                background: "var(--bg-chip)",
-                padding: "1px 5px",
-                borderRadius: "3px",
-              }}
-            >
-              {terminalInfo.shell.split("/").pop()}
-            </span>
-          )}
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              color: "var(--ink-muted)",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-            title={project.path}
-          >
-            {project.name}
-          </span>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
-          {/* Launch native macOS Terminal.app */}
-          <button
-            type="button"
-            onClick={handleLaunchExternalTerminal}
-            title="Launch native macOS Terminal.app in this workspace directory"
-            style={{
-              background: "var(--bg-card)",
-              border: "1px solid var(--border-subtle)",
-              borderRadius: "4px",
-              padding: "2px 7px",
-              color: "var(--ink-secondary)",
-              fontSize: "10.5px",
-              fontWeight: 500,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-              transition: "all 0.12s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "var(--accent-teal)";
-              e.currentTarget.style.borderColor = "var(--accent-teal)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "var(--ink-secondary)";
-              e.currentTarget.style.borderColor = "var(--border-subtle)";
-            }}
-          >
-            <TerminalIcon size={11} />
-            <span>Terminal.app ↗</span>
-          </button>
-
-          {/* Clear screen */}
-          <button
-            type="button"
-            onClick={handleClear}
-            title="Clear terminal output"
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--ink-muted)",
-              fontSize: "10.5px",
-              cursor: "pointer",
-              padding: "2px 4px",
-              display: "flex",
-              alignItems: "center",
-              gap: "3px",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink-primary)")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ink-muted)")}
-          >
-            <TrashIcon size={11} />
-            <span>Clear</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Terminal Output Area */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "12px",
-          fontFamily: "var(--font-mono)",
-          fontSize: "11px",
-          lineHeight: 1.55,
-          color: "var(--ink-secondary)",
-          display: "flex",
-          flexDirection: "column",
-          gap: "2px",
-          wordBreak: "break-all",
+          flexWrap: "wrap",
           whiteSpace: "pre-wrap",
+          wordBreak: "break-all",
         }}
       >
-        {lines.map((line) => {
-          let color = "var(--ink-secondary)";
-          let fontWeight: number | string = 400;
-
-          if (line.type === "command") {
-            color = "var(--accent-teal)";
-            fontWeight = 600;
-          } else if (line.type === "stderr") {
-            color = "#F87171";
-          } else if (line.type === "system") {
-            color = "var(--ink-muted)";
-          }
-
-          return (
-            <div key={line.id} style={{ color, fontWeight }}>
-              {line.text}
-            </div>
-          );
-        })}
-
-        {isExecuting && (
-          <div style={{ color: "var(--accent-teal)", display: "flex", alignItems: "center", gap: "6px" }}>
-            <span
-              style={{
-                display: "inline-block",
-                width: "6px",
-                height: "6px",
-                borderRadius: "50%",
-                background: "var(--accent-teal)",
-                animation: "pulse 1s infinite alternate",
-              }}
-            />
-            <span>Executing...</span>
-          </div>
-        )}
-
-        <div ref={terminalEndRef} />
-      </div>
-
-      {/* Quick Action Chips */}
-      <div
-        style={{
-          display: "flex",
-          gap: "4px",
-          padding: "4px 10px",
-          background: "var(--bg-canvas)",
-          borderTop: "1px solid var(--border-subtle)",
-          overflowX: "auto",
-          flexShrink: 0,
-        }}
-      >
-        {["git status", "ls -la", "pwd", "pnpm check", "node -v"].map((cmd) => (
-          <button
-            key={cmd}
-            type="button"
-            onClick={() => executeCommand(cmd)}
-            style={{
-              padding: "2px 6px",
-              borderRadius: "3px",
-              background: "var(--bg-card)",
-              border: "1px solid var(--border-subtle)",
-              color: "var(--ink-muted)",
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              transition: "all 0.12s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "var(--accent-teal)";
-              e.currentTarget.style.borderColor = "var(--accent-teal)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "var(--ink-muted)";
-              e.currentTarget.style.borderColor = "var(--border-subtle)";
-            }}
-          >
-            {cmd}
-          </button>
-        ))}
-      </div>
-
-      {/* Interactive Command Input Form */}
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          padding: "6px 10px",
-          background: "var(--bg-input)",
-          borderTop: "1px solid var(--border-medium)",
-          gap: "6px",
-          flexShrink: 0,
-        }}
-      >
+        <span style={{ color: "var(--ink-secondary)", userSelect: "none" }}>
+          {promptText}
+        </span>
+        <span style={{ color: "var(--ink-primary)" }}>{currentInput}</span>
         <span
           style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "11.5px",
-            color: "var(--accent-teal)",
-            fontWeight: 700,
-            userSelect: "none",
-          }}
-        >
-          ❯
-        </span>
-        <input
-          ref={inputRef}
-          type="text"
-          value={inputVal}
-          onChange={(e) => setInputVal(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Run shell command (e.g. ls, git status, pnpm, node)..."
-          disabled={isExecuting}
-          style={{
-            flex: 1,
-            height: "26px",
-            background: "transparent",
-            border: "none",
-            color: "var(--ink-primary)",
-            fontFamily: "var(--font-mono)",
-            fontSize: "11px",
-            outline: "none",
+            display: "inline-block",
+            width: "7px",
+            height: "14px",
+            background: "var(--ink-primary)",
+            verticalAlign: "middle",
+            marginLeft: "2px",
+            animation: "terminal-blink 1s step-end infinite",
           }}
         />
-        <button
-          type="submit"
-          disabled={isExecuting || !inputVal.trim()}
-          style={{
-            height: "24px",
-            padding: "0 8px",
-            borderRadius: "4px",
-            background: inputVal.trim() ? "var(--accent-teal-subtle)" : "transparent",
-            border: inputVal.trim() ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
-            color: inputVal.trim() ? "var(--accent-teal)" : "var(--ink-muted)",
-            fontSize: "10.5px",
-            fontWeight: 600,
-            cursor: inputVal.trim() ? "pointer" : "default",
-          }}
-        >
-          Run
-        </button>
-      </form>
+      </div>
+
+      <div ref={bottomRef} />
     </div>
   );
 };
