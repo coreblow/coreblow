@@ -276,7 +276,7 @@ export const Composer: React.FC<ComposerProps> = ({
     <div
       style={{
         width: "100%",
-        maxWidth: "var(--composer-max-width, 780px)",
+        maxWidth: "760px",
         margin: "0 auto",
         padding: "0 20px 14px",
         boxSizing: "border-box",
@@ -288,7 +288,7 @@ export const Composer: React.FC<ComposerProps> = ({
           display: "flex",
           alignItems: "center",
           gap: "10px",
-          marginBottom: "8px",
+          marginBottom: "10px",
           paddingLeft: "6px",
         }}
       >
@@ -296,7 +296,7 @@ export const Composer: React.FC<ComposerProps> = ({
         <button
           type="button"
           onClick={handleWorkspaceClick}
-          title={`Branch: ${projectBranch} · Click to switch workspace folder`}
+          title={`Branch: ${projectBranch} · Click to switch workspace folder (⌘O)`}
           style={{
             background: "transparent",
             border: "none",
@@ -319,10 +319,9 @@ export const Composer: React.FC<ComposerProps> = ({
             e.currentTarget.style.background = "transparent";
           }}
         >
-          <FolderIcon size={13} color="#F59E0B" />
-          <span style={{ fontWeight: 600 }}>{projectName}</span>
-          <span style={{ fontSize: "11px", color: "var(--ink-muted)" }}>:{projectBranch}</span>
-          <ChevronDownIcon size={11} color="var(--ink-muted)" />
+          <FolderIcon size={13} color="var(--accent-teal)" />
+          <span style={{ fontWeight: 600, color: "var(--ink-primary)" }}>{projectName}</span>
+          <span style={{ fontSize: "11px", color: "var(--ink-muted)" }}>:{projectBranch} ▾</span>
         </button>
 
         {/* Execution Mode Selector (Hidden visually to match Quiet-Instrument layout, preserved for test contracts) */}
@@ -430,9 +429,9 @@ export const Composer: React.FC<ComposerProps> = ({
       {/* 3. Sleek Rounded Composer Card */}
       <div
         style={{
-          background: "var(--bg-input)",
+          background: "var(--bg-card)",
           border: "1px solid var(--border-medium)",
-          borderRadius: "20px",
+          borderRadius: "14px",
           boxShadow: "var(--shadow-composer)",
           display: "flex",
           flexDirection: "column",

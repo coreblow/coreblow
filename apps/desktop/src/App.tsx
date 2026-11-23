@@ -119,6 +119,8 @@ export const App: React.FC = () => {
             messages: [],
             createdAt: Date.now(),
             updatedAt: Date.now(),
+            executionProfile: preferences.permissionMode,
+            model: preferences.modelTier,
           },
           ...curr,
         ];
@@ -430,6 +432,15 @@ export const App: React.FC = () => {
       if (isCmdOrCtrl && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setCommandPaletteOpen((prev) => !prev);
+      } else if (isCmdOrCtrl && e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        setPreferences((p) => ({ ...p, inspectorOpen: true, inspectorTab: "files" }));
+      } else if (e.ctrlKey && (e.key === "`" || e.code === "Backquote")) {
+        e.preventDefault();
+        setPreferences((p) => ({ ...p, inspectorOpen: true, inspectorTab: "terminal" }));
+      } else if (isCmdOrCtrl && e.key.toLowerCase() === "t") {
+        e.preventDefault();
+        setPreferences((p) => ({ ...p, inspectorOpen: true, inspectorTab: "browser" }));
       } else if (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === "h") {
         e.preventDefault();
         window.coreblowDesktop?.window?.toggleHud?.();
@@ -763,19 +774,7 @@ export const App: React.FC = () => {
             project={project}
           />
         }
-        statusBar={
-          preferences.layoutMode === "pro" ? (
-            <StatusBar
-              gatewayHealthy={gatewayHealthy}
-              activeNodeName={nodes.find((n) => n.id === activeNodeId)?.name || "Local :18789"}
-              activeModelName={activeModel}
-              layoutMode={preferences.layoutMode || "basic"}
-              onToggleLayoutMode={handleToggleLayoutMode}
-              estopPaused={estopPaused}
-              onToggleEstop={handleToggleEstop}
-            />
-          ) : undefined
-        }
+        statusBar={undefined}
       />
 
       <SettingsModal

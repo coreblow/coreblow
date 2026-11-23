@@ -309,3 +309,49 @@ export const CoreHubIcon: React.FC<IconProps> = ({ size = 16, color = "currentCo
     <circle cx="10.5" cy="10" r="1.6" fill={color} stroke="none" />
   </svg>
 );
+
+// Compass — navigation instrument with 4-point needle
+export const CompassIcon: React.FC<IconProps> = ({ size = 16, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="9" fill={color} fillOpacity="0.08" />
+    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill={color} fillOpacity="0.2" />
+    <circle cx="12" cy="12" r="1.5" fill={color} stroke="none" />
+  </svg>
+);
+
+// Globe — network navigation sphere with latitude/longitude meridians
+export const GlobeIcon: React.FC<IconProps> = ({ size = 16, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="9" fill={color} fillOpacity="0.08" />
+    <path d="M12 3a14.5 14.5 0 0 0 0 18 14.5 14.5 0 0 0 0-18z" />
+    <line x1="3" y1="12" x2="21" y2="12" />
+  </svg>
+);
+
+// GridTools — 2x2 modular tool suite matrix
+export const GridToolsIcon: React.FC<IconProps> = ({ size = 16, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" fill={color} fillOpacity="0.12" />
+    <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" fill={color} fillOpacity="0.12" />
+    <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" fill={color} fillOpacity="0.12" />
+    <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" fill={color} fillOpacity="0.12" />
+  </svg>
+);
+
+// ExpandPane — bidirectional expand / collapse pane
+export const ExpandPaneIcon: React.FC<IconProps> = ({ size = 16, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 3 21 3 21 9" />
+    <polyline points="9 21 3 21 3 15" />
+    <line x1="21" y1="3" x2="14" y2="10" />
+    <line x1="3" y1="21" x2="10" y2="14" />
+  </svg>
+);
+
+// SplitPane — vertical dual-pane toggle
+export const SplitPaneIcon: React.FC<IconProps> = ({ size = 16, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="16" rx="2" fill={color} fillOpacity="0.08" />
+    <line x1="12" y1="4" x2="12" y2="20" />
+  </svg>
+);

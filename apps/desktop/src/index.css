@@ -41,9 +41,9 @@
   --radius-panel: 16px;
   --radius-full: 999px;
 
-  --topbar-height: 48px;
-  --sidebar-default: 280px;
-  --sidebar-min: 264px;
+  --topbar-height: 44px;
+  --sidebar-default: 260px;
+  --sidebar-min: 240px;
   --sidebar-max: 420px;
   --sidebar-collapsed: 56px;
   --composer-max-width: 768px;

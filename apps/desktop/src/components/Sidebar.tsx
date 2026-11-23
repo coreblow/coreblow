@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import type { ChatThread } from "../types/gateway";
 import {
-  DiamondSparkIcon,
+  ClockIcon,
   PinIcon,
   PlusIcon,
   SearchIcon,
   SettingsIcon,
   SidebarToggleIcon,
-  TerminalIcon,
+  SkillsChipIcon,
   TrashIcon,
 } from "./Icons";
 
@@ -38,6 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSegment, setActiveSegment] = useState<"sessions" | "agent">("sessions");
+  const [hoveredThreadId, setHoveredThreadId] = useState<string | null>(null);
   const isMac = window.coreblowDesktop?.platform === "darwin";
 
   const filteredThreads = threads.filter((t) =>
@@ -57,14 +58,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return (
       <aside
         style={{
-          width: "var(--sidebar-collapsed)",
+          width: "var(--sidebar-collapsed, 56px)",
           height: "100%",
           background: "var(--bg-sidebar)",
           borderRight: "1px solid var(--border-subtle)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          padding: isMac ? "48px 0 16px" : "12px 0 16px",
+          padding: isMac ? "44px 0 16px" : "12px 0 16px",
           boxSizing: "border-box",
           flexShrink: 0,
           gap: "12px",
@@ -118,13 +119,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             borderRadius: "var(--radius-sm)",
             background: "transparent",
             border: "none",
-            color: "#F97316",
+            color: "var(--accent-teal)",
             display: "grid",
             placeItems: "center",
             cursor: "pointer",
           }}
         >
-          <DiamondSparkIcon size={18} color="#F97316" />
+          <SkillsChipIcon size={18} color="var(--accent-teal)" />
         </button>
 
         <button
@@ -137,13 +138,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             borderRadius: "var(--radius-sm)",
             background: "transparent",
             border: "none",
-            color: "#F97316",
+            color: "var(--accent-teal)",
             display: "grid",
             placeItems: "center",
             cursor: "pointer",
           }}
         >
-          <TerminalIcon size={18} color="#F97316" />
+          <ClockIcon size={18} color="var(--accent-teal)" />
         </button>
 
         <div style={{ flex: 1 }} />
@@ -173,7 +174,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       style={{
-        width: "var(--sidebar-default)",
+        width: "var(--sidebar-default, 260px)",
         height: "100%",
         background: "var(--bg-sidebar)",
         borderRight: "1px solid var(--border-subtle)",
@@ -185,11 +186,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         overflow: "hidden",
       }}
     >
-      {/* Top window clearance & branding */}
+      {/* Top window clearance & branding (44px height, horizontally aligned with Topbar) */}
       <div
         data-window-drag
         style={{
-          height: "48px",
+          height: "44px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -198,7 +199,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.06em", color: "var(--ink-primary)" }}>
+          <span style={{ fontSize: "12.5px", fontWeight: 700, letterSpacing: "0.05em", color: "var(--ink-primary)" }}>
             COREBLOW
           </span>
         </div>
@@ -239,7 +240,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={handleSessionsClick}
           style={{
             background: activeSegment === "sessions" ? "var(--bg-card)" : "transparent",
-            color: "#F97316",
+            color: activeSegment === "sessions" ? "var(--accent-teal)" : "var(--ink-muted)",
             border: "none",
             borderRadius: "6px",
             padding: "5px 0",
@@ -258,7 +259,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={handleAgentClick}
           style={{
             background: activeSegment === "agent" ? "var(--bg-card)" : "transparent",
-            color: "#EC4899",
+            color: activeSegment === "agent" ? "var(--accent-teal)" : "var(--ink-muted)",
             border: "none",
             borderRadius: "6px",
             padding: "5px 0",
@@ -274,7 +275,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      {/* New Chat Button */}
+      {/* Primary Action Button: + New Chat */}
       <div style={{ marginBottom: "8px" }}>
         <button
           type="button"
@@ -286,7 +287,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0 12px",
-            background: "var(--accent-teal-subtle)",
+            background: "var(--bg-chip)",
             border: "1px solid var(--border-medium)",
             borderRadius: "var(--radius-sm)",
             color: "var(--ink-primary)",
@@ -311,12 +312,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
               fontFamily: "var(--font-mono)",
             }}
           >
-            ^N
+            ⌘N
           </kbd>
         </button>
       </div>
 
-      {/* Quick Navigation Links: Exactly 2 items (Capabilities & Scheduled jobs) */}
+      {/* Quick Navigation Links: EXACTLY 2 clean hairline items */}
       <div
         style={{
           display: "flex",
@@ -353,7 +354,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             e.currentTarget.style.color = "var(--ink-secondary)";
           }}
         >
-          <DiamondSparkIcon size={14} color="#F97316" />
+          <SkillsChipIcon size={14} color="var(--accent-teal)" />
           <span>Capabilities</span>
         </button>
 
@@ -385,12 +386,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             e.currentTarget.style.color = "var(--ink-secondary)";
           }}
         >
-          <TerminalIcon size={14} color="#F97316" />
+          <ClockIcon size={14} color="var(--accent-teal)" />
           <span>Scheduled jobs</span>
         </button>
       </div>
 
-      {/* Search Filter */}
+      {/* Search Bar (Clean 30px input) */}
       <div style={{ position: "relative", marginBottom: "8px" }}>
         <input
           type="text"
@@ -399,7 +400,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           placeholder="Search chats..."
           style={{
             width: "100%",
-            height: "32px",
+            height: "30px",
             background: "var(--bg-input)",
             border: "1px solid var(--border-subtle)",
             borderRadius: "var(--radius-xs)",
@@ -425,7 +426,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </span>
       </div>
 
-      {/* Threads List (Clean Unboxed Flattened List) */}
+      {/* Conversation List (Pinned & Recent threads with hover-only actions) */}
       <div
         style={{
           flex: 1,
@@ -450,10 +451,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ) : (
           filteredThreads.map((thread) => {
             const isActive = thread.id === activeThreadId;
+            const isHovered = hoveredThreadId === thread.id;
+            const showActions = isHovered || thread.pinned;
             return (
               <div
                 key={thread.id}
                 onClick={() => onSelectThread(thread.id)}
+                onMouseEnter={() => setHoveredThreadId(thread.id)}
+                onMouseLeave={() => setHoveredThreadId(null)}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -481,7 +486,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {thread.title}
                 </span>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    opacity: showActions ? 1 : 0,
+                    transition: "opacity 0.12s ease",
+                  }}
+                >
                   <button
                     type="button"
                     onClick={(e) => {
@@ -515,7 +528,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       color: "var(--ink-muted)",
                       cursor: "pointer",
                       padding: "2px",
-                      display: "grid",
+                      display: isHovered ? "grid" : "none",
                       placeItems: "center",
                     }}
                   >
@@ -528,7 +541,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      {/* Bottom Profile / Settings Trigger */}
+      {/* Bottom Footer: Settings with ⌘, */}
       <div
         style={{
           paddingTop: "8px",
@@ -553,6 +566,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             cursor: "pointer",
             transition: "all 0.12s ease",
           }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "var(--bg-hover)";
+            e.currentTarget.style.color = "var(--ink-primary)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "var(--ink-secondary)";
+          }}
         >
           <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <SettingsIcon size={15} />
@@ -569,7 +590,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               fontFamily: "var(--font-mono)",
             }}
           >
-            ^,
+            ⌘,
           </kbd>
         </button>
       </div>

@@ -219,7 +219,7 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
             </div>
           </div>
 
-          {/* Bottom Floating Composer Dock */}
+          {/* Bottom Floating Composer Dock with smooth fade gradient */}
           <div
             style={{
               position: "absolute",
@@ -227,6 +227,8 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
               left: 0,
               right: 0,
               pointerEvents: "none",
+              background: "linear-gradient(to top, var(--bg-canvas) 65%, transparent)",
+              paddingTop: "24px",
             }}
           >
             <div style={{ pointerEvents: "auto" }}>

@@ -37,7 +37,7 @@ export interface UiPreferences {
   layoutMode?: "basic" | "pro";
   sidebarCollapsed: boolean;
   inspectorOpen: boolean;
-  inspectorTab: "git" | "warroom" | "memory" | "corehub";
+  inspectorTab: "start" | "files" | "terminal" | "browser" | "git" | "warroom" | "memory" | "corehub";
   anthropicApiKey?: string;
   openAiApiKey?: string;
   geminiApiKey?: string;
@@ -63,7 +63,7 @@ const DEFAULT_PREFERENCES: UiPreferences = {
   layoutMode: "basic",
   sidebarCollapsed: false,
   inspectorOpen: false,
-  inspectorTab: "git",
+  inspectorTab: "start",
   localOllamaUrl: "http://127.0.0.1:11434",
   automations: {
     repoHealth: true,
