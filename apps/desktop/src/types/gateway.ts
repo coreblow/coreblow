@@ -284,3 +284,15 @@ export interface VoiceSpeakResponse {
   engine?: string;
   error?: string;
 }
+
+export type CuratedMemoryFileId = "user" | "memory" | "constraints";
+
+export interface CuratedMemoryFile {
+  id: CuratedMemoryFileId;
+  filename: string;
+  path: string;
+  content: string;
+  charCount: number;
+  charLimit: number;
+  updatedAt: string;
+}

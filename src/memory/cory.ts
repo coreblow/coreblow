@@ -35,6 +35,18 @@ import { TranscriptStore, type TranscriptEntry } from './transcript-store.js';
 
 export type CoryMemoryLayer = 'identity' | 'durable' | 'episodic' | 'constraint';
 
+export type CuratedMemoryFileId = 'user' | 'memory' | 'constraints';
+
+export interface CuratedMemoryFile {
+    readonly id: CuratedMemoryFileId;
+    readonly filename: string;
+    readonly path: string;
+    readonly content: string;
+    readonly charCount: number;
+    readonly charLimit: number;
+    readonly updatedAt: string;
+}
+
 export type CoryTrustZone = 'operator' | 'authenticated' | 'public';
 
 export interface CoryScope {
@@ -624,6 +636,47 @@ export class CoryMemoryStore {
             fs.mkdirSync(dailyDir, { recursive: true });
         }
         return path.join(dailyDir, `${day}.md`);
+    }
+
+    public getCuratedMemoryFilePath(fileId: CuratedMemoryFileId, scope?: CoryScope): string {
+        switch (fileId) {
+            case 'user':
+                return this.getIdentityFilePath(scope?.userScope);
+            case 'memory':
+                return this.getDurableFilePath(scope?.workspaceId, scope?.workspaceDir);
+            case 'constraints':
+                return this.getConstraintsFilePath(scope?.workspaceId);
+            default:
+                throw new Error(`Invalid curated memory fileId: ${String(fileId)}`);
+        }
+    }
+
+    public getDefaultCuratedMemoryContent(fileId: CuratedMemoryFileId, scope?: CoryScope): string {
+        const userScope = normalizeScopeId(scope?.userScope, 'default');
+        const workspaceId = normalizeScopeId(scope?.workspaceId, 'default');
+
+        switch (fileId) {
+            case 'user':
+                return serializeMarkdownMemoryFile({
+                    title: `User Identity Memory (${userScope})`,
+                    description: 'Stable user preferences and communication style managed by Cory.',
+                    items: [],
+                });
+            case 'memory':
+                return serializeMarkdownMemoryFile({
+                    title: `Workspace Durable Memory (${workspaceId})`,
+                    description: 'Durable project decisions, conventions, and verified facts.',
+                    items: [],
+                });
+            case 'constraints':
+                return serializeMarkdownMemoryFile({
+                    title: `Active Constraints (${workspaceId})`,
+                    description: 'Active constraints and failure boundaries that must be preserved.',
+                    items: [],
+                });
+            default:
+                throw new Error(`Invalid curated memory fileId: ${String(fileId)}`);
+        }
     }
 
     /**
@@ -1580,5 +1633,104 @@ export class CoryBootstrapService implements GatewayService {
 
     public getStateDir(): string {
         return this.stateDir;
+    }
+
+    public readCuratedMemoryFiles(scope?: CoryScope): CuratedMemoryFile[] {
+        this.memoryStore.ensureCanonicalDefaults(scope);
+        const configs: Array<{ id: CuratedMemoryFileId; filename: string; charLimit: number }> = [
+            { id: 'user', filename: 'USER.md', charLimit: 1375 },
+            { id: 'memory', filename: 'MEMORY.md', charLimit: 2200 },
+            { id: 'constraints', filename: 'CONSTRAINTS.md', charLimit: 1500 },
+        ];
+
+        return configs.map((cfg) => {
+            const filePath = this.memoryStore.getCuratedMemoryFilePath(cfg.id, scope);
+            let content = '';
+            let updatedAt = new Date().toISOString();
+            try {
+                if (fs.existsSync(filePath)) {
+                    content = fs.readFileSync(filePath, 'utf-8');
+                    const stat = fs.statSync(filePath);
+                    updatedAt = stat.mtime.toISOString();
+                }
+            } catch (err) {
+                logCaughtError(`cory:read-curated-file:${cfg.id}`, err);
+            }
+
+            return {
+                id: cfg.id,
+                filename: cfg.filename,
+                path: filePath,
+                content,
+                charCount: content.length,
+                charLimit: cfg.charLimit,
+                updatedAt,
+            };
+        });
+    }
+
+    public writeCuratedMemoryFile(
+        fileId: CuratedMemoryFileId,
+        content: string,
+        scope?: CoryScope,
+    ): CuratedMemoryFile {
+        if (fileId !== 'user' && fileId !== 'memory' && fileId !== 'constraints') {
+            throw new Error(`Invalid curated memory fileId: ${String(fileId)}`);
+        }
+
+        const filePath = this.memoryStore.getCuratedMemoryFilePath(fileId, scope);
+        const dir = path.dirname(filePath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        const tempPath = path.join(
+            dir,
+            `.tmp-${fileId}-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`,
+        );
+        try {
+            fs.writeFileSync(tempPath, content, 'utf-8');
+            fs.renameSync(tempPath, filePath);
+        } catch (err) {
+            try {
+                if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+            } catch {
+                // ignore
+            }
+            throw err;
+        }
+
+        // Reload canonical items and rebuild search index
+        const allItems = this.memoryStore.loadAllCanonicalItems();
+        this.searchIndex.rebuildFromCanonical(allItems);
+        // Invalidate startup snapshot cache so subsequent turns pick up immediately
+        this.contextAssembler.clearSessionSnapshot();
+
+        const charLimit = fileId === 'user' ? 1375 : fileId === 'memory' ? 2200 : 1500;
+        const filename =
+            fileId === 'user' ? 'USER.md' : fileId === 'memory' ? 'MEMORY.md' : 'CONSTRAINTS.md';
+        const stat = fs.statSync(filePath);
+
+        return {
+            id: fileId,
+            filename,
+            path: filePath,
+            content,
+            charCount: content.length,
+            charLimit,
+            updatedAt: stat.mtime.toISOString(),
+        };
+    }
+
+    public resetCuratedMemoryFile(
+        fileId: CuratedMemoryFileId,
+        scope?: CoryScope,
+    ): CuratedMemoryFile {
+        if (fileId !== 'user' && fileId !== 'memory' && fileId !== 'constraints') {
+            throw new Error(`Invalid curated memory fileId: ${String(fileId)}`);
+        }
+
+        const defaultContent = this.memoryStore.getDefaultCuratedMemoryContent(fileId, scope);
+        return this.writeCuratedMemoryFile(fileId, defaultContent, scope);
     }
 }

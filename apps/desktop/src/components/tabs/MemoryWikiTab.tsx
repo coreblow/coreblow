@@ -3,6 +3,8 @@ import { gatewayClient } from "../../services/gateway-client";
 import type {
   CoryMemoryItem,
   CoryProfilePayload,
+  CuratedMemoryFile,
+  CuratedMemoryFileId,
   MemoryProposal,
 } from "../../types/gateway";
 import {
@@ -16,9 +18,102 @@ import {
 } from "../Icons";
 
 export const MemoryWikiTab: React.FC = () => {
-  const [mode, setMode] = useState<"simple" | "advanced">("simple");
+  const [mode, setMode] = useState<"simple" | "advanced" | "files">("simple");
   const [profileData, setProfileData] = useState<CoryProfilePayload | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Curated Files State
+  const [memoryFiles, setMemoryFiles] = useState<CuratedMemoryFile[]>([]);
+  const [selectedFileId, setSelectedFileId] = useState<CuratedMemoryFileId>("user");
+  const [fileDrafts, setFileDrafts] = useState<Record<CuratedMemoryFileId, string>>({
+    user: "",
+    memory: "",
+    constraints: "",
+  });
+  const [loadingFiles, setLoadingFiles] = useState(false);
+  const [savingFile, setSavingFile] = useState(false);
+  const [resettingFile, setResettingFile] = useState(false);
+  const [fileStatus, setFileStatus] = useState<{ text: string; ok: boolean } | null>(null);
+
+  const fetchFiles = async () => {
+    setLoadingFiles(true);
+    try {
+      const files = await gatewayClient.getMemoryFiles();
+      if (files && files.length > 0) {
+        setMemoryFiles(files);
+        setFileDrafts((prev) => {
+          const drafts = { ...prev };
+          for (const f of files) {
+            drafts[f.id] = f.content;
+          }
+          return drafts;
+        });
+      }
+    } finally {
+      setLoadingFiles(false);
+    }
+  };
+
+  useEffect(() => {
+    if (mode === "files") {
+      fetchFiles();
+    }
+  }, [mode]);
+
+  const handleSaveFile = async () => {
+    const content = fileDrafts[selectedFileId] ?? "";
+    setSavingFile(true);
+    setFileStatus(null);
+    try {
+      const res = await gatewayClient.saveMemoryFile(selectedFileId, content);
+      if (res.ok && res.file) {
+        setMemoryFiles((prev) =>
+          prev.map((f) => (f.id === selectedFileId ? res.file! : f)),
+        );
+        setFileStatus({ text: "Saved", ok: true });
+      } else {
+        setFileStatus({ text: res.error || "Failed to save", ok: false });
+      }
+    } finally {
+      setSavingFile(false);
+      setTimeout(() => setFileStatus(null), 3000);
+    }
+  };
+
+  const handleResetFile = async () => {
+    setResettingFile(true);
+    setFileStatus(null);
+    try {
+      const res = await gatewayClient.resetMemoryFile(selectedFileId);
+      if (res.ok && res.file) {
+        setMemoryFiles((prev) =>
+          prev.map((f) => (f.id === selectedFileId ? res.file! : f)),
+        );
+        setFileDrafts((prev) => ({
+          ...prev,
+          [selectedFileId]: res.file!.content,
+        }));
+        setFileStatus({ text: "Reset to default", ok: true });
+      } else {
+        setFileStatus({ text: res.error || "Failed to reset", ok: false });
+      }
+    } finally {
+      setResettingFile(false);
+      setTimeout(() => setFileStatus(null), 3000);
+    }
+  };
+
+  const handleRevertFile = () => {
+    const file = memoryFiles.find((f) => f.id === selectedFileId);
+    if (file) {
+      setFileDrafts((prev) => ({
+        ...prev,
+        [selectedFileId]: file.content,
+      }));
+      setFileStatus({ text: "Reverted", ok: true });
+      setTimeout(() => setFileStatus(null), 2000);
+    }
+  };
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -182,11 +277,31 @@ export const MemoryWikiTab: React.FC = () => {
           >
             Advanced
           </button>
+          <button
+            type="button"
+            onClick={() => setMode("files")}
+            style={{
+              padding: "3px 10px",
+              borderRadius: "3px",
+              border: "none",
+              fontSize: "11px",
+              fontWeight: 600,
+              cursor: "pointer",
+              background: mode === "files" ? "var(--bg-card)" : "transparent",
+              color: mode === "files" ? "var(--accent-teal)" : "var(--ink-secondary)",
+              transition: "all 0.15s ease",
+            }}
+          >
+            Files
+          </button>
         </div>
 
         <button
           type="button"
-          onClick={fetchProfile}
+          onClick={() => {
+            if (mode === "files") fetchFiles();
+            else fetchProfile();
+          }}
           title="Refresh Memory"
           style={{
             background: "transparent",
@@ -935,6 +1050,265 @@ export const MemoryWikiTab: React.FC = () => {
               </pre>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── FILES VIEW: CURATED USER.md, MEMORY.md, CONSTRAINTS.md ── */}
+      {mode === "files" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {/* Sub-tabs: USER.md, MEMORY.md, CONSTRAINTS.md */}
+          <div
+            style={{
+              display: "flex",
+              gap: "4px",
+              background: "var(--bg-chip)",
+              padding: "2px",
+              borderRadius: "6px",
+              border: "1px solid var(--border-subtle)",
+            }}
+          >
+            {[
+              { id: "user" as const, label: "USER.md" },
+              { id: "memory" as const, label: "MEMORY.md" },
+              { id: "constraints" as const, label: "CONSTRAINTS.md" },
+            ].map((tab) => {
+              const isSel = selectedFileId === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setSelectedFileId(tab.id)}
+                  style={{
+                    flex: 1,
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                    border: "none",
+                    background: isSel ? "var(--bg-card)" : "transparent",
+                    color: isSel ? "var(--accent-teal)" : "var(--ink-secondary)",
+                    fontFamily: "var(--font-mono, monospace)",
+                    fontSize: "11px",
+                    fontWeight: isSel ? 600 : 500,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {(() => {
+            const activeFile = memoryFiles.find((f) => f.id === selectedFileId) || {
+              id: selectedFileId,
+              filename:
+                selectedFileId === "user"
+                  ? "USER.md"
+                  : selectedFileId === "memory"
+                    ? "MEMORY.md"
+                    : "CONSTRAINTS.md",
+              path: `~/.coreblow/memory/${
+                selectedFileId === "user"
+                  ? "users/default/USER.md"
+                  : selectedFileId === "memory"
+                    ? "workspaces/default/MEMORY.md"
+                    : "workspaces/default/CONSTRAINTS.md"
+              }`,
+              content: "",
+              charCount: 0,
+              charLimit:
+                selectedFileId === "user" ? 1375 : selectedFileId === "memory" ? 2200 : 1500,
+              updatedAt: "",
+            };
+            const draft = fileDrafts[selectedFileId] ?? activeFile.content;
+            const charCount = draft.length;
+            const charLimit =
+              activeFile.charLimit ||
+              (selectedFileId === "user" ? 1375 : selectedFileId === "memory" ? 2200 : 1500);
+            const usageRatio = charLimit > 0 ? charCount / charLimit : 0;
+            const progressColor =
+              usageRatio > 1.0 ? "#EF4444" : usageRatio > 0.85 ? "#F59E0B" : "var(--accent-teal)";
+            const progressWidth = Math.min(100, Math.round(usageRatio * 100));
+            const isUnchanged = draft === activeFile.content;
+
+            return (
+              <div
+                style={{
+                  background: "var(--bg-card)",
+                  borderRadius: "var(--radius-sm)",
+                  padding: "10px 12px",
+                  border: "1px solid var(--border-subtle)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: "6px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      fontFamily: "var(--font-mono, monospace)",
+                      color: "var(--ink-muted)",
+                      wordBreak: "break-all",
+                    }}
+                  >
+                    {activeFile.path}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      fontFamily: "var(--font-mono, monospace)",
+                      fontWeight: 600,
+                      color:
+                        usageRatio > 1.0
+                          ? "#EF4444"
+                          : usageRatio > 0.85
+                            ? "#F59E0B"
+                            : "var(--ink-secondary)",
+                    }}
+                  >
+                    {charCount} / {charLimit} chars
+                  </span>
+                </div>
+
+                {/* 4px progress bar */}
+                <div
+                  style={{
+                    width: "100%",
+                    height: "4px",
+                    borderRadius: "2px",
+                    background: "var(--bg-chip)",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${progressWidth}%`,
+                      height: "100%",
+                      background: progressColor,
+                      transition: "width 0.2s ease, background 0.2s ease",
+                    }}
+                  />
+                </div>
+
+                <div style={{ fontSize: "10.5px", color: "var(--ink-muted)", lineHeight: 1.35 }}>
+                  Injected as a frozen snapshot at session start. Saved edits apply immediately to new sessions.
+                </div>
+
+                <textarea
+                  value={draft}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setFileDrafts((prev) => ({
+                      ...prev,
+                      [selectedFileId]: val,
+                    }));
+                  }}
+                  placeholder={`Markdown content for ${activeFile.filename}...`}
+                  style={{
+                    width: "100%",
+                    minHeight: "200px",
+                    padding: "8px",
+                    borderRadius: "4px",
+                    background: "var(--bg-code)",
+                    border: "1px solid var(--border-subtle)",
+                    color: "var(--ink-primary)",
+                    fontFamily: "var(--font-mono, monospace)",
+                    fontSize: "11px",
+                    lineHeight: "1.45",
+                    resize: "vertical",
+                    outline: "none",
+                    boxSizing: "border-box",
+                  }}
+                />
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: "6px",
+                    paddingTop: "4px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <button
+                      type="button"
+                      onClick={handleResetFile}
+                      disabled={resettingFile || loadingFiles}
+                      style={{
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        border: "1px solid var(--border-subtle)",
+                        background: "transparent",
+                        color: "var(--ink-secondary)",
+                        fontSize: "10.5px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {resettingFile ? "Resetting..." : "Reset"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRevertFile}
+                      disabled={isUnchanged || loadingFiles}
+                      style={{
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        border: "1px solid var(--border-subtle)",
+                        background: "transparent",
+                        color: "var(--ink-muted)",
+                        fontSize: "10.5px",
+                        cursor: isUnchanged ? "default" : "pointer",
+                        opacity: isUnchanged ? 0.4 : 1,
+                      }}
+                    >
+                      Revert
+                    </button>
+                    {fileStatus && (
+                      <span
+                        style={{
+                          fontSize: "10.5px",
+                          color: fileStatus.ok ? "var(--accent-teal)" : "#EF4444",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {fileStatus.text}
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveFile}
+                    disabled={isUnchanged || savingFile || loadingFiles}
+                    style={{
+                      padding: "4px 12px",
+                      borderRadius: "4px",
+                      border: "none",
+                      background: "var(--accent-teal)",
+                      color: "#08110F",
+                      fontSize: "10.5px",
+                      fontWeight: 600,
+                      cursor: isUnchanged || savingFile ? "default" : "pointer",
+                      opacity: isUnchanged || savingFile ? 0.5 : 1,
+                    }}
+                  >
+                    {savingFile ? "Saving..." : "Save File"}
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>

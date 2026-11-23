@@ -3,8 +3,10 @@ import { gatewayClient } from "../services/gateway-client";
 import { storageService, type UiPreferences } from "../services/storage";
 import type {
   CoreHubSkill,
-  PermissionMode,
   CredentialPoolPayload,
+  CuratedMemoryFile,
+  CuratedMemoryFileId,
+  PermissionMode,
   RemoteNodeConfig,
   RemoteNodeKind,
 } from "../types/gateway";
@@ -208,6 +210,13 @@ const SEARCH_INDEX: SearchableSetting[] = [
     title: "Context Auto-Compression",
     description: "Threshold % and protected recent messages",
     keywords: ["compression", "compact", "threshold", "protect", "context"],
+  },
+  {
+    id: "memory-curated-files",
+    section: "memory",
+    title: "USER.md / MEMORY.md Editor",
+    description: "Curated markdown memory: USER.md, MEMORY.md, and CONSTRAINTS.md",
+    keywords: ["user.md", "memory.md", "constraints", "profile", "curated", "markdown", "capacity"],
   },
 
   {
@@ -552,6 +561,93 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }
   };
 
+  // Curated Memory Files state
+  const [memoryFiles, setMemoryFiles] = useState<CuratedMemoryFile[]>([]);
+  const [selectedMemoryFileId, setSelectedMemoryFileId] = useState<CuratedMemoryFileId>("user");
+  const [memoryDrafts, setMemoryDrafts] = useState<Record<CuratedMemoryFileId, string>>({
+    user: "",
+    memory: "",
+    constraints: "",
+  });
+  const [loadingMemoryFiles, setLoadingMemoryFiles] = useState(false);
+  const [savingMemoryFile, setSavingMemoryFile] = useState(false);
+  const [resettingMemoryFile, setResettingMemoryFile] = useState(false);
+  const [memoryStatus, setMemoryStatus] = useState<{ text: string; ok: boolean } | null>(null);
+
+  const fetchMemoryFiles = async () => {
+    setLoadingMemoryFiles(true);
+    try {
+      const files = await gatewayClient.getMemoryFiles();
+      if (files && files.length > 0) {
+        setMemoryFiles(files);
+        setMemoryDrafts((prev) => {
+          const drafts = { ...prev };
+          for (const f of files) {
+            drafts[f.id] = f.content;
+          }
+          return drafts;
+        });
+      }
+    } finally {
+      setLoadingMemoryFiles(false);
+    }
+  };
+
+  const handleSaveMemoryFile = async () => {
+    const content = memoryDrafts[selectedMemoryFileId] ?? "";
+    setSavingMemoryFile(true);
+    setMemoryStatus(null);
+    try {
+      const res = await gatewayClient.saveMemoryFile(selectedMemoryFileId, content);
+      if (res.ok && res.file) {
+        setMemoryFiles((prev) =>
+          prev.map((f) => (f.id === selectedMemoryFileId ? res.file! : f)),
+        );
+        setMemoryStatus({ text: "Saved", ok: true });
+      } else {
+        setMemoryStatus({ text: res.error || "Failed to save file", ok: false });
+      }
+    } finally {
+      setSavingMemoryFile(false);
+      setTimeout(() => setMemoryStatus(null), 3000);
+    }
+  };
+
+  const handleResetMemoryFile = async () => {
+    setResettingMemoryFile(true);
+    setMemoryStatus(null);
+    try {
+      const res = await gatewayClient.resetMemoryFile(selectedMemoryFileId);
+      if (res.ok && res.file) {
+        setMemoryFiles((prev) =>
+          prev.map((f) => (f.id === selectedMemoryFileId ? res.file! : f)),
+        );
+        setMemoryDrafts((prev) => ({
+          ...prev,
+          [selectedMemoryFileId]: res.file!.content,
+        }));
+        setMemoryStatus({ text: "Reset to default", ok: true });
+      } else {
+        setMemoryStatus({ text: res.error || "Failed to reset file", ok: false });
+      }
+    } finally {
+      setResettingMemoryFile(false);
+      setTimeout(() => setMemoryStatus(null), 3000);
+    }
+  };
+
+  const handleRevertMemoryFile = () => {
+    const file = memoryFiles.find((f) => f.id === selectedMemoryFileId);
+    if (file) {
+      setMemoryDrafts((prev) => ({
+        ...prev,
+        [selectedMemoryFileId]: file.content,
+      }));
+      setMemoryStatus({ text: "Reverted", ok: true });
+      setTimeout(() => setMemoryStatus(null), 2000);
+    }
+  };
+
   useEffect(() => {
     if (initialSection) {
       setActiveSection(initialSection);
@@ -579,6 +675,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       }
       if (activeSection === "channels") fetchPairingData();
       if (activeSection.startsWith("models")) fetchPools();
+      if (activeSection === "memory") fetchMemoryFiles();
     }
   }, [open, activeSection]);
 
@@ -2315,6 +2412,283 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     }}
                   />
                 </SettingRow>
+              </SettingGroup>
+
+              <SettingGroup title="CURATED MEMORY FILES (MARKDOWN)">
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                    padding: "4px 0",
+                  }}
+                >
+                  {/* 3-tab file selector */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "6px",
+                      background: "var(--bg-chip)",
+                      padding: "3px",
+                      borderRadius: "8px",
+                      border: "1px solid var(--border-subtle)",
+                      width: "fit-content",
+                    }}
+                  >
+                    {[
+                      { id: "user" as const, label: "USER.md", subtitle: "User Profile" },
+                      { id: "memory" as const, label: "MEMORY.md", subtitle: "Agent Notes" },
+                      { id: "constraints" as const, label: "CONSTRAINTS.md", subtitle: "Always Follow" },
+                    ].map((tab) => {
+                      const isSel = selectedMemoryFileId === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setSelectedMemoryFileId(tab.id)}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            padding: "6px 12px",
+                            borderRadius: "6px",
+                            border: "none",
+                            background: isSel ? "var(--bg-card)" : "transparent",
+                            color: isSel ? "var(--accent-teal)" : "var(--ink-secondary)",
+                            fontSize: "12px",
+                            fontWeight: isSel ? 600 : 500,
+                            cursor: "pointer",
+                            boxShadow: isSel ? "0 1px 3px rgba(0,0,0,0.12)" : "none",
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          <span style={{ fontFamily: "var(--font-mono, monospace)" }}>{tab.label}</span>
+                          <span style={{ fontSize: "11px", color: isSel ? "var(--ink-primary)" : "var(--ink-muted)" }}>
+                            ({tab.subtitle})
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Header metadata strip: path + capacity indicator + progress bar */}
+                  {(() => {
+                    const activeFile = memoryFiles.find((f) => f.id === selectedMemoryFileId) || {
+                      id: selectedMemoryFileId,
+                      filename:
+                        selectedMemoryFileId === "user"
+                          ? "USER.md"
+                          : selectedMemoryFileId === "memory"
+                            ? "MEMORY.md"
+                            : "CONSTRAINTS.md",
+                      path: `~/.coreblow/memory/${
+                        selectedMemoryFileId === "user"
+                          ? "users/default/USER.md"
+                          : selectedMemoryFileId === "memory"
+                            ? "workspaces/default/MEMORY.md"
+                            : "workspaces/default/CONSTRAINTS.md"
+                      }`,
+                      content: "",
+                      charCount: 0,
+                      charLimit:
+                        selectedMemoryFileId === "user" ? 1375 : selectedMemoryFileId === "memory" ? 2200 : 1500,
+                      updatedAt: "",
+                    };
+                    const draftContent = memoryDrafts[selectedMemoryFileId] ?? activeFile.content;
+                    const charCount = draftContent.length;
+                    const charLimit =
+                      activeFile.charLimit ||
+                      (selectedMemoryFileId === "user" ? 1375 : selectedMemoryFileId === "memory" ? 2200 : 1500);
+                    const usageRatio = charLimit > 0 ? charCount / charLimit : 0;
+                    const progressColor =
+                      usageRatio > 1.0 ? "#EF4444" : usageRatio > 0.85 ? "#F59E0B" : "var(--accent-teal)";
+                    const progressWidth = Math.min(100, Math.round(usageRatio * 100));
+                    const isUnchanged = draftContent === activeFile.content;
+
+                    return (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                          background: "var(--bg-input)",
+                          padding: "12px",
+                          borderRadius: "8px",
+                          border: "1px solid var(--border-medium)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            flexWrap: "wrap",
+                            gap: "8px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: "11px",
+                              fontFamily: "var(--font-mono, monospace)",
+                              color: "var(--ink-muted)",
+                              wordBreak: "break-all",
+                            }}
+                          >
+                            {activeFile.path}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "11px",
+                              fontFamily: "var(--font-mono, monospace)",
+                              color:
+                                usageRatio > 1.0
+                                  ? "#EF4444"
+                                  : usageRatio > 0.85
+                                    ? "#F59E0B"
+                                    : "var(--ink-secondary)",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {charCount} / {charLimit} chars
+                          </div>
+                        </div>
+
+                        {/* 4px progress bar */}
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "4px",
+                            borderRadius: "2px",
+                            background: "var(--bg-chip)",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${progressWidth}%`,
+                              height: "100%",
+                              background: progressColor,
+                              transition: "width 0.2s ease, background 0.2s ease",
+                            }}
+                          />
+                        </div>
+
+                        {/* Helper note */}
+                        <div style={{ fontSize: "11px", color: "var(--ink-muted)", lineHeight: 1.4 }}>
+                          Injected as a frozen snapshot at session start. Saved edits apply immediately to new sessions.
+                        </div>
+
+                        {/* Monospace Markdown textarea */}
+                        <textarea
+                          value={draftContent}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setMemoryDrafts((prev) => ({
+                              ...prev,
+                              [selectedMemoryFileId]: val,
+                            }));
+                          }}
+                          placeholder={`Enter markdown content for ${activeFile.filename}...`}
+                          style={{
+                            width: "100%",
+                            minHeight: "220px",
+                            padding: "10px",
+                            borderRadius: "6px",
+                            background: "var(--bg-card)",
+                            border: "1px solid var(--border-medium)",
+                            color: "var(--ink-primary)",
+                            fontFamily: "var(--font-mono, monospace)",
+                            fontSize: "12px",
+                            lineHeight: "1.5",
+                            resize: "vertical",
+                            outline: "none",
+                            boxSizing: "border-box",
+                          }}
+                        />
+
+                        {/* Footer action bar */}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            flexWrap: "wrap",
+                            gap: "10px",
+                            paddingTop: "4px",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <button
+                              type="button"
+                              onClick={handleResetMemoryFile}
+                              disabled={resettingMemoryFile || loadingMemoryFiles}
+                              style={{
+                                padding: "6px 12px",
+                                borderRadius: "6px",
+                                border: "1px solid var(--border-medium)",
+                                background: "transparent",
+                                color: "var(--ink-secondary)",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                                opacity: resettingMemoryFile ? 0.6 : 1,
+                              }}
+                            >
+                              {resettingMemoryFile ? "Resetting..." : "Reset to Default"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleRevertMemoryFile}
+                              disabled={isUnchanged || loadingMemoryFiles}
+                              style={{
+                                padding: "6px 12px",
+                                borderRadius: "6px",
+                                border: "1px solid var(--border-medium)",
+                                background: "transparent",
+                                color: "var(--ink-muted)",
+                                fontSize: "12px",
+                                cursor: isUnchanged ? "default" : "pointer",
+                                opacity: isUnchanged ? 0.4 : 1,
+                              }}
+                            >
+                              Revert
+                            </button>
+                            {memoryStatus && (
+                              <span
+                                style={{
+                                  fontSize: "12px",
+                                  color: memoryStatus.ok ? "var(--accent-teal)" : "#EF4444",
+                                  fontWeight: 500,
+                                }}
+                              >
+                                {memoryStatus.text}
+                              </span>
+                            )}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleSaveMemoryFile}
+                            disabled={isUnchanged || savingMemoryFile || loadingMemoryFiles}
+                            style={{
+                              padding: "6px 16px",
+                              borderRadius: "6px",
+                              border: "none",
+                              background: "var(--accent-teal)",
+                              color: "#08110F",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              cursor: isUnchanged || savingMemoryFile ? "default" : "pointer",
+                              opacity: isUnchanged || savingMemoryFile ? 0.5 : 1,
+                              transition: "opacity 0.15s ease",
+                            }}
+                          >
+                            {savingMemoryFile ? "Saving..." : "Save File"}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
               </SettingGroup>
             </div>
           )}

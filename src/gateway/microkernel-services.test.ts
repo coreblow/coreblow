@@ -2146,6 +2146,144 @@ describe("Microkernel Services Registry & Storefront Endpoints", () => {
       }
     });
 
+    it("handles Curated Markdown Memory workflow: GET /api/cory/files, atomic PUT, allowlist validation, and reset", async () => {
+      const microkernel = createMicrokernelServiceRegistry({
+        stateDir: testDir,
+        coryDir,
+      });
+      await microkernel.registry.startAll();
+
+      try {
+        // 1. GET /api/cory/files returns all 3 files (USER.md, MEMORY.md, CONSTRAINTS.md)
+        const getReqRes = createMockReqRes({
+          method: "GET",
+          url: "/api/cory/files",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+        });
+        const handledGet = await handleCoreHubRoute(getReqRes.req, getReqRes.res, microkernel, { auth: testAuth });
+        expect(handledGet).toBe(true);
+        const getRes = await getReqRes.getResult();
+        expect(getRes.statusCode).toBe(200);
+        expect(getRes.data.ok).toBe(true);
+        expect(Array.isArray(getRes.data.files)).toBe(true);
+        expect(getRes.data.files).toHaveLength(3);
+
+        const [userFile, memFile, constraintsFile] = getRes.data.files;
+        expect(userFile.id).toBe("user");
+        expect(userFile.filename).toBe("USER.md");
+        expect(userFile.charLimit).toBe(1375);
+        expect(typeof userFile.charCount).toBe("number");
+
+        expect(memFile.id).toBe("memory");
+        expect(memFile.filename).toBe("MEMORY.md");
+        expect(memFile.charLimit).toBe(2200);
+
+        expect(constraintsFile.id).toBe("constraints");
+        expect(constraintsFile.filename).toBe("CONSTRAINTS.md");
+        expect(constraintsFile.charLimit).toBe(1500);
+
+        // 2. PUT /api/cory/files/user and PUT /api/cory/files/memory persist content to disk
+        const updatedUserContent = "# User Profile\n\n- Preferred theme: Forest-Obsidian\n- Mode: Quiet-Instrument";
+        const putUserReqRes = createMockReqRes({
+          method: "PUT",
+          url: "/api/cory/files/user",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: { content: updatedUserContent },
+        });
+        const handledPutUser = await handleCoreHubRoute(putUserReqRes.req, putUserReqRes.res, microkernel, { auth: testAuth });
+        expect(handledPutUser).toBe(true);
+        const putUserRes = await putUserReqRes.getResult();
+        expect(putUserRes.statusCode).toBe(200);
+        expect(putUserRes.data.ok).toBe(true);
+        expect(putUserRes.data.file.content).toBe(updatedUserContent);
+        expect(putUserRes.data.file.charCount).toBe(updatedUserContent.length);
+
+        const updatedMemContent = "# Durable Memory\n\n- Pinned: Architecture is Hybrid OOP + DOP";
+        const putMemReqRes = createMockReqRes({
+          method: "PUT",
+          url: "/api/cory/files/memory",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: { content: updatedMemContent },
+        });
+        const handledPutMem = await handleCoreHubRoute(putMemReqRes.req, putMemReqRes.res, microkernel, { auth: testAuth });
+        expect(handledPutMem).toBe(true);
+        const putMemRes = await putMemReqRes.getResult();
+        expect(putMemRes.statusCode).toBe(200);
+        expect(putMemRes.data.ok).toBe(true);
+        expect(putMemRes.data.file.content).toBe(updatedMemContent);
+
+        // Verify changes reflect immediately on subsequent GET /api/cory/files
+        const verifyGetReqRes = createMockReqRes({
+          method: "GET",
+          url: "/api/cory/files",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+        });
+        await handleCoreHubRoute(verifyGetReqRes.req, verifyGetReqRes.res, microkernel, { auth: testAuth });
+        const verifyGetRes = await verifyGetReqRes.getResult();
+        expect(verifyGetRes.data.files.find((f: any) => f.id === "user")?.content).toBe(updatedUserContent);
+        expect(verifyGetRes.data.files.find((f: any) => f.id === "memory")?.content).toBe(updatedMemContent);
+
+        // 3. Rejects invalid or traversal fileId with HTTP 400
+        const badTraversalReqRes = createMockReqRes({
+          method: "PUT",
+          url: "/api/cory/files/..%2Fsecret",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: { content: "malicious" },
+        });
+        await handleCoreHubRoute(badTraversalReqRes.req, badTraversalReqRes.res, microkernel, { auth: testAuth });
+        const badTraversalRes = await badTraversalReqRes.getResult();
+        expect(badTraversalRes.statusCode).toBe(400);
+        expect(badTraversalRes.data.ok).toBe(false);
+
+        const badUnknownReqRes = createMockReqRes({
+          method: "PUT",
+          url: "/api/cory/files/unknown",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+          body: { content: "invalid" },
+        });
+        await handleCoreHubRoute(badUnknownReqRes.req, badUnknownReqRes.res, microkernel, { auth: testAuth });
+        const badUnknownRes = await badUnknownReqRes.getResult();
+        expect(badUnknownRes.statusCode).toBe(400);
+        expect(badUnknownRes.data.ok).toBe(false);
+
+        // 4. POST /api/cory/files/memory/reset restores canonical default template
+        const resetReqRes = createMockReqRes({
+          method: "POST",
+          url: "/api/cory/files/memory/reset",
+          headers: {
+            authorization: "Bearer test-admin-secret-token",
+            "x-coreblow-scopes": "operator.admin",
+          },
+        });
+        await handleCoreHubRoute(resetReqRes.req, resetReqRes.res, microkernel, { auth: testAuth });
+        const resetRes = await resetReqRes.getResult();
+        expect(resetRes.statusCode).toBe(200);
+        expect(resetRes.data.ok).toBe(true);
+        expect(resetRes.data.file.content).toContain("# Workspace Durable Memory");
+        expect(resetRes.data.file.content).toContain("Durable project decisions");
+      } finally {
+        await microkernel.registry.stopAll();
+      }
+    });
+
     it("handles CoreHub 1-click storefront install/uninstall, skill toggle/patch, and credential pools", async () => {
       const microkernel = createMicrokernelServiceRegistry({
         stateDir: testDir,

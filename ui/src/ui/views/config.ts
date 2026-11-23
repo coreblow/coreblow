@@ -51,6 +51,27 @@ export class ConfigView extends LitElement {
   @state() private nodeSyncStatus: Record<string, { status: string; syncedCount?: number; error?: string }> = {};
   @state() private copyTooltip: string | null = null;
 
+  // Curated Memory Files
+  @state() private memoryFiles: Array<{
+    id: "user" | "memory" | "constraints";
+    filename: string;
+    path: string;
+    content: string;
+    charCount: number;
+    charLimit: number;
+    updatedAt: string;
+  }> = [];
+  @state() private selectedMemoryFileId: "user" | "memory" | "constraints" = "user";
+  @state() private memoryDrafts: Record<string, string> = {
+    user: "",
+    memory: "",
+    constraints: "",
+  };
+  @state() private loadingMemoryFiles = false;
+  @state() private savingMemoryFile = false;
+  @state() private resettingMemoryFile = false;
+  @state() private memoryFileStatus: { message: string; ok: boolean } | null = null;
+
   private wasConnected = false;
 
   createRenderRoot() {
@@ -66,6 +87,7 @@ export class ConfigView extends LitElement {
     this.rawJsonText = JSON.stringify(this.rawConfig, null, 2);
     void this.loadConfig();
     void this.loadRemoteNodes();
+    void this.loadCuratedMemoryFiles();
   }
 
   override updated(changedProperties: PropertyValues) {
@@ -341,6 +363,299 @@ export class ConfigView extends LitElement {
         [nodeId]: { status: "error", error: err?.message || "failed" },
       };
     }
+  }
+
+  private async loadCuratedMemoryFiles() {
+    this.loadingMemoryFiles = true;
+    try {
+      const res = await fetch(`${this.getGatewayHttpUrl()}/api/cory/files`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.files) && data.files.length > 0) {
+          this.memoryFiles = data.files;
+          const drafts: Record<string, string> = { ...this.memoryDrafts };
+          for (const f of data.files) {
+            drafts[f.id] = f.content;
+          }
+          this.memoryDrafts = drafts;
+        }
+      } else {
+        throw new Error("HTTP error");
+      }
+    } catch {
+      // Degrade gracefully if gateway is offline
+      if (this.memoryFiles.length === 0) {
+        this.memoryFiles = [
+          {
+            id: "user",
+            filename: "USER.md",
+            path: "~/.coreblow/memory/users/default/USER.md",
+            content: "# User Identity Memory (default)\n\n> Stable user preferences and communication style managed by Cory.\n\n_No entries recorded._\n",
+            charCount: 132,
+            charLimit: 1375,
+            updatedAt: new Date().toISOString(),
+          },
+          {
+            id: "memory",
+            filename: "MEMORY.md",
+            path: "~/.coreblow/memory/workspaces/default/MEMORY.md",
+            content: "# Workspace Durable Memory (default)\n\n> Durable project decisions, conventions, and verified facts.\n\n_No entries recorded._\n",
+            charCount: 130,
+            charLimit: 2200,
+            updatedAt: new Date().toISOString(),
+          },
+          {
+            id: "constraints",
+            filename: "CONSTRAINTS.md",
+            path: "~/.coreblow/memory/workspaces/default/CONSTRAINTS.md",
+            content: "# Active Constraints (default)\n\n> Active constraints and failure boundaries that must be preserved.\n\n_No entries recorded._\n",
+            charCount: 128,
+            charLimit: 1500,
+            updatedAt: new Date().toISOString(),
+          },
+        ];
+        this.memoryDrafts = {
+          user: this.memoryFiles[0]!.content,
+          memory: this.memoryFiles[1]!.content,
+          constraints: this.memoryFiles[2]!.content,
+        };
+      }
+    } finally {
+      this.loadingMemoryFiles = false;
+      this.requestUpdate();
+    }
+  }
+
+  private async saveCuratedMemoryFile(fileId: "user" | "memory" | "constraints") {
+    const content = this.memoryDrafts[fileId] ?? "";
+    this.savingMemoryFile = true;
+    this.memoryFileStatus = null;
+    try {
+      const res = await fetch(`${this.getGatewayHttpUrl()}/api/cory/files/${encodeURIComponent(fileId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.file) {
+          this.memoryFiles = this.memoryFiles.map((f) => (f.id === fileId ? data.file : f));
+        }
+        this.memoryFileStatus = { message: "Saved", ok: true };
+      } else {
+        this.memoryFileStatus = { message: "Failed to save", ok: false };
+      }
+    } catch (err: any) {
+      this.memoryFileStatus = { message: err?.message || "Save error", ok: false };
+    } finally {
+      this.savingMemoryFile = false;
+      this.requestUpdate();
+      setTimeout(() => {
+        this.memoryFileStatus = null;
+        this.requestUpdate();
+      }, 3000);
+    }
+  }
+
+  private async resetCuratedMemoryFile(fileId: "user" | "memory" | "constraints") {
+    this.resettingMemoryFile = true;
+    this.memoryFileStatus = null;
+    try {
+      const res = await fetch(`${this.getGatewayHttpUrl()}/api/cory/files/${encodeURIComponent(fileId)}/reset`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.file) {
+          this.memoryFiles = this.memoryFiles.map((f) => (f.id === fileId ? data.file : f));
+          this.memoryDrafts = {
+            ...this.memoryDrafts,
+            [fileId]: data.file.content,
+          };
+        }
+        this.memoryFileStatus = { message: "Reset to default", ok: true };
+      } else {
+        this.memoryFileStatus = { message: "Failed to reset", ok: false };
+      }
+    } catch (err: any) {
+      this.memoryFileStatus = { message: err?.message || "Reset error", ok: false };
+    } finally {
+      this.resettingMemoryFile = false;
+      this.requestUpdate();
+      setTimeout(() => {
+        this.memoryFileStatus = null;
+        this.requestUpdate();
+      }, 3000);
+    }
+  }
+
+  private revertCuratedMemoryFile(fileId: "user" | "memory" | "constraints") {
+    const file = this.memoryFiles.find((f) => f.id === fileId);
+    if (file) {
+      this.memoryDrafts = {
+        ...this.memoryDrafts,
+        [fileId]: file.content,
+      };
+      this.memoryFileStatus = { message: "Reverted", ok: true };
+      this.requestUpdate();
+      setTimeout(() => {
+        this.memoryFileStatus = null;
+        this.requestUpdate();
+      }, 2000);
+    }
+  }
+
+  private renderCuratedMemoryPanel() {
+    const activeFile = this.memoryFiles.find((f) => f.id === this.selectedMemoryFileId) || {
+      id: this.selectedMemoryFileId,
+      filename:
+        this.selectedMemoryFileId === "user"
+          ? "USER.md"
+          : this.selectedMemoryFileId === "memory"
+            ? "MEMORY.md"
+            : "CONSTRAINTS.md",
+      path: `~/.coreblow/memory/${
+        this.selectedMemoryFileId === "user"
+          ? "users/default/USER.md"
+          : this.selectedMemoryFileId === "memory"
+            ? "workspaces/default/MEMORY.md"
+            : "workspaces/default/CONSTRAINTS.md"
+      }`,
+      content: this.memoryDrafts[this.selectedMemoryFileId] ?? "",
+      charCount: 0,
+      charLimit:
+        this.selectedMemoryFileId === "user" ? 1375 : this.selectedMemoryFileId === "memory" ? 2200 : 1500,
+      updatedAt: "",
+    };
+
+    const draft = this.memoryDrafts[this.selectedMemoryFileId] ?? activeFile.content;
+    const charCount = draft.length;
+    const charLimit = activeFile.charLimit || (this.selectedMemoryFileId === "user" ? 1375 : this.selectedMemoryFileId === "memory" ? 2200 : 1500);
+    const usageRatio = charLimit > 0 ? charCount / charLimit : 0;
+    const progressColor = usageRatio > 1.0 ? "#EF4444" : usageRatio > 0.85 ? "#F59E0B" : "var(--accent)";
+    const progressWidth = Math.min(100, Math.round(usageRatio * 100));
+    const isUnchanged = draft === activeFile.content;
+
+    return html`
+      <div
+        class="card"
+        style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 20px;"
+      >
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <div style="font-size: 14px; font-weight: 700; color: var(--foreground); display: flex; align-items: center; gap: 8px;">
+              ${renderIcon("memory", "16px", "color: var(--accent);")}
+              <span>Curated Memory Files (USER.md · MEMORY.md · CONSTRAINTS.md)</span>
+            </div>
+            <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">
+              Inspect, edit, and budget CoreBlow's frozen markdown memory files injected at session startup.
+            </div>
+          </div>
+          <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--accent-subtle); color: var(--accent); font-weight: 600; font-family: var(--mono);">
+            ${activeFile.filename}
+          </span>
+        </div>
+
+        <!-- 3 file tabs -->
+        <div style="display: flex; gap: 6px; background: var(--surface-flat-muted); padding: 4px; border-radius: var(--radius-sm); margin-bottom: 14px; border: 1px solid var(--border-hairline); width: fit-content;">
+          ${[
+            { id: "user" as const, label: "USER.md", subtitle: "User Profile" },
+            { id: "memory" as const, label: "MEMORY.md", subtitle: "Agent Notes" },
+            { id: "constraints" as const, label: "CONSTRAINTS.md", subtitle: "Always Follow" },
+          ].map((tab) => {
+            const isSel = this.selectedMemoryFileId === tab.id;
+            return html`
+              <button
+                type="button"
+                style="padding: 6px 12px; border-radius: var(--radius-xs); border: 1px solid ${isSel ? "var(--accent)" : "transparent"}; background: ${isSel ? "var(--accent-subtle)" : "transparent"}; color: ${isSel ? "var(--accent)" : "var(--foreground)"}; font-size: 12px; font-weight: ${isSel ? 600 : 500}; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+                @click=${() => {
+                  this.selectedMemoryFileId = tab.id;
+                  this.requestUpdate();
+                }}
+              >
+                <span style="font-family: var(--mono);">${tab.label}</span>
+                <span style="font-size: 10px; color: var(--muted);">(${tab.subtitle})</span>
+              </button>
+            `;
+          })}
+        </div>
+
+        <!-- Header metadata strip: path + capacity + progress bar -->
+        <div style="background: var(--card, var(--bg-elevated)); border: 1px solid var(--border-hairline); border-radius: var(--radius-xs); padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+            <div style="font-size: 11px; font-family: var(--mono); color: var(--muted); word-break: break-all;">
+              ${activeFile.path}
+            </div>
+            <div style="font-size: 11px; font-family: var(--mono); font-weight: 600; color: ${progressColor};">
+              ${charCount} / ${charLimit} chars
+            </div>
+          </div>
+
+          <!-- 4px progress bar -->
+          <div style="width: 100%; height: 4px; border-radius: 2px; background: var(--surface-flat-muted); overflow: hidden;">
+            <div style="width: ${progressWidth}%; height: 100%; background: ${progressColor}; transition: width 0.2s ease, background 0.2s ease;"></div>
+          </div>
+
+          <!-- Session snapshot note -->
+          <div style="font-size: 11px; color: var(--muted); line-height: 1.4;">
+            Injected as a frozen snapshot at session start. Saved edits apply immediately to new sessions.
+          </div>
+        </div>
+
+        <!-- Monospace Markdown textarea -->
+        <textarea
+          style="width: 100%; min-height: 220px; padding: 10px; border-radius: var(--radius-xs); background: var(--bg); border: 1px solid var(--border); color: var(--foreground); font-family: var(--mono); font-size: 12px; line-height: 1.5; resize: vertical; outline: none; box-sizing: border-box; margin-bottom: 12px;"
+          placeholder="Enter markdown content for ${activeFile.filename}..."
+          .value=${draft}
+          @input=${(e: Event) => {
+            const val = (e.target as HTMLTextAreaElement).value;
+            this.memoryDrafts = { ...this.memoryDrafts, [this.selectedMemoryFileId]: val };
+            this.requestUpdate();
+          }}
+        ></textarea>
+
+        <!-- Footer action bar -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button
+              type="button"
+              class="btn"
+              style="background: var(--bg-elevated); border: 1px solid var(--border); color: var(--foreground); padding: 6px 12px; border-radius: var(--radius-xs); font-size: 12px; cursor: pointer;"
+              ?disabled=${this.resettingMemoryFile || this.loadingMemoryFiles}
+              @click=${() => this.resetCuratedMemoryFile(this.selectedMemoryFileId)}
+            >
+              ${this.resettingMemoryFile ? "Resetting..." : "Reset to Default"}
+            </button>
+            <button
+              type="button"
+              class="btn"
+              style="background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: var(--radius-xs); font-size: 12px; cursor: ${isUnchanged ? "default" : "pointer"}; opacity: ${isUnchanged ? 0.5 : 1};"
+              ?disabled=${isUnchanged || this.loadingMemoryFiles}
+              @click=${() => this.revertCuratedMemoryFile(this.selectedMemoryFileId)}
+            >
+              Revert
+            </button>
+            ${this.memoryFileStatus
+              ? html`
+                  <span style="font-size: 12px; color: ${this.memoryFileStatus.ok ? "var(--ok, #22c55e)" : "var(--error, #ef4444)"}; font-weight: 500;">
+                    ${this.memoryFileStatus.message}
+                  </span>
+                `
+              : ""}
+          </div>
+
+          <button
+            type="button"
+            class="btn"
+            style="background: var(--accent); color: var(--accent-ink, #000); border: none; padding: 6px 16px; border-radius: var(--radius-xs); font-size: 12px; font-weight: 600; cursor: ${isUnchanged || this.savingMemoryFile ? "default" : "pointer"}; opacity: ${isUnchanged || this.savingMemoryFile ? 0.5 : 1};"
+            ?disabled=${isUnchanged || this.savingMemoryFile || this.loadingMemoryFiles}
+            @click=${() => this.saveCuratedMemoryFile(this.selectedMemoryFileId)}
+          >
+            ${this.savingMemoryFile ? "Saving..." : "Save File"}
+          </button>
+        </div>
+      </div>
+    `;
   }
 
   private setConnectionMode(mode: "local" | "remote" | "ssh") {
@@ -1004,6 +1319,9 @@ export class ConfigView extends LitElement {
 
                             <!-- Connection Mode & Remote Nodes for Gateway Section -->
                             ${activeSection.id === "gateway" ? this.renderConnectionModePanel() : ""}
+
+                            <!-- Curated Memory Files for Memory Section -->
+                            ${activeSection.id === "memory" ? this.renderCuratedMemoryPanel() : ""}
 
                             <!-- Section Fields List -->
                             <div>

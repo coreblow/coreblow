@@ -3,8 +3,20 @@ import { createRoot, type Root } from "react-dom/client";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { SettingsModal, type SettingsModalProps } from "../components/SettingsModal";
 import { storageService, DEFAULT_PREFERENCES } from "../services/storage";
+import { gatewayClient } from "../services/gateway-client";
+import type { CuratedMemoryFile } from "../types/gateway";
 
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+
+const setTextareaValue = (textarea: HTMLTextAreaElement, value: string) => {
+  const nativeSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLTextAreaElement.prototype,
+    "value",
+  )?.set;
+  nativeSetter?.call(textarea, value);
+  textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  textarea.dispatchEvent(new Event("change", { bubbles: true }));
+};
 
 const setInputValue = (input: HTMLInputElement, value: string) => {
   const nativeSetter = Object.getOwnPropertyDescriptor(
@@ -338,6 +350,91 @@ describe("SettingsModal Component", () => {
       window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
     });
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("renders Curated Memory Files (USER.md, MEMORY.md, CONSTRAINTS.md) and saves edits", async () => {
+    const mockFiles: CuratedMemoryFile[] = [
+      {
+        id: "user",
+        filename: "USER.md",
+        path: "~/.coreblow/memory/users/default/USER.md",
+        content: "# User Profile\n- Dark mode",
+        charCount: 26,
+        charLimit: 1375,
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "memory",
+        filename: "MEMORY.md",
+        path: "~/.coreblow/memory/workspaces/default/MEMORY.md",
+        content: "# Workspace Memory\n- TypeScript",
+        charCount: 31,
+        charLimit: 2200,
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "constraints",
+        filename: "CONSTRAINTS.md",
+        path: "~/.coreblow/memory/workspaces/default/CONSTRAINTS.md",
+        content: "# Invariants\n- No any",
+        charCount: 21,
+        charLimit: 1500,
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+
+    const getFilesSpy = vi.spyOn(gatewayClient, "getMemoryFiles").mockResolvedValue(mockFiles);
+    const saveFileSpy = vi.spyOn(gatewayClient, "saveMemoryFile").mockResolvedValue({
+      ok: true,
+      file: {
+        id: "user",
+        filename: "USER.md",
+        path: "~/.coreblow/memory/users/default/USER.md",
+        content: "# User Profile\n- Dark mode\n- Sovereign Teal",
+        charCount: 43,
+        charLimit: 1375,
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    await act(async () => {
+      root.render(<SettingsModal {...createProps({ initialSection: "memory" })} />);
+    });
+
+    expect(getFilesSpy).toHaveBeenCalled();
+    const text = container.textContent || "";
+    expect(text).toContain("CURATED MEMORY FILES (MARKDOWN)");
+    expect(text).toContain("USER.md");
+    expect(text).toContain("MEMORY.md");
+    expect(text).toContain("CONSTRAINTS.md");
+
+    // Check textarea content
+    const textarea = container.querySelector<HTMLTextAreaElement>("textarea");
+    expect(textarea).not.toBeNull();
+    expect(textarea?.value).toBe("# User Profile\n- Dark mode");
+    expect(text).toContain("26 / 1375 chars");
+
+    // Edit textarea
+    act(() => {
+      if (textarea) {
+        setTextareaValue(textarea, "# User Profile\n- Dark mode\n- Sovereign Teal");
+      }
+    });
+
+    // Check live char count updated
+    expect(container.textContent).toContain("43 / 1375 chars");
+
+    // Click Save File
+    const saveButton = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Save File"),
+    );
+    expect(saveButton).toBeDefined();
+
+    await act(async () => {
+      saveButton?.click();
+    });
+
+    expect(saveFileSpy).toHaveBeenCalledWith("user", "# User Profile\n- Dark mode\n- Sovereign Teal");
   });
 
   describe("StorageService Export and Import", () => {

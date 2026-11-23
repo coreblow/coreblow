@@ -294,4 +294,55 @@ describe("Dedicated Control Views Smoke Tests (Offline & Connected)", () => {
       expect(app.setTab).toHaveBeenCalledWith("logs");
     });
   });
+
+  describe("ConfigView Curated Memory Files (USER.md · MEMORY.md · CONSTRAINTS.md)", () => {
+    it("renders Curated Memory Files editor with USER.md, MEMORY.md, and CONSTRAINTS.md tabs and capacity metrics", () => {
+      const view = new ConfigView();
+      view.app = createMockApp({ connected: false });
+      view.activeSectionId = "memory";
+
+      const template = (view as any).renderCuratedMemoryPanel();
+      expect(template).toBeDefined();
+
+      const container = document.createElement("div");
+      render(template, container);
+
+      expect(container.textContent).toContain("Curated Memory Files");
+      expect(container.textContent).toContain("USER.md");
+      expect(container.textContent).toContain("MEMORY.md");
+      expect(container.textContent).toContain("CONSTRAINTS.md");
+      expect(container.textContent).toContain("Injected as a frozen snapshot");
+      expect(container.textContent).toContain("Save File");
+      expect(container.textContent).toContain("Reset to Default");
+      expect(container.textContent).toContain("Revert");
+    });
+
+    it("switches file tabs and updates draft memory contents cleanly", async () => {
+      const view = new ConfigView();
+      view.app = createMockApp({ connected: false });
+      view.activeSectionId = "memory";
+
+      // Initialize default files
+      await (view as any).loadCuratedMemoryFiles();
+
+      // Switch to memory (MEMORY.md)
+      (view as any).selectedMemoryFileId = "memory";
+      expect((view as any).selectedMemoryFileId).toBe("memory");
+
+      // Update draft
+      (view as any).memoryDrafts = {
+        ...(view as any).memoryDrafts,
+        memory: "# Custom Workspace Decisions\n- Keep architecture clean",
+      };
+      expect((view as any).memoryDrafts.memory).toBe("# Custom Workspace Decisions\n- Keep architecture clean");
+
+      // Switch to constraints (CONSTRAINTS.md)
+      (view as any).selectedMemoryFileId = "constraints";
+      expect((view as any).selectedMemoryFileId).toBe("constraints");
+
+      // Revert action
+      (view as any).revertCuratedMemoryFile("constraints");
+      expect((view as any).memoryFileStatus?.message).toBe("Reverted");
+    });
+  });
 });

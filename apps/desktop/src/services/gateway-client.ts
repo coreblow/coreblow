@@ -7,6 +7,8 @@ import type {
   CoryProfilePayload,
   CoreHubSkill,
   CredentialPoolPayload,
+  CuratedMemoryFile,
+  CuratedMemoryFileId,
   DialecticTrait,
   MaskedPooledCredential,
   MemoryProposal,
@@ -546,6 +548,64 @@ export class CoreBlowGatewayClient {
       return await res.json();
     } catch {
       return null;
+    }
+  }
+
+  /**
+   * Fetch Curated Memory Files (USER.md, MEMORY.md, CONSTRAINTS.md) from GET /api/cory/files
+   */
+  async getMemoryFiles(): Promise<CuratedMemoryFile[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/cory/files`, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(4000),
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data.files) ? data.files : [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Save Curated Memory File atomically (PUT /api/cory/files/:fileId)
+   */
+  async saveMemoryFile(
+    fileId: CuratedMemoryFileId,
+    content: string,
+  ): Promise<{ ok: boolean; file?: CuratedMemoryFile; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/cory/files/${encodeURIComponent(fileId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      return data;
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  /**
+   * Reset Curated Memory File to canonical template (POST /api/cory/files/:fileId/reset)
+   */
+  async resetMemoryFile(
+    fileId: CuratedMemoryFileId,
+  ): Promise<{ ok: boolean; file?: CuratedMemoryFile; error?: string }> {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/cory/files/${encodeURIComponent(fileId)}/reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      return data;
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
     }
   }
 

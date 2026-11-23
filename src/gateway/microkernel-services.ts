@@ -751,6 +751,8 @@ export async function handleCoreHubRoute(
     (pathname.startsWith("/api/cory/items/") && method === "DELETE") ||
     (pathname.startsWith("/api/cory/proposals/") && method === "POST") ||
     pathname === "/api/cory/wiki/compile" ||
+    (pathname.startsWith("/api/cory/files/") && (method === "PUT" || method === "POST")) ||
+    (pathname === "/api/cory/files" && (method === "PUT" || method === "POST")) ||
     (pathname.startsWith("/api/corehub/storefront/") && method === "POST") ||
     (pathname.startsWith("/api/corehub/skills/") && method === "POST") ||
     (pathname.startsWith("/api/corehub/providers/") && (method === "POST" || method === "DELETE")) ||
@@ -1586,6 +1588,133 @@ export async function handleCoreHubRoute(
         path: indexPath,
         markdown,
       });
+      return true;
+    } catch (err) {
+      sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+      return true;
+    }
+  }
+
+  // GET /api/cory/files (and /api/corehub/cory/files)
+  if (method === "GET" && (pathname === "/api/cory/files" || pathname === "/api/corehub/cory/files")) {
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "doctor.memory.status",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+
+    try {
+      const files = services.cory.readCuratedMemoryFiles();
+      sendJson(res, 200, { ok: true, files });
+      return true;
+    } catch (err) {
+      sendJson(res, 500, { ok: false, error: err instanceof Error ? err.message : String(err) });
+      return true;
+    }
+  }
+
+  // POST /api/cory/files/:fileId/reset (and /api/corehub/cory/files/:fileId/reset)
+  const coryFileResetMatch = /^\/api\/(?:cory|corehub\/cory)\/files\/([^/]+)\/reset$/.exec(pathname);
+  if (method === "POST" && coryFileResetMatch) {
+    const fileId = decodeURIComponent(coryFileResetMatch[1] ?? "");
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "agents.create",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+
+    // Strictly validate fileId allowlist
+    if (fileId !== "user" && fileId !== "memory" && fileId !== "constraints") {
+      sendJson(res, 400, {
+        ok: false,
+        error: "Invalid fileId. Must be one of: 'user', 'memory', 'constraints'.",
+      });
+      return true;
+    }
+
+    try {
+      const file = services.cory.resetCuratedMemoryFile(fileId);
+      sendJson(res, 200, { ok: true, file });
+      return true;
+    } catch (err) {
+      sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
+      return true;
+    }
+  }
+
+  // PUT /api/cory/files/:fileId (and /api/corehub/cory/files/:fileId)
+  const coryFilePutMatch = /^\/api\/(?:cory|corehub\/cory)\/files\/([^/]+)$/.exec(pathname);
+  if (method === "PUT" && coryFilePutMatch) {
+    const fileId = decodeURIComponent(coryFilePutMatch[1] ?? "");
+    const auth =
+      options.auth ?? resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
+
+    const authResult = await authorizeScopedGatewayHttpRequestOrReply({
+      req,
+      res,
+      auth,
+      trustedProxies: options.trustedProxies ?? cfg.gateway?.trustedProxies,
+      allowRealIpFallback: options.allowRealIpFallback ?? cfg.gateway?.allowRealIpFallback,
+      rateLimiter: options.rateLimiter,
+      operatorMethod: "agents.create",
+      resolveOperatorScopes: resolveCoreHubOperatorScopes,
+    });
+
+    if (!authResult) {
+      return true;
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "PUT, OPTIONS");
+
+    // Strictly validate fileId allowlist
+    if (fileId !== "user" && fileId !== "memory" && fileId !== "constraints") {
+      sendJson(res, 400, {
+        ok: false,
+        error: "Invalid fileId. Must be one of: 'user', 'memory', 'constraints'.",
+      });
+      return true;
+    }
+
+    try {
+      const body = (await parseJsonBody(req)) as Record<string, unknown>;
+      if (typeof body.content !== "string") {
+        sendJson(res, 400, { ok: false, error: "Missing required 'content' string field." });
+        return true;
+      }
+
+      const file = services.cory.writeCuratedMemoryFile(fileId, body.content);
+      sendJson(res, 200, { ok: true, file });
       return true;
     } catch (err) {
       sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) });
