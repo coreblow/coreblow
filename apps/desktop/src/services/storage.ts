@@ -12,6 +12,13 @@ const SENSITIVE_FIELDS: Array<keyof UiPreferences> = [
   "groqApiKey",
   "customApiKey",
   "remoteToken",
+  "tavilyApiKey",
+  "exaApiKey",
+  "braveApiKey",
+  "perplexityApiKey",
+  "e2bApiKey",
+  "modalApiKey",
+  "daytonaApiKey",
 ];
 
 const ENC_PREFIX = "enc:v1:";
@@ -37,7 +44,15 @@ export interface UiPreferences {
   layoutMode?: "basic" | "pro";
   sidebarCollapsed: boolean;
   inspectorOpen: boolean;
-  inspectorTab: "start" | "files" | "terminal" | "browser" | "git" | "warroom" | "memory" | "corehub";
+  inspectorTab:
+    | "start"
+    | "files"
+    | "terminal"
+    | "browser"
+    | "git"
+    | "warroom"
+    | "memory"
+    | "corehub";
   anthropicApiKey?: string;
   openAiApiKey?: string;
   geminiApiKey?: string;
@@ -47,9 +62,52 @@ export interface UiPreferences {
   remoteHost?: string;
   remoteToken?: string;
   automations: AutomationSettings;
+
+  // General & Appearance
+  terminalFontFamily?: string;
+  terminalFontSize?: number;
+  desktopNotifications?: boolean;
+
+  // Models & Reasoning
+  defaultReasoningEffort?: "Low" | "Medium" | "High" | "Max";
+  mainContextWindowOverride?: number;
+  auxiliaryModel?: string;
+  maxSubagentDepth?: number;
+  maxParallelSubagents?: number;
+
+  // Memory & Context
+  memoryBackend?: "builtin" | "qmd";
+  memoryCitations?: "auto" | "always" | "off";
+  contextCompressionEnabled?: boolean;
+  contextCompressionThresholdPct?: number;
+  protectLastMessages?: number;
+
+  // Workspace & Browser
+  defaultWorkspaceCwd?: string;
+  persistentShell?: boolean;
+  repoScanExclusions?: string;
+  browserMode?: "headless" | "headed";
+  browserUseRealProfile?: boolean;
+  browserPrivateUrlGuard?: boolean;
+
+  // Safety & Permissions
+  approvalTimeoutSec?: number;
+  commandAllowlist?: string;
+  commandDenylist?: string;
+  secretRedactionEnabled?: boolean;
+  checkpointSnapshotLimit?: number;
+
+  // External Tool API Keys
+  tavilyApiKey?: string;
+  exaApiKey?: string;
+  braveApiKey?: string;
+  perplexityApiKey?: string;
+  e2bApiKey?: string;
+  modalApiKey?: string;
+  daytonaApiKey?: string;
 }
 
-const DEFAULT_PREFERENCES: UiPreferences = {
+export const DEFAULT_PREFERENCES: UiPreferences = {
   permissionMode: "Guarded",
   modelTier: "High Reasoning",
   activeModel: "Auto (DecisionRouter)",
@@ -71,6 +129,35 @@ const DEFAULT_PREFERENCES: UiPreferences = {
     evoloopDistillation: true,
     logPruning: false,
   },
+
+  terminalFontFamily: "JetBrains Mono",
+  terminalFontSize: 13,
+  desktopNotifications: true,
+
+  defaultReasoningEffort: "Medium",
+  mainContextWindowOverride: 0,
+  auxiliaryModel: "coreblow/fast",
+  maxSubagentDepth: 2,
+  maxParallelSubagents: 4,
+
+  memoryBackend: "builtin",
+  memoryCitations: "auto",
+  contextCompressionEnabled: true,
+  contextCompressionThresholdPct: 80,
+  protectLastMessages: 6,
+
+  defaultWorkspaceCwd: "",
+  persistentShell: true,
+  repoScanExclusions: "node_modules, .git, dist, build, release",
+  browserMode: "headless",
+  browserUseRealProfile: false,
+  browserPrivateUrlGuard: true,
+
+  approvalTimeoutSec: 60,
+  commandAllowlist: "git status, git diff, pnpm test, ls",
+  commandDenylist: "rm -rf /, sudo rm, mkfs",
+  secretRedactionEnabled: true,
+  checkpointSnapshotLimit: 20,
 };
 
 const DEFAULT_PROJECT: ActiveProjectState = {
@@ -173,11 +260,20 @@ export class StorageService {
     return this.getPreferences();
   }
 
+  /**
+   * Clears the in-memory decrypted credentials cache.
+   */
+  resetCache(): void {
+    this.decryptedCache = {};
+  }
+
   getPreferences(): UiPreferences {
     try {
       const data = localStorage.getItem(PREFERENCES_KEY);
       const threadsData = localStorage.getItem(THREADS_KEY);
-      const hasExistingThreads = Boolean(threadsData && threadsData.length > 2 && threadsData !== "[]");
+      const hasExistingThreads = Boolean(
+        threadsData && threadsData.length > 2 && threadsData !== "[]",
+      );
 
       if (!data) {
         if (hasExistingThreads) {
@@ -220,7 +316,7 @@ export class StorageService {
         layoutMode,
         automations: {
           ...DEFAULT_PREFERENCES.automations,
-          ...(parsed.automations || {}),
+          ...parsed.automations,
         },
       };
     } catch {
@@ -244,7 +340,7 @@ export class StorageService {
         ...prefs,
         automations: {
           ...current.automations,
-          ...(prefs.automations || {}),
+          ...prefs.automations,
         },
       };
 
@@ -301,6 +397,45 @@ export class StorageService {
       localStorage.setItem(PROJECT_KEY, JSON.stringify(project));
     } catch (err) {
       console.error("Failed to save active project", err);
+    }
+  }
+
+  /**
+   * Exports non-secret preferences as formatted JSON.
+   * Explicitly strips all SENSITIVE_FIELDS so credentials/API keys are never exported.
+   */
+  exportPreferencesJson(): string {
+    const prefs = this.getPreferences();
+    const exportable: Record<string, unknown> = { ...prefs };
+    for (const key of SENSITIVE_FIELDS) {
+      delete exportable[key];
+    }
+    return JSON.stringify(exportable, null, 2);
+  }
+
+  /**
+   * Imports and validates preferences JSON, strips unknown or sensitive keys,
+   * merges with current preferences, saves, and returns updated preferences.
+   */
+  importPreferencesJson(rawJson: string): {
+    ok: boolean;
+    error?: string;
+    preferences?: UiPreferences;
+  } {
+    try {
+      const parsed = JSON.parse(rawJson);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        return { ok: false, error: "Invalid JSON configuration format." };
+      }
+      const sanitized: Record<string, unknown> = { ...parsed };
+      for (const key of SENSITIVE_FIELDS) {
+        delete sanitized[key];
+      }
+      this.savePreferences(sanitized as Partial<UiPreferences>);
+      const updated = this.getPreferences();
+      return { ok: true, preferences: updated };
+    } catch (err: any) {
+      return { ok: false, error: err?.message || "Failed to parse JSON configuration file." };
     }
   }
 }

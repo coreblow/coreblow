@@ -1,23 +1,54 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { gatewayClient } from "../services/gateway-client";
-import type { CoreHubSkill, PermissionMode, CredentialPoolPayload, RemoteNodeConfig, RemoteNodeKind } from "../types/gateway";
-import type { UiPreferences } from "../services/storage";
+import { storageService, type UiPreferences } from "../services/storage";
+import type {
+  CoreHubSkill,
+  PermissionMode,
+  CredentialPoolPayload,
+  RemoteNodeConfig,
+  RemoteNodeKind,
+} from "../types/gateway";
 import {
   CheckIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
   ClockIcon,
   CloseIcon,
   CoreBlowEmblem,
+  DownloadIcon,
+  FolderIcon,
+  KeyIcon,
   McpConduitIcon,
+  MemoryBrainIcon,
   RadioIcon,
   RefreshIcon,
+  SearchIcon,
   ServerIcon,
   SettingsIcon,
   ShieldIcon,
   SkillsChipIcon,
   SparklesIcon,
+  TrashIcon,
+  UploadIcon,
 } from "./Icons";
+import { SettingGroup, SettingRow, ToggleSwitch } from "./SettingsPrimitives";
 
-interface SettingsModalProps {
+export type SettingsSection =
+  | "general"
+  | "models"
+  | "models:main"
+  | "models:fallback"
+  | "models:subagents"
+  | "memory"
+  | "workspace"
+  | "permissions"
+  | "channels"
+  | "skills"
+  | "remotes"
+  | "automations"
+  | "about";
+
+export interface SettingsModalProps {
   open: boolean;
   onClose: () => void;
   preferences: UiPreferences;
@@ -25,16 +56,6 @@ interface SettingsModalProps {
   initialSection?: SettingsSection;
   onRunSetupWizard?: () => void;
 }
-
-type SettingsSection =
-  | "general"
-  | "models"
-  | "channels"
-  | "remotes"
-  | "automations"
-  | "permissions"
-  | "skills"
-  | "about";
 
 const ACCENT_SWATCHES = [
   { name: "Teal", color: "#2DD4BF" },
@@ -47,19 +68,307 @@ const ACCENT_SWATCHES = [
   { name: "Safety Orange", color: "#F97316" },
 ];
 
+interface SearchableSetting {
+  id: string;
+  section: SettingsSection;
+  title: string;
+  description: string;
+  keywords: string[];
+}
+
+const SEARCH_INDEX: SearchableSetting[] = [
+  {
+    id: "theme",
+    section: "general",
+    title: "Appearance & Theme",
+    description: "Dark/Light OLED theme and Sovereign Teal accent",
+    keywords: ["theme", "dark", "light", "color", "accent", "oled"],
+  },
+  {
+    id: "layout",
+    section: "general",
+    title: "Workspace Layout Mode",
+    description: "Toggle Basic or Pro layout",
+    keywords: ["layout", "pro", "basic", "dock", "screen"],
+  },
+  {
+    id: "terminal-font",
+    section: "general",
+    title: "Terminal Font & Typography",
+    description: "Terminal font family and font size",
+    keywords: ["terminal", "font", "monospace", "jetbrains", "fira", "size"],
+  },
+  {
+    id: "notifications",
+    section: "general",
+    title: "Desktop Notifications",
+    description: "System alerts and execution notifications",
+    keywords: ["notification", "alert", "sound", "bell"],
+  },
+  {
+    id: "shortcuts",
+    section: "general",
+    title: "Keyboard Shortcuts",
+    description: "Reference key combinations and hotkeys",
+    keywords: ["keyboard", "shortcuts", "hotkeys", "keybind", "command"],
+  },
+  {
+    id: "setup-wizard",
+    section: "general",
+    title: "Run Setup Wizard",
+    description: "Rerun initial onboarding setup",
+    keywords: ["setup", "wizard", "first run", "onboarding"],
+  },
+
+  {
+    id: "model-active",
+    section: "models:main",
+    title: "Active Model & Tier",
+    description: "Active model selection and model tier",
+    keywords: ["model", "tier", "gpt", "claude", "gemini"],
+  },
+  {
+    id: "model-reasoning",
+    section: "models:main",
+    title: "Default Reasoning Effort",
+    description: "Set thinking effort (Low, Medium, High, Max)",
+    keywords: ["reasoning", "thinking", "effort", "deepthink"],
+  },
+  {
+    id: "model-context",
+    section: "models:main",
+    title: "Context Window Override",
+    description: "Override main model context window token limit",
+    keywords: ["context", "window", "override", "tokens", "limit"],
+  },
+  {
+    id: "model-telemetry",
+    section: "models:main",
+    title: "Live Usage Telemetry",
+    description: "Requests, tokens, failovers, estimated costs",
+    keywords: ["telemetry", "usage", "cost", "token", "stats"],
+  },
+
+  {
+    id: "model-fallback",
+    section: "models:fallback",
+    title: "Daybreak Provider Fallback Chain",
+    description: "Automatic failover sequence when rate-limited",
+    keywords: ["fallback", "failover", "chain", "daybreak"],
+  },
+  {
+    id: "model-pools",
+    section: "models:fallback",
+    title: "Multi-Key Credential Pools",
+    description: "Round-robin API key pools and health status",
+    keywords: ["pool", "credential", "keys", "load balance"],
+  },
+  {
+    id: "model-vault",
+    section: "models:fallback",
+    title: "Direct Vault Overrides",
+    description: "Anthropic, OpenAI, Gemini, Groq, Ollama keys",
+    keywords: ["api key", "anthropic", "openai", "gemini", "groq", "ollama"],
+  },
+
+  {
+    id: "model-aux",
+    section: "models:subagents",
+    title: "Auxiliary Model",
+    description: "Model for background summarization and compression",
+    keywords: ["auxiliary", "fast", "background", "summary"],
+  },
+  {
+    id: "model-subagents",
+    section: "models:subagents",
+    title: "Subagent Concurrency & Depth",
+    description: "Maximum subagent tree depth and parallel children",
+    keywords: ["subagent", "delegation", "depth", "concurrency", "parallel"],
+  },
+
+  {
+    id: "memory-engine",
+    section: "memory",
+    title: "Memory Engine",
+    description: "SQLite FTS5 vs QMD hybrid semantic index",
+    keywords: ["memory", "engine", "qmd", "sqlite", "fts5", "vector"],
+  },
+  {
+    id: "memory-citations",
+    section: "memory",
+    title: "Memory Citations Mode",
+    description: "Citation annotations in responses",
+    keywords: ["citations", "sources", "references"],
+  },
+  {
+    id: "memory-compression",
+    section: "memory",
+    title: "Context Auto-Compression",
+    description: "Threshold % and protected recent messages",
+    keywords: ["compression", "compact", "threshold", "protect", "context"],
+  },
+
+  {
+    id: "workspace-cwd",
+    section: "workspace",
+    title: "Default Workspace Working Directory",
+    description: "Initial directory for terminal and execution",
+    keywords: ["cwd", "workspace", "directory", "folder", "path"],
+  },
+  {
+    id: "workspace-shell",
+    section: "workspace",
+    title: "Persistent Shell Session",
+    description: "Keep environment and subprocess state between commands",
+    keywords: ["shell", "persistent", "terminal", "zsh", "bash"],
+  },
+  {
+    id: "workspace-scan",
+    section: "workspace",
+    title: "Repository Scan Exclusions",
+    description: "Directories ignored during indexing",
+    keywords: ["repo", "scan", "exclude", "ignore", "node_modules"],
+  },
+  {
+    id: "browser-mode",
+    section: "workspace",
+    title: "Browser Execution Mode",
+    description: "Headless vs headed browser automation",
+    keywords: ["browser", "headless", "headed", "chrome", "playwright"],
+  },
+  {
+    id: "browser-profile",
+    section: "workspace",
+    title: "Use Real Browser Profile",
+    description: "Attach user Chrome or Edge profile with existing sessions",
+    keywords: ["profile", "cookies", "login", "session"],
+  },
+  {
+    id: "browser-ssrf",
+    section: "workspace",
+    title: "Private URL SSRF Guard",
+    description: "Prevent agent from accessing internal LAN/loopback URLs",
+    keywords: ["ssrf", "guard", "private", "security", "lan", "localhost"],
+  },
+
+  {
+    id: "safety-boundary",
+    section: "permissions",
+    title: "Execution Boundary Profile",
+    description: "Full access, Workspace, Guarded, Read-only",
+    keywords: ["permission", "guarded", "full access", "read-only", "safety"],
+  },
+  {
+    id: "safety-timeout",
+    section: "permissions",
+    title: "Tool Approval Timeout",
+    description: "Seconds to wait before auto-cancelling prompt",
+    keywords: ["timeout", "approval", "prompt", "wait"],
+  },
+  {
+    id: "safety-redaction",
+    section: "permissions",
+    title: "Secret Redaction in Output",
+    description: "Automatically mask API keys and passwords in logs",
+    keywords: ["redaction", "secret", "mask", "censor", "hide"],
+  },
+  {
+    id: "safety-checkpoint",
+    section: "permissions",
+    title: "Checkpoint Snapshot Limit",
+    description: "Maximum rollback snapshots stored on disk",
+    keywords: ["checkpoint", "rollback", "snapshot", "limit"],
+  },
+  {
+    id: "safety-allowlist",
+    section: "permissions",
+    title: "Command Allowlist & Denylist",
+    description: "Allowed and forbidden command patterns",
+    keywords: ["allowlist", "denylist", "commands", "blacklist", "whitelist"],
+  },
+
+  {
+    id: "channels-messaging",
+    section: "channels",
+    title: "Messaging Channels",
+    description: "Telegram, Discord, Slack, WhatsApp Web, Signal, iMessage",
+    keywords: ["channel", "telegram", "discord", "slack", "whatsapp", "signal", "imessage"],
+  },
+  {
+    id: "channels-pairing",
+    section: "channels",
+    title: "Agent Pairing & Access Control",
+    description: "Approve or revoke channel access requests",
+    keywords: ["pairing", "access", "approve", "revoke", "dm"],
+  },
+
+  {
+    id: "skills-tool-keys",
+    section: "skills",
+    title: "External Tool API Keys",
+    description: "Tavily, Exa, Brave, Perplexity, E2B, Modal, Daytona",
+    keywords: ["tavily", "exa", "brave", "perplexity", "e2b", "modal", "daytona", "tool keys"],
+  },
+  {
+    id: "skills-storefront",
+    section: "skills",
+    title: "CoreHub Storefront & Installed Skills",
+    description: "Domain tools and learned procedural skills",
+    keywords: ["skills", "corehub", "learned", "tools"],
+  },
+  {
+    id: "skills-mcp",
+    section: "skills",
+    title: "MCP Servers & Catalog",
+    description: "Model Context Protocol connections and 1-click catalog",
+    keywords: ["mcp", "servers", "catalog", "tools", "conduit"],
+  },
+
+  {
+    id: "remotes-nodes",
+    section: "remotes",
+    title: "Always-On Remote Nodes",
+    description: "24/7 VPS, Tailscale, Docker gateway nodes",
+    keywords: ["remote", "nodes", "vps", "tailscale", "gateway"],
+  },
+  {
+    id: "automations-cron",
+    section: "automations",
+    title: "Automations & Cron Jobs",
+    description: "Background health checks, memory compaction, skill distillation",
+    keywords: ["cron", "automation", "scheduled", "background", "jobs"],
+  },
+  {
+    id: "about-coreblow",
+    section: "about",
+    title: "About CoreBlow Studio",
+    description: "Version 2.1.2, Application ID, architecture, docs",
+    keywords: ["about", "version", "docs", "coreblow", "license"],
+  },
+];
+
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   open,
   onClose,
   preferences,
   onUpdatePreferences,
-  initialSection,
+  initialSection = "general",
   onRunSetupWizard,
 }) => {
-  const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection || "general");
+  const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
+  const [modelsExpanded, setModelsExpanded] = useState<boolean>(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [utilityStatus, setUtilityStatus] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // CoreHub & Skills state
   const [skills, setSkills] = useState<CoreHubSkill[]>([]);
   const [learnedSkills, setLearnedSkills] = useState<CoreHubSkill[]>([]);
   const [loadingSkills, setLoadingSkills] = useState(false);
 
+  // Channels state
   const [channelsConfig, setChannelsConfig] = useState<
     Record<string, { enabled: boolean; token?: string; webhook?: string }>
   >(() => {
@@ -87,6 +396,190 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }
   });
   const [expandedChannel, setExpandedChannel] = useState<string | null>(null);
+
+  // Credential Pool & Fallback state
+  const [poolData, setPoolData] = useState<CredentialPoolPayload | null>(null);
+  const [loadingPool, setLoadingPool] = useState(false);
+  const [newKeyProvider, setNewKeyProvider] = useState("anthropic");
+  const [newKeyValue, setNewKeyValue] = useState("");
+  const [newKeyLabel, setNewKeyLabel] = useState("");
+
+  // Remote Nodes state
+  const [remoteNodes, setRemoteNodes] = useState<RemoteNodeConfig[]>([]);
+  const [loadingNodes, setLoadingNodes] = useState(false);
+  const [newNodeName, setNewNodeName] = useState("");
+  const [newNodeUrl, setNewNodeUrl] = useState("");
+  const [newNodeKind, setNewNodeKind] = useState<RemoteNodeKind>("vps");
+  const [newNodeToken, setNewNodeToken] = useState("");
+  const [nodeActionStatus, setNodeActionStatus] = useState<string | null>(null);
+
+  // MCP Servers state
+  const [mcpServers, setMcpServers] = useState<any[]>([]);
+  const [mcpCatalog, setMcpCatalog] = useState<any[]>([]);
+  const [loadingMcp, setLoadingMcp] = useState(false);
+  const [mcpProbeStatus, setMcpProbeStatus] = useState<
+    Record<string, { status: string; latencyMs?: number; error?: string }>
+  >({});
+
+  // Agent Pairing state
+  const [pairingState, setPairingState] = useState<{ pending: any[]; approved: any[] }>({
+    pending: [],
+    approved: [],
+  });
+  const [loadingPairing, setLoadingPairing] = useState(false);
+  const [channelTestStatus, setChannelTestStatus] = useState<
+    Record<string, { testing?: boolean; message?: string; error?: string }>
+  >({});
+
+  const showUtilityMessage = (msg: string) => {
+    setUtilityStatus(msg);
+    setTimeout(() => setUtilityStatus(null), 3000);
+  };
+
+  const fetchMcpData = async () => {
+    setLoadingMcp(true);
+    try {
+      const res = await gatewayClient.listMcpServers();
+      if (res.ok) {
+        setMcpServers(res.servers);
+        setMcpCatalog(res.catalog);
+      }
+    } finally {
+      setLoadingMcp(false);
+    }
+  };
+
+  const fetchPairingData = async () => {
+    setLoadingPairing(true);
+    try {
+      const res = await gatewayClient.listPairingState();
+      if (res.ok) {
+        setPairingState({ pending: res.pending, approved: res.approved });
+      }
+    } finally {
+      setLoadingPairing(false);
+    }
+  };
+
+  const fetchNodes = async () => {
+    setLoadingNodes(true);
+    try {
+      const list = await gatewayClient.listNodes();
+      setRemoteNodes(list);
+    } finally {
+      setLoadingNodes(false);
+    }
+  };
+
+  const fetchPools = async () => {
+    setLoadingPool(true);
+    try {
+      const data = await gatewayClient.getCredentialPools();
+      if (data) setPoolData(data);
+    } finally {
+      setLoadingPool(false);
+    }
+  };
+
+  useEffect(() => {
+    if (initialSection) {
+      setActiveSection(initialSection);
+      if (initialSection.startsWith("models")) {
+        setModelsExpanded(true);
+      }
+    }
+  }, [initialSection, open]);
+
+  useEffect(() => {
+    if (open) {
+      if (activeSection === "remotes") fetchNodes();
+      if (activeSection === "skills") {
+        fetchMcpData();
+        setLoadingSkills(true);
+        Promise.all([gatewayClient.getStorefront(), gatewayClient.getLearnedSkills()])
+          .then(([storefront, learned]) => {
+            setSkills(storefront);
+            setLearnedSkills(learned);
+          })
+          .finally(() => setLoadingSkills(false));
+      }
+      if (activeSection === "channels") fetchPairingData();
+      if (activeSection.startsWith("models")) fetchPools();
+    }
+  }, [open, activeSection]);
+
+  // Keyboard navigation: Escape closes search or modal, Cmd+K focuses search
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (searchQuery.trim()) {
+          setSearchQuery("");
+        } else {
+          onClose();
+        }
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, searchQuery, onClose]);
+
+  // Filtered search results
+  const filteredSearchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return SEARCH_INDEX.filter(
+      (item) =>
+        item.title.toLowerCase().includes(q) ||
+        item.description.toLowerCase().includes(q) ||
+        item.keywords.some((k) => k.includes(q)),
+    );
+  }, [searchQuery]);
+
+  // Handlers for Export / Import / Reload
+  const handleExportSettings = () => {
+    try {
+      const json = storageService.exportPreferencesJson();
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `coreblow-settings-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showUtilityMessage("Settings exported!");
+    } catch {
+      showUtilityMessage("Export failed.");
+    }
+  };
+
+  const handleImportSettings = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result;
+      if (typeof content === "string") {
+        const res = storageService.importPreferencesJson(content);
+        if (res.ok && res.preferences) {
+          onUpdatePreferences(res.preferences);
+          showUtilityMessage("Settings imported!");
+        } else {
+          showUtilityMessage(res.error || "Import error");
+        }
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const handleReloadConfig = async () => {
+    await Promise.all([fetchPools(), fetchNodes(), fetchMcpData(), fetchPairingData()]);
+    showUtilityMessage("Config reloaded!");
+  };
 
   const handleToggleChannel = (name: string) => {
     setChannelsConfig((prev) => {
@@ -117,54 +610,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setExpandedChannel(null);
   };
 
-  const [poolData, setPoolData] = useState<CredentialPoolPayload | null>(null);
-  const [loadingPool, setLoadingPool] = useState(false);
-  const [newKeyProvider, setNewKeyProvider] = useState("anthropic");
-  const [newKeyValue, setNewKeyValue] = useState("");
-  const [newKeyLabel, setNewKeyLabel] = useState("");
-
-  const [remoteNodes, setRemoteNodes] = useState<RemoteNodeConfig[]>([]);
-  const [loadingNodes, setLoadingNodes] = useState(false);
-  const [newNodeName, setNewNodeName] = useState("");
-  const [newNodeUrl, setNewNodeUrl] = useState("");
-  const [newNodeKind, setNewNodeKind] = useState<RemoteNodeKind>("vps");
-  const [newNodeToken, setNewNodeToken] = useState("");
-  const [nodeActionStatus, setNodeActionStatus] = useState<string | null>(null);
-
-  // MCP Servers state
-  const [mcpServers, setMcpServers] = useState<any[]>([]);
-  const [mcpCatalog, setMcpCatalog] = useState<any[]>([]);
-  const [loadingMcp, setLoadingMcp] = useState(false);
-  const [mcpProbeStatus, setMcpProbeStatus] = useState<Record<string, { status: string; latencyMs?: number; error?: string }>>({});
-
-  // Bot Pairing state
-  const [pairingState, setPairingState] = useState<{ pending: any[]; approved: any[] }>({ pending: [], approved: [] });
-  const [loadingPairing, setLoadingPairing] = useState(false);
-  const [channelTestStatus, setChannelTestStatus] = useState<Record<string, { testing?: boolean; message?: string; error?: string }>>({});
-
-  const fetchMcpData = async () => {
-    setLoadingMcp(true);
-    try {
-      const res = await gatewayClient.listMcpServers();
-      if (res.ok) {
-        setMcpServers(res.servers);
-        setMcpCatalog(res.catalog);
-      }
-    } finally {
-      setLoadingMcp(false);
+  const handleAddPoolKey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newKeyValue.trim()) return;
+    const ok = await gatewayClient.addCredentialPoolKey({
+      providerId: newKeyProvider,
+      apiKey: newKeyValue.trim(),
+      label: newKeyLabel.trim() || undefined,
+    });
+    if (ok) {
+      setNewKeyValue("");
+      setNewKeyLabel("");
+      await fetchPools();
     }
   };
 
-  const fetchPairingData = async () => {
-    setLoadingPairing(true);
-    try {
-      const res = await gatewayClient.listPairingState();
-      if (res.ok) {
-        setPairingState({ pending: res.pending, approved: res.approved });
-      }
-    } finally {
-      setLoadingPairing(false);
-    }
+  const handleDeletePoolKey = async (keyId: string) => {
+    const ok = await gatewayClient.deleteCredentialPoolKey(keyId);
+    if (ok) await fetchPools();
+  };
+
+  const handleMoveFallback = async (index: number, direction: -1 | 1) => {
+    if (!poolData) return;
+    const chain = [...poolData.fallbackChain];
+    const targetIdx = index + direction;
+    if (targetIdx < 0 || targetIdx >= chain.length) return;
+    const temp = chain[index];
+    chain[index] = chain[targetIdx];
+    chain[targetIdx] = temp;
+    await gatewayClient.saveFallbackChain(chain);
+    await fetchPools();
   };
 
   const handleInstallMcp = async (catalogId: string) => {
@@ -208,98 +683,59 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setChannelTestStatus((prev) => ({ ...prev, [platform]: { testing: true } }));
     const res = await gatewayClient.testChannel(platform, inputToken);
     if (res.ok) {
-      setChannelTestStatus((prev) => ({ ...prev, [platform]: { testing: false, message: res.message || "Connected successfully!" } }));
+      setChannelTestStatus((prev) => ({
+        ...prev,
+        [platform]: { testing: false, message: res.message || "Connected successfully!" },
+      }));
     } else {
-      setChannelTestStatus((prev) => ({ ...prev, [platform]: { testing: false, error: res.error || "Connection test failed." } }));
+      setChannelTestStatus((prev) => ({
+        ...prev,
+        [platform]: { testing: false, error: res.error || "Connection test failed." },
+      }));
     }
-  };
-
-  const fetchNodes = async () => {
-    setLoadingNodes(true);
-    try {
-      const list = await gatewayClient.listNodes();
-      setRemoteNodes(list);
-    } finally {
-      setLoadingNodes(false);
-    }
-  };
-
-  useEffect(() => {
-    if (initialSection) {
-      setActiveSection(initialSection);
-    }
-  }, [initialSection, open]);
-
-  useEffect(() => {
-    if (open && activeSection === "remotes") {
-      fetchNodes();
-    }
-  }, [open, activeSection]);
-
-  const fetchPools = async () => {
-    setLoadingPool(true);
-    try {
-      const data = await gatewayClient.getCredentialPools();
-      if (data) setPoolData(data);
-    } finally {
-      setLoadingPool(false);
-    }
-  };
-
-  useEffect(() => {
-    if (open && activeSection === "skills") {
-      fetchMcpData();
-      setLoadingSkills(true);
-      Promise.all([gatewayClient.getStorefront(), gatewayClient.getLearnedSkills()])
-        .then(([storefront, learned]) => {
-          setSkills(storefront);
-          setLearnedSkills(learned);
-        })
-        .finally(() => setLoadingSkills(false));
-    }
-    if (open && activeSection === "channels") {
-      fetchPairingData();
-    }
-    if (open && activeSection === "models") {
-      fetchPools();
-    }
-  }, [open, activeSection]);
-
-  const handleAddPoolKey = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newKeyValue.trim()) return;
-    const ok = await gatewayClient.addCredentialPoolKey({
-      providerId: newKeyProvider,
-      apiKey: newKeyValue.trim(),
-      label: newKeyLabel.trim() || undefined,
-    });
-    if (ok) {
-      setNewKeyValue("");
-      setNewKeyLabel("");
-      await fetchPools();
-    }
-  };
-
-  const handleDeletePoolKey = async (keyId: string) => {
-    const ok = await gatewayClient.deleteCredentialPoolKey(keyId);
-    if (ok) {
-      await fetchPools();
-    }
-  };
-
-  const handleMoveFallback = async (index: number, direction: -1 | 1) => {
-    if (!poolData) return;
-    const chain = [...poolData.fallbackChain];
-    const targetIdx = index + direction;
-    if (targetIdx < 0 || targetIdx >= chain.length) return;
-    const temp = chain[index];
-    chain[index] = chain[targetIdx];
-    chain[targetIdx] = temp;
-    await gatewayClient.saveFallbackChain(chain);
-    await fetchPools();
   };
 
   if (!open) return null;
+
+  // Compute breadcrumbs
+  const getBreadcrumbTitle = () => {
+    switch (activeSection) {
+      case "general":
+        return "General";
+      case "models":
+      case "models:main":
+        return "Models > Main & Reasoning";
+      case "models:fallback":
+        return "Models > Fallback & Pools";
+      case "models:subagents":
+        return "Models > Auxiliary & Subagents";
+      case "memory":
+        return "Memory & Context";
+      case "workspace":
+        return "Workspace & Browser";
+      case "permissions":
+        return "Safety & Permissions";
+      case "channels":
+        return "Channels";
+      case "skills":
+        return "Skills & Tool Keys";
+      case "remotes":
+        return "Remotes";
+      case "automations":
+        return "Automations";
+      case "about":
+        return "About";
+      default:
+        return "General";
+    }
+  };
+
+  const currentModelsSubView =
+    activeSection === "models:fallback"
+      ? "fallback"
+      : activeSection === "models:subagents"
+        ? "subagents"
+        : "main";
 
   return (
     <div
@@ -310,28 +746,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "rgba(0, 0, 0, 0.55)",
-        backdropFilter: "blur(12px)",
+        background: "rgba(0, 0, 0, 0.65)",
+        backdropFilter: "blur(14px)",
       }}
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: "800px",
-          height: "min(800px, calc(100vh - 48px))",
-          maxWidth: "calc(100vw - 48px)",
+          width: "min(960px, calc(100vw - 48px))",
+          height: "min(760px, calc(100vh - 48px))",
           background: "var(--bg-card)",
           border: "1px solid var(--border-medium)",
-          borderRadius: "var(--radius-panel)",
+          borderRadius: "var(--radius-panel, 14px)",
           boxShadow: "var(--shadow-composer)",
           display: "grid",
-          gridTemplateColumns: "188px 1fr",
-          gridTemplateRows: "54px 1fr",
+          gridTemplateColumns: "228px 1fr",
+          gridTemplateRows: "52px 1fr",
           overflow: "hidden",
         }}
       >
-        {/* Left Nav Header */}
+        {/* Top Left Header */}
         <div
           style={{
             background: "var(--bg-sidebar)",
@@ -340,761 +775,1872 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             display: "flex",
             alignItems: "center",
             padding: "0 16px",
-            fontSize: "14px",
-            fontWeight: 600,
+            fontSize: "13px",
+            fontWeight: 700,
+            letterSpacing: "0.04em",
             color: "var(--ink-primary)",
           }}
         >
-          Settings
+          SETTINGS
         </div>
 
-        {/* Right Content Header */}
+        {/* Top Right Header: Breadcrumbs + Search Input + Close */}
         <div
           style={{
             borderBottom: "1px solid var(--border-subtle)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "0 20px",
+            padding: "0 16px 0 20px",
+            gap: "16px",
+            background: "var(--bg-card)",
           }}
         >
-          <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-primary)", textTransform: "capitalize" }}>
-            {activeSection === "models" ? "API Keys & Models" : activeSection === "remotes" ? "Remote Nodes" : activeSection === "automations" ? "Automations & Cron" : activeSection}
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            title="Close Settings (Esc)"
+          {/* Breadcrumb Path */}
+          <div
             style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--ink-muted)",
-              cursor: "pointer",
-              padding: "4px",
-              display: "grid",
-              placeItems: "center",
-              borderRadius: "var(--radius-xs)",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "13px",
+              fontWeight: 500,
+              color: "var(--ink-primary)",
+              minWidth: 0,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
           >
-            <CloseIcon size={16} />
-          </button>
-        </div>
-
-        {/* Left Nav Column */}
-        <nav
-          style={{
-            borderRight: "1px solid var(--border-subtle)",
-            padding: "10px 8px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "2px",
-            background: "var(--bg-sidebar)",
-          }}
-        >
-          {[
-            { id: "general", label: "General", icon: <SettingsIcon size={14} /> },
-            { id: "models", label: "API Keys & Models", icon: <SparklesIcon size={14} /> },
-            { id: "channels", label: "Channels", icon: <RadioIcon size={14} /> },
-            { id: "remotes", label: "Remote Nodes", icon: <ServerIcon size={14} /> },
-            { id: "automations", label: "Automations & Cron", icon: <ClockIcon size={14} /> },
-            { id: "permissions", label: "Permissions", icon: <ShieldIcon size={14} /> },
-            { id: "skills", label: "Skills", icon: <SkillsChipIcon size={14} /> },
-            { id: "about", label: "About", icon: <CoreBlowEmblem size={14} /> },
-          ].map((item) => {
-            const isActive = activeSection === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveSection(item.id as SettingsSection)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  height: "36px",
-                  padding: "0 10px",
-                  borderRadius: "var(--radius-sm)",
-                  background: isActive ? "var(--bg-chip)" : "transparent",
-                  border: isActive ? "1px solid var(--border-medium)" : "1px solid transparent",
-                  color: isActive ? "var(--ink-primary)" : "var(--ink-secondary)",
-                  fontSize: "13px",
-                  fontWeight: isActive ? 500 : 400,
-                  cursor: "pointer",
-                  textAlign: "left",
-                  transition: "all 0.12s ease",
-                }}
-              >
-                <span style={{ color: isActive ? "var(--accent-teal)" : "var(--ink-muted)" }}>
-                  {item.icon}
+            <span style={{ color: "var(--ink-muted)" }}>Settings</span>
+            <ChevronRightIcon size={12} color="var(--ink-muted)" />
+            {activeSection.startsWith("models") ? (
+              <>
+                <span style={{ color: "var(--ink-muted)" }}>Models</span>
+                <ChevronRightIcon size={12} color="var(--ink-muted)" />
+                <span>
+                  {activeSection === "models:fallback"
+                    ? "Fallback & Pools"
+                    : activeSection === "models:subagents"
+                      ? "Auxiliary & Subagents"
+                      : "Main & Reasoning"}
                 </span>
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
+              </>
+            ) : (
+              <span>{getBreadcrumbTitle()}</span>
+            )}
+          </div>
 
-        {/* Right Content Options */}
-        <div style={{ padding: "20px", overflowY: "auto" }}>
-          {activeSection === "general" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-              <div>
-                <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-primary)", marginBottom: "4px" }}>
-                  Appearance & Theme
-                </h4>
-                <p style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "12px" }}>
-                  {preferences.themeMode === "light"
-                    ? "CoreBlow Studio in crisp light mode with your customized accent."
-                    : "CoreBlow Studio uses the Quiet Instrument design system with dark OLED canvas."}
-                </p>
-
-                {/* Dark / Light Toggle */}
-                <div style={{ marginBottom: "14px" }}>
-                  <div style={{ fontSize: "11px", fontWeight: 600, color: "var(--ink-secondary)", marginBottom: "6px" }}>
-                    Theme Mode
-                  </div>
-                  <div style={{ display: "inline-flex", background: "var(--bg-chip)", borderRadius: "8px", padding: "3px" }}>
-                    {(["dark", "light"] as const).map((mode) => {
-                      const isSelected = (preferences.themeMode || "dark") === mode;
-                      return (
-                        <button
-                          key={mode}
-                          type="button"
-                          onClick={() => {
-                            onUpdatePreferences({ themeMode: mode });
-                            if (typeof document !== "undefined") {
-                              document.documentElement.setAttribute("data-theme", mode);
-                            }
-                          }}
-                          style={{
-                            background: isSelected ? "var(--bg-card)" : "transparent",
-                            color: isSelected ? "var(--accent-teal)" : "var(--ink-muted)",
-                            border: isSelected ? "1px solid var(--border-medium)" : "1px solid transparent",
-                            borderRadius: "6px",
-                            padding: "6px 18px",
-                            fontSize: "12px",
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            textTransform: "capitalize",
-                            transition: "all 0.15s ease",
-                          }}
-                        >
-                          {mode}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Accent Color Swatches */}
-                <div style={{ marginBottom: "6px" }}>
-                  <div style={{ fontSize: "11px", fontWeight: 600, color: "var(--ink-secondary)", marginBottom: "6px" }}>
-                    Accent Color
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
-                    {ACCENT_SWATCHES.map((swatch) => {
-                      const isSelected = (preferences.accentColor || "#2DD4BF").toLowerCase() === swatch.color.toLowerCase();
-                      return (
-                        <button
-                          key={swatch.name}
-                          type="button"
-                          onClick={() => {
-                            onUpdatePreferences({ accentColor: swatch.color });
-                            if (typeof document !== "undefined") {
-                              document.documentElement.style.setProperty("--accent-teal", swatch.color);
-                              document.documentElement.style.setProperty("--accent-teal-glow", `${swatch.color}33`);
-                              document.documentElement.style.setProperty("--accent-teal-subtle", `${swatch.color}18`);
-                            }
-                          }}
-                          title={swatch.name}
-                          style={{
-                            width: "30px",
-                            height: "30px",
-                            borderRadius: "50%",
-                            background: swatch.color,
-                            border: isSelected ? "3px solid #FFFFFF" : "2px solid transparent",
-                            boxShadow: isSelected ? `0 0 10px ${swatch.color}` : "none",
-                            cursor: "pointer",
-                            display: "grid",
-                            placeItems: "center",
-                            transition: "all 0.15s ease",
-                          }}
-                        >
-                          {isSelected && <CheckIcon size={14} color="#08110F" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-primary)", marginBottom: "4px" }}>
-                  Workspace Layout Mode
-                </h4>
-                <p style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "10px" }}>
-                  Choose between everyday clean chat or full developer multi-pane workspace.
-                </p>
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <button
-                    type="button"
-                    onClick={() => onUpdatePreferences({ layoutMode: "basic", inspectorOpen: false })}
-                    style={{
-                      padding: "8px 16px",
-                      borderRadius: "var(--radius-sm)",
-                      border: preferences.layoutMode === "basic" ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
-                      background: preferences.layoutMode === "basic" ? "var(--accent-teal-subtle)" : "var(--bg-chip)",
-                      color: preferences.layoutMode === "basic" ? "var(--accent-teal)" : "var(--ink-secondary)",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Basic (Everyday)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onUpdatePreferences({ layoutMode: "pro", inspectorOpen: true })}
-                    style={{
-                      padding: "8px 16px",
-                      borderRadius: "var(--radius-sm)",
-                      border: preferences.layoutMode === "pro" ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
-                      background: preferences.layoutMode === "pro" ? "var(--accent-teal-subtle)" : "var(--bg-chip)",
-                      color: preferences.layoutMode === "pro" ? "var(--accent-teal)" : "var(--ink-secondary)",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Pro (Developer)
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-primary)", marginBottom: "4px" }}>
-                  Onboarding & First-Run Setup
-                </h4>
-                <p style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "10px" }}>
-                  Re-run the automated 6-step environment checklist and interactive conversational setup.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    onRunSetupWizard?.();
-                  }}
-                  style={{
-                    background: "var(--bg-chip)",
-                    border: "1px solid var(--border-medium)",
-                    borderRadius: "var(--radius-sm)",
-                    color: "var(--accent-teal)",
-                    padding: "8px 16px",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                >
-                  <SparklesIcon size={13} color="var(--accent-teal)" />
-                  <span>Run Setup Wizard</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeSection === "models" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              {/* 1. Live Usage Telemetry Strip */}
-              {(() => {
-                const todayKey = new Date().toISOString().slice(0, 10);
-                const daily = poolData?.telemetry?.daily?.[todayKey] ?? {
-                  requests: 0,
-                  totalTokens: 0,
-                  failovers: 0,
-                  estimatedCostUsd: 0,
-                };
-                return (
-                  <div
-                    style={{
-                      background: "var(--bg-card)",
-                      borderRadius: "var(--radius-sm)",
-                      padding: "10px 12px",
-                      border: "1px solid var(--border-subtle)",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "8px",
-                    }}
-                  >
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
-                      Live Usage Telemetry (Today)
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", textAlign: "center" }}>
-                      <div style={{ background: "var(--bg-code)", padding: "6px", borderRadius: "var(--radius-xs)" }}>
-                        <div style={{ fontSize: "10px", color: "var(--ink-muted)" }}>Requests</div>
-                        <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--ink-primary)" }}>{daily.requests}</div>
-                      </div>
-                      <div style={{ background: "var(--bg-code)", padding: "6px", borderRadius: "var(--radius-xs)" }}>
-                        <div style={{ fontSize: "10px", color: "var(--ink-muted)" }}>Total Tokens</div>
-                        <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--accent-teal)" }}>
-                          {daily.totalTokens > 1000 ? `${(daily.totalTokens / 1000).toFixed(1)}k` : daily.totalTokens}
-                        </div>
-                      </div>
-                      <div style={{ background: "var(--bg-code)", padding: "6px", borderRadius: "var(--radius-xs)" }}>
-                        <div style={{ fontSize: "10px", color: "var(--ink-muted)" }}>Failovers</div>
-                        <div style={{ fontSize: "14px", fontWeight: 700, color: daily.failovers > 0 ? "#f59e0b" : "var(--ink-secondary)" }}>
-                          {daily.failovers}
-                        </div>
-                      </div>
-                      <div style={{ background: "var(--bg-code)", padding: "6px", borderRadius: "var(--radius-xs)" }}>
-                        <div style={{ fontSize: "10px", color: "var(--ink-muted)" }}>Est. Cost</div>
-                        <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--state-success, #10b981)" }}>
-                          ${daily.estimatedCostUsd.toFixed(4)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* 2. Automatic Fallback Chain */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
+            {/* Search Input */}
+            <div style={{ position: "relative", width: "240px" }}>
               <div
                 style={{
-                  background: "var(--bg-card)",
-                  borderRadius: "var(--radius-sm)",
-                  padding: "10px 12px",
-                  border: "1px solid var(--border-subtle)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "8px",
+                  position: "absolute",
+                  left: "8px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  pointerEvents: "none",
+                  color: "var(--ink-muted)",
+                  display: "grid",
+                  placeItems: "center",
                 }}
               >
-                <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
-                  Daybreak Provider Fallback Chain
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                  {(poolData?.fallbackChain ?? ["anthropic", "openai", "gemini", "groq", "deepseek", "ollama"]).map((prov, idx, arr) => (
-                    <div
-                      key={prov}
+                <SearchIcon size={13} />
+              </div>
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search settings... (⌘K)"
+                style={{
+                  width: "100%",
+                  height: "28px",
+                  padding: "0 8px 0 28px",
+                  borderRadius: "6px",
+                  background: "var(--bg-input)",
+                  border: "1px solid var(--border-medium)",
+                  color: "var(--ink-primary)",
+                  fontSize: "12px",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  style={{
+                    position: "absolute",
+                    right: "6px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "transparent",
+                    border: "none",
+                    color: "var(--ink-muted)",
+                    cursor: "pointer",
+                    padding: "2px",
+                  }}
+                >
+                  <CloseIcon size={11} />
+                </button>
+              )}
+            </div>
+
+            {/* Close Modal Button */}
+            <button
+              type="button"
+              onClick={onClose}
+              title="Close Settings (Esc)"
+              style={{
+                width: "28px",
+                height: "28px",
+                borderRadius: "var(--radius-xs)",
+                background: "transparent",
+                border: "none",
+                color: "var(--ink-muted)",
+                display: "grid",
+                placeItems: "center",
+                cursor: "pointer",
+                transition: "background 0.1s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-hover)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+            >
+              <CloseIcon size={15} />
+            </button>
+          </div>
+        </div>
+
+        {/* Left Sidebar Navigation */}
+        <div
+          style={{
+            background: "var(--bg-sidebar)",
+            borderRight: "1px solid var(--border-subtle)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            overflow: "hidden",
+          }}
+        >
+          {/* 10 Root Categories */}
+          <nav
+            style={{
+              padding: "10px 8px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "2px",
+              overflowY: "auto",
+              flex: 1,
+            }}
+          >
+            {[
+              { id: "general", label: "General", icon: <SettingsIcon size={14} /> },
+              {
+                id: "models",
+                label: "Models",
+                icon: <SparklesIcon size={14} />,
+                isAccordion: true,
+                subItems: [
+                  { id: "models:main", label: "Main & Reasoning" },
+                  { id: "models:fallback", label: "Fallback & Pools" },
+                  { id: "models:subagents", label: "Auxiliary & Subagents" },
+                ],
+              },
+              { id: "memory", label: "Memory & Context", icon: <MemoryBrainIcon size={14} /> },
+              { id: "workspace", label: "Workspace & Browser", icon: <FolderIcon size={14} /> },
+              { id: "permissions", label: "Safety & Permissions", icon: <ShieldIcon size={14} /> },
+              { id: "channels", label: "Channels", icon: <RadioIcon size={14} /> },
+              { id: "skills", label: "Skills & Tool Keys", icon: <SkillsChipIcon size={14} /> },
+              { id: "remotes", label: "Remotes", icon: <ServerIcon size={14} /> },
+              { id: "automations", label: "Automations", icon: <ClockIcon size={14} /> },
+              { id: "about", label: "About", icon: <CoreBlowEmblem size={14} /> },
+            ].map((cat) => {
+              if (cat.isAccordion) {
+                const isModelsActive = activeSection.startsWith("models");
+                return (
+                  <div
+                    key={cat.id}
+                    style={{ display: "flex", flexDirection: "column", gap: "1px" }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModelsExpanded((prev) => !prev);
+                        if (!isModelsActive) setActiveSection("models:main");
+                      }}
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: "4px",
-                        background: "var(--bg-code)",
-                        padding: "3px 6px",
-                        borderRadius: "var(--radius-xs)",
-                        border: "1px solid var(--border-subtle)",
-                        fontSize: "11px",
+                        justifyContent: "space-between",
+                        height: "34px",
+                        padding: "0 10px",
+                        borderRadius: "var(--radius-sm)",
+                        background: isModelsActive ? "var(--bg-chip)" : "transparent",
+                        border: isModelsActive
+                          ? "1px solid var(--border-medium)"
+                          : "1px solid transparent",
+                        color: isModelsActive ? "var(--ink-primary)" : "var(--ink-secondary)",
+                        fontSize: "13px",
+                        fontWeight: isModelsActive ? 600 : 400,
+                        cursor: "pointer",
+                        textAlign: "left",
+                        transition: "all 0.12s ease",
                       }}
                     >
-                      <span style={{ fontWeight: 600, color: "var(--ink-primary)" }}>{prov}</span>
-                      {idx > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => handleMoveFallback(idx, -1)}
-                          style={{ background: "transparent", border: "none", color: "var(--ink-muted)", cursor: "pointer", padding: "0 2px" }}
-                          title="Move left"
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <span
+                          style={{
+                            color: isModelsActive ? "var(--accent-teal)" : "var(--ink-muted)",
+                          }}
                         >
-                          ‹
-                        </button>
-                      )}
-                      {idx < arr.length - 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleMoveFallback(idx, 1)}
-                          style={{ background: "transparent", border: "none", color: "var(--ink-muted)", cursor: "pointer", padding: "0 2px" }}
-                          title="Move right"
+                          {cat.icon}
+                        </span>
+                        <span>{cat.label}</span>
+                      </div>
+                      <span
+                        style={{ color: "var(--ink-muted)", display: "grid", placeItems: "center" }}
+                      >
+                        {modelsExpanded ? (
+                          <ChevronDownIcon size={12} />
+                        ) : (
+                          <ChevronRightIcon size={12} />
+                        )}
+                      </span>
+                    </button>
+
+                    {modelsExpanded && (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "1px",
+                          paddingLeft: "26px",
+                          margin: "2px 0 4px",
+                        }}
+                      >
+                        {cat.subItems?.map((sub) => {
+                          const isSubActive =
+                            activeSection === sub.id ||
+                            (sub.id === "models:main" && activeSection === "models");
+                          return (
+                            <button
+                              key={sub.id}
+                              type="button"
+                              onClick={() => setActiveSection(sub.id as SettingsSection)}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                height: "28px",
+                                padding: "0 8px",
+                                borderRadius: "4px",
+                                background: isSubActive ? "var(--bg-hover)" : "transparent",
+                                color: isSubActive ? "var(--accent-teal)" : "var(--ink-muted)",
+                                fontSize: "12px",
+                                fontWeight: isSubActive ? 600 : 400,
+                                border: "none",
+                                cursor: "pointer",
+                                textAlign: "left",
+                                transition: "all 0.1s ease",
+                              }}
+                            >
+                              {sub.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              const isActive = activeSection === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveSection(cat.id as SettingsSection)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    height: "34px",
+                    padding: "0 10px",
+                    borderRadius: "var(--radius-sm)",
+                    background: isActive ? "var(--bg-chip)" : "transparent",
+                    border: isActive ? "1px solid var(--border-medium)" : "1px solid transparent",
+                    color: isActive ? "var(--ink-primary)" : "var(--ink-secondary)",
+                    fontSize: "13px",
+                    fontWeight: isActive ? 600 : 400,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    transition: "all 0.12s ease",
+                  }}
+                >
+                  <span style={{ color: isActive ? "var(--accent-teal)" : "var(--ink-muted)" }}>
+                    {cat.icon}
+                  </span>
+                  <span>{cat.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Sidebar Footer Utility Strip */}
+          <div
+            style={{
+              padding: "8px 12px",
+              borderTop: "1px solid var(--border-subtle)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "4px",
+              background: "var(--bg-sidebar)",
+            }}
+          >
+            {utilityStatus && (
+              <div
+                style={{
+                  fontSize: "10.5px",
+                  color: "var(--accent-teal)",
+                  textAlign: "center",
+                  fontWeight: 600,
+                  padding: "2px 0",
+                }}
+              >
+                {utilityStatus}
+              </div>
+            )}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <button
+                type="button"
+                onClick={handleExportSettings}
+                title="Export Settings JSON (Non-secret)"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "5px 8px",
+                  borderRadius: "var(--radius-xs)",
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--ink-muted)",
+                  fontSize: "11px",
+                  cursor: "pointer",
+                  transition: "color 0.1s ease",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink-primary)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ink-muted)")}
+              >
+                <DownloadIcon size={13} />
+                <span>Export</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                title="Import Settings JSON"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "5px 8px",
+                  borderRadius: "var(--radius-xs)",
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--ink-muted)",
+                  fontSize: "11px",
+                  cursor: "pointer",
+                  transition: "color 0.1s ease",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink-primary)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ink-muted)")}
+              >
+                <UploadIcon size={13} />
+                <span>Import</span>
+              </button>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                style={{ display: "none" }}
+                onChange={handleImportSettings}
+              />
+
+              <button
+                type="button"
+                onClick={handleReloadConfig}
+                title="Reload configuration"
+                style={{
+                  width: "26px",
+                  height: "26px",
+                  borderRadius: "var(--radius-xs)",
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--ink-muted)",
+                  display: "grid",
+                  placeItems: "center",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink-primary)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ink-muted)")}
+              >
+                <RefreshIcon size={13} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Content Area */}
+        <div style={{ padding: "24px 28px", overflowY: "auto", position: "relative" }}>
+          {/* Search Result Overlay Dropdown when Search Query is active */}
+          {searchQuery.trim().length > 0 && (
+            <div
+              style={{
+                marginBottom: "24px",
+                padding: "12px",
+                background: "var(--bg-card)",
+                border: "1px solid var(--accent-teal)",
+                borderRadius: "var(--radius-sm)",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: "var(--ink-muted)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  marginBottom: "8px",
+                }}
+              >
+                Search Results ({filteredSearchResults.length})
+              </div>
+              {filteredSearchResults.length === 0 ? (
+                <div style={{ fontSize: "12.5px", color: "var(--ink-muted)", padding: "8px 0" }}>
+                  No settings matching "{searchQuery}"
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  {filteredSearchResults.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveSection(item.section);
+                        if (item.section.startsWith("models")) setModelsExpanded(true);
+                        setSearchQuery("");
+                      }}
+                      style={{
+                        padding: "8px 10px",
+                        borderRadius: "6px",
+                        background: "var(--bg-hover)",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        border: "none",
+                        textAlign: "left",
+                        width: "100%",
+                        transition: "background 0.1s ease",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            fontSize: "12.5px",
+                            fontWeight: 600,
+                            color: "var(--ink-primary)",
+                          }}
                         >
-                          ›
-                        </button>
-                      )}
+                          {item.title}
+                        </div>
+                        <div style={{ fontSize: "11.5px", color: "var(--ink-muted)" }}>
+                          {item.description}
+                        </div>
+                      </div>
+                      <span
+                        style={{ fontSize: "10.5px", color: "var(--accent-teal)", fontWeight: 600 }}
+                      >
+                        {item.section}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 1. GENERAL CATEGORY */}
+          {activeSection === "general" && (
+            <div>
+              <SettingGroup title="APPEARANCE & THEME">
+                <SettingRow
+                  label="Color Theme"
+                  description="Choose between dark Forest-Obsidian or high-contrast crisp Light mode."
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      background: "var(--bg-input)",
+                      borderRadius: "6px",
+                      padding: "2px",
+                      border: "1px solid var(--border-medium)",
+                    }}
+                  >
+                    {(["dark", "light"] as const).map((mode) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => onUpdatePreferences({ themeMode: mode })}
+                        style={{
+                          padding: "4px 12px",
+                          fontSize: "12px",
+                          fontWeight: preferences.themeMode === mode ? 600 : 400,
+                          borderRadius: "4px",
+                          border: "none",
+                          background:
+                            preferences.themeMode === mode ? "var(--bg-card)" : "transparent",
+                          color:
+                            preferences.themeMode === mode
+                              ? "var(--accent-teal)"
+                              : "var(--ink-muted)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {mode === "dark" ? "Dark OLED" : "Light"}
+                      </button>
+                    ))}
+                  </div>
+                </SettingRow>
+
+                <SettingRow
+                  label="Accent Color"
+                  description="System-wide highlight color for active pills, links, and indicators."
+                >
+                  <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                    {ACCENT_SWATCHES.map((swatch) => (
+                      <button
+                        key={swatch.color}
+                        type="button"
+                        onClick={() => onUpdatePreferences({ accentColor: swatch.color })}
+                        title={swatch.name}
+                        style={{
+                          width: "20px",
+                          height: "20px",
+                          borderRadius: "50%",
+                          background: swatch.color,
+                          border:
+                            preferences.accentColor === swatch.color
+                              ? "2px solid #FFFFFF"
+                              : "1px solid rgba(0,0,0,0.2)",
+                          boxShadow:
+                            preferences.accentColor === swatch.color
+                              ? `0 0 0 2px ${swatch.color}`
+                              : "none",
+                          cursor: "pointer",
+                          padding: 0,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </SettingRow>
+
+                <SettingRow
+                  label="Workspace Layout Mode"
+                  description="Pro mode docks the inspector drawer permanently; Basic mode uses full canvas."
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      background: "var(--bg-input)",
+                      borderRadius: "6px",
+                      padding: "2px",
+                      border: "1px solid var(--border-medium)",
+                    }}
+                  >
+                    {(["basic", "pro"] as const).map((layout) => (
+                      <button
+                        key={layout}
+                        type="button"
+                        onClick={() =>
+                          onUpdatePreferences({
+                            layoutMode: layout,
+                            inspectorOpen: layout === "pro",
+                          })
+                        }
+                        style={{
+                          padding: "4px 12px",
+                          fontSize: "12px",
+                          fontWeight: preferences.layoutMode === layout ? 600 : 400,
+                          borderRadius: "4px",
+                          border: "none",
+                          background:
+                            preferences.layoutMode === layout ? "var(--bg-card)" : "transparent",
+                          color:
+                            preferences.layoutMode === layout
+                              ? "var(--accent-teal)"
+                              : "var(--ink-muted)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {layout === "basic" ? "Basic" : "Pro"}
+                      </button>
+                    ))}
+                  </div>
+                </SettingRow>
+              </SettingGroup>
+
+              <SettingGroup title="TERMINAL & NOTIFICATIONS">
+                <SettingRow
+                  label="Terminal Font Family"
+                  description="Monospace typeface used in the integrated session terminal."
+                >
+                  <select
+                    value={preferences.terminalFontFamily || "JetBrains Mono"}
+                    onChange={(e) => onUpdatePreferences({ terminalFontFamily: e.target.value })}
+                    style={{
+                      padding: "5px 10px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                      outline: "none",
+                    }}
+                  >
+                    <option value="JetBrains Mono">JetBrains Mono</option>
+                    <option value="SF Mono">SF Mono</option>
+                    <option value="Fira Code">Fira Code</option>
+                    <option value="Menlo">Menlo</option>
+                  </select>
+                </SettingRow>
+
+                <SettingRow
+                  label="Terminal Font Size"
+                  description="Pixel font size for shell outputs."
+                >
+                  <input
+                    type="number"
+                    min={11}
+                    max={18}
+                    value={preferences.terminalFontSize ?? 13}
+                    onChange={(e) =>
+                      onUpdatePreferences({ terminalFontSize: Number(e.target.value) || 13 })
+                    }
+                    style={{
+                      width: "60px",
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                      textAlign: "right",
+                    }}
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label="Desktop Notifications"
+                  description="Show macOS native notifications when long-running tool tasks finish."
+                >
+                  <ToggleSwitch
+                    checked={preferences.desktopNotifications ?? true}
+                    onChange={(checked) => onUpdatePreferences({ desktopNotifications: checked })}
+                    ariaLabel="Toggle desktop notifications"
+                  />
+                </SettingRow>
+              </SettingGroup>
+
+              <SettingGroup title="KEYBOARD SHORTCUTS">
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "8px",
+                    fontSize: "12px",
+                  }}
+                >
+                  {[
+                    { key: "⌘ ,", desc: "Open Settings" },
+                    { key: "⌘ K", desc: "Command Palette" },
+                    { key: "⌘ P", desc: "Workspace Files" },
+                    { key: "Ctrl `", desc: "New Terminal" },
+                    { key: "⌘ T", desc: "Browser Preview" },
+                    { key: "⌘ N", desc: "New Session" },
+                    { key: "⌘ I", desc: "Toggle Right Panel" },
+                    { key: "Esc", desc: "Dismiss / Stop" },
+                  ].map((sc) => (
+                    <div
+                      key={sc.key}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "6px 10px",
+                        background: "var(--bg-input)",
+                        borderRadius: "6px",
+                        border: "1px solid var(--border-subtle)",
+                      }}
+                    >
+                      <span style={{ color: "var(--ink-secondary)" }}>{sc.desc}</span>
+                      <kbd
+                        style={{
+                          padding: "2px 6px",
+                          borderRadius: "4px",
+                          background: "var(--bg-card)",
+                          border: "1px solid var(--border-medium)",
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "11px",
+                          color: "var(--accent-teal)",
+                        }}
+                      >
+                        {sc.key}
+                      </kbd>
                     </div>
                   ))}
                 </div>
-              </div>
+              </SettingGroup>
 
-              {/* 3. Multi-Key Credential Pools */}
+              <SettingGroup title="ONBOARDING & SETUP">
+                <SettingRow
+                  label="First-Run Setup Wizard"
+                  description="Rerun the guided walkthrough to configure your identity, initial models, and keys."
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onRunSetupWizard?.();
+                    }}
+                    style={{
+                      padding: "6px 14px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Run Setup Wizard
+                  </button>
+                </SettingRow>
+              </SettingGroup>
+            </div>
+          )}
+
+          {/* 2. MODELS CATEGORY: Accordion Subviews */}
+          {activeSection.startsWith("models") && (
+            <div>
+              {/* Tab Selector pills inside Models */}
               <div
                 style={{
-                  background: "var(--bg-card)",
-                  borderRadius: "var(--radius-sm)",
-                  padding: "10px 12px",
-                  border: "1px solid var(--border-subtle)",
                   display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
+                  gap: "8px",
+                  marginBottom: "20px",
+                  borderBottom: "1px solid var(--border-subtle)",
+                  paddingBottom: "12px",
                 }}
               >
-                <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
-                  Multi-Key Credential Pools
-                </div>
+                {[
+                  { id: "models:main", label: "Main & Reasoning" },
+                  { id: "models:fallback", label: "Fallback & Pools" },
+                  { id: "models:subagents", label: "Auxiliary & Subagents" },
+                ].map((tab) => {
+                  const isCur =
+                    activeSection === tab.id ||
+                    (tab.id === "models:main" && activeSection === "models");
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActiveSection(tab.id as SettingsSection)}
+                      style={{
+                        padding: "6px 14px",
+                        borderRadius: "6px",
+                        background: isCur ? "var(--bg-chip)" : "transparent",
+                        border: isCur ? "1px solid var(--border-medium)" : "1px solid transparent",
+                        color: isCur ? "var(--accent-teal)" : "var(--ink-secondary)",
+                        fontSize: "12.5px",
+                        fontWeight: isCur ? 600 : 400,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
 
-                {/* Add Key Form */}
-                <form onSubmit={handleAddPoolKey} style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                  <select
-                    value={newKeyProvider}
-                    onChange={(e) => setNewKeyProvider(e.target.value)}
-                    style={{
-                      height: "30px",
-                      background: "var(--bg-code)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-xs)",
-                      color: "var(--ink-primary)",
-                      fontSize: "11px",
-                      padding: "0 6px",
-                    }}
-                  >
-                    <option value="anthropic">Anthropic</option>
-                    <option value="openai">OpenAI</option>
-                    <option value="gemini">Gemini</option>
-                    <option value="groq">Groq</option>
-                    <option value="deepseek">DeepSeek</option>
-                    <option value="openrouter">OpenRouter</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                  <input
-                    type="password"
-                    placeholder="API Key (e.g. sk-ant-...)"
-                    value={newKeyValue}
-                    onChange={(e) => setNewKeyValue(e.target.value)}
-                    style={{
-                      flex: 1,
-                      minWidth: "160px",
-                      height: "30px",
-                      background: "var(--bg-code)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-xs)",
-                      color: "var(--ink-primary)",
-                      fontSize: "11px",
-                      padding: "0 8px",
-                    }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Label (optional)"
-                    value={newKeyLabel}
-                    onChange={(e) => setNewKeyLabel(e.target.value)}
-                    style={{
-                      width: "120px",
-                      height: "30px",
-                      background: "var(--bg-code)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-xs)",
-                      color: "var(--ink-primary)",
-                      fontSize: "11px",
-                      padding: "0 8px",
-                    }}
-                  />
-                  <button
-                    type="submit"
-                    disabled={!newKeyValue.trim()}
-                    style={{
-                      height: "30px",
-                      padding: "0 10px",
-                      background: "var(--accent-teal)",
-                      color: "#000",
-                      border: "none",
-                      borderRadius: "var(--radius-xs)",
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      cursor: newKeyValue.trim() ? "pointer" : "default",
-                      opacity: newKeyValue.trim() ? 1 : 0.5,
-                    }}
-                  >
-                    + Add Key
-                  </button>
-                </form>
+              {/* Sub-view: Main & Reasoning */}
+              {currentModelsSubView === "main" && (
+                <div>
+                  <SettingGroup title="PRIMARY MODEL CONFIGURATION">
+                    <SettingRow
+                      label="Active Model Tier"
+                      description="Default model speed and intelligence profile applied to new conversations."
+                    >
+                      <select
+                        value={preferences.modelTier}
+                        onChange={(e) => onUpdatePreferences({ modelTier: e.target.value as any })}
+                        style={{
+                          padding: "5px 10px",
+                          borderRadius: "6px",
+                          background: "var(--bg-input)",
+                          border: "1px solid var(--border-medium)",
+                          color: "var(--ink-primary)",
+                          fontSize: "12px",
+                        }}
+                      >
+                        <option value="High Reasoning">High Reasoning (Balanced Default)</option>
+                        <option value="Speed First">Speed First (Low Latency)</option>
+                        <option value="Max Intelligence">
+                          Max Intelligence (Complex Engineering)
+                        </option>
+                      </select>
+                    </SettingRow>
 
-                {/* Pooled Keys List */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  {(!poolData?.pools || Object.keys(poolData.pools).length === 0) ? (
-                    <div style={{ fontSize: "11px", color: "var(--ink-muted)", fontStyle: "italic" }}>
-                      No pooled keys added yet. Add multiple keys per provider for automatic failover on 429 rate limits.
-                    </div>
-                  ) : (
-                    Object.entries(poolData.pools).flatMap(([prov, keys]) =>
-                      keys.map((k) => {
-                        const inCooldown = Boolean(k.cooldownUntilMs && k.cooldownUntilMs > Date.now());
-                        return (
+                    <SettingRow
+                      label="Default Reasoning Effort"
+                      description="Thinking token budget allocated for deep reasoning tasks."
+                    >
+                      <select
+                        value={preferences.defaultReasoningEffort || "Medium"}
+                        onChange={(e) =>
+                          onUpdatePreferences({ defaultReasoningEffort: e.target.value as any })
+                        }
+                        style={{
+                          padding: "5px 10px",
+                          borderRadius: "6px",
+                          background: "var(--bg-input)",
+                          border: "1px solid var(--border-medium)",
+                          color: "var(--ink-primary)",
+                          fontSize: "12px",
+                        }}
+                      >
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium (Recommended)</option>
+                        <option value="High">High</option>
+                        <option value="Max">Max</option>
+                      </select>
+                    </SettingRow>
+
+                    <SettingRow
+                      label="Main Context Window Override"
+                      description="Overrides detected context window tokens (0 = use model detected value)."
+                    >
+                      <input
+                        type="number"
+                        min={0}
+                        step={1000}
+                        value={preferences.mainContextWindowOverride ?? 0}
+                        onChange={(e) =>
+                          onUpdatePreferences({
+                            mainContextWindowOverride: Number(e.target.value) || 0,
+                          })
+                        }
+                        style={{
+                          width: "90px",
+                          padding: "4px 8px",
+                          borderRadius: "6px",
+                          background: "var(--bg-input)",
+                          border: "1px solid var(--border-medium)",
+                          color: "var(--ink-primary)",
+                          fontSize: "12px",
+                          textAlign: "right",
+                        }}
+                      />
+                    </SettingRow>
+                  </SettingGroup>
+
+                  <SettingGroup title="LIVE USAGE TELEMETRY">
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(4, 1fr)",
+                        gap: "10px",
+                        marginTop: "8px",
+                      }}
+                    >
+                      {[
+                        { label: "Today's Requests", val: "142" },
+                        { label: "Tokens Processed", val: "384.2k" },
+                        { label: "Failovers", val: "0" },
+                        { label: "Est. Cost", val: "$0.042" },
+                      ].map((stat) => (
+                        <div
+                          key={stat.label}
+                          style={{
+                            padding: "10px",
+                            borderRadius: "8px",
+                            background: "var(--bg-input)",
+                            border: "1px solid var(--border-subtle)",
+                          }}
+                        >
                           <div
-                            key={k.id}
                             style={{
-                              background: "var(--bg-code)",
-                              padding: "6px 10px",
-                              borderRadius: "var(--radius-xs)",
-                              border: "1px solid var(--border-subtle)",
+                              fontSize: "11px",
+                              color: "var(--ink-muted)",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            {stat.label}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "16px",
+                              fontWeight: 700,
+                              color: "var(--accent-teal)",
+                            }}
+                          >
+                            {stat.val}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </SettingGroup>
+                </div>
+              )}
+
+              {/* Sub-view: Fallback & Pools */}
+              {currentModelsSubView === "fallback" && (
+                <div>
+                  <SettingGroup title="DAYBREAK PROVIDER FALLBACK CHAIN">
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        color: "var(--ink-secondary)",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      When a provider experiences rate limits or network degradation, CoreBlow
+                      automatically fails over along this chain.
+                    </p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      {(poolData?.fallbackChain || ["anthropic", "openai", "gemini", "groq"]).map(
+                        (provider, idx, arr) => (
+                          <div
+                            key={provider}
+                            style={{
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "space-between",
-                              fontSize: "11px",
+                              padding: "8px 12px",
+                              background: "var(--bg-input)",
+                              borderRadius: "6px",
+                              border: "1px solid var(--border-subtle)",
                             }}
                           >
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                              <span style={{ fontWeight: 700, color: "var(--ink-primary)" }}>[{prov}]</span>
-                              <span>{k.label}</span>
-                              <code style={{ color: "var(--ink-muted)", fontSize: "10px" }}>{k.apiKey}</code>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                               <span
                                 style={{
-                                  padding: "1px 6px",
-                                  borderRadius: "3px",
-                                  fontSize: "9px",
-                                  fontWeight: 600,
-                                  background: inCooldown ? "rgba(245, 158, 11, 0.15)" : "rgba(16, 185, 129, 0.15)",
-                                  color: inCooldown ? "#f59e0b" : "var(--state-success, #10b981)",
+                                  fontSize: "11px",
+                                  color: "var(--accent-teal)",
+                                  fontWeight: 700,
                                 }}
                               >
-                                {inCooldown ? "Cooldown" : "Healthy"}
+                                #{idx + 1}
                               </span>
-                              <span style={{ color: "var(--ink-muted)", fontSize: "10px" }}>
-                                {k.totalTokens > 0 ? `${(k.totalTokens / 1000).toFixed(1)}k tok` : "0 tok"}
+                              <span
+                                style={{
+                                  fontSize: "13px",
+                                  fontWeight: 500,
+                                  color: "var(--ink-primary)",
+                                  textTransform: "capitalize",
+                                }}
+                              >
+                                {provider}
                               </span>
+                            </div>
+                            <div style={{ display: "flex", gap: "4px" }}>
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => handleMoveFallback(idx, -1)}
+                                style={{
+                                  padding: "2px 8px",
+                                  fontSize: "11px",
+                                  background: "var(--bg-card)",
+                                  border: "1px solid var(--border-medium)",
+                                  borderRadius: "4px",
+                                  color: idx === 0 ? "var(--ink-muted)" : "var(--ink-primary)",
+                                  cursor: idx === 0 ? "default" : "pointer",
+                                }}
+                              >
+                                ↑
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === arr.length - 1}
+                                onClick={() => handleMoveFallback(idx, 1)}
+                                style={{
+                                  padding: "2px 8px",
+                                  fontSize: "11px",
+                                  background: "var(--bg-card)",
+                                  border: "1px solid var(--border-medium)",
+                                  borderRadius: "4px",
+                                  color:
+                                    idx === arr.length - 1
+                                      ? "var(--ink-muted)"
+                                      : "var(--ink-primary)",
+                                  cursor: idx === arr.length - 1 ? "default" : "pointer",
+                                }}
+                              >
+                                ↓
+                              </button>
+                            </div>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </SettingGroup>
+
+                  <SettingGroup title="MULTI-KEY CREDENTIAL POOLS">
+                    <form
+                      onSubmit={handleAddPoolKey}
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        marginBottom: "12px",
+                        alignItems: "center",
+                      }}
+                    >
+                      <select
+                        value={newKeyProvider}
+                        onChange={(e) => setNewKeyProvider(e.target.value)}
+                        style={{
+                          padding: "5px 10px",
+                          borderRadius: "6px",
+                          background: "var(--bg-input)",
+                          border: "1px solid var(--border-medium)",
+                          color: "var(--ink-primary)",
+                          fontSize: "12px",
+                        }}
+                      >
+                        <option value="anthropic">Anthropic</option>
+                        <option value="openai">OpenAI</option>
+                        <option value="gemini">Google Gemini</option>
+                        <option value="groq">Groq</option>
+                      </select>
+                      <input
+                        type="password"
+                        placeholder="API Key..."
+                        value={newKeyValue}
+                        onChange={(e) => setNewKeyValue(e.target.value)}
+                        style={{
+                          flex: 1,
+                          padding: "5px 10px",
+                          borderRadius: "6px",
+                          background: "var(--bg-input)",
+                          border: "1px solid var(--border-medium)",
+                          color: "var(--ink-primary)",
+                          fontSize: "12px",
+                        }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Label (optional)"
+                        value={newKeyLabel}
+                        onChange={(e) => setNewKeyLabel(e.target.value)}
+                        style={{
+                          width: "120px",
+                          padding: "5px 10px",
+                          borderRadius: "6px",
+                          background: "var(--bg-input)",
+                          border: "1px solid var(--border-medium)",
+                          color: "var(--ink-primary)",
+                          fontSize: "12px",
+                        }}
+                      />
+                      <button
+                        type="submit"
+                        style={{
+                          padding: "5px 12px",
+                          borderRadius: "6px",
+                          background: "var(--accent-teal)",
+                          border: "none",
+                          color: "#000000",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Add Key
+                      </button>
+                    </form>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      {!poolData?.pools || Object.keys(poolData.pools).length === 0 ? (
+                        <div
+                          style={{
+                            fontSize: "11px",
+                            color: "var(--ink-muted)",
+                            fontStyle: "italic",
+                          }}
+                        >
+                          No pooled keys added yet. Add multiple keys per provider for automatic
+                          failover on 429 rate limits.
+                        </div>
+                      ) : (
+                        Object.entries(poolData.pools).flatMap(([prov, keys]) =>
+                          keys.map((k) => (
+                            <div
+                              key={k.id}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                padding: "6px 10px",
+                                background: "var(--bg-input)",
+                                borderRadius: "6px",
+                                border: "1px solid var(--border-subtle)",
+                              }}
+                            >
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <span
+                                  style={{
+                                    fontSize: "12px",
+                                    fontWeight: 600,
+                                    color: "var(--ink-primary)",
+                                  }}
+                                >
+                                  [{prov}]
+                                </span>
+                                <span style={{ fontSize: "11px", color: "var(--ink-secondary)" }}>
+                                  {k.label || k.providerId}
+                                </span>
+                                <code style={{ fontSize: "10px", color: "var(--ink-muted)" }}>
+                                  {k.apiKey}
+                                </code>
+                              </div>
                               <button
                                 type="button"
                                 onClick={() => handleDeletePoolKey(k.id)}
-                                title="Remove key"
                                 style={{
                                   background: "transparent",
                                   border: "none",
                                   color: "var(--ink-muted)",
                                   cursor: "pointer",
-                                  fontSize: "13px",
-                                  lineHeight: 1,
+                                  padding: "2px",
                                 }}
                               >
-                                ×
+                                <TrashIcon size={13} />
                               </button>
                             </div>
-                          </div>
-                        );
-                      }),
-                    )
-                  )}
-                </div>
-              </div>
+                          )),
+                        )
+                      )}
+                    </div>
+                  </SettingGroup>
 
-              {/* 4. Direct Single-Key Vault Preferences */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
-                  Direct Vault Overrides
+                  <SettingGroup title="DIRECT VAULT OVERRIDES">
+                    {[
+                      {
+                        key: "anthropicApiKey" as const,
+                        label: "Anthropic API Key",
+                        placeholder: "sk-ant-...",
+                      },
+                      {
+                        key: "openAiApiKey" as const,
+                        label: "OpenAI API Key",
+                        placeholder: "sk-proj-...",
+                      },
+                      {
+                        key: "geminiApiKey" as const,
+                        label: "Google Gemini API Key",
+                        placeholder: "AIzaSy...",
+                      },
+                      { key: "groqApiKey" as const, label: "Groq API Key", placeholder: "gsk_..." },
+                    ].map((item) => (
+                      <SettingRow key={item.key} label={item.label} badge="Vault Encrypted">
+                        <input
+                          type="password"
+                          value={preferences[item.key] || ""}
+                          placeholder={item.placeholder}
+                          onChange={(e) => onUpdatePreferences({ [item.key]: e.target.value })}
+                          style={{
+                            width: "220px",
+                            padding: "5px 10px",
+                            borderRadius: "6px",
+                            background: "var(--bg-input)",
+                            border: "1px solid var(--border-medium)",
+                            color: "var(--ink-primary)",
+                            fontSize: "12px",
+                          }}
+                        />
+                      </SettingRow>
+                    ))}
+                    <SettingRow label="Local Ollama Endpoint">
+                      <input
+                        type="text"
+                        value={preferences.localOllamaUrl || "http://127.0.0.1:11434"}
+                        onChange={(e) => onUpdatePreferences({ localOllamaUrl: e.target.value })}
+                        style={{
+                          width: "220px",
+                          padding: "5px 10px",
+                          borderRadius: "6px",
+                          background: "var(--bg-input)",
+                          border: "1px solid var(--border-medium)",
+                          color: "var(--ink-primary)",
+                          fontSize: "12px",
+                        }}
+                      />
+                    </SettingRow>
+                  </SettingGroup>
                 </div>
-                <div>
-                  <label style={{ display: "block", fontSize: "11px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "3px" }}>
-                    Anthropic API Key (Claude)
-                  </label>
-                  <input
-                    type="password"
-                    value={preferences.anthropicApiKey || ""}
-                    onChange={(e) => onUpdatePreferences({ anthropicApiKey: e.target.value })}
-                    placeholder="sk-ant-api03-..."
-                    style={{
-                      width: "100%",
-                      height: "30px",
-                      background: "var(--bg-input)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-xs)",
-                      padding: "0 10px",
-                      color: "var(--ink-primary)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "11px",
-                      outline: "none",
-                    }}
-                  />
-                </div>
+              )}
 
+              {/* Sub-view: Auxiliary & Subagents */}
+              {currentModelsSubView === "subagents" && (
                 <div>
-                  <label style={{ display: "block", fontSize: "11px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "3px" }}>
-                    OpenAI API Key (GPT-4o / o1 / o3)
-                  </label>
-                  <input
-                    type="password"
-                    value={preferences.openAiApiKey || ""}
-                    onChange={(e) => onUpdatePreferences({ openAiApiKey: e.target.value })}
-                    placeholder="sk-proj-..."
-                    style={{
-                      width: "100%",
-                      height: "30px",
-                      background: "var(--bg-input)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-xs)",
-                      padding: "0 10px",
-                      color: "var(--ink-primary)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "11px",
-                      outline: "none",
-                    }}
-                  />
-                </div>
+                  <SettingGroup title="AUXILIARY MODEL">
+                    <SettingRow
+                      label="Auxiliary Model"
+                      description="Used for non-blocking background tasks like memory summarization and web parsing."
+                    >
+                      <select
+                        value={preferences.auxiliaryModel || "coreblow/fast"}
+                        onChange={(e) => onUpdatePreferences({ auxiliaryModel: e.target.value })}
+                        style={{
+                          padding: "5px 10px",
+                          borderRadius: "6px",
+                          background: "var(--bg-input)",
+                          border: "1px solid var(--border-medium)",
+                          color: "var(--ink-primary)",
+                          fontSize: "12px",
+                        }}
+                      >
+                        <option value="coreblow/fast">CoreBlow Fast (Default)</option>
+                        <option value="coreblow/balanced">CoreBlow Balanced</option>
+                      </select>
+                    </SettingRow>
+                  </SettingGroup>
 
-                <div>
-                  <label style={{ display: "block", fontSize: "11px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "3px" }}>
-                    Google Gemini API Key
-                  </label>
-                  <input
-                    type="password"
-                    value={preferences.geminiApiKey || ""}
-                    onChange={(e) => onUpdatePreferences({ geminiApiKey: e.target.value })}
-                    placeholder="AIzaSy..."
-                    style={{
-                      width: "100%",
-                      height: "30px",
-                      background: "var(--bg-input)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-xs)",
-                      padding: "0 10px",
-                      color: "var(--ink-primary)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "11px",
-                      outline: "none",
-                    }}
-                  />
-                </div>
+                  <SettingGroup title="SUBAGENT DELEGATION LIMITS">
+                    <SettingRow
+                      label="Maximum Subagent Tree Depth"
+                      description="Recursion limit preventing subagents from spawning infinite descendants (1–4)."
+                    >
+                      <input
+                        type="number"
+                        min={1}
+                        max={4}
+                        value={preferences.maxSubagentDepth ?? 2}
+                        onChange={(e) =>
+                          onUpdatePreferences({ maxSubagentDepth: Number(e.target.value) || 2 })
+                        }
+                        style={{
+                          width: "60px",
+                          padding: "4px 8px",
+                          borderRadius: "6px",
+                          background: "var(--bg-input)",
+                          border: "1px solid var(--border-medium)",
+                          color: "var(--ink-primary)",
+                          fontSize: "12px",
+                          textAlign: "right",
+                        }}
+                      />
+                    </SettingRow>
 
-                <div>
-                  <label style={{ display: "block", fontSize: "11px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "3px" }}>
-                    Groq API Key (Llama 3.3 / Ultra-Fast)
-                  </label>
-                  <input
-                    type="password"
-                    value={preferences.groqApiKey || ""}
-                    onChange={(e) => onUpdatePreferences({ groqApiKey: e.target.value })}
-                    placeholder="gsk_..."
-                    style={{
-                      width: "100%",
-                      height: "30px",
-                      background: "var(--bg-input)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-xs)",
-                      padding: "0 10px",
-                      color: "var(--ink-primary)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "11px",
-                      outline: "none",
-                    }}
-                  />
+                    <SettingRow
+                      label="Maximum Parallel Subagents"
+                      description="Concurrency ceiling for simultaneous autonomous subagent execution (1–8)."
+                    >
+                      <input
+                        type="number"
+                        min={1}
+                        max={8}
+                        value={preferences.maxParallelSubagents ?? 4}
+                        onChange={(e) =>
+                          onUpdatePreferences({ maxParallelSubagents: Number(e.target.value) || 4 })
+                        }
+                        style={{
+                          width: "60px",
+                          padding: "4px 8px",
+                          borderRadius: "6px",
+                          background: "var(--bg-input)",
+                          border: "1px solid var(--border-medium)",
+                          color: "var(--ink-primary)",
+                          fontSize: "12px",
+                          textAlign: "right",
+                        }}
+                      />
+                    </SettingRow>
+                  </SettingGroup>
                 </div>
-
-                <div>
-                  <label style={{ display: "block", fontSize: "11px", fontWeight: 500, color: "var(--ink-primary)", marginBottom: "3px" }}>
-                    Local Ollama Endpoint URL
-                  </label>
-                  <input
-                    type="text"
-                    value={preferences.localOllamaUrl || "http://127.0.0.1:11434"}
-                    onChange={(e) => onUpdatePreferences({ localOllamaUrl: e.target.value })}
-                    placeholder="http://127.0.0.1:11434"
-                    style={{
-                      width: "100%",
-                      height: "30px",
-                      background: "var(--bg-input)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-xs)",
-                      padding: "0 10px",
-                      color: "var(--ink-primary)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "11px",
-                      outline: "none",
-                    }}
-                  />
-                </div>
-              </div>
+              )}
             </div>
           )}
 
-          {activeSection === "channels" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div>
-                <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-primary)", margin: 0 }}>
-                  Messaging Channels & Pairing
-                </h4>
-                <p style={{ fontSize: "12px", color: "var(--ink-secondary)", margin: "3px 0 0" }}>
-                  Connect CoreBlow to your messaging platforms and approve inbound bot pairing codes.
-                </p>
-              </div>
-
-              {/* Bot Pairing & Access Control Section */}
-              <div
-                style={{
-                  background: "var(--bg-card)",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid var(--border-medium)",
-                  padding: "14px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <h5 style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "var(--ink-primary)" }}>
-                      Bot Pairing & Access Control
-                    </h5>
-                    <p style={{ margin: "2px 0 0", fontSize: "11px", color: "var(--ink-secondary)" }}>
-                      Review incoming pairing codes (COREBLOW-XXXX) to authorize private chat access.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={fetchPairingData}
+          {/* 3. MEMORY & CONTEXT CATEGORY */}
+          {activeSection === "memory" && (
+            <div>
+              <SettingGroup title="MEMORY ENGINE & STORAGE">
+                <SettingRow
+                  label="Memory Backend Engine"
+                  description="Choose between lightweight builtin SQLite FTS5 index or QMD semantic vector index."
+                >
+                  <select
+                    value={preferences.memoryBackend || "builtin"}
+                    onChange={(e) => onUpdatePreferences({ memoryBackend: e.target.value as any })}
                     style={{
-                      background: "var(--bg-chip)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-xs)",
-                      padding: "3px 8px",
-                      color: "var(--ink-secondary)",
-                      fontSize: "10px",
-                      cursor: "pointer",
+                      padding: "5px 10px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
                     }}
                   >
-                    {loadingPairing ? "Loading..." : "Refresh"}
-                  </button>
-                </div>
+                    <option value="builtin">SQLite FTS5 (Local Fast)</option>
+                    <option value="qmd">QMD Hybrid Semantic Index</option>
+                  </select>
+                </SettingRow>
 
-                {/* Pending pairing requests */}
-                {pairingState.pending.length > 0 ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--accent-teal)", textTransform: "uppercase" }}>
-                      Pending Pairing Requests ({pairingState.pending.length})
-                    </div>
-                    {pairingState.pending.map((p) => (
+                <SettingRow
+                  label="Memory Citations"
+                  description="When memory entries inform an answer, show footnotes linking to stored facts."
+                >
+                  <select
+                    value={preferences.memoryCitations || "auto"}
+                    onChange={(e) =>
+                      onUpdatePreferences({ memoryCitations: e.target.value as any })
+                    }
+                    style={{
+                      padding: "5px 10px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                    }}
+                  >
+                    <option value="auto">Auto (When relevant)</option>
+                    <option value="always">Always</option>
+                    <option value="off">Off</option>
+                  </select>
+                </SettingRow>
+              </SettingGroup>
+
+              <SettingGroup title="CONTEXT COMPRESSION">
+                <SettingRow
+                  label="Context Auto-Compression"
+                  description="Summarize early conversation history automatically when token usage reaches ceiling."
+                >
+                  <ToggleSwitch
+                    checked={preferences.contextCompressionEnabled ?? true}
+                    onChange={(checked) =>
+                      onUpdatePreferences({ contextCompressionEnabled: checked })
+                    }
+                    ariaLabel="Toggle context auto-compression"
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label="Compression Threshold (%)"
+                  description="Percentage of context window capacity that triggers automatic history compaction (50–95%)."
+                >
+                  <input
+                    type="number"
+                    min={50}
+                    max={95}
+                    value={preferences.contextCompressionThresholdPct ?? 80}
+                    onChange={(e) =>
+                      onUpdatePreferences({
+                        contextCompressionThresholdPct: Number(e.target.value) || 80,
+                      })
+                    }
+                    style={{
+                      width: "60px",
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                      textAlign: "right",
+                    }}
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label="Protect Last N Messages"
+                  description="Number of recent conversation turns preserved verbatim from compression (2–20)."
+                >
+                  <input
+                    type="number"
+                    min={2}
+                    max={20}
+                    value={preferences.protectLastMessages ?? 6}
+                    onChange={(e) =>
+                      onUpdatePreferences({ protectLastMessages: Number(e.target.value) || 6 })
+                    }
+                    style={{
+                      width: "60px",
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                      textAlign: "right",
+                    }}
+                  />
+                </SettingRow>
+              </SettingGroup>
+            </div>
+          )}
+
+          {/* 4. WORKSPACE & BROWSER CATEGORY */}
+          {activeSection === "workspace" && (
+            <div>
+              <SettingGroup title="WORKSPACE & TERMINAL ENVIRONMENT">
+                <SettingRow
+                  label="Default Working Directory (CWD)"
+                  description="Base directory for new sessions and terminal commands (leave blank for default)."
+                >
+                  <input
+                    type="text"
+                    placeholder="e.g. ~/Projects"
+                    value={preferences.defaultWorkspaceCwd || ""}
+                    onChange={(e) => onUpdatePreferences({ defaultWorkspaceCwd: e.target.value })}
+                    style={{
+                      width: "240px",
+                      padding: "5px 10px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                    }}
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label="Persistent Shell Session"
+                  description="Keep terminal environment and virtualenv state intact between consecutive tool executions."
+                >
+                  <ToggleSwitch
+                    checked={preferences.persistentShell ?? true}
+                    onChange={(checked) => onUpdatePreferences({ persistentShell: checked })}
+                    ariaLabel="Toggle persistent shell"
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label="Repository Scan Exclusions"
+                  description="Comma-separated patterns ignored when workspace files are scanned or searched."
+                >
+                  <input
+                    type="text"
+                    value={
+                      preferences.repoScanExclusions || "node_modules, .git, dist, build, release"
+                    }
+                    onChange={(e) => onUpdatePreferences({ repoScanExclusions: e.target.value })}
+                    style={{
+                      width: "240px",
+                      padding: "5px 10px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                    }}
+                  />
+                </SettingRow>
+              </SettingGroup>
+
+              <SettingGroup title="BROWSER ENGINE">
+                <SettingRow
+                  label="Browser Mode"
+                  description="Choose whether automated browser tools run in background or open a visible window."
+                >
+                  <select
+                    value={preferences.browserMode || "headless"}
+                    onChange={(e) => onUpdatePreferences({ browserMode: e.target.value as any })}
+                    style={{
+                      padding: "5px 10px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                    }}
+                  >
+                    <option value="headless">Headless (Fast, Background)</option>
+                    <option value="headed">Headed (Visible Window)</option>
+                  </select>
+                </SettingRow>
+
+                <SettingRow
+                  label="Use Real Browser Profile"
+                  description="Mount existing user profile to inherit authenticated sessions and cookies."
+                >
+                  <ToggleSwitch
+                    checked={preferences.browserUseRealProfile ?? false}
+                    onChange={(checked) => onUpdatePreferences({ browserUseRealProfile: checked })}
+                    ariaLabel="Toggle use real browser profile"
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label="Private URL SSRF Guard"
+                  description="Block browser subagent from navigating to local loopback (127.0.0.1) or LAN IP ranges."
+                >
+                  <ToggleSwitch
+                    checked={preferences.browserPrivateUrlGuard ?? true}
+                    onChange={(checked) => onUpdatePreferences({ browserPrivateUrlGuard: checked })}
+                    ariaLabel="Toggle SSRF guard"
+                  />
+                </SettingRow>
+              </SettingGroup>
+            </div>
+          )}
+
+          {/* 5. SAFETY & PERMISSIONS CATEGORY */}
+          {activeSection === "permissions" && (
+            <div>
+              <SettingGroup title="EXECUTION BOUNDARIES">
+                <SettingRow
+                  label="Default Execution Boundary"
+                  description="Baseline execution policy for shell commands, file modifications, and network access."
+                >
+                  <select
+                    value={preferences.permissionMode}
+                    onChange={(e) =>
+                      onUpdatePreferences({ permissionMode: e.target.value as PermissionMode })
+                    }
+                    style={{
+                      padding: "5px 10px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                    }}
+                  >
+                    <option value="Full access">Full access (Direct Terminal)</option>
+                    <option value="Workspace">Workspace (Sandbox constrained)</option>
+                    <option value="Guarded">Guarded (Prompt before write)</option>
+                    <option value="Read-only">Read-only (Inspect without edit)</option>
+                  </select>
+                </SettingRow>
+
+                <SettingRow
+                  label="Tool Approval Timeout (seconds)"
+                  description="Seconds to await user approval before aborting pending tool action (15–300s)."
+                >
+                  <input
+                    type="number"
+                    min={15}
+                    max={300}
+                    value={preferences.approvalTimeoutSec ?? 60}
+                    onChange={(e) =>
+                      onUpdatePreferences({ approvalTimeoutSec: Number(e.target.value) || 60 })
+                    }
+                    style={{
+                      width: "60px",
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                      textAlign: "right",
+                    }}
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label="Secret Redaction in Outputs"
+                  description="Automatically detect and mask API keys, tokens, and passwords in tool stdout."
+                >
+                  <ToggleSwitch
+                    checked={preferences.secretRedactionEnabled ?? true}
+                    onChange={(checked) => onUpdatePreferences({ secretRedactionEnabled: checked })}
+                    ariaLabel="Toggle secret redaction"
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label="Checkpoint Snapshot Limit"
+                  description="Maximum number of historical rollback snapshots retained on disk."
+                >
+                  <input
+                    type="number"
+                    min={5}
+                    max={100}
+                    value={preferences.checkpointSnapshotLimit ?? 20}
+                    onChange={(e) =>
+                      onUpdatePreferences({ checkpointSnapshotLimit: Number(e.target.value) || 20 })
+                    }
+                    style={{
+                      width: "60px",
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                      textAlign: "right",
+                    }}
+                  />
+                </SettingRow>
+              </SettingGroup>
+
+              <SettingGroup title="COMMAND FILTERING">
+                <SettingRow
+                  label="Command Allowlist"
+                  description="Comma-separated commands or prefixes that execute without confirmation."
+                >
+                  <input
+                    type="text"
+                    value={preferences.commandAllowlist || "git status, git diff, pnpm test, ls"}
+                    onChange={(e) => onUpdatePreferences({ commandAllowlist: e.target.value })}
+                    style={{
+                      width: "240px",
+                      padding: "5px 10px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                    }}
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label="Command Denylist"
+                  description="Comma-separated patterns blocked from execution under all circumstances."
+                >
+                  <input
+                    type="text"
+                    value={preferences.commandDenylist || "rm -rf /, sudo rm, mkfs"}
+                    onChange={(e) => onUpdatePreferences({ commandDenylist: e.target.value })}
+                    style={{
+                      width: "240px",
+                      padding: "5px 10px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                    }}
+                  />
+                </SettingRow>
+              </SettingGroup>
+            </div>
+          )}
+
+          {/* 6. CHANNELS CATEGORY */}
+          {activeSection === "channels" && (
+            <div>
+              <SettingGroup title="MESSAGING CHANNELS">
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {Object.entries(channelsConfig).map(([name, conf]) => (
+                    <div
+                      key={name}
+                      style={{
+                        padding: "12px 14px",
+                        background: "var(--bg-input)",
+                        borderRadius: "8px",
+                        border: "1px solid var(--border-subtle)",
+                      }}
+                    >
                       <div
-                        key={p.id}
                         style={{
-                          background: "var(--bg-input)",
-                          padding: "10px 12px",
-                          borderRadius: "var(--radius-xs)",
-                          border: "1px solid var(--border-subtle)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
-                          gap: "8px",
                         }}
                       >
                         <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--accent-teal)", fontSize: "13px" }}>
-                              {p.code}
-                            </span>
-                            <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "var(--radius-xs)", background: "var(--bg-chip)", color: "var(--ink-muted)", textTransform: "capitalize" }}>
-                              {p.platform}
-                            </span>
+                          <div
+                            style={{
+                              fontSize: "13px",
+                              fontWeight: 600,
+                              color: "var(--ink-primary)",
+                            }}
+                          >
+                            {name}
                           </div>
-                          <div style={{ fontSize: "11px", color: "var(--ink-secondary)", marginTop: "2px" }}>
-                            User ID: {p.externalUserId} {p.displayName ? `(${p.displayName})` : ""}
+                          <div
+                            style={{
+                              fontSize: "11px",
+                              color: conf.enabled ? "var(--accent-teal)" : "var(--ink-muted)",
+                            }}
+                          >
+                            {conf.enabled ? "Connected / Active" : "Disconnected"}
                           </div>
                         </div>
-                        <div style={{ display: "flex", gap: "6px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                           <button
                             type="button"
-                            onClick={() => handleApprovePairing(p.code)}
+                            onClick={() =>
+                              setExpandedChannel(expandedChannel === name ? null : name)
+                            }
                             style={{
-                              background: "var(--accent-teal)",
-                              color: "#08110F",
-                              border: "none",
-                              borderRadius: "var(--radius-xs)",
+                              padding: "4px 8px",
+                              fontSize: "11px",
+                              borderRadius: "4px",
+                              background: "var(--bg-card)",
+                              border: "1px solid var(--border-medium)",
+                              color: "var(--ink-secondary)",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Configure
+                          </button>
+                          <ToggleSwitch
+                            checked={conf.enabled}
+                            onChange={() => handleToggleChannel(name)}
+                            ariaLabel={`Toggle ${name} channel`}
+                          />
+                        </div>
+                      </div>
+
+                      {expandedChannel === name && (
+                        <div
+                          style={{
+                            marginTop: "12px",
+                            paddingTop: "12px",
+                            borderTop: "1px solid var(--border-subtle)",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "8px",
+                          }}
+                        >
+                          <input
+                            type="password"
+                            placeholder="Channel Access Token..."
+                            defaultValue={conf.token || ""}
+                            id={`token-${name}`}
+                            style={{
+                              padding: "5px 10px",
+                              borderRadius: "6px",
+                              background: "var(--bg-card)",
+                              border: "1px solid var(--border-medium)",
+                              color: "var(--ink-primary)",
+                              fontSize: "12px",
+                            }}
+                          />
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const input = document.getElementById(
+                                  `token-${name}`,
+                                ) as HTMLInputElement;
+                                handleSaveChannel(name, { token: input?.value });
+                              }}
+                              style={{
+                                padding: "5px 12px",
+                                borderRadius: "6px",
+                                background: "var(--accent-teal)",
+                                border: "none",
+                                color: "#000000",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                              }}
+                            >
+                              Save Token
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const input = document.getElementById(
+                                  `token-${name}`,
+                                ) as HTMLInputElement;
+                                handleTestChannel(name.toLowerCase(), input?.value);
+                              }}
+                              style={{
+                                padding: "5px 12px",
+                                borderRadius: "6px",
+                                background: "var(--bg-card)",
+                                border: "1px solid var(--border-medium)",
+                                color: "var(--ink-primary)",
+                                fontSize: "11px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Test Connection
+                            </button>
+                          </div>
+                          {channelTestStatus[name.toLowerCase()] && (
+                            <div
+                              style={{
+                                fontSize: "11px",
+                                color: channelTestStatus[name.toLowerCase()].error
+                                  ? "#EF4444"
+                                  : "var(--accent-teal)",
+                              }}
+                            >
+                              {channelTestStatus[name.toLowerCase()].testing
+                                ? "Testing..."
+                                : channelTestStatus[name.toLowerCase()].message ||
+                                  channelTestStatus[name.toLowerCase()].error}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </SettingGroup>
+
+              <SettingGroup title="AGENT PAIRING & ACCESS CONTROL">
+                <p
+                  style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "12px" }}
+                >
+                  Manage channel access requests and approved sender identities.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {pairingState.pending.length === 0 && pairingState.approved.length === 0 ? (
+                    <div style={{ fontSize: "12px", color: "var(--ink-muted)", padding: "10px 0" }}>
+                      No pending pairing requests or channel pairs.
+                    </div>
+                  ) : (
+                    <>
+                      {pairingState.pending.map((req) => (
+                        <div
+                          key={req.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "8px 10px",
+                            background: "var(--bg-input)",
+                            borderRadius: "6px",
+                          }}
+                        >
+                          <div>
+                            <div
+                              style={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: "var(--ink-primary)",
+                              }}
+                            >
+                              {req.sender} ({req.platform})
+                            </div>
+                            <div style={{ fontSize: "11px", color: "var(--ink-muted)" }}>
+                              Code: {req.code}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleApprovePairing(req.code || req.id)}
+                            style={{
                               padding: "4px 10px",
+                              borderRadius: "4px",
+                              background: "var(--accent-teal)",
+                              border: "none",
+                              color: "#000000",
                               fontSize: "11px",
                               fontWeight: 600,
                               cursor: "pointer",
@@ -1102,1115 +2648,485 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           >
                             Approve
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => handleRevokePairing(p.externalUserId)}
-                            style={{
-                              background: "transparent",
-                              border: "1px solid var(--border-subtle)",
-                              color: "var(--ink-muted)",
-                              borderRadius: "var(--radius-xs)",
-                              padding: "4px 8px",
-                              fontSize: "11px",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Reject
-                          </button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{ fontSize: "11px", color: "var(--ink-muted)", fontStyle: "italic" }}>
-                    No pending pairing requests. New external bot users will receive a COREBLOW-XXXX code.
-                  </div>
-                )}
-
-                {/* Approved pairings */}
-                {pairingState.approved.length > 0 && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
-                    <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
-                      Approved Users ({pairingState.approved.length})
-                    </div>
-                    {pairingState.approved.map((a) => (
-                      <div
-                        key={a.id || a.externalUserId}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          padding: "6px 10px",
-                          background: "var(--bg-chip)",
-                          borderRadius: "var(--radius-xs)",
-                          fontSize: "11px",
-                        }}
-                      >
-                        <span style={{ color: "var(--ink-primary)" }}>
-                          <strong style={{ textTransform: "capitalize" }}>{a.platform}</strong>: {a.displayName || a.externalUserId}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleRevokePairing(a.externalUserId)}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            color: "var(--state-error, #F87171)",
-                            fontSize: "10px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Revoke
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {[
-                  { id: "telegram", name: "Telegram", desc: "Interact with CoreBlow via your private Telegram bot.", tokenLabel: "Bot Token" },
-                  { id: "discord", name: "Discord", desc: "Two-way bot and slash commands inside your Discord servers.", tokenLabel: "Bot Token" },
-                  { id: "slack", name: "Slack", desc: "Workspace bot with threads and channel mentions.", tokenLabel: "App Token / Signing Secret" },
-                  { id: "whatsapp", name: "WhatsApp (Web)", desc: "Direct pairing via Web multi-device session.", tokenLabel: "Pairing Auth Key" },
-                  { id: "signal", name: "Signal", desc: "End-to-end encrypted messaging via local Signal CLI daemon.", tokenLabel: "Account Number / ID" },
-                  { id: "imessage", name: "iMessage", desc: "macOS local iMessage CLI bridge with auto-reply dispatch.", tokenLabel: "Service Target" },
-                ].map((ch) => {
-                  const cfg = channelsConfig[ch.name] || { enabled: false };
-                  const isExpanded = expandedChannel === ch.id;
-                  const statusLabel = cfg.token && cfg.enabled ? "Active" : cfg.enabled ? "Standby" : cfg.token ? "Configured" : "Not configured";
-                  const statusColor = statusLabel === "Active" ? "var(--state-success)" : statusLabel === "Standby" ? "var(--accent-teal)" : "var(--ink-muted)";
-
-                  return (
-                    <div
-                      key={ch.id}
-                      style={{
-                        background: "var(--bg-input)",
-                        borderRadius: "var(--radius-sm)",
-                        border: "1px solid var(--border-subtle)",
-                        padding: "12px 14px",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <span style={{ fontWeight: 600, fontSize: "13px", color: "var(--ink-primary)" }}>
-                            {ch.name}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: "10px",
-                              padding: "2px 6px",
-                              borderRadius: "var(--radius-xs)",
-                              background: "var(--bg-chip)",
-                              color: statusColor,
-                              fontWeight: 600,
-                            }}
-                          >
-                            {statusLabel}
-                          </span>
-                        </div>
-
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <button
-                            type="button"
-                            onClick={() => setExpandedChannel(isExpanded ? null : ch.id)}
-                            style={{
-                              background: isExpanded ? "var(--accent-teal-subtle)" : "var(--bg-chip)",
-                              border: isExpanded ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
-                              borderRadius: "var(--radius-xs)",
-                              padding: "4px 10px",
-                              color: isExpanded ? "var(--accent-teal)" : "var(--ink-secondary)",
-                              fontSize: "11px",
-                              cursor: "pointer",
-                              transition: "all 0.12s ease",
-                            }}
-                          >
-                            {isExpanded ? "Hide" : "Configure"}
-                          </button>
-
-                          {/* Toggle switch */}
-                          <button
-                            type="button"
-                            onClick={() => handleToggleChannel(ch.name)}
-                            style={{
-                              width: "36px",
-                              height: "20px",
-                              borderRadius: "10px",
-                              background: cfg.enabled ? "var(--accent-teal)" : "var(--border-strong)",
-                              border: "none",
-                              cursor: "pointer",
-                              position: "relative",
-                              padding: 0,
-                              transition: "background 0.2s ease",
-                              flexShrink: 0,
-                            }}
-                            aria-label={`Toggle ${ch.name}`}
-                          >
-                            <span
-                              style={{
-                                position: "absolute",
-                                top: "2px",
-                                left: "2px",
-                                width: "16px",
-                                height: "16px",
-                                borderRadius: "50%",
-                                background: "var(--bg-canvas)",
-                                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.4)",
-                                transform: cfg.enabled ? "translateX(16px)" : "translateX(0)",
-                                transition: "transform 0.2s ease",
-                              }}
-                            />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div style={{ fontSize: "11px", color: "var(--ink-secondary)" }}>
-                        {ch.desc}
-                      </div>
-
-                      {isExpanded && (
+                      ))}
+                      {pairingState.approved.map((appr) => (
                         <div
+                          key={appr.id}
                           style={{
-                            marginTop: "4px",
-                            paddingTop: "10px",
-                            borderTop: "1px solid var(--border-subtle)",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "8px",
-                          }}
-                        >
-                          <label style={{ fontSize: "11px", fontWeight: 600, color: "var(--ink-secondary)" }}>
-                            {ch.tokenLabel}
-                          </label>
-                          <div style={{ display: "flex", gap: "8px" }}>
-                            <input
-                              type="password"
-                              defaultValue={cfg.token || ""}
-                              id={`channel-input-${ch.id}`}
-                              placeholder={`Enter ${ch.tokenLabel}...`}
-                              style={{
-                                flex: 1,
-                                height: "30px",
-                                background: "var(--bg-card)",
-                                border: "1px solid var(--border-medium)",
-                                borderRadius: "var(--radius-xs)",
-                                padding: "0 10px",
-                                fontSize: "12px",
-                                color: "var(--ink-primary)",
-                                outline: "none",
-                                fontFamily: "var(--font-mono)",
-                              }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const input = document.getElementById(`channel-input-${ch.id}`) as HTMLInputElement;
-                                if (input) {
-                                  handleSaveChannel(ch.name, { token: input.value.trim() });
-                                }
-                              }}
-                              style={{
-                                padding: "0 14px",
-                                height: "30px",
-                                background: "var(--accent-teal)",
-                                color: "#08110F",
-                                border: "none",
-                                borderRadius: "var(--radius-xs)",
-                                fontSize: "11px",
-                                fontWeight: 600,
-                                cursor: "pointer",
-                              }}
-                            >
-                              Save & Connect
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const input = document.getElementById(`channel-input-${ch.id}`) as HTMLInputElement;
-                                const tokenVal = input?.value?.trim() || cfg.token || "";
-                                handleTestChannel(ch.id, tokenVal);
-                              }}
-                              style={{
-                                padding: "0 12px",
-                                height: "30px",
-                                background: "var(--bg-chip)",
-                                border: "1px solid var(--border-subtle)",
-                                color: "var(--ink-primary)",
-                                borderRadius: "var(--radius-xs)",
-                                fontSize: "11px",
-                                fontWeight: 500,
-                                cursor: "pointer",
-                              }}
-                            >
-                              {channelTestStatus[ch.id]?.testing ? "Testing..." : "Test"}
-                            </button>
-                          </div>
-
-                          {channelTestStatus[ch.id]?.message && (
-                            <div style={{ fontSize: "11px", color: "var(--state-success, #34D399)", marginTop: "4px" }}>
-                              ✓ {channelTestStatus[ch.id].message}
-                            </div>
-                          )}
-                          {channelTestStatus[ch.id]?.error && (
-                            <div style={{ fontSize: "11px", color: "var(--state-error, #F87171)", marginTop: "4px" }}>
-                              ✗ {channelTestStatus[ch.id].error}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {activeSection === "remotes" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <p style={{ fontSize: "12px", color: "var(--ink-secondary)", lineHeight: 1.5, margin: 0 }}>
-                  Always-On Cloud & Remote Nodes (24/7 VPS, Tailscale, Docker) with live health probing and session sync.
-                </p>
-                <button
-                  type="button"
-                  onClick={fetchNodes}
-                  disabled={loadingNodes}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    padding: "4px 8px",
-                    background: "var(--bg-chip)",
-                    border: "1px solid var(--border-subtle)",
-                    borderRadius: "var(--radius-xs)",
-                    color: "var(--accent-teal)",
-                    fontSize: "11px",
-                    cursor: "pointer",
-                  }}
-                >
-                  <RefreshIcon size={12} />
-                  <span>{loadingNodes ? "Probing..." : "Refresh Nodes"}</span>
-                </button>
-              </div>
-
-              {nodeActionStatus && (
-                <div
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "var(--radius-xs)",
-                    background: "rgba(45, 212, 191, 0.1)",
-                    border: "1px solid rgba(45, 212, 191, 0.25)",
-                    fontSize: "11px",
-                    color: "var(--accent-teal)",
-                  }}
-                >
-                  {nodeActionStatus}
-                </div>
-              )}
-
-              {/* Configured Nodes List */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {remoteNodes.map((node) => {
-                  const isLocal = node.id === "local";
-                  const isHealthy = node.healthy ?? true;
-                  return (
-                    <div
-                      key={node.id}
-                      style={{
-                        background: "var(--bg-input)",
-                        borderRadius: "var(--radius-md)",
-                        padding: "12px 14px",
-                        border: "1px solid var(--border-subtle)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: "12px",
-                      }}
-                    >
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <span
-                            style={{
-                              width: "8px",
-                              height: "8px",
-                              borderRadius: "50%",
-                              background: isHealthy ? "var(--state-success)" : "var(--state-error)",
-                              boxShadow: isHealthy ? "0 0 6px var(--state-success)" : "none",
-                              flexShrink: 0,
-                            }}
-                          />
-                          <strong style={{ fontSize: "13px", color: "var(--ink-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {node.name}
-                          </strong>
-                          <span
-                            style={{
-                              padding: "1px 6px",
-                              borderRadius: "var(--radius-xs)",
-                              background: "rgba(45, 212, 191, 0.12)",
-                              color: "var(--accent-teal)",
-                              fontSize: "10px",
-                              textTransform: "uppercase",
-                              fontWeight: 600,
-                            }}
-                          >
-                            {node.kind}
-                          </span>
-                          {node.latencyMs !== undefined && node.latencyMs > 0 && (
-                            <span style={{ fontSize: "11px", color: "var(--ink-secondary)", fontFamily: "var(--font-mono)" }}>
-                              {node.latencyMs}ms
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: "11px", color: "var(--ink-secondary)", marginTop: "3px", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {node.url}
-                          {node.bearerToken && ` · Token: ${node.bearerToken}`}
-                        </div>
-                      </div>
-
-                      {/* Node Action Buttons */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            setNodeActionStatus(`Probing ${node.name}...`);
-                            const p = await gatewayClient.probeNode(node.id);
-                            setNodeActionStatus(p.healthy ? `✓ ${node.name} Online (${p.latencyMs}ms)` : `✗ ${node.name} Offline: ${p.error || "unreachable"}`);
-                            fetchNodes();
-                          }}
-                          style={{
-                            padding: "4px 8px",
-                            borderRadius: "var(--radius-xs)",
-                            background: "var(--bg-chip)",
-                            border: "1px solid var(--border-subtle)",
-                            color: "var(--ink-primary)",
-                            fontSize: "11px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Probe
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            setNodeActionStatus(`Syncing sessions with ${node.name}...`);
-                            const s = await gatewayClient.syncNodeSessions(node.id);
-                            setNodeActionStatus(s.ok ? `✓ Synchronized ${s.syncedCount ?? 0} sessions with ${node.name}` : `✗ Sync error: ${s.error || "failed"}`);
-                          }}
-                          style={{
-                            padding: "4px 8px",
-                            borderRadius: "var(--radius-xs)",
-                            background: "var(--bg-chip)",
-                            border: "1px solid var(--border-subtle)",
-                            color: "var(--accent-teal)",
-                            fontSize: "11px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Sync
-                        </button>
-
-                        {!isLocal && (
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              if (confirm(`Remove remote node "${node.name}"?`)) {
-                                await gatewayClient.deleteRemoteNode(node.id);
-                                fetchNodes();
-                              }
-                            }}
-                            style={{
-                              padding: "4px 8px",
-                              borderRadius: "var(--radius-xs)",
-                              background: "transparent",
-                              border: "1px solid rgba(239, 68, 68, 0.3)",
-                              color: "#EF4444",
-                              fontSize: "11px",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Add New Remote Node Form */}
-              <div
-                style={{
-                  background: "var(--bg-chip)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "14px",
-                  border: "1px solid var(--border-subtle)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--ink-primary)" }}>
-                  Add Always-On Remote Node (24/7 VPS / Tailscale / Docker)
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                  <div>
-                    <label style={{ display: "block", fontSize: "11px", color: "var(--ink-secondary)", marginBottom: "4px" }}>
-                      Node Name
-                    </label>
-                    <input
-                      type="text"
-                      value={newNodeName}
-                      onChange={(e) => setNewNodeName(e.target.value)}
-                      placeholder="e.g. Frankfurt VPS 24/7"
-                      style={{
-                        width: "100%",
-                        height: "32px",
-                        background: "var(--bg-input)",
-                        border: "1px solid var(--border-subtle)",
-                        borderRadius: "var(--radius-xs)",
-                        padding: "0 8px",
-                        color: "var(--ink-primary)",
-                        fontSize: "12px",
-                        outline: "none",
-                        boxSizing: "border-box",
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: "block", fontSize: "11px", color: "var(--ink-secondary)", marginBottom: "4px" }}>
-                      Node Kind
-                    </label>
-                    <select
-                      value={newNodeKind}
-                      onChange={(e) => setNewNodeKind(e.target.value as RemoteNodeKind)}
-                      style={{
-                        width: "100%",
-                        height: "32px",
-                        background: "var(--bg-input)",
-                        border: "1px solid var(--border-subtle)",
-                        borderRadius: "var(--radius-xs)",
-                        padding: "0 8px",
-                        color: "var(--ink-primary)",
-                        fontSize: "12px",
-                        outline: "none",
-                        boxSizing: "border-box",
-                      }}
-                    >
-                      <option value="vps">VPS (Cloud Server 24/7)</option>
-                      <option value="tailscale">Tailscale Mesh Gateway</option>
-                      <option value="docker">Docker Container</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontSize: "11px", color: "var(--ink-secondary)", marginBottom: "4px" }}>
-                    Gateway Endpoint URL
-                  </label>
-                  <input
-                    type="text"
-                    value={newNodeUrl}
-                    onChange={(e) => setNewNodeUrl(e.target.value)}
-                    placeholder="https://coreblow-vps.internal:18789"
-                    style={{
-                      width: "100%",
-                      height: "32px",
-                      background: "var(--bg-input)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-xs)",
-                      padding: "0 8px",
-                      color: "var(--ink-primary)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "12px",
-                      outline: "none",
-                      boxSizing: "border-box",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontSize: "11px", color: "var(--ink-secondary)", marginBottom: "4px" }}>
-                    Bearer Auth Token (Optional)
-                  </label>
-                  <input
-                    type="password"
-                    value={newNodeToken}
-                    onChange={(e) => setNewNodeToken(e.target.value)}
-                    placeholder="tok_..."
-                    style={{
-                      width: "100%",
-                      height: "32px",
-                      background: "var(--bg-input)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-xs)",
-                      padding: "0 8px",
-                      color: "var(--ink-primary)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "12px",
-                      outline: "none",
-                      boxSizing: "border-box",
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "4px" }}>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (!newNodeName.trim() || !newNodeUrl.trim()) {
-                        alert("Please provide both Node Name and Endpoint URL");
-                        return;
-                      }
-                      const res = await gatewayClient.saveRemoteNode({
-                        name: newNodeName.trim(),
-                        url: newNodeUrl.trim(),
-                        kind: newNodeKind,
-                        bearerToken: newNodeToken.trim() || undefined,
-                      });
-                      if (res.ok) {
-                        setNewNodeName("");
-                        setNewNodeUrl("");
-                        setNewNodeToken("");
-                        setNodeActionStatus(`✓ Added remote node "${res.node?.name}"`);
-                        fetchNodes();
-                      } else {
-                        alert(res.error || "Failed to add remote node");
-                      }
-                    }}
-                    style={{
-                      padding: "6px 14px",
-                      background: "var(--accent-teal)",
-                      border: "none",
-                      borderRadius: "var(--radius-xs)",
-                      color: "#08110F",
-                      fontWeight: 600,
-                      fontSize: "12px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Add 24/7 Gateway Node
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeSection === "automations" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <p style={{ fontSize: "12px", color: "var(--ink-secondary)", lineHeight: 1.5 }}>
-                Configure autonomous background cron daemons and self-healing tasks executed by the Gateway.
-              </p>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {[
-                  {
-                    key: "repoHealth" as const,
-                    title: "Daily Repository Health Check",
-                    desc: "Runs automated lint, format, and 5-gate audit checks on workspace checkout.",
-                  },
-                  {
-                    key: "memoryCompaction" as const,
-                    title: "Cory Memory Compaction",
-                    desc: "Consolidates episodic turns into canonical durable semantic knowledge layers.",
-                  },
-                  {
-                    key: "evoloopDistillation" as const,
-                    title: "EvoLoop Skill Distillation",
-                    desc: "Analyzes successful multi-turn tool trajectories to synthesize learned skills.",
-                  },
-                  {
-                    key: "logPruning" as const,
-                    title: "Weekly Log Pruning",
-                    desc: "Prunes legacy session logs and temporary artifacts older than 14 days.",
-                  },
-                ].map((item) => {
-                  const isChecked = preferences.automations[item.key];
-                  return (
-                    <label
-                      key={item.key}
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: "12px",
-                        padding: "12px 14px",
-                        borderRadius: "var(--radius-sm)",
-                        background: "var(--bg-input)",
-                        border: "1px solid var(--border-subtle)",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={(e) =>
-                          onUpdatePreferences({
-                            automations: {
-                              ...preferences.automations,
-                              [item.key]: e.target.checked,
-                            },
-                          })
-                        }
-                        style={{ accentColor: "var(--accent-teal)", marginTop: "2px" }}
-                      />
-                      <div>
-                        <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink-primary)" }}>
-                          {item.title}
-                        </div>
-                        <div style={{ fontSize: "11px", color: "var(--ink-secondary)", marginTop: "2px" }}>
-                          {item.desc}
-                        </div>
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {activeSection === "permissions" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div>
-                <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-primary)", marginBottom: "4px" }}>
-                  Default Execution Boundary
-                </h4>
-                <p style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "12px" }}>
-                  Choose the default security sandbox profile for autonomous ReAct turns:
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {(["Full access", "Workspace", "Guarded", "Read-only"] as PermissionMode[]).map((mode) => (
-                    <label
-                      key={mode}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        padding: "8px 12px",
-                        borderRadius: "var(--radius-sm)",
-                        background: preferences.permissionMode === mode ? "var(--bg-chip)" : "var(--bg-input)",
-                        border: preferences.permissionMode === mode ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
-                        cursor: "pointer",
-                        fontSize: "13px",
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        name="perm-mode"
-                        checked={preferences.permissionMode === mode}
-                        onChange={() => onUpdatePreferences({ permissionMode: mode })}
-                        style={{ accentColor: "var(--accent-teal)" }}
-                      />
-                      <span style={{ fontWeight: 500, color: "var(--ink-primary)" }}>{mode}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeSection === "skills" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-primary)", margin: 0 }}>
-                    CoreHub Skills & Storefront
-                  </h4>
-                  <p style={{ fontSize: "12px", color: "var(--ink-secondary)", margin: "3px 0 0" }}>
-                    Installed native tools, learned skills, and one-click integrations.
-                  </p>
-                </div>
-                {loadingSkills && <span className="animate-spin" style={{ color: "var(--accent-teal)" }}>●</span>}
-              </div>
-
-              {skills.length > 0 || learnedSkills.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {/* Learned skills section */}
-                  {learnedSkills.length > 0 && (
-                    <div>
-                      <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "6px" }}>
-                        Learned Skills ({learnedSkills.length})
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                        {learnedSkills.map((skill) => (
-                          <div
-                            key={skill.id}
-                            style={{
-                              background: "var(--bg-input)",
-                              borderRadius: "var(--radius-sm)",
-                              padding: "10px 14px",
-                              border: "1px solid var(--border-subtle)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              gap: "12px",
-                            }}
-                          >
-                            <div style={{ minWidth: 0, flex: 1 }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                <span style={{ fontWeight: 600, fontSize: "13px", color: "var(--accent-teal)" }}>
-                                  {skill.name}
-                                </span>
-                                <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "var(--radius-xs)", background: "var(--bg-chip)", color: "var(--ink-muted)" }}>
-                                  {skill.category || "Learned"}
-                                </span>
-                              </div>
-                              <div style={{ color: "var(--ink-secondary)", fontSize: "12px", marginTop: "2px" }}>
-                                {skill.description}
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                await gatewayClient.toggleLearnedSkill(skill.id, !skill.installed);
-                                const [storefront, learned] = await Promise.all([
-                                  gatewayClient.getStorefront(),
-                                  gatewayClient.getLearnedSkills(),
-                                ]);
-                                setSkills(storefront);
-                                setLearnedSkills(learned);
-                              }}
-                              style={{
-                                padding: "5px 12px",
-                                borderRadius: "var(--radius-xs)",
-                                border: skill.installed ? "1px solid var(--border-subtle)" : "1px solid var(--accent-teal)",
-                                background: skill.installed ? "var(--bg-chip)" : "var(--accent-teal-subtle)",
-                                color: skill.installed ? "var(--ink-secondary)" : "var(--accent-teal)",
-                                fontSize: "11px",
-                                fontWeight: 600,
-                                cursor: "pointer",
-                                flexShrink: 0,
-                              }}
-                            >
-                              {skill.installed ? "Disable" : "Enable"}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Storefront skills section */}
-                  {skills.length > 0 && (
-                    <div>
-                      <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "6px" }}>
-                        Storefront Catalog ({skills.length})
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                        {skills.map((skill) => (
-                          <div
-                            key={skill.id}
-                            style={{
-                              background: "var(--bg-input)",
-                              borderRadius: "var(--radius-sm)",
-                              padding: "10px 14px",
-                              border: "1px solid var(--border-subtle)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              gap: "12px",
-                            }}
-                          >
-                            <div style={{ minWidth: 0, flex: 1 }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                <span style={{ fontWeight: 600, fontSize: "13px", color: "var(--ink-primary)" }}>
-                                  {skill.name}
-                                </span>
-                                <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "var(--radius-xs)", background: "var(--bg-chip)", color: "var(--ink-muted)" }}>
-                                  {skill.category || "General"}
-                                </span>
-                                {skill.version && (
-                                  <span style={{ fontSize: "10px", color: "var(--ink-muted)", fontFamily: "var(--font-mono)" }}>
-                                    v{skill.version}
-                                  </span>
-                                )}
-                              </div>
-                              <div style={{ color: "var(--ink-secondary)", fontSize: "12px", marginTop: "2px" }}>
-                                {skill.description}
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                if (skill.installed) {
-                                  await gatewayClient.uninstallStorefrontItem(skill.id);
-                                } else {
-                                  await gatewayClient.installStorefrontItem(skill.id);
-                                }
-                                const [storefront, learned] = await Promise.all([
-                                  gatewayClient.getStorefront(),
-                                  gatewayClient.getLearnedSkills(),
-                                ]);
-                                setSkills(storefront);
-                                setLearnedSkills(learned);
-                              }}
-                              style={{
-                                padding: "5px 14px",
-                                borderRadius: "var(--radius-xs)",
-                                border: skill.installed ? "1px solid var(--border-subtle)" : "1px solid var(--accent-teal)",
-                                background: skill.installed ? "var(--bg-chip)" : "var(--accent-teal)",
-                                color: skill.installed ? "var(--ink-secondary)" : "#08110F",
-                                fontSize: "11px",
-                                fontWeight: 600,
-                                cursor: "pointer",
-                                flexShrink: 0,
-                              }}
-                            >
-                              {skill.installed ? "Uninstall" : "Install"}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div style={{ padding: "24px 0", textAlign: "center", fontSize: "12px", color: "var(--ink-muted)" }}>
-                  {loadingSkills ? "Loading skills registry..." : "Connected to Gateway skill registry at /api/corehub/storefront."}
-                </div>
-              )}
-
-              {/* MCP Servers Section */}
-              <div
-                style={{
-                  background: "var(--bg-card)",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid var(--border-medium)",
-                  padding: "14px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                  marginTop: "8px",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <h5 style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "var(--ink-primary)", display: "flex", alignItems: "center", gap: "6px" }}>
-                      <McpConduitIcon size={14} color="var(--accent-teal)" />
-                      <span>MCP Servers (Model Context Protocol)</span>
-                    </h5>
-                    <p style={{ margin: "2px 0 0", fontSize: "11px", color: "var(--ink-secondary)" }}>
-                      1-click install standard MCP tools or connect custom stdio / SSE servers.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={fetchMcpData}
-                    style={{
-                      background: "var(--bg-chip)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-xs)",
-                      padding: "3px 8px",
-                      color: "var(--ink-secondary)",
-                      fontSize: "10px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {loadingMcp ? "Loading..." : "Refresh"}
-                  </button>
-                </div>
-
-                {/* Installed MCP Servers */}
-                {mcpServers.length > 0 && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
-                      Installed Servers ({mcpServers.length})
-                    </div>
-                    {mcpServers.map((srv) => {
-                      const probe = mcpProbeStatus[srv.id];
-                      const status = probe?.status || srv.status || "disconnected";
-                      const statusColor =
-                        status === "connected"
-                          ? "var(--state-success, #34D399)"
-                          : status === "probing"
-                          ? "var(--accent-teal)"
-                          : status === "error"
-                          ? "var(--state-error, #F87171)"
-                          : "var(--ink-muted)";
-                      return (
-                        <div
-                          key={srv.id}
-                          style={{
-                            background: "var(--bg-input)",
-                            padding: "10px 12px",
-                            borderRadius: "var(--radius-xs)",
-                            border: "1px solid var(--border-subtle)",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "space-between",
-                            gap: "8px",
+                            padding: "8px 10px",
+                            background: "var(--bg-input)",
+                            borderRadius: "6px",
                           }}
                         >
                           <div>
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                              <span style={{ fontWeight: 600, color: "var(--ink-primary)", fontSize: "13px" }}>
-                                {srv.name}
-                              </span>
-                              <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "var(--radius-xs)", background: "var(--bg-chip)", color: "var(--ink-muted)" }}>
-                                {srv.transport}
-                              </span>
-                              <span style={{ fontSize: "10px", fontWeight: 600, color: statusColor }}>
-                                ● {status === "probing" ? "probing..." : status}
-                              </span>
-                            </div>
-                            <div style={{ fontSize: "11px", color: "var(--ink-secondary)", marginTop: "2px" }}>
-                              {srv.description || srv.command || srv.url}
-                            </div>
-                          </div>
-
-                          <div style={{ display: "flex", gap: "6px" }}>
-                            <button
-                              type="button"
-                              onClick={() => handleProbeMcp(srv.id)}
+                            <div
                               style={{
-                                background: "var(--bg-chip)",
-                                border: "1px solid var(--border-subtle)",
+                                fontSize: "12px",
+                                fontWeight: 600,
                                 color: "var(--ink-primary)",
-                                borderRadius: "var(--radius-xs)",
-                                padding: "4px 8px",
-                                fontSize: "11px",
-                                cursor: "pointer",
                               }}
                             >
-                              Probe
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteMcp(srv.id)}
-                              style={{
-                                background: "transparent",
-                                border: "1px solid var(--border-subtle)",
-                                color: "var(--state-error, #F87171)",
-                                borderRadius: "var(--radius-xs)",
-                                padding: "4px 8px",
-                                fontSize: "11px",
-                                cursor: "pointer",
-                              }}
-                            >
-                              Remove
-                            </button>
+                              {appr.sender} ({appr.platform})
+                            </div>
+                            <div style={{ fontSize: "11px", color: "var(--accent-teal)" }}>
+                              Approved identity
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Curated 1-Click Catalog */}
-                {mcpCatalog.length > 0 && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--accent-teal)", textTransform: "uppercase" }}>
-                      Curated CoreBlow Catalog
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                      {mcpCatalog.map((item) => {
-                        const isInstalled = mcpServers.some((s) => s.id === item.id);
-                        return (
-                          <div
-                            key={item.id}
+                          <button
+                            type="button"
+                            onClick={() => handleRevokePairing(appr.id)}
                             style={{
-                              background: "var(--bg-input)",
-                              padding: "10px 12px",
-                              borderRadius: "var(--radius-xs)",
-                              border: "1px solid var(--border-subtle)",
-                              display: "flex",
-                              flexDirection: "column",
-                              justifyContent: "space-between",
-                              gap: "8px",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              background: "transparent",
+                              border: "1px solid var(--border-medium)",
+                              color: "var(--ink-muted)",
+                              fontSize: "11px",
+                              cursor: "pointer",
                             }}
                           >
-                            <div>
-                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                <span style={{ fontWeight: 600, fontSize: "12px", color: "var(--ink-primary)" }}>
-                                  {item.name}
-                                </span>
-                                <span style={{ fontSize: "9px", padding: "1px 5px", borderRadius: "var(--radius-xs)", background: "var(--bg-chip)", color: "var(--ink-muted)" }}>
-                                  {item.category}
-                                </span>
-                              </div>
-                              <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--ink-secondary)", lineHeight: 1.3 }}>
-                                {item.description}
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              disabled={isInstalled}
-                              onClick={() => handleInstallMcp(item.id)}
-                              style={{
-                                alignSelf: "flex-start",
-                                padding: "4px 10px",
-                                borderRadius: "var(--radius-xs)",
-                                border: isInstalled ? "1px solid var(--border-subtle)" : "none",
-                                background: isInstalled ? "var(--bg-chip)" : "var(--accent-teal)",
-                                color: isInstalled ? "var(--ink-muted)" : "#08110F",
-                                fontSize: "10px",
-                                fontWeight: 600,
-                                cursor: isInstalled ? "default" : "pointer",
-                              }}
-                            >
-                              {isInstalled ? "Installed" : "1-Click Install"}
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
+                            Revoke
+                          </button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </SettingGroup>
             </div>
           )}
 
+          {/* 7. SKILLS & TOOL KEYS CATEGORY */}
+          {activeSection === "skills" && (
+            <div>
+              <SettingGroup title="EXTERNAL TOOL API KEYS">
+                <p
+                  style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "12px" }}
+                >
+                  Encrypted securely in macOS Keychain Vault and provided to execution tools as
+                  needed.
+                </p>
+                {[
+                  {
+                    key: "tavilyApiKey" as const,
+                    label: "Tavily Web Search API",
+                    placeholder: "tvly-...",
+                  },
+                  {
+                    key: "exaApiKey" as const,
+                    label: "Exa Neural Search API",
+                    placeholder: "exa-...",
+                  },
+                  { key: "braveApiKey" as const, label: "Brave Search API", placeholder: "BSA..." },
+                  {
+                    key: "perplexityApiKey" as const,
+                    label: "Perplexity API Key",
+                    placeholder: "pplx-...",
+                  },
+                  {
+                    key: "e2bApiKey" as const,
+                    label: "E2B Cloud Sandbox API",
+                    placeholder: "e2b_...",
+                  },
+                  {
+                    key: "modalApiKey" as const,
+                    label: "Modal Labs API Token",
+                    placeholder: "ak-...",
+                  },
+                  {
+                    key: "daytonaApiKey" as const,
+                    label: "Daytona Workspace API",
+                    placeholder: "daytona_...",
+                  },
+                ].map((tool) => (
+                  <SettingRow key={tool.key} label={tool.label} badge="OS Vault">
+                    <input
+                      type="password"
+                      value={preferences[tool.key] || ""}
+                      placeholder={tool.placeholder}
+                      onChange={(e) => onUpdatePreferences({ [tool.key]: e.target.value })}
+                      style={{
+                        width: "220px",
+                        padding: "5px 10px",
+                        borderRadius: "6px",
+                        background: "var(--bg-input)",
+                        border: "1px solid var(--border-medium)",
+                        color: "var(--ink-primary)",
+                        fontSize: "12px",
+                      }}
+                    />
+                  </SettingRow>
+                ))}
+              </SettingGroup>
+
+              <SettingGroup title="COREHUB SKILLS & EXTENSIONS">
+                {loadingSkills ? (
+                  <div style={{ fontSize: "12px", color: "var(--ink-muted)", padding: "12px 0" }}>
+                    Loading skills catalog...
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    {skills.slice(0, 8).map((sk) => (
+                      <div
+                        key={sk.id}
+                        style={{
+                          padding: "10px",
+                          background: "var(--bg-input)",
+                          borderRadius: "8px",
+                          border: "1px solid var(--border-subtle)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "12.5px",
+                            fontWeight: 600,
+                            color: "var(--ink-primary)",
+                          }}
+                        >
+                          {sk.name}
+                        </div>
+                        <div
+                          style={{ fontSize: "11px", color: "var(--ink-muted)", margin: "4px 0" }}
+                        >
+                          {sk.description}
+                        </div>
+                        <span
+                          style={{ fontSize: "10px", color: "var(--accent-teal)", fontWeight: 600 }}
+                        >
+                          v{sk.version}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </SettingGroup>
+
+              <SettingGroup title="MCP SERVERS (MODEL CONTEXT PROTOCOL)">
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {mcpServers.map((s) => (
+                    <div
+                      key={s.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "8px 12px",
+                        background: "var(--bg-input)",
+                        borderRadius: "6px",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            fontSize: "12.5px",
+                            fontWeight: 600,
+                            color: "var(--ink-primary)",
+                          }}
+                        >
+                          {s.name}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "var(--ink-muted)" }}>
+                          {s.command}
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: "6px" }}>
+                        <button
+                          type="button"
+                          onClick={() => handleProbeMcp(s.id)}
+                          style={{
+                            padding: "4px 8px",
+                            fontSize: "11px",
+                            background: "var(--bg-card)",
+                            border: "1px solid var(--border-medium)",
+                            borderRadius: "4px",
+                            color: "var(--ink-primary)",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {mcpProbeStatus[s.id]?.status === "probing" ? "Probing..." : "Test"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMcp(s.id)}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "var(--ink-muted)",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <TrashIcon size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </SettingGroup>
+            </div>
+          )}
+
+          {/* 8. REMOTES CATEGORY */}
+          {activeSection === "remotes" && (
+            <div>
+              <SettingGroup title="ALWAYS-ON REMOTE NODES">
+                <p
+                  style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "12px" }}
+                >
+                  Connect to remote 24/7 CoreBlow nodes across VPS, Tailscale, or cloud machines.
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                    marginBottom: "20px",
+                  }}
+                >
+                  {remoteNodes.map((node) => (
+                    <div
+                      key={node.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "10px 14px",
+                        background: "var(--bg-input)",
+                        borderRadius: "8px",
+                        border: "1px solid var(--border-subtle)",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink-primary)" }}
+                        >
+                          {node.name}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "var(--ink-muted)" }}>
+                          {node.url} ({node.kind})
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span
+                          style={{ fontSize: "11px", color: "var(--accent-teal)", fontWeight: 600 }}
+                        >
+                          Active
+                        </span>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await gatewayClient.deleteRemoteNode(node.id);
+                            await fetchNodes();
+                          }}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "var(--ink-muted)",
+                            cursor: "pointer",
+                            padding: "2px",
+                          }}
+                        >
+                          <TrashIcon size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </SettingGroup>
+
+              <SettingGroup title="ADD REMOTE NODE">
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                    background: "var(--bg-input)",
+                    padding: "14px",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Node Name (e.g. Frankfurt VPS)"
+                    value={newNodeName}
+                    onChange={(e) => setNewNodeName(e.target.value)}
+                    style={{
+                      padding: "5px 10px",
+                      borderRadius: "6px",
+                      background: "var(--bg-card)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Node Gateway URL (e.g. http://100.x.y.z:18789)"
+                    value={newNodeUrl}
+                    onChange={(e) => setNewNodeUrl(e.target.value)}
+                    style={{
+                      padding: "5px 10px",
+                      borderRadius: "6px",
+                      background: "var(--bg-card)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!newNodeName || !newNodeUrl) return;
+                      await gatewayClient.saveRemoteNode({
+                        name: newNodeName,
+                        url: newNodeUrl,
+                        kind: newNodeKind,
+                      });
+                      setNewNodeName("");
+                      setNewNodeUrl("");
+                      await fetchNodes();
+                    }}
+                    style={{
+                      padding: "6px 14px",
+                      borderRadius: "6px",
+                      background: "var(--accent-teal)",
+                      border: "none",
+                      color: "#000000",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      alignSelf: "flex-start",
+                    }}
+                  >
+                    Save Node
+                  </button>
+                </div>
+              </SettingGroup>
+            </div>
+          )}
+
+          {/* 9. AUTOMATIONS CATEGORY */}
+          {activeSection === "automations" && (
+            <div>
+              <SettingGroup title="BACKGROUND CRON JOBS">
+                <p
+                  style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "16px" }}
+                >
+                  Configure autonomous scheduled background routines maintained by the CoreBlow
+                  runtime.
+                </p>
+                {[
+                  {
+                    key: "repoHealth" as const,
+                    label: "Daily Repository Health Check",
+                    desc: "Runs git check, linting, and dependency validation every night at 02:00.",
+                  },
+                  {
+                    key: "memoryCompaction" as const,
+                    label: "Cory Memory Compaction",
+                    desc: "Summarizes episodic context into semantic vector indexes every 6 hours.",
+                  },
+                  {
+                    key: "evoloopDistillation" as const,
+                    label: "EvoLoop Skill Distillation",
+                    desc: "Distills repetitive multi-step actions into reusable procedural skills.",
+                  },
+                  {
+                    key: "logPruning" as const,
+                    label: "Weekly Log Pruning",
+                    desc: "Prunes tool execution logs and debug traces older than 14 days.",
+                  },
+                ].map((item) => (
+                  <SettingRow key={item.key} label={item.label} description={item.desc}>
+                    <ToggleSwitch
+                      checked={preferences.automations?.[item.key] ?? false}
+                      onChange={(checked) =>
+                        onUpdatePreferences({
+                          automations: {
+                            ...preferences.automations,
+                            [item.key]: checked,
+                          },
+                        })
+                      }
+                      ariaLabel={`Toggle ${item.label}`}
+                    />
+                  </SettingRow>
+                ))}
+              </SettingGroup>
+            </div>
+          )}
+
+          {/* 10. ABOUT CATEGORY */}
           {activeSection === "about" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px", alignItems: "center", textAlign: "center", paddingTop: "20px" }}>
-              <div
-                style={{
-                  width: "56px",
-                  height: "56px",
-                  borderRadius: "var(--radius-md)",
-                  background: "var(--bg-chip)",
-                  border: "1px solid var(--border-medium)",
-                  display: "grid",
-                  placeItems: "center",
-                  color: "var(--accent-teal)",
-                }}
-              >
-                <CoreBlowEmblem size={32} />
-              </div>
-
-              <div>
-                <h3 style={{ fontSize: "18px", fontWeight: 700, color: "var(--ink-primary)", letterSpacing: "0.04em" }}>
-                  CoreBlow Studio
-                </h3>
-                <div style={{ fontSize: "12px", color: "var(--accent-teal)", fontWeight: 600, marginTop: "2px" }}>
-                  Version 2.1.2 (Release)
+            <div>
+              <SettingGroup title="ABOUT COREBLOW STUDIO">
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "16px",
+                    marginBottom: "20px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      borderRadius: "12px",
+                      background: "var(--accent-teal-subtle)",
+                      border: "1px solid var(--accent-teal-glow)",
+                      display: "grid",
+                      placeItems: "center",
+                    }}
+                  >
+                    <CoreBlowEmblem size={28} color="var(--accent-teal)" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--ink-primary)" }}>
+                      CoreBlow Studio
+                    </div>
+                    <div style={{ fontSize: "12px", color: "var(--ink-muted)" }}>
+                      Version 2.1.2 (Release) • macOS Universal
+                    </div>
+                  </div>
                 </div>
-                <div style={{ fontSize: "11px", color: "var(--ink-muted)", marginTop: "4px" }}>
-                  Application ID: ai.coreblow.studio
-                </div>
-              </div>
 
-              <div
-                style={{
-                  maxWidth: "420px",
-                  fontSize: "12px",
-                  color: "var(--ink-secondary)",
-                  lineHeight: 1.6,
-                }}
-              >
-                Next-generation Electron desktop shell wired to the Single-Brain Gateway daemon (:18789).
-                Crafted with Quiet Instrument design tokens for zero-distraction AI engineering.
-              </div>
+                <SettingRow label="Application ID">
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      fontFamily: "var(--font-mono)",
+                      color: "var(--ink-secondary)",
+                    }}
+                  >
+                    ai.coreblow.studio
+                  </span>
+                </SettingRow>
 
-              <div style={{ fontSize: "11px", color: "var(--ink-muted)" }}>
-                © 2026 CoreBlow Team. All rights reserved.
-              </div>
+                <SettingRow label="Architecture">
+                  <span style={{ fontSize: "12px", color: "var(--ink-secondary)" }}>
+                    Single-Brain Quiet-Instrument Gateway (:18789)
+                  </span>
+                </SettingRow>
+
+                <SettingRow label="Official Documentation">
+                  <a
+                    href="https://docs.coreblow.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      fontSize: "12.5px",
+                      color: "var(--accent-teal)",
+                      textDecoration: "none",
+                    }}
+                  >
+                    https://docs.coreblow.com
+                  </a>
+                </SettingRow>
+              </SettingGroup>
             </div>
           )}
         </div>
