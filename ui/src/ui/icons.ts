@@ -112,23 +112,22 @@ export const icons: Record<IconName, ReturnType<typeof html>> = {
     <path d="M13 15.5h5.5" stroke-opacity="0.55"/>
   `),
 
-  // Usage & Metrics — harmonic token spectrum inside telemetry arc
+  // Usage & Metrics — ascending telemetry area-sparkline with peak beacon
   activity: cbIcon(svg`
-    <path d="M3.5 16.5a8.5 8.5 0 0 1 17 0" fill="currentColor" fill-opacity="0.1"/>
-    <line x1="7.5" y1="16.5" x2="7.5" y2="13"/>
-    <line x1="10.5" y1="16.5" x2="10.5" y2="10"/>
-    <line x1="13.5" y1="16.5" x2="13.5" y2="11.5"/>
-    <line x1="16.5" y1="16.5" x2="16.5" y2="14"/>
-    <line x1="4" y1="19.5" x2="20" y2="19.5"/>
-    <circle cx="10.5" cy="7.2" r="1.2" fill="currentColor" stroke="none"/>
+    <path d="M3.5 19.5h17" stroke-opacity="0.55"/>
+    <path d="M4.5 15.5l4.2-4.2 3.3 2.7 5.8-7.2V19.5H4.5z" fill="currentColor" fill-opacity="0.14" stroke="none"/>
+    <path d="M4.5 15.5l4.2-4.2 3.3 2.7 5.8-7.2"/>
+    <circle cx="17.8" cy="6.8" r="1.8" fill="currentColor" stroke="none"/>
+    <circle cx="8.7" cy="11.3" r="1.1" fill="currentColor" stroke="none"/>
   `),
 
-  // Cron Jobs — perpetual 24/7 orbital gyro with satellite pulse
+  // Cron Jobs — precision chronograph timer dial
   clock: cbIcon(svg`
-    <ellipse cx="12" cy="12" rx="9.2" ry="4.6" transform="rotate(-30 12 12)" fill="currentColor" fill-opacity="0.1"/>
-    <ellipse cx="12" cy="12" rx="9.2" ry="4.6" transform="rotate(30 12 12)" stroke-opacity="0.6"/>
-    <circle cx="12" cy="12" r="2.2" fill="currentColor" fill-opacity="0.24"/>
-    <circle cx="19.2" cy="7.8" r="1.5" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="13" r="7.5" fill="currentColor" fill-opacity="0.12"/>
+    <line x1="9.5" y1="2.8" x2="14.5" y2="2.8"/>
+    <line x1="12" y1="2.8" x2="12" y2="5.5"/>
+    <polyline points="12 9 12 13 15 14.8"/>
+    <circle cx="12" cy="13" r="1.1" fill="currentColor" stroke="none"/>
   `),
 
   // CoreHub — interlocking hexagonal module vault with snapping node
@@ -212,8 +211,11 @@ export const icons: Record<IconName, ReturnType<typeof html>> = {
     <path d="M21 3l-6.8 18-3.7-7.5L3 9.8 21 3z" fill="currentColor" fill-opacity="0.14"/>
   `),
 
+  // Models — stacked isometric neural inference layers
   spark: cbIcon(svg`
-    <path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2L12 3z" fill="currentColor" fill-opacity="0.16"/>
+    <polygon points="12 3.2 20.5 7.8 12 12.4 3.5 7.8 12 3.2" fill="currentColor" fill-opacity="0.16"/>
+    <polyline points="3.5 12.2 12 16.8 20.5 12.2"/>
+    <polyline points="3.5 16.4 12 21 20.5 16.4"/>
   `),
 
   terminal: cbIcon(svg`
@@ -419,9 +421,13 @@ export const icons: Record<IconName, ReturnType<typeof html>> = {
     <line x1="9" y1="21" x2="15" y2="21"/>
   `),
 
-  // Plugins — modular extension block
+  // MCP — CoreBlow S-curve protocol node conduit with duotone core beacons
   puzzle: cbIcon(svg`
-    <path d="M10 4h4a1.5 1.5 0 0 1 1.5 1.5V7h2a2 2 0 0 1 2 2v3h-1.5a1.5 1.5 0 0 0 0 3H19.5v3a2 2 0 0 1-2 2h-3v-1.5a1.5 1.5 0 0 0-3 0V20h-5a2 2 0 0 1-2-2v-3.5h1.5a1.5 1.5 0 0 0 0-3H4.5V9a2 2 0 0 1 2-2h2V5.5A1.5 1.5 0 0 1 10 4z" fill="currentColor" fill-opacity="0.12"/>
+    <circle cx="6" cy="6" r="3" fill="currentColor" fill-opacity="0.16"/>
+    <circle cx="6" cy="6" r="1" fill="currentColor" stroke="none"/>
+    <circle cx="18" cy="18" r="3" fill="currentColor" fill-opacity="0.16"/>
+    <circle cx="18" cy="18" r="1" fill="currentColor" stroke="none"/>
+    <path d="M9 6a3 3 0 0 1 3 3v6a3 3 0 0 0 3 3"/>
   `),
 
   // Commands — command modifier loop glyph

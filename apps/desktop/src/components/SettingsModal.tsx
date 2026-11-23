@@ -4,14 +4,17 @@ import type { CoreHubSkill, PermissionMode, CredentialPoolPayload, RemoteNodeCon
 import type { UiPreferences } from "../services/storage";
 import {
   CheckIcon,
+  ClockIcon,
   CloseIcon,
   CoreBlowEmblem,
-  FolderIcon,
+  McpConduitIcon,
+  RadioIcon,
   RefreshIcon,
+  ServerIcon,
   SettingsIcon,
   ShieldIcon,
+  SkillsChipIcon,
   SparklesIcon,
-  TerminalIcon,
 } from "./Icons";
 
 interface SettingsModalProps {
@@ -391,11 +394,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {[
             { id: "general", label: "General", icon: <SettingsIcon size={14} /> },
             { id: "models", label: "API Keys & Models", icon: <SparklesIcon size={14} /> },
-            { id: "channels", label: "Channels", icon: <TerminalIcon size={14} /> },
-            { id: "remotes", label: "Remote Nodes", icon: <FolderIcon size={14} /> },
-            { id: "automations", label: "Automations & Cron", icon: <RefreshIcon size={14} /> },
+            { id: "channels", label: "Channels", icon: <RadioIcon size={14} /> },
+            { id: "remotes", label: "Remote Nodes", icon: <ServerIcon size={14} /> },
+            { id: "automations", label: "Automations & Cron", icon: <ClockIcon size={14} /> },
             { id: "permissions", label: "Permissions", icon: <ShieldIcon size={14} /> },
-            { id: "skills", label: "Skills", icon: <SparklesIcon size={14} /> },
+            { id: "skills", label: "Skills", icon: <SkillsChipIcon size={14} /> },
             { id: "about", label: "About", icon: <CoreBlowEmblem size={14} /> },
           ].map((item) => {
             const isActive = activeSection === item.id;
@@ -2015,8 +2018,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <h5 style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "var(--ink-primary)" }}>
-                      MCP Servers (Model Context Protocol)
+                    <h5 style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "var(--ink-primary)", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <McpConduitIcon size={14} color="var(--accent-teal)" />
+                      <span>MCP Servers (Model Context Protocol)</span>
                     </h5>
                     <p style={{ margin: "2px 0 0", fontSize: "11px", color: "var(--ink-secondary)" }}>
                       1-click install standard MCP tools or connect custom stdio / SSE servers.

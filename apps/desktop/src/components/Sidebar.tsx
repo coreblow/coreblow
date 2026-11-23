@@ -1,17 +1,18 @@
 import React, { useState } from "react";
 import type { ChatThread } from "../types/gateway";
 import {
+  AgentsBrainIcon,
+  ClockIcon,
   CoreBlowEmblem,
-  FolderIcon,
+  MemoryBrainIcon,
   PinIcon,
   PlusIcon,
   SearchIcon,
+  ServerIcon,
   SettingsIcon,
   SidebarToggleIcon,
-  SparklesIcon,
-  TerminalIcon,
+  SkillsChipIcon,
   TrashIcon,
-  UsersIcon,
 } from "./Icons";
 
 export interface SidebarProps {
@@ -130,7 +131,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             cursor: "pointer",
           }}
         >
-          <UsersIcon size={18} />
+          <AgentsBrainIcon size={18} />
         </button>
 
         <button
@@ -149,7 +150,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             cursor: "pointer",
           }}
         >
-          <SparklesIcon size={18} />
+          <SkillsChipIcon size={18} />
         </button>
 
         <button
@@ -168,7 +169,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             cursor: "pointer",
           }}
         >
-          <FolderIcon size={18} />
+          <MemoryBrainIcon size={18} />
         </button>
 
         <div style={{ flex: 1 }} />
@@ -237,7 +238,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               fontWeight: 600,
             }}
           >
-            v2.0
+            v2.1.2
           </span>
         </div>
 
@@ -366,25 +367,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {[
           {
             label: "Capabilities",
-            icon: <SparklesIcon size={14} color="var(--accent-teal)" />,
+            icon: <SkillsChipIcon size={14} color="var(--accent-teal)" />,
             onClick: () => onOpenTab?.("corehub"),
             title: "Skills & Storefront Marketplace",
           },
           {
             label: "Memory",
-            icon: <FolderIcon size={14} color="var(--accent-teal)" />,
+            icon: <MemoryBrainIcon size={14} color="var(--accent-teal)" />,
             onClick: () => onOpenTab?.("memory"),
             title: "Cory Memory Wiki",
           },
           {
             label: "Scheduled jobs",
-            icon: <TerminalIcon size={14} color="var(--accent-teal)" />,
+            icon: <ClockIcon size={14} color="var(--accent-teal)" />,
             onClick: () => onOpenSettings("automations"),
             title: "Scheduled Automations & Background Tasks",
           },
           {
             label: "Remote Nodes",
-            icon: <span style={{ fontSize: "13px", lineHeight: 1 }}>🌐</span>,
+            icon: <ServerIcon size={14} color="var(--accent-teal)" />,
             onClick: () => onOpenSettings("remotes"),
             title: "24/7 Always-On Remote Nodes",
           },
