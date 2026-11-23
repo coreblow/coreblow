@@ -36,6 +36,39 @@ export interface ChatThread {
   pinned?: boolean;
 }
 
+export interface DesktopAgent {
+  id: string;
+  name: string;
+  tagline: string;
+  systemPrompt?: string;
+  accentColor: string;
+  muted?: boolean;
+  updatedAt: number;
+  messages: ChatMessage[];
+  pinned?: boolean;
+  hidden?: boolean;
+  sectionId?: string | null;
+  autoOpenScreen?: boolean;
+  defaultModel?: string;
+  groupIds?: string[];
+  lastSessionId?: string | null;
+}
+
+export interface AgentSection {
+  id: string;
+  name: string;
+  collapsed?: boolean;
+  createdAt: number;
+}
+
+export interface AgentGroup {
+  id: string;
+  name: string;
+  agentIds: string[];
+  messages: ChatMessage[];
+  updatedAt: number;
+}
+
 export interface CoryMemoryLayer {
   layer: string;
   count: number;

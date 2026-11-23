@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import type { ChatMessage, ModelTier, PermissionMode } from "../types/gateway";
+import type { ChatMessage, DesktopAgent, ModelTier, PermissionMode } from "../types/gateway";
 import { MessageBubble } from "./MessageBubble";
 import { Composer } from "./Composer";
 import { CoreBlowEmblem } from "./Icons";
@@ -34,6 +34,7 @@ export interface ConversationAreaProps {
   onStopSpeaking?: () => void;
   showOnboarding?: boolean;
   onboardingProps?: GettingStartedFlowProps;
+  activeAgent?: DesktopAgent | null;
 }
 
 export const ConversationArea: React.FC<ConversationAreaProps> = ({
@@ -65,6 +66,7 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
   onStopSpeaking,
   showOnboarding = false,
   onboardingProps,
+  activeAgent = null,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -131,6 +133,74 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
         >
           <GettingStartedFlow {...onboardingProps} />
         </div>
+      ) : messages.length === 0 && activeAgent ? (
+        /* Dedicated Agent Mode Empty State: Centered vertically in exact alignment with Sessions */
+        <div
+          ref={scrollContainerRef}
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "32px 24px",
+            boxSizing: "border-box",
+          }}
+        >
+          <div
+            style={{
+              maxWidth: "780px",
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
+              <div
+                style={{
+                  width: "52px",
+                  height: "52px",
+                  borderRadius: "14px",
+                  background: `${activeAgent.accentColor}22`,
+                  border: `1px solid ${activeAgent.accentColor}55`,
+                  display: "grid",
+                  placeItems: "center",
+                }}
+              >
+                <CoreBlowEmblem size={28} color={activeAgent.accentColor} />
+              </div>
+              <h1
+                style={{
+                  fontSize: "40px",
+                  fontWeight: 800,
+                  color: "var(--ink-primary)",
+                  letterSpacing: "0.08em",
+                  margin: 0,
+                  lineHeight: 1.08,
+                  textTransform: "uppercase",
+                  textAlign: "center",
+                }}
+              >
+                {activeAgent.name}
+              </h1>
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "var(--ink-muted)",
+                  margin: 0,
+                  textAlign: "center",
+                }}
+              >
+                {activeAgent.tagline || "Say something to get started."}
+              </p>
+            </div>
+            <div style={{ width: "100%", marginTop: "28px" }}>
+              {composerElement}
+            </div>
+          </div>
+        </div>
       ) : messages.length === 0 ? (
         /* 1. Centered Hero Empty State */
         <div
@@ -155,39 +225,55 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
               alignItems: "center",
             }}
           >
-            {/* Brand Hero Row */}
+            {/* Brand Hero — exact same scale & stacked proportions as Agent mode */}
             <div
               style={{
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
-                justifyContent: "center",
-                gap: "10px",
+                gap: "12px",
               }}
             >
-              <CoreBlowEmblem size={28} color="var(--accent-teal)" />
+              <div
+                style={{
+                  width: "52px",
+                  height: "52px",
+                  borderRadius: "14px",
+                  background: "var(--accent-teal-subtle)",
+                  border: "1px solid var(--accent-teal-glow)",
+                  display: "grid",
+                  placeItems: "center",
+                }}
+              >
+                <CoreBlowEmblem size={28} color="var(--accent-teal)" />
+              </div>
               <h1
                 style={{
-                  fontSize: "26px",
-                  fontWeight: 700,
+                  fontSize: "40px",
+                  fontWeight: 800,
                   color: "var(--ink-primary)",
-                  letterSpacing: "-0.02em",
+                  letterSpacing: "0.08em",
                   margin: 0,
-                  lineHeight: 1.2,
+                  lineHeight: 1.08,
+                  textTransform: "uppercase",
+                  textAlign: "center",
                 }}
               >
                 CoreBlow Studio
               </h1>
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "var(--ink-muted)",
+                  margin: 0,
+                  textAlign: "center",
+                }}
+              >
+                Say something to get started.
+              </p>
               <span
                 style={{
                   display: "none",
-                  background: "var(--accent-teal-subtle)",
-                  color: "var(--accent-teal)",
-                  border: "1px solid var(--accent-teal-glow)",
-                  borderRadius: "9999px",
-                  padding: "2px 8px",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  letterSpacing: "0.03em",
                 }}
               >
                 v2.0

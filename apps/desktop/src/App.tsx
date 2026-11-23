@@ -10,20 +10,88 @@ import { FirstRunSetup } from "./components/FirstRunSetup";
 import { CommandPalette } from "./components/CommandPalette";
 import { storageService } from "./services/storage";
 import { gatewayClient } from "./services/gateway-client";
+import {
+  AgentEditorModal,
+  NewSectionModal,
+  NewGroupChatModal,
+  ManageGroupsModal,
+} from "./components/AgentModals";
 import type {
   ActiveProjectState,
+  AgentGroup,
+  AgentSection,
   ChatMessage,
   ChatThread,
+  DesktopAgent,
   ModelTier,
   PermissionMode,
   RemoteNodeConfig,
   ToolExecutionStep,
 } from "./types/gateway";
 
+const AGENTS_STORAGE_KEY = "coreblow_desktop_agents_v1";
+const SECTIONS_STORAGE_KEY = "coreblow_desktop_agent_sections_v1";
+const GROUPS_STORAGE_KEY = "coreblow_desktop_agent_groups_v1";
+
+const DEFAULT_AGENT: DesktopAgent = {
+  id: "agent_coreblow",
+  name: "CoreBlow",
+  tagline: "Say something to get started.",
+  accentColor: "#2DD4BF",
+  updatedAt: Date.now(),
+  messages: [],
+};
+
+function loadStoredAgents(): DesktopAgent[] {
+  try {
+    const raw = localStorage.getItem(AGENTS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as DesktopAgent[];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {}
+  return [DEFAULT_AGENT];
+}
+
+function loadStoredSections(): AgentSection[] {
+  try {
+    const raw = localStorage.getItem(SECTIONS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as AgentSection[];
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return [];
+}
+
+function loadStoredGroups(): AgentGroup[] {
+  try {
+    const raw = localStorage.getItem(GROUPS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as AgentGroup[];
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return [];
+}
+
 export const App: React.FC = () => {
   // Storage & State Initialization
   const [threads, setThreads] = useState<ChatThread[]>(() => storageService.getThreads());
   const [activeThreadId, setActiveThreadId] = useState<string | null>(() => storageService.getActiveThreadId());
+  const [sidebarMode, setSidebarMode] = useState<"sessions" | "agent">("sessions");
+  const [agents, setAgents] = useState<DesktopAgent[]>(() => loadStoredAgents());
+  const [activeAgentId, setActiveAgentId] = useState<string>(() => loadStoredAgents()[0]?.id || "agent_coreblow");
+  const [agentSections, setAgentSections] = useState<AgentSection[]>(() => loadStoredSections());
+  const [agentGroups, setAgentGroups] = useState<AgentGroup[]>(() => loadStoredGroups());
+
+  // Agent Modals State
+  const [editorModalOpen, setEditorModalOpen] = useState(false);
+  const [editingAgent, setEditingAgent] = useState<DesktopAgent | null>(null);
+  const [newSectionModalOpen, setNewSectionModalOpen] = useState(false);
+  const [newGroupChatModalOpen, setNewGroupChatModalOpen] = useState(false);
+  const [manageGroupsModalOpen, setManageGroupsModalOpen] = useState(false);
+  const [manageGroupsAgent, setManageGroupsAgent] = useState<DesktopAgent | null>(null);
   const [preferences, setPreferences] = useState(() => {
     const p = storageService.getPreferences();
     return {
@@ -206,9 +274,218 @@ export const App: React.FC = () => {
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Active Thread
+  // Active Thread & Active Agent
   const activeThread = threads.find((t) => t.id === activeThreadId) || null;
-  const messages = activeThread ? activeThread.messages : [];
+  const activeAgent = agents.find((a) => a.id === activeAgentId) || agents[0] || DEFAULT_AGENT;
+  const messages = sidebarMode === "agent" ? activeAgent.messages : activeThread ? activeThread.messages : [];
+
+  // Persist agents whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(AGENTS_STORAGE_KEY, JSON.stringify(agents));
+    } catch {}
+  }, [agents]);
+
+  // Persist agent sections whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(agentSections));
+    } catch {}
+  }, [agentSections]);
+
+  // Persist agent groups whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(agentGroups));
+    } catch {}
+  }, [agentGroups]);
+
+  const handleCreateAgent = (name: string) => {
+    const palette = ["#2DD4BF", "#10B981", "#38BDF8", "#8B5CF6", "#F59E0B"];
+    const newAgent: DesktopAgent = {
+      id: `agent_${Date.now()}`,
+      name,
+      tagline: "Say something to get started.",
+      accentColor: palette[agents.length % palette.length],
+      updatedAt: Date.now(),
+      messages: [],
+    };
+    setAgents((prev) => [...prev, newAgent]);
+    setActiveAgentId(newAgent.id);
+  };
+
+  const handleSaveAgent = (data: {
+    name: string;
+    tagline: string;
+    systemPrompt: string;
+    defaultModel: string;
+    accentColor: string;
+    sectionId: string | null;
+  }) => {
+    if (editingAgent) {
+      setAgents((prev) =>
+        prev.map((a) =>
+          a.id === editingAgent.id
+            ? {
+                ...a,
+                ...data,
+                updatedAt: Date.now(),
+              }
+            : a,
+        ),
+      );
+    } else {
+      const newAgent: DesktopAgent = {
+        id: `agent_${Date.now()}`,
+        name: data.name,
+        tagline: data.tagline,
+        systemPrompt: data.systemPrompt,
+        defaultModel: data.defaultModel,
+        accentColor: data.accentColor,
+        sectionId: data.sectionId,
+        updatedAt: Date.now(),
+        messages: [],
+      };
+      setAgents((prev) => [...prev, newAgent]);
+      setActiveAgentId(newAgent.id);
+      setSidebarMode("agent");
+    }
+  };
+
+  const handleDuplicateAgent = (agent: DesktopAgent) => {
+    const dup: DesktopAgent = {
+      ...agent,
+      id: `agent_${Date.now()}`,
+      name: `${agent.name} (Copy)`,
+      updatedAt: Date.now(),
+      messages: [],
+      pinned: false,
+    };
+    setAgents((prev) => [...prev, dup]);
+    setActiveAgentId(dup.id);
+    setSidebarMode("agent");
+  };
+
+  const handleTogglePinAgent = (agent: DesktopAgent) => {
+    setAgents((prev) =>
+      prev.map((a) => (a.id === agent.id ? { ...a, pinned: !a.pinned } : a)),
+    );
+  };
+
+  const handleToggleHideAgent = (agent: DesktopAgent) => {
+    setAgents((prev) =>
+      prev.map((a) => (a.id === agent.id ? { ...a, hidden: !a.hidden } : a)),
+    );
+  };
+
+  const handleToggleAutoOpenScreen = (agent: DesktopAgent) => {
+    setAgents((prev) =>
+      prev.map((a) => (a.id === agent.id ? { ...a, autoOpenScreen: !a.autoOpenScreen } : a)),
+    );
+  };
+
+  const handleOpenAgentChatInNewTab = (agent: DesktopAgent) => {
+    setActiveAgentId(agent.id);
+    setSidebarMode("agent");
+  };
+
+  const handleOpenScreen = (_agent: DesktopAgent) => {
+    setPreferences((p) => ({ ...p, inspectorOpen: true, inspectorTab: "warroom" }));
+  };
+
+  const handleNewChatWithAgent = (agent: DesktopAgent) => {
+    setAgents((prev) =>
+      prev.map((a) =>
+        a.id === agent.id ? { ...a, messages: [], updatedAt: Date.now() } : a,
+      ),
+    );
+    setActiveAgentId(agent.id);
+    setSidebarMode("agent");
+  };
+
+  const handleOpenRecentSession = (agent: DesktopAgent) => {
+    if (agent.lastSessionId && threads.some((t) => t.id === agent.lastSessionId)) {
+      setActiveThreadId(agent.lastSessionId);
+      setSidebarMode("sessions");
+    } else if (threads.length > 0) {
+      setActiveThreadId(threads[0].id);
+      setSidebarMode("sessions");
+    }
+  };
+
+  const handleMoveToSection = (agent: DesktopAgent, sectionId: string | null) => {
+    setAgents((prev) =>
+      prev.map((a) => (a.id === agent.id ? { ...a, sectionId } : a)),
+    );
+  };
+
+  const handleCreateSection = (name: string) => {
+    const newSection: AgentSection = {
+      id: `section_${Date.now()}`,
+      name,
+      collapsed: false,
+      createdAt: Date.now(),
+    };
+    setAgentSections((prev) => [...prev, newSection]);
+  };
+
+  const handleToggleSectionCollapse = (sectionId: string) => {
+    setAgentSections((prev) =>
+      prev.map((s) => (s.id === sectionId ? { ...s, collapsed: !s.collapsed } : s)),
+    );
+  };
+
+  const handleCreateGroupChat = (name: string, selectedAgentIds: string[]) => {
+    const newGroup: AgentGroup = {
+      id: `group_${Date.now()}`,
+      name,
+      agentIds: selectedAgentIds,
+      messages: [],
+      updatedAt: Date.now(),
+    };
+    setAgentGroups((prev) => [...prev, newGroup]);
+    setPreferences((p) => ({ ...p, inspectorOpen: true, inspectorTab: "warroom" }));
+  };
+
+  const handleToggleAgentGroup = (groupId: string, agentId: string) => {
+    setAgentGroups((prev) =>
+      prev.map((g) => {
+        if (g.id !== groupId) return g;
+        const has = g.agentIds.includes(agentId);
+        return {
+          ...g,
+          agentIds: has ? g.agentIds.filter((id) => id !== agentId) : [...g.agentIds, agentId],
+          updatedAt: Date.now(),
+        };
+      }),
+    );
+  };
+
+  const handleCreateGroupForAgent = (name: string, agentId: string) => {
+    const newGroup: AgentGroup = {
+      id: `group_${Date.now()}`,
+      name,
+      agentIds: [agentId],
+      messages: [],
+      updatedAt: Date.now(),
+    };
+    setAgentGroups((prev) => [...prev, newGroup]);
+  };
+
+  const handleDeleteAgent = (id: string) => {
+    if (id === "agent_coreblow") return;
+    setAgents((prev) => {
+      const next = prev.filter((a) => a.id !== id);
+      if (activeAgentId === id) {
+        setActiveAgentId(next[0]?.id || "agent_coreblow");
+      }
+      return next.length > 0 ? next : [DEFAULT_AGENT];
+    });
+  };
+
+  const handleToggleMuteAgent = (id: string) => {
+    setAgents((prev) => prev.map((a) => (a.id === id ? { ...a, muted: !a.muted } : a)));
+  };
 
   // Persist threads whenever they change
   useEffect(() => {
@@ -472,14 +749,16 @@ export const App: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [threads, preferences]);
 
-  // Main chat submission handler
+  // Main chat submission handler (supports both SESSIONS and AGENT modes)
   const handleSend = async () => {
     const currentPrompt = prompt.trim();
     if (!currentPrompt || isStreaming) return;
 
-    // Ensure we have an active thread
+    const isAgentMode = sidebarMode === "agent";
+    const targetAgentId = activeAgent.id;
+
     let targetThreadId = activeThreadId;
-    if (!targetThreadId) {
+    if (!isAgentMode && !targetThreadId) {
       targetThreadId = `thread_${Date.now()}`;
       const newThread: ChatThread = {
         id: targetThreadId,
@@ -515,25 +794,54 @@ export const App: React.FC = () => {
       toolSteps: [],
     };
 
-    // Append user & assistant placeholder to active thread
-    setThreads((prev) =>
-      prev.map((t) => {
-        if (t.id === targetThreadId) {
-          const isFirstTurn = t.messages.length === 0;
-          return {
-            ...t,
-            title: isFirstTurn
-              ? currentPrompt.slice(0, 32) + (currentPrompt.length > 32 ? "..." : "")
-              : t.title,
-            updatedAt: Date.now(),
-            messages: [...t.messages, userMessage, assistantPlaceholder],
-          };
-        }
-        return t;
-      }),
-    );
+    const updateActiveMessages = (updater: (msgs: ChatMessage[]) => ChatMessage[]) => {
+      if (isAgentMode) {
+        setAgents((prev) =>
+          prev.map((a) =>
+            a.id === targetAgentId
+              ? { ...a, updatedAt: Date.now(), messages: updater(a.messages) }
+              : a,
+          ),
+        );
+      } else {
+        setThreads((prev) =>
+          prev.map((t) => {
+            if (t.id === targetThreadId) {
+              return { ...t, updatedAt: Date.now(), messages: updater(t.messages) };
+            }
+            return t;
+          }),
+        );
+      }
+    };
 
-    // Clear input
+    if (isAgentMode) {
+      setAgents((prev) =>
+        prev.map((a) =>
+          a.id === targetAgentId
+            ? { ...a, updatedAt: Date.now(), messages: [...a.messages, userMessage, assistantPlaceholder] }
+            : a,
+        ),
+      );
+    } else {
+      setThreads((prev) =>
+        prev.map((t) => {
+          if (t.id === targetThreadId) {
+            const isFirstTurn = t.messages.length === 0;
+            return {
+              ...t,
+              title: isFirstTurn
+                ? currentPrompt.slice(0, 32) + (currentPrompt.length > 32 ? "..." : "")
+                : t.title,
+              updatedAt: Date.now(),
+              messages: [...t.messages, userMessage, assistantPlaceholder],
+            };
+          }
+          return t;
+        }),
+      );
+    }
+
     setPrompt("");
     setAttachedFiles([]);
     setIsStreaming(true);
@@ -541,22 +849,25 @@ export const App: React.FC = () => {
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
-    // Build context messages from history (up to last 10 turns)
-    const contextMessages = (activeThread?.messages || []).map((m) => ({
-      role: m.role,
-      content: m.content,
-    }));
+    const historySource = isAgentMode ? activeAgent.messages : activeThread?.messages || [];
+    const contextMessages: { role: string; content: string }[] = [];
+    if (isAgentMode && activeAgent.systemPrompt) {
+      contextMessages.push({ role: "system", content: activeAgent.systemPrompt });
+    }
+    for (const m of historySource) {
+      contextMessages.push({ role: m.role, content: m.content });
+    }
     contextMessages.push({ role: "user", content: currentPrompt });
 
     try {
       await gatewayClient.streamChat(
         {
-          sessionId: targetThreadId,
+          sessionId: isAgentMode ? targetAgentId : (targetThreadId as string),
           prompt: currentPrompt,
           messages: contextMessages,
           executionProfile: preferences.permissionMode,
           cwd: project.path,
-          modelTier: preferences.modelTier,
+          modelTier: (isAgentMode && activeAgent.defaultModel as ModelTier) || preferences.modelTier,
           agentTeamwork: agentTeamwork,
           signal: abortController.signal,
           credentials: {
@@ -569,44 +880,31 @@ export const App: React.FC = () => {
         },
         {
           onDelta: (delta: string) => {
-            setThreads((prev) =>
-              prev.map((t) => {
-                if (t.id === targetThreadId) {
-                  return {
-                    ...t,
-                    messages: t.messages.map((m) =>
-                      m.id === assistantMessageId ? { ...m, content: m.content + delta } : m,
-                    ),
-                  };
-                }
-                return t;
-              }),
+            updateActiveMessages((msgs) =>
+              msgs.map((m) =>
+                m.id === assistantMessageId ? { ...m, content: m.content + delta } : m,
+              ),
             );
           },
           onToolStep: (toolStep: ToolExecutionStep) => {
-            setThreads((prev) =>
-              prev.map((t) => {
-                if (t.id === targetThreadId) {
-                  return {
-                    ...t,
-                    messages: t.messages.map((m) => {
-                      if (m.id === assistantMessageId) {
-                        const existingSteps = m.toolSteps || [];
-                        const existingIndex = existingSteps.findIndex((s) => s.stepIndex === toolStep.stepIndex);
-                        let updatedSteps: ToolExecutionStep[];
-                        if (existingIndex >= 0) {
-                          updatedSteps = [...existingSteps];
-                          updatedSteps[existingIndex] = { ...updatedSteps[existingIndex], ...toolStep };
-                        } else {
-                          updatedSteps = [...existingSteps, toolStep];
-                        }
-                        return { ...m, toolSteps: updatedSteps };
-                      }
-                      return m;
-                    }),
-                  };
+            if (isAgentMode && activeAgent.autoOpenScreen) {
+              setPreferences((p) => ({ ...p, inspectorOpen: true, inspectorTab: "warroom" }));
+            }
+            updateActiveMessages((msgs) =>
+              msgs.map((m) => {
+                if (m.id === assistantMessageId) {
+                  const existingSteps = m.toolSteps || [];
+                  const existingIndex = existingSteps.findIndex((s) => s.stepIndex === toolStep.stepIndex);
+                  let updatedSteps: ToolExecutionStep[];
+                  if (existingIndex >= 0) {
+                    updatedSteps = [...existingSteps];
+                    updatedSteps[existingIndex] = { ...updatedSteps[existingIndex], ...toolStep };
+                  } else {
+                    updatedSteps = [...existingSteps, toolStep];
+                  }
+                  return { ...m, toolSteps: updatedSteps };
                 }
-                return t;
+                return m;
               }),
             );
           },
@@ -615,36 +913,20 @@ export const App: React.FC = () => {
             if (autoSpeak && fullReply) {
               speakReply(fullReply);
             }
-            setThreads((prev) =>
-              prev.map((t) => {
-                if (t.id === targetThreadId) {
-                  return {
-                    ...t,
-                    messages: t.messages.map((m) =>
-                      m.id === assistantMessageId ? { ...m, streaming: false } : m,
-                    ),
-                  };
-                }
-                return t;
-              }),
+            updateActiveMessages((msgs) =>
+              msgs.map((m) =>
+                m.id === assistantMessageId ? { ...m, streaming: false } : m,
+              ),
             );
           },
           onError: (err) => {
             setIsStreaming(false);
-            setThreads((prev) =>
-              prev.map((t) => {
-                if (t.id === targetThreadId) {
-                  return {
-                    ...t,
-                    messages: t.messages.map((m) =>
-                      m.id === assistantMessageId
-                        ? { ...m, streaming: false, error: err.message }
-                        : m,
-                    ),
-                  };
-                }
-                return t;
-              }),
+            updateActiveMessages((msgs) =>
+              msgs.map((m) =>
+                m.id === assistantMessageId
+                  ? { ...m, streaming: false, error: err.message }
+                  : m,
+              ),
             );
           },
         },
@@ -670,8 +952,14 @@ export const App: React.FC = () => {
           <Sidebar
             threads={threads}
             activeThreadId={activeThreadId}
-            onSelectThread={handleSelectThread}
-            onNewThread={handleNewThread}
+            onSelectThread={(id) => {
+              setSidebarMode("sessions");
+              handleSelectThread(id);
+            }}
+            onNewThread={() => {
+              setSidebarMode("sessions");
+              handleNewThread();
+            }}
             onDeleteThread={handleDeleteThread}
             onTogglePinThread={handleTogglePinThread}
             collapsed={preferences.sidebarCollapsed}
@@ -685,6 +973,42 @@ export const App: React.FC = () => {
             onOpenTab={(tab) => {
               setPreferences((p) => ({ ...p, inspectorOpen: true, inspectorTab: tab }));
             }}
+            activeMode={sidebarMode}
+            onChangeMode={setSidebarMode}
+            agents={agents}
+            activeAgentId={activeAgent.id}
+            onSelectAgent={(id) => {
+              setSidebarMode("agent");
+              setActiveAgentId(id);
+            }}
+            onCreateAgent={handleCreateAgent}
+            onCreateAgentModal={() => {
+              setEditingAgent(null);
+              setEditorModalOpen(true);
+            }}
+            onCreateGroupChatModal={() => setNewGroupChatModalOpen(true)}
+            onCreateSectionModal={() => setNewSectionModalOpen(true)}
+            onToggleMuteAgent={handleToggleMuteAgent}
+            onDeleteAgent={handleDeleteAgent}
+            onEditAgent={(ag) => {
+              setEditingAgent(ag);
+              setEditorModalOpen(true);
+            }}
+            onManageGroups={(ag) => {
+              setManageGroupsAgent(ag);
+              setManageGroupsModalOpen(true);
+            }}
+            onDuplicateAgent={handleDuplicateAgent}
+            onTogglePinAgent={handleTogglePinAgent}
+            onToggleHideAgent={handleToggleHideAgent}
+            onToggleAutoOpenScreen={handleToggleAutoOpenScreen}
+            onOpenAgentChatInNewTab={handleOpenAgentChatInNewTab}
+            onOpenScreen={handleOpenScreen}
+            onNewChatWithAgent={handleNewChatWithAgent}
+            onOpenRecentSession={handleOpenRecentSession}
+            onMoveToSection={handleMoveToSection}
+            agentSections={agentSections}
+            onToggleSectionCollapse={handleToggleSectionCollapse}
           />
         }
         topbar={
@@ -699,6 +1023,7 @@ export const App: React.FC = () => {
         content={
           <ConversationArea
             messages={messages}
+            activeAgent={sidebarMode === "agent" ? activeAgent : null}
             prompt={prompt}
             onChangePrompt={setPrompt}
             onSend={handleSend}
@@ -812,6 +1137,44 @@ export const App: React.FC = () => {
           setShowSetupWizard(true);
         }}
       />
+
+      <AgentEditorModal
+        open={editorModalOpen}
+        agent={editingAgent}
+        sections={agentSections}
+        onClose={() => {
+          setEditorModalOpen(false);
+          setEditingAgent(null);
+        }}
+        onSave={handleSaveAgent}
+      />
+
+      <NewSectionModal
+        open={newSectionModalOpen}
+        onClose={() => setNewSectionModalOpen(false)}
+        onCreate={handleCreateSection}
+      />
+
+      <NewGroupChatModal
+        open={newGroupChatModalOpen}
+        agents={agents}
+        onClose={() => setNewGroupChatModalOpen(false)}
+        onCreate={handleCreateGroupChat}
+      />
+
+      {manageGroupsAgent && (
+        <ManageGroupsModal
+          open={manageGroupsModalOpen}
+          agent={manageGroupsAgent}
+          groups={agentGroups}
+          onClose={() => {
+            setManageGroupsModalOpen(false);
+            setManageGroupsAgent(null);
+          }}
+          onToggleAgentGroup={handleToggleAgentGroup}
+          onCreateGroup={handleCreateGroupForAgent}
+        />
+      )}
     </>
   );
 };
