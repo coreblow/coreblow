@@ -40,6 +40,11 @@ export interface CoreBlowDesktopApi {
   screen: {
     captureActive: () => Promise<string>;
   };
+  terminal: {
+    exec: (command: string, cwd?: string) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
+    openExternal: (cwd?: string) => Promise<boolean>;
+    getInfo: (cwd?: string) => Promise<{ shell: string; cwd: string; username: string; hostname: string; platform: string }>;
+  };
 }
 
 const desktopApi: CoreBlowDesktopApi = {
@@ -93,6 +98,11 @@ const desktopApi: CoreBlowDesktopApi = {
   },
   screen: {
     captureActive: () => ipcRenderer.invoke("coreblow:screen:captureActive"),
+  },
+  terminal: {
+    exec: (command: string, cwd?: string) => ipcRenderer.invoke("coreblow:terminal:exec", { command, cwd }),
+    openExternal: (cwd?: string) => ipcRenderer.invoke("coreblow:terminal:openExternal", { cwd }),
+    getInfo: (cwd?: string) => ipcRenderer.invoke("coreblow:terminal:getInfo", { cwd }),
   },
 };
 

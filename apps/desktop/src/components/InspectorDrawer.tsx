@@ -5,6 +5,7 @@ import { WarRoomTab } from "./tabs/WarRoomTab";
 import { MemoryWikiTab } from "./tabs/MemoryWikiTab";
 import { CoreHubTab } from "./tabs/CoreHubTab";
 import { WorkspaceFilesTab } from "./tabs/WorkspaceFilesTab";
+import { LocalTerminalTab } from "./tabs/LocalTerminalTab";
 import {
   AgentsBrainIcon,
   CompassIcon,
@@ -51,80 +52,8 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [moreToolsOpen, setMoreToolsOpen] = useState(false);
   const [browserUrl, setBrowserUrl] = useState("http://127.0.0.1:9119");
-  const [terminalInput, setTerminalInput] = useState("");
-  const [terminalLogs, setTerminalLogs] = useState<string[]>([
-    "$ coreblow gateway :18789 [single-brain]",
-    "[runtime] 8 execution backends ready (local, vm_isolate, docker, ssh, daytona, modal, vercel, e2b)",
-    "[tools] 75 native tools loaded across 12 domain toolsets",
-    "[session] workspace active at " + project.name,
-    "Type 'help', 'status', or commands below to execute in session workspace...",
-  ]);
 
   if (!open) return null;
-
-  const handleRunCommand = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!terminalInput.trim()) return;
-    const rawCmd = terminalInput.trim();
-    const cmd = rawCmd.toLowerCase();
-    setTerminalInput("");
-
-    if (cmd === "clear") {
-      setTerminalLogs([]);
-      return;
-    }
-
-    const timestamp = new Date().toLocaleTimeString();
-    const newLogs: string[] = [`$ ${rawCmd}`];
-
-    if (cmd === "help") {
-      newLogs.push(
-        "Available CoreBlow workspace terminal commands:",
-        "  coreblow status   - Inspect sovereign router, active backends, and memory state",
-        "  coreblow doctor   - Audit environment readiness, permissions, and sandbox health",
-        "  git status        - Check active git branch, gates, and modified files",
-        "  pwd               - Print working directory of current session",
-        "  ls                - List files in current session workspace",
-        "  clear             - Clear terminal screen",
-      );
-    } else if (cmd === "coreblow status" || cmd === "status") {
-      newLogs.push(
-        `[${timestamp}] CoreBlow Studio Runtime v2.1.2`,
-        `  • Router: 8 Execution Backends Ready (local, vm_isolate, docker, ssh, daytona, modal, vercel, e2b)`,
-        `  • Active Node: Local (:18789)`,
-        `  • Gateway: WebSocket Connected (Sovereign Dialectic Brain)`,
-        `  • Memory: Cory Vector Index Active (OLED OLED/100)`,
-      );
-    } else if (cmd === "coreblow doctor" || cmd === "doctor") {
-      newLogs.push(
-        `[${timestamp}] CoreBlow Doctor Diagnostics:`,
-        "  [PASS] Node.js 22+ ESM environment",
-        "  [PASS] Electron runtime sandbox isolation",
-        "  [PASS] OS Keychain Vault (enc:v1 credentials)",
-        "  [PASS] Gateway microkernel 12 services responsive",
-        "  [PASS] All 5 git gates green",
-      );
-    } else if (cmd === "pwd") {
-      newLogs.push(project.path);
-    } else if (cmd === "ls") {
-      newLogs.push(
-        "apps/           coreblow.config.json  package.json       src/",
-        "docs/           extensions/           pnpm-lock.yaml     ui/",
-      );
-    } else if (cmd.startsWith("git status")) {
-      newLogs.push(
-        `On branch ${project.branch}`,
-        `Your branch is up to date with 'origin/${project.branch}'.`,
-        project.uncommittedFiles > 0
-          ? `Changes not staged: ${project.uncommittedFiles} modified file(s)`
-          : "nothing to commit, working tree clean",
-      );
-    } else {
-      newLogs.push(`[${timestamp}] [exec] ${rawCmd}: completed with exit code 0`);
-    }
-
-    setTerminalLogs((prev) => [...prev, ...newLogs]);
-  };
 
   const handleNavigateBrowser = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -608,78 +537,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
             <GitGatesTab branch={project.branch} uncommittedFiles={project.uncommittedFiles} />
           </div>
         ) : activeTab === "terminal" ? (
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              background: "var(--bg-code)",
-              padding: "12px",
-              boxSizing: "border-box",
-            }}
-          >
-            <div
-              style={{
-                flex: 1,
-                overflowY: "auto",
-                fontFamily: "var(--font-mono)",
-                fontSize: "11px",
-                lineHeight: 1.6,
-                color: "var(--ink-secondary)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "2px",
-              }}
-            >
-              {terminalLogs.map((log, i) => (
-                <div
-                  key={i}
-                  style={{
-                    color: log.startsWith("$") ? "var(--accent-teal)" : "var(--ink-secondary)",
-                  }}
-                >
-                  {log}
-                </div>
-              ))}
-            </div>
-
-            <form onSubmit={handleRunCommand} style={{ marginTop: "10px", display: "flex", gap: "6px" }}>
-              <input
-                type="text"
-                value={terminalInput}
-                onChange={(e) => setTerminalInput(e.target.value)}
-                placeholder="Type terminal command (e.g. help, status, pwd, ls)..."
-                style={{
-                  flex: 1,
-                  height: "30px",
-                  background: "var(--bg-input)",
-                  border: "1px solid var(--border-medium)",
-                  borderRadius: "var(--radius-xs)",
-                  padding: "0 8px",
-                  color: "var(--ink-primary)",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "11px",
-                  outline: "none",
-                }}
-              />
-              <button
-                type="submit"
-                style={{
-                  height: "30px",
-                  padding: "0 10px",
-                  background: "var(--accent-teal-subtle)",
-                  border: "1px solid var(--accent-teal)",
-                  borderRadius: "var(--radius-xs)",
-                  color: "var(--accent-teal)",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                Run
-              </button>
-            </form>
-          </div>
+          <LocalTerminalTab project={project} />
         ) : activeTab === "browser" ? (
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             {/* Browser Address Bar */}

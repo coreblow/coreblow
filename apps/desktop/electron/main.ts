@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, shell, clipboard, safeStorage, desktopCapturer } from "electron";
 import * as path from "node:path";
 import * as http from "node:http";
-import { spawn, type ChildProcess } from "node:child_process";
+import { spawn, exec, type ChildProcess } from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
 
@@ -254,6 +254,99 @@ ipcMain.handle("coreblow:gateway:health", async () => {
 
 ipcMain.handle("coreblow:gateway:ensure", async () => {
   return await ensureGatewayDaemon();
+});
+
+// ─── Local Terminal Integration ────────────────────────────────────────────
+
+function getAugmentedEnv(): Record<string, string> {
+  const home = os.homedir();
+  const extraPaths = [
+    path.join(home, "Library", "pnpm"),
+    path.join(home, ".local", "bin"),
+    path.join(home, ".cargo", "bin"),
+    path.join(home, ".bun", "bin"),
+    "/opt/homebrew/bin",
+    "/opt/homebrew/sbin",
+    "/usr/local/bin",
+    "/usr/bin",
+    "/bin",
+    "/usr/sbin",
+    "/sbin",
+  ];
+  const existingPath = process.env.PATH || "";
+  const combined = existingPath
+    ? `${existingPath}:${extraPaths.join(":")}`
+    : extraPaths.join(":");
+
+  return {
+    ...process.env,
+    TERM: "xterm-256color",
+    COLORTERM: "truecolor",
+    PATH: combined,
+  } as Record<string, string>;
+}
+
+ipcMain.handle("coreblow:terminal:exec", async (_event, { command, cwd }: { command: string; cwd?: string }) => {
+  const targetCwd = cwd && fs.existsSync(cwd) ? cwd : findProjectRoot();
+  const shellPath = process.env.SHELL || (process.platform === "win32" ? "powershell.exe" : "/bin/zsh");
+
+  return new Promise((resolve) => {
+    exec(
+      command,
+      {
+        cwd: targetCwd,
+        shell: shellPath,
+        env: getAugmentedEnv(),
+        maxBuffer: 10 * 1024 * 1024,
+        timeout: 60_000,
+      },
+      (error, stdout, stderr) => {
+        resolve({
+          stdout: stdout || "",
+          stderr: stderr || "",
+          exitCode: error ? (error.code ?? 1) : 0,
+        });
+      },
+    );
+  });
+});
+
+ipcMain.handle("coreblow:terminal:openExternal", async (_event, { cwd }: { cwd?: string } = {}) => {
+  const targetCwd = cwd && fs.existsSync(cwd) ? cwd : findProjectRoot();
+  try {
+    if (process.platform === "darwin") {
+      exec(`open -a Terminal "${targetCwd}"`);
+      return true;
+    } else if (process.platform === "win32") {
+      exec(`start powershell.exe -NoExit -Command "Set-Location '${targetCwd}'"`);
+      return true;
+    } else {
+      exec(`x-terminal-emulator --working-directory="${targetCwd}" || gnome-terminal --working-directory="${targetCwd}" || xterm`);
+      return true;
+    }
+  } catch (err) {
+    console.error("Failed to open external terminal:", err);
+    return false;
+  }
+});
+
+ipcMain.handle("coreblow:terminal:getInfo", async (_event, { cwd }: { cwd?: string } = {}) => {
+  const targetCwd = cwd && fs.existsSync(cwd) ? cwd : findProjectRoot();
+  let username = "user";
+  let hostname = "localhost";
+  try {
+    username = os.userInfo().username;
+  } catch {}
+  try {
+    hostname = os.hostname().split(".")[0];
+  } catch {}
+  return {
+    shell: process.env.SHELL || (process.platform === "win32" ? "powershell.exe" : "/bin/zsh"),
+    cwd: targetCwd,
+    username,
+    hostname,
+    platform: process.platform,
+  };
 });
 
 // ─── Session Handoff ───────────────────────────────────────────────────────
