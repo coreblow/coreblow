@@ -26,12 +26,57 @@ export class SessionsView extends LitElement {
   @state() sortDir: "asc" | "desc" = "desc";
   @state() selectedKeys = new Set<string>();
   @state() confirmDelete: string | null = null;
+  @state() copiedKey: string | null = null;
 
   createRenderRoot() { return this; }
 
   connectedCallback() {
       super.connectedCallback();
       this.loadSessions();
+  }
+
+  private parseKeyMeta(key: string): { channel: string; isPeerScoped: boolean } {
+    const parts = key.split(":");
+    const known = ["telegram", "whatsapp", "discord", "slack", "signal", "msteams", "matrix", "zalo", "web", "imessage", "nostr", "feishu"];
+    let channel = "local";
+    let isPeerScoped = false;
+
+    if (parts.length >= 4 && parts[0] === "agent") {
+      const chCandidate = parts[2]?.toLowerCase();
+      if (known.includes(chCandidate)) {
+        channel = chCandidate;
+        if (parts[3] === "direct") {
+          isPeerScoped = true;
+        }
+      }
+    } else {
+      for (const c of known) {
+        if (key.toLowerCase().includes(c)) {
+          channel = c;
+          if (key.includes("direct")) {
+            isPeerScoped = true;
+          }
+          break;
+        }
+      }
+    }
+
+    return { channel, isPeerScoped };
+  }
+
+  private async copyDesktopHandoff(key: string) {
+    const cmd = `coreblow desktop --session ${key}`;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(cmd);
+      }
+      this.copiedKey = key;
+      setTimeout(() => {
+        if (this.copiedKey === key) this.copiedKey = null;
+      }, 1500);
+    } catch (e) {
+      console.warn("Failed to copy desktop handoff command:", e);
+    }
   }
 
   private async loadSessions() {
@@ -140,8 +185,11 @@ export class SessionsView extends LitElement {
         <div class="card">
            <div style="display: flex; align-items: center; gap: 12px;">
               <div style="flex: 1;">
-                 <div class="card-title">${t("sessions.title")}</div>
-                 <div class="card-sub">${t("sessions.managedByAgentEngine", { count: String(this.sessions.length) })}</div>
+                 <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                    <span>${t("sessions.title")}</span>
+                    <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(34,197,94,0.12); color: var(--ok, #22c55e); font-family: var(--mono); font-weight: 600;">SQLite WAL + FTS5</span>
+                 </div>
+                 <div class="card-sub">${t("sessions.managedByAgentEngine", { count: String(this.sessions.length) })} · SQLite WAL + FTS5 Session Store</div>
               </div>
               <button class="btn" style="background: var(--accent); color: var(--primary-foreground); border:none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;"
                @click=${this.createNewSession}>+ ${t("sessions.newSession")}</button>
@@ -200,6 +248,7 @@ export class SessionsView extends LitElement {
                     ${rows.map(s => {
                        const isActive = s.key === activeKey;
                        const isSelected = this.selectedKeys.has(s.key);
+                       const meta = this.parseKeyMeta(s.key);
                        return html`
                           <tr style="border-bottom: 1px solid var(--border); ${isActive ? 'background: rgba(99,102,241,0.08);' : ''} transition: background 0.15s ease;"
                               @mouseenter=${(e: Event) => (e.currentTarget as HTMLElement).style.background = isActive ? 'rgba(99,102,241,0.12)' : 'var(--bg-elevated)'}
@@ -213,9 +262,21 @@ export class SessionsView extends LitElement {
                                        }} />
                              </td>
                              <td style="padding: 10px 12px;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                   ${isActive ? html`<span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent, #6366f1); flex-shrink: 0;"></span>` : ""}
-                                   <span style="font-family: var(--mono); font-size: 12px; ${isActive ? 'color: var(--accent); font-weight: 600;' : ''}">${s.key.length > 20 ? s.key.slice(0, 20) + "…" : s.key}</span>
+                                <div style="display: flex; flex-direction: column; gap: 4px;">
+                                   <div style="display: flex; align-items: center; gap: 8px;">
+                                      ${isActive ? html`<span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent, #6366f1); flex-shrink: 0;"></span>` : ""}
+                                      <span style="font-family: var(--mono); font-size: 12px; ${isActive ? 'color: var(--accent); font-weight: 600;' : ''}">${s.key.length > 24 ? s.key.slice(0, 24) + "…" : s.key}</span>
+                                   </div>
+                                   <div style="display: flex; align-items: center; gap: 6px;">
+                                      <span style="font-size: 10px; padding: 1px 6px; border-radius: var(--radius-sm); background: var(--bg-elevated); border: 1px solid var(--border); font-family: var(--mono); text-transform: uppercase; color: var(--foreground);">
+                                         ${meta.channel}
+                                      </span>
+                                      ${meta.isPeerScoped ? html`
+                                         <span style="font-size: 10px; padding: 1px 6px; border-radius: var(--radius-sm); background: rgba(99,102,241,0.12); color: var(--accent); font-family: var(--mono);" title="dmScope: per-channel-peer">
+                                            per-channel-peer
+                                         </span>
+                                      ` : ""}
+                                   </div>
                                 </div>
                              </td>
                              <td style="padding: 10px 12px;">
@@ -225,7 +286,13 @@ export class SessionsView extends LitElement {
                              <td style="padding: 10px 12px; text-align: right; font-family: var(--mono); font-size: 12px;">${this.formatTokens(s.totalTokens)}</td>
                              <td style="padding: 10px 12px; text-align: right; font-size: 12px; color: var(--muted);">${this.formatTime(s.updatedAt)}</td>
                              <td style="padding: 10px 12px; text-align: center;">
-                                <div style="display: flex; gap: 4px; justify-content: center;">
+                                <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                                   <button style="background: ${this.copiedKey === s.key ? 'rgba(34,197,94,0.15)' : 'none'}; border: 1px solid ${this.copiedKey === s.key ? 'var(--ok, #22c55e)' : 'var(--border)'}; border-radius: var(--radius-sm); padding: 4px 8px; cursor: pointer; font-size: 11px; color: ${this.copiedKey === s.key ? 'var(--ok, #22c55e)' : 'var(--foreground)'}; display: inline-flex; align-items: center; gap: 4px;"
+                                    @click=${() => void this.copyDesktopHandoff(s.key)}
+                                    title="Copy desktop handoff: coreblow desktop --session ${s.key}"
+                                    aria-label="Copy desktop handoff">
+                                      ${this.copiedKey === s.key ? html`<span>✓ Copied</span>` : html`${renderIcon("monitor", "12px")} <span style="font-size: 10px;">Handoff</span>`}
+                                   </button>
                                    <button style="background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; cursor: pointer; font-size: 11px; color: var(--foreground); display: inline-flex; align-items: center;"
                                     @click=${() => this.switchToSession(s.key)} title=${t("chat.openInChat")} aria-label=${t("chat.openInChat")}>${renderIcon("messageSquare", "12px")}</button>
                                    <button style="background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; cursor: pointer; font-size: 11px; color: var(--foreground); display: inline-flex; align-items: center;"

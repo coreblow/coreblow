@@ -1,5 +1,5 @@
 import { LitElement, html } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import {
   i18n,
   I18nController,
@@ -14,8 +14,73 @@ import { renderIcon, type IconName } from "../icons.ts";
 export class OverviewView extends LitElement {
   private i18nController = new I18nController(this);
   @property({ attribute: false }) app!: CoreBlowApp;
+  @state() private estopPaused = false;
+  @state() private estopLoading = false;
+  @state() private estopReason = "";
 
   createRenderRoot() { return this; }
+
+  connectedCallback() {
+    super.connectedCallback();
+    void this.loadEstopStatus();
+  }
+
+  private getGatewayHttpUrl(): string {
+    const wsUrl = this.app?.settings?.gatewayUrl;
+    if (!wsUrl) return window.location.origin;
+    try {
+      const parsed = new URL(wsUrl);
+      const protocol = parsed.protocol === "wss:" ? "https:" : "http:";
+      return `${protocol}//${parsed.host}`;
+    } catch {
+      return window.location.origin;
+    }
+  }
+
+  private async loadEstopStatus() {
+    try {
+      const url = `${this.getGatewayHttpUrl()}/api/corehub/system/estop`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = (await res.json()) as { ok?: boolean; paused?: boolean; reason?: string };
+        if (data && typeof data.paused === "boolean") {
+          this.estopPaused = data.paused;
+          this.estopReason = data.reason ?? "";
+        }
+      }
+    } catch {
+      // Gracefully degrade if gateway offline
+    }
+  }
+
+  private async toggleEstop() {
+    const nextPaused = !this.estopPaused;
+    this.estopLoading = true;
+    try {
+      const url = `${this.getGatewayHttpUrl()}/api/corehub/system/estop`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paused: nextPaused,
+          reason: nextPaused ? "Paused via Web Control UI" : undefined,
+        }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { ok?: boolean; paused?: boolean; reason?: string };
+        if (data && typeof data.paused === "boolean") {
+          this.estopPaused = data.paused;
+          this.estopReason = data.reason ?? "";
+        } else {
+          this.estopPaused = nextPaused;
+        }
+      }
+    } catch (err) {
+      console.error("Failed to toggle E-Stop:", err);
+    } finally {
+      this.estopLoading = false;
+    }
+  }
 
   private handleLocaleChange(event: Event) {
     const locale = (event.target as HTMLSelectElement).value;
@@ -49,17 +114,49 @@ export class OverviewView extends LitElement {
 
         <!-- Status Banner -->
         <div class="card" style="background: ${connected ? 'linear-gradient(135deg, rgba(34,197,94,0.06), rgba(99,102,241,0.06))' : 'linear-gradient(135deg, rgba(239,68,68,0.06), rgba(239,68,68,0.03))'}; border: 1px solid ${connected ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.25)'};">
-           <div style="display: flex; align-items: center; gap: 14px;">
+           <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
               <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background: ${connected ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'}; color: ${connected ? 'var(--ok, #22c55e)' : 'var(--danger, #ef4444)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                  ${renderIcon(connected ? "coreblow" : "alertTriangle", "24px")}
               </div>
-              <div>
-                 <div style="font-weight: 700; font-size: 16px;">${connected ? t("overview.status.coreblowOnline") : t("overview.status.notConnected")}</div>
+              <div style="flex: 1; min-width: 200px;">
+                 <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="font-weight: 700; font-size: 16px;">${connected ? t("overview.status.coreblowOnline") : t("overview.status.notConnected")}</div>
+                    <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: var(--accent-subtle); color: var(--accent); font-weight: 700; font-family: var(--mono);">v2.1.2</span>
+                 </div>
                  <div style="font-size: 12px; color: var(--muted); margin-top: 2px;">${connected ? `${t("overview.status.connected")} ${this.app.settings.gatewayUrl}` : t("chat.connectToChat")}</div>
               </div>
+
+              <!-- Live E-Stop Status Indicator / Toggle -->
+              <div style="display: flex; align-items: center; gap: 8px;">
+                 <button class="btn" style="background: ${this.estopPaused ? 'rgba(239,68,68,0.2)' : 'var(--bg-elevated)'}; border: 1px solid ${this.estopPaused ? 'var(--destructive, #ef4444)' : 'var(--border)'}; color: ${this.estopPaused ? 'var(--destructive, #ef4444)' : 'var(--foreground)'}; padding: 6px 12px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+                         ?disabled=${this.estopLoading || !connected}
+                         title=${this.estopPaused ? (this.estopReason || "Execution paused via E-Stop") : "All autonomous execution armed"}
+                         @click=${() => void this.toggleEstop()}>
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: ${this.estopPaused ? 'var(--destructive, #ef4444)' : 'var(--success, #22c55e)'}; display: inline-block;"></span>
+                    <span>${this.estopPaused ? "E-Stop: ACTIVE" : "E-Stop: Armed"}</span>
+                 </button>
+              </div>
+
               ${approvalCount > 0 ? html`
-                 <div style="margin-left: auto; background: var(--warning, #f59e0b); color: #000; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">${approvalCount} pending approval</div>
+                 <div style="background: var(--warning, #f59e0b); color: #000; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">${approvalCount} pending approval</div>
               ` : ""}
+           </div>
+
+           <!-- Runtime Posture Chips -->
+           <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+              <span style="font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px;">Posture:</span>
+              <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--bg-elevated); border: 1px solid var(--border); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
+                 <span style="color: var(--ok, #22c55e);">●</span> SQLite WAL + FTS5
+              </span>
+              <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--bg-elevated); border: 1px solid var(--border); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
+                 <span style="color: var(--accent, #6366f1);">●</span> dmScope: per-channel-peer
+              </span>
+              <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--bg-elevated); border: 1px solid var(--border); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
+                 <span style="color: var(--ok, #22c55e);">●</span> AST Skill Guard
+              </span>
+              <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--bg-elevated); border: 1px solid var(--border); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
+                 <span style="color: var(--accent, #6366f1);">●</span> MCP Sovereign Bridge
+              </span>
            </div>
         </div>
 
@@ -124,22 +221,37 @@ export class OverviewView extends LitElement {
                  <span>${t("common.actions")}</span>
               </div>
               <div style="margin-top: 12px; display: grid; gap: 8px;">
-                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 10px 14px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
+                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
                   @click=${() => this.app.setTab("chat" as any)}>
                     ${renderIcon("messageSquare", "15px", "color: var(--accent);")}
                     <span>${t("chat.openInChat")}</span>
                  </button>
-                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 10px 14px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
+                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
                   @click=${() => this.app.setTab("sessions" as any)}>
                     ${renderIcon("fileText", "15px", "color: var(--accent);")}
                     <span>${t("tabs.sessions")}</span>
                  </button>
-                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 10px 14px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
+                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
+                  @click=${() => this.app.setTab("cron" as any)}>
+                    ${renderIcon("clock", "15px", "color: var(--accent);")}
+                    <span>${t("cron.title")} (24/7 Cron)</span>
+                 </button>
+                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
+                  @click=${() => this.app.setTab("skills" as any)}>
+                    ${renderIcon("zap", "15px", "color: var(--accent);")}
+                    <span>${t("skills.title")} (AST Guard)</span>
+                 </button>
+                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
+                  @click=${() => this.app.setTab("coreHub" as any)}>
+                    ${renderIcon("package", "15px", "color: var(--accent);")}
+                    <span>CoreHub &amp; Channels</span>
+                 </button>
+                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
                   @click=${() => this.app.setTab("config" as any)}>
                     ${renderIcon("settings", "15px", "color: var(--accent);")}
                     <span>${t("config.title")}</span>
                  </button>
-                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 10px 14px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
+                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
                   @click=${() => this.app.setTab("debug" as any)}>
                     ${renderIcon("bug", "15px", "color: var(--accent);")}
                     <span>${t("debug.title")}</span>

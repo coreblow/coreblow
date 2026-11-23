@@ -5,7 +5,7 @@ describe("navigation utils", () => {
     it("returns correct icons for known tabs", () => {
         expect(iconForTab("chat")).toBe("messageSquare");
         expect(iconForTab("overview")).toBe("barChart");
-        expect(iconForTab("coreHub")).toBe("globe");
+        expect(iconForTab("coreHub")).toBe("package");
         expect(iconForTab("config")).toBe("settings");
     });
 

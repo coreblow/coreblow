@@ -7,6 +7,7 @@ import { renderIcon } from "../icons.ts";
 type EngineConfig = {
    defaultModel?: string;
    defaultProvider?: string;
+   dmScope?: string;
    maxConcurrentSessions?: number;
    maxTurnsPerRun?: number;
    maxOutputTokens?: number;
@@ -145,6 +146,17 @@ export class ConfigView extends LitElement {
                </div>
                ${this.renderEditableField(t("agents.defaultModel"), this.editModel, "defaultModel", v => this.editModel = v)}
                ${this.renderEditableField(t("agents.defaultProvider"), this.editProvider, "defaultProvider", v => this.editProvider = v)}
+            </div>
+
+            <!-- Security & DM Isolation Policy -->
+            <div class="card">
+               <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                  ${renderIcon("shield", "16px", "color: var(--accent);")}
+                  <span>DM Isolation &amp; Security Policy</span>
+               </div>
+               ${this.renderField("DM Scope Isolation", c.dmScope ?? "per-channel-peer (Recommended Default)", true)}
+               ${this.renderField("Skill Security Guard", "TypeScript AST Static Scanner Active")}
+               ${this.renderField("Session Storage", "SQLite WAL + FTS5 Indexing")}
             </div>
 
             <!-- Engine Limits -->

@@ -50,6 +50,20 @@ if (targetVersion) {
     recordError("VERSION", `Failed to read apps/desktop/package.json: ${err.message}`);
   }
 
+  // ui/package.json
+  const uiPkgPath = path.join(repoRoot, "ui/package.json");
+  try {
+    const uiPkg = JSON.parse(fs.readFileSync(uiPkgPath, "utf-8"));
+    if (uiPkg.version !== targetVersion) {
+      recordError(
+        "VERSION",
+        `ui/package.json version (${uiPkg.version}) does not match root (${targetVersion})`
+      );
+    }
+  } catch (err) {
+    recordError("VERSION", `Failed to read ui/package.json: ${err.message}`);
+  }
+
   // scripts/install.sh
   const installShPath = path.join(repoRoot, "scripts/install.sh");
   try {
