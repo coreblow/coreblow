@@ -87,23 +87,14 @@ export function renderApp(app: CoreBlowApp) {
              </div>
 
              <div class="sidebar-shell__body">
-                <div class="sidebar-nav">
-                  ${TAB_GROUPS.map(group => html`
-                    <div class="nav-section">
-                      <button class="nav-section__label">
-                        <span class="nav-section__label-text">${group.label}</span>
-                      </button>
-                      <div class="nav-section__items">
-                        ${group.tabs.map((tab: any) => html`
-                          <a href="javascript:void(0)"
-                             class="nav-item ${app.tab === tab ? "nav-item--active active" : ""}"
-                             @click=${() => app.setTab(tab)}>
-                            <div class="nav-item__icon">${icons[iconForTab(tab) as keyof typeof icons]}</div>
-                            <div class="nav-item__text">${titleForTab(tab)}</div>
-                          </a>
-                        `)}
-                      </div>
-                    </div>
+                <div class="sidebar-nav" style="display: flex; flex-direction: column; gap: 4px;">
+                  ${TAB_GROUPS.flatMap(group => group.tabs).map((tab: any) => html`
+                    <a href="javascript:void(0)"
+                       class="nav-item ${app.tab === tab ? "nav-item--active active" : ""}"
+                       @click=${() => app.setTab(tab)}>
+                      <div class="nav-item__icon">${icons[iconForTab(tab) as keyof typeof icons]}</div>
+                      <div class="nav-item__text">${titleForTab(tab)}</div>
+                    </a>
                   `)}
                 </div>
              </div>
