@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   extractSchemaSections,
-  groupSchemaSections,
   countLeafFields,
   resolveNodeType,
   resolveEnumOptions,
@@ -199,19 +198,17 @@ describe("Config Schema Parser & Renderer Engine", () => {
     expect(new Set(mappedIcons).size).toBe(mappedIcons.length);
   });
 
-  it("groups configuration sections into ergonomic categories without orphaned sections", () => {
+  it("renders a unified flat list of configuration sections with zero orphaned sections", () => {
     const sections = extractSchemaSections(OFFLINE_SCHEMA_CATALOG);
-    const groups = groupSchemaSections(sections);
+    expect(sections.length).toBeGreaterThanOrEqual(18);
 
-    expect(groups.length).toBeGreaterThanOrEqual(4);
-    const groupNames = groups.map((g) => g.groupName);
-    expect(groupNames).toContain("Core Engine");
-    expect(groupNames).toContain("Connectivity & I/O");
-    expect(groupNames).toContain("Security & Access");
-    expect(groupNames).toContain("System & Operations");
-
-    // Ensure all sections are accounted for in the categories
-    const totalCategorizedSections = groups.reduce((acc, g) => acc + g.sections.length, 0);
-    expect(totalCategorizedSections).toBe(sections.length);
+    const sectionIds = sections.map((s) => s.id);
+    expect(sectionIds[0]).toBe("gateway");
+    expect(sectionIds).toContain("agents");
+    expect(sectionIds).toContain("models");
+    expect(sectionIds).toContain("memory");
+    expect(sectionIds).toContain("tools");
+    expect(sectionIds).toContain("channels");
+    expect(sectionIds).toContain("nodeHost");
   });
 });

@@ -267,82 +267,6 @@ export function extractSchemaSections(schema: JsonSchemaNode): SchemaSection[] {
   });
 }
 
-export interface SectionGroupDefinition {
-  name: string;
-  icon: IconName;
-  ids: string[];
-}
-
-export const SECTION_GROUPS: SectionGroupDefinition[] = [
-  {
-    name: "Core Engine",
-    icon: "bot",
-    ids: ["gateway", "agents", "models", "memory", "tools", "skills", "mcp"],
-  },
-  {
-    name: "Connectivity & I/O",
-    icon: "radio",
-    ids: ["channels", "browser", "nodeHost", "canvasHost", "web", "discovery", "talk"],
-  },
-  {
-    name: "Security & Access",
-    icon: "shield",
-    ids: ["secrets", "auth", "accessGroups", "bindings", "approvals"], // pragma: allowlist secret
-  },
-  {
-    name: "System & Operations",
-    icon: "sliders",
-    ids: [
-      "logging",
-      "diagnostics",
-      "acp",
-      "update",
-      "ui",
-      "env",
-      "cli",
-      "session",
-      "cron",
-      "hooks",
-    ],
-  },
-];
-
-export interface CategorizedSections {
-  groupName: string;
-  groupIcon: IconName;
-  sections: SchemaSection[];
-}
-
-export function groupSchemaSections(sections: SchemaSection[]): CategorizedSections[] {
-  const result: CategorizedSections[] = [];
-  const assigned = new Set<string>();
-
-  for (const group of SECTION_GROUPS) {
-    const matched = sections.filter((s) => group.ids.includes(s.id));
-    if (matched.length > 0) {
-      result.push({
-        groupName: group.name,
-        groupIcon: group.icon,
-        sections: matched,
-      });
-      for (const m of matched) {
-        assigned.add(m.id);
-      }
-    }
-  }
-
-  const unassigned = sections.filter((s) => !assigned.has(s.id));
-  if (unassigned.length > 0) {
-    result.push({
-      groupName: "Plugins & Extensions",
-      groupIcon: "puzzle",
-      sections: unassigned,
-    });
-  }
-
-  return result;
-}
-
 export function getByPath(obj: unknown, path: string): unknown {
   if (!obj || typeof obj !== "object") return undefined;
   const parts = path.split(".");
@@ -457,27 +381,26 @@ export function renderSchemaField(ctx: FieldRenderContext): TemplateResult {
     return html`
       <div
         class="cb-schema-nested ${isModified ? "modified" : ""}"
-        style="margin: 10px 0; border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); background: var(--surface-flat-muted); overflow: hidden;"
+        style="margin: 20px 0 10px;"
       >
         <div
           class="cb-nested-header"
-          style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; cursor: pointer; user-select: none; border-bottom: ${isCollapsed ? "none" : "1px solid var(--border-hairline)"}; background: var(--card);"
+          style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle);"
           @click=${() => onToggleCollapse(path)}
         >
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 11px; color: var(--accent); font-family: var(--mono);">${isCollapsed ? "▶" : "▼"}</span>
-            <span style="font-size: 13px; font-weight: 600; color: var(--text-strong);">${fieldLabel}</span>
-            <span style="font-size: 11px; color: var(--muted); font-family: var(--mono);">${path}</span>
-          </div>
+          <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-strong);">${fieldLabel}</span>
+          <span style="font-size: 10px; font-family: var(--mono); color: var(--muted);">${path}</span>
+          <div style="flex: 1; height: 1px; background: var(--border-subtle);"></div>
+          <span style="font-size: 10px; color: var(--accent); font-family: var(--mono);">${isCollapsed ? "▶ expand" : "▼ collapse"}</span>
           <span
-            style="font-size: 11px; padding: 2px 7px; border-radius: 10px; background: var(--bg-muted); color: var(--muted); font-family: var(--mono);"
+            style="font-size: 10px; padding: 1px 6px; border-radius: 8px; background: var(--surface-flat-muted); border: 1px solid var(--border-subtle); color: var(--muted); font-family: var(--mono);"
           >
             ${countLeafFields(schema, depth)} fields
           </span>
         </div>
         ${!isCollapsed
           ? html`
-              <div style="padding: 10px 14px; display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 8px;">
                 ${childEntries.map(([childKey, childNode]) => {
                   const childPath = `${path}.${childKey}`;
                   const childValue = childObj[childKey];

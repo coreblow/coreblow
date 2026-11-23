@@ -4528,28 +4528,10 @@ details[open] > .ov-expandable-toggle::after {
   border-radius: 9px;
 }
 
-.config-nav-group {
+.config-section-list {
   display: flex;
   flex-direction: column;
   gap: 2px;
-}
-
-.config-nav-category-header {
-  padding: 8px 8px 4px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.config-nav-group:not(:first-of-type) .config-nav-category-header {
-  margin-top: 4px;
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 10px;
 }
 
 .config-section-btn {

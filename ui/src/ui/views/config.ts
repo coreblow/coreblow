@@ -7,7 +7,6 @@ import {
   type JsonSchemaNode,
   type SchemaSection,
   extractSchemaSections,
-  groupSchemaSections,
   OFFLINE_SCHEMA_CATALOG,
   renderSchemaField,
   getByPath,
@@ -350,7 +349,6 @@ export class ConfigView extends LitElement {
     const searchMatches = this.searchQuery
       ? searchSchemaFields(this.schema, this.searchQuery)
       : [];
-    const categorized = groupSchemaSections(this.sections);
 
     return html`
       <div
@@ -601,7 +599,7 @@ export class ConfigView extends LitElement {
           : html`
               <!-- Visual Mode: Section Navigation + Field List -->
               <div class="config-visual-grid">
-                <!-- Left Section Navigation (Grouped, Sticky, Scrollable) -->
+                <!-- Left Section Navigation (Flat, Sticky, Scrollable) -->
                 <aside class="config-section-nav">
                   <div class="config-nav-header">
                     <span class="config-nav-header__title">Sections</span>
@@ -610,47 +608,42 @@ export class ConfigView extends LitElement {
                     </span>
                   </div>
 
-                  ${categorized.map((group) => html`
-                    <div class="config-nav-group">
-                      <div class="config-nav-category-header">
-                        <span>${group.groupName}</span>
-                      </div>
-                      ${group.sections.map((sec) => {
-                        const isActive = this.activeSectionId === sec.id;
-                        const isDirty = this.isSectionDirty(sec.id);
-                        return html`
-                          <button
-                            type="button"
-                            class="config-section-btn ${isActive ? "active" : ""}"
-                            @click=${() => {
-                              this.activeSectionId = sec.id;
-                              this.searchQuery = "";
-                            }}
-                          >
-                            <div class="config-section-btn__left">
-                              <span class="config-section-btn__icon">
-                                ${renderIcon(sec.icon)}
-                              </span>
-                              <span class="config-section-btn__label">
-                                ${sec.label}
-                              </span>
-                            </div>
-                            <div class="config-section-btn__right">
-                              ${isDirty
-                                ? html`<span
-                                    style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0;"
-                                    title="Has unsaved changes"
-                                  ></span>`
-                                : ""}
-                              <span class="config-section-btn__badge">
-                                ${sec.fieldCount}
-                              </span>
-                            </div>
-                          </button>
-                        `;
-                      })}
-                    </div>
-                  `)}
+                  <div class="config-section-list" style="display: flex; flex-direction: column; gap: 2px;">
+                    ${this.sections.map((sec) => {
+                      const isActive = this.activeSectionId === sec.id;
+                      const isDirty = this.isSectionDirty(sec.id);
+                      return html`
+                        <button
+                          type="button"
+                          class="config-section-btn ${isActive ? "active" : ""}"
+                          @click=${() => {
+                            this.activeSectionId = sec.id;
+                            this.searchQuery = "";
+                          }}
+                        >
+                          <div class="config-section-btn__left">
+                            <span class="config-section-btn__icon">
+                              ${renderIcon(sec.icon)}
+                            </span>
+                            <span class="config-section-btn__label">
+                              ${sec.label}
+                            </span>
+                          </div>
+                          <div class="config-section-btn__right">
+                            ${isDirty
+                              ? html`<span
+                                  style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0;"
+                                  title="Has unsaved changes"
+                                ></span>`
+                              : ""}
+                            <span class="config-section-btn__badge">
+                              ${sec.fieldCount}
+                            </span>
+                          </div>
+                        </button>
+                      `;
+                    })}
+                  </div>
                 </aside>
 
                 <!-- Right Field List Panel -->
