@@ -15,6 +15,7 @@ export type ChatMessage = {
    toolSteps?: string[];
    executionProfile?: string;
    cwd?: string;
+   error?: string;
 };
 
 export type ToolStreamEntry = {

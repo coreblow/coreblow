@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { render } from "lit";
 import { ChatView } from "../src/ui/views/chat.ts";
 import type { CoreBlowApp } from "../src/ui/app.ts";
 
@@ -106,5 +107,60 @@ describe("ChatView workspace ergonomics", () => {
 
     expect(result.thinking).toBe("Evaluating system status and sqlite WAL.");
     expect(result.cleanContent).toBe("System is operational.");
+  });
+
+  it("renders assistant message as borderless prose without avatar box or icon tile", () => {
+    const view = new ChatView();
+    view.app = createMockApp();
+
+    const template = (view as any).renderMessage({
+      id: "asst-1",
+      role: "assistant",
+      content: "CoreBlow microkernel provides zero-copy memory safety.",
+      ts: 2000,
+    });
+    expect(template).toBeDefined();
+
+    const container = document.createElement("div");
+    render(template, container);
+
+    expect(container.textContent).toContain("CoreBlow microkernel provides zero-copy memory safety.");
+    // Zero avatar box
+    expect(container.querySelector(".chat-avatar")).toBeNull();
+    // Verify borderless prose
+    const msgEl = container.querySelector(".chat-message--assistant") as HTMLElement;
+    expect(msgEl).not.toBeNull();
+    expect(msgEl.style.background).toBe("transparent");
+    expect(msgEl.style.borderStyle).toBe("none");
+    // Bubble inside is also borderless
+    const bubble = container.querySelector(".chat-bubble") as HTMLElement;
+    expect(bubble.getAttribute("style")).toContain("background: transparent");
+    expect(bubble.getAttribute("style")).toContain("border: none");
+    // Copy button is present
+    expect(container.querySelector(".bubble-copy-btn")).not.toBeNull();
+  });
+
+  it("renders assistant error as clean borderless inline text in soft red", () => {
+    const view = new ChatView();
+    view.app = createMockApp();
+
+    const template = (view as any).renderMessage({
+      id: "asst-err",
+      role: "assistant",
+      content: "",
+      error: "Gateway connection timeout",
+      ts: 2001,
+    });
+    expect(template).toBeDefined();
+
+    const container = document.createElement("div");
+    render(template, container);
+
+    expect(container.textContent).toContain("Error: Gateway connection timeout");
+    expect(container.querySelector(".chat-avatar")).toBeNull();
+
+    const errorEl = container.querySelector(".message-error") as HTMLElement;
+    expect(errorEl).not.toBeNull();
+    expect(errorEl.style.color).toContain("danger");
   });
 });

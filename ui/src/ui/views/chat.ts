@@ -117,7 +117,7 @@ export class ChatView extends LitElement {
         }, 1800);
       }
     } else if (btn.classList.contains("bubble-copy-btn")) {
-      const bubble = btn.closest(".chat-bubble");
+      const bubble = btn.closest(".chat-bubble") || btn.closest(".chat-message")?.querySelector(".chat-bubble");
       const rawContent = bubble?.getAttribute("data-raw-content") || "";
       if (rawContent) {
         navigator.clipboard.writeText(rawContent);
@@ -236,22 +236,49 @@ export class ChatView extends LitElement {
     const isSystem = msg.role === "system";
     const { thinking, cleanContent } = this.extractThinking(msg.content);
 
-    return html`
-      <div class="chat-message chat-message--${msg.role}" style="display: flex; gap: 12px; ${isUser ? "flex-direction: row-reverse" : ""}">
-        <div class="chat-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: ${isUser ? "var(--accent)" : isSystem ? "rgba(245, 158, 11, 0.15)" : "var(--bg-elevated)"}; color: ${isUser ? "var(--primary-foreground)" : isSystem ? "var(--warn, #f59e0b)" : "var(--accent)"}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-          ${isUser ? renderIcon("user", "16px") : isSystem ? renderIcon("alertTriangle", "16px") : renderIcon("coreblow", "16px")}
+    if (isUser) {
+      return html`
+        <div class="chat-message chat-message--user" style="display: flex; justify-content: flex-end; margin: 14px 0;">
+          <div
+            class="chat-bubble"
+            data-raw-content=${msg.content}
+            style="position: relative; background: var(--bg-chip, rgba(22, 50, 44, 0.7)); border: 1px solid var(--border-medium, var(--border)); color: var(--foreground); padding: 10px 16px; border-radius: var(--radius-lg, 16px); max-width: 75%; font-size: 14px; line-height: 1.5; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); word-break: break-word;"
+          >
+            ${unsafeHTML(renderMarkdown(cleanContent))}
+          </div>
         </div>
-        <div class="chat-bubble" data-raw-content=${msg.content} style="position: relative; background: ${isUser ? "var(--accent)" : "var(--surface-flat, var(--bg-elevated))"}; border: 1px solid ${isUser ? "transparent" : "var(--border-hairline)"}; color: ${isUser ? "var(--primary-foreground)" : "var(--foreground)"}; padding: 12px 16px; border-radius: var(--radius-md); max-width: 80%;">
-          ${!isUser && !isSystem ? html`
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border-subtle); font-size: 10px; color: var(--muted);">
-              <span>CoreBlow Agent</span>
-              <button class="bubble-copy-btn" style="background: transparent; border: 1px solid var(--border-hairline); border-radius: 3px; color: inherit; font-size: 10px; padding: 1px 6px; cursor: pointer;">Copy</button>
-            </div>
-          ` : ""}
-          ${thinking ? this.renderThinkingBlock(thinking) : ""}
+      `;
+    }
+
+    const isError = Boolean(msg.error) || msg.content.startsWith("**Error**") || msg.content.toLowerCase().startsWith("error:");
+    if (isSystem) {
+      return html`
+        <div class="chat-message chat-message--system" style="margin: 10px 0; color: ${isError ? "var(--danger, #f87171)" : "var(--muted)"}; font-size: 13px; line-height: 1.5; background: transparent; border: none; padding: 0;">
           ${unsafeHTML(renderMarkdown(cleanContent))}
-          ${this.renderExecutionSteps(msg.toolSteps, msg.toolCalls)}
         </div>
+      `;
+    }
+
+    return html`
+      <div class="chat-message chat-message--assistant" style="display: block; margin: 18px 0; width: 100%; min-width: 0; font-size: 14px; line-height: 1.65; color: var(--foreground); background: transparent; border: none; padding: 0;">
+        ${this.renderExecutionSteps(msg.toolSteps, msg.toolCalls)}
+        ${thinking ? this.renderThinkingBlock(thinking) : ""}
+        <div class="chat-bubble" data-raw-content=${msg.content} style="position: relative; background: transparent; border: none; padding: 0; color: var(--foreground); max-width: 100%; word-break: break-word;">
+          ${unsafeHTML(renderMarkdown(cleanContent))}
+        </div>
+        ${msg.error ? html`
+          <div class="message-error" style="color: var(--danger, #f87171); font-size: 13px; line-height: 1.5; margin-top: ${cleanContent ? "8px" : "0"};">
+            Error: ${msg.error}
+          </div>
+        ` : ""}
+        ${!msg.streaming && cleanContent.trim().length > 0 ? html`
+          <div style="margin-top: 8px; display: flex; align-items: center;">
+            <button class="bubble-copy-btn" style="background: transparent; border: none; color: var(--muted); font-size: 11px; padding: 2px 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border-radius: var(--radius-xs); transition: color 0.15s ease;">
+              ${renderIcon("fileText", "12px", "color: currentColor;")}
+              <span>Copy</span>
+            </button>
+          </div>
+        ` : ""}
       </div>
     `;
   }
@@ -270,15 +297,12 @@ export class ChatView extends LitElement {
     const { thinking, cleanContent } = this.extractThinking(rawStream);
 
     return html`
-      <div class="chat-message chat-message--assistant" style="display: flex; gap: 12px;">
-        <div class="chat-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-elevated); color: var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-          ${renderIcon("coreblow", "16px")}
-        </div>
-        <div class="chat-bubble streaming-bubble" style="background: var(--surface-flat, var(--bg-elevated)); border: 1px solid var(--border-hairline); padding: 12px 16px; border-radius: var(--radius-md); max-width: 80%;">
-          ${thinking ? this.renderThinkingBlock(thinking) : ""}
+      <div class="chat-message chat-message--assistant streaming-message" style="display: block; margin: 18px 0; width: 100%; min-width: 0; font-size: 14px; line-height: 1.65; color: var(--foreground); background: transparent; border: none; padding: 0;">
+        ${this.renderExecutionSteps(undefined, activeTools)}
+        ${thinking ? this.renderThinkingBlock(thinking) : ""}
+        <div class="chat-bubble streaming-bubble" style="background: transparent; border: none; padding: 0; color: var(--foreground); max-width: 100%; word-break: break-word;">
           ${cleanContent ? unsafeHTML(renderMarkdown(cleanContent)) : (!thinking ? html`<span class="typing-dots"><span>·</span><span>·</span><span>·</span></span>` : "")}
-          ${this.renderExecutionSteps(undefined, activeTools)}
-          <span class="stream-cursor">▍</span>
+          <span class="stream-cursor" style="color: var(--accent); margin-left: 2px;">▍</span>
         </div>
       </div>
     `;

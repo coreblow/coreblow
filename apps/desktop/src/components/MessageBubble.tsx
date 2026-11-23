@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import type { ChatMessage } from "../types/gateway";
 import { CodeBlock } from "./CodeBlock";
 import { ExecutionCard } from "./ExecutionCard";
-import { CoreBlowEmblem } from "./Icons";
+import { CheckIcon, CopyIcon } from "./Icons";
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -132,7 +132,22 @@ function renderInlineFormatting(text: string) {
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
+  const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
+
+  const handleCopy = async () => {
+    try {
+      if (window.coreblowDesktop?.clipboard) {
+        await window.coreblowDesktop.clipboard.writeText(message.content);
+      } else if (navigator?.clipboard) {
+        await navigator.clipboard.writeText(message.content);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy message", err);
+    }
+  };
 
   if (isUser) {
     return (
@@ -202,75 +217,87 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   return (
     <div
       style={{
-        display: "flex",
-        gap: "12px",
+        display: "block",
         margin: "18px 0",
-        maxWidth: "100%",
+        width: "100%",
+        minWidth: 0,
+        fontSize: "14px",
+        lineHeight: 1.65,
+        color: "var(--ink-primary)",
+        background: "transparent",
+        border: "none",
       }}
     >
-      <div
-        style={{
-          width: "28px",
-          height: "28px",
-          borderRadius: "var(--radius-sm)",
-          background: "var(--bg-card)",
-          border: "1px solid var(--border-medium)",
-          display: "grid",
-          placeItems: "center",
-          color: "var(--accent-teal)",
-          flexShrink: 0,
-          marginTop: "2px",
-        }}
-      >
-        <CoreBlowEmblem size={16} />
-      </div>
-
-      <div style={{ flex: 1, minWidth: 0, fontSize: "14px", color: "var(--ink-primary)" }}>
-        {/* Tool Execution Steps */}
-        {message.toolSteps && message.toolSteps.length > 0 && (
-          <div style={{ marginBottom: "10px" }}>
-            {message.toolSteps.map((step, idx) => (
-              <ExecutionCard key={`${step.stepIndex}-${idx}`} step={step} />
-            ))}
-          </div>
-        )}
-
-        {/* Message Markdown Content */}
-        <div style={{ wordBreak: "break-word" }}>
-          {renderMarkdownContent(message.content)}
-          {message.streaming && (
-            <span
-              className="animate-pulse"
-              style={{
-                display: "inline-block",
-                width: "7px",
-                height: "15px",
-                background: "var(--accent-teal)",
-                marginLeft: "4px",
-                verticalAlign: "middle",
-                borderRadius: "1px",
-              }}
-            />
-          )}
+      {/* Tool Execution Steps */}
+      {message.toolSteps && message.toolSteps.length > 0 && (
+        <div style={{ marginBottom: "10px" }}>
+          {message.toolSteps.map((step, idx) => (
+            <ExecutionCard key={`${step.stepIndex}-${idx}`} step={step} />
+          ))}
         </div>
+      )}
 
-        {/* Error notification if turn failed */}
-        {message.error && (
-          <div
+      {/* Message Markdown Content */}
+      <div style={{ wordBreak: "break-word" }}>
+        {renderMarkdownContent(message.content)}
+        {message.streaming && (
+          <span
+            className="animate-pulse"
             style={{
-              marginTop: "8px",
-              padding: "8px 12px",
-              borderRadius: "var(--radius-sm)",
-              background: "rgba(239, 68, 68, 0.1)",
-              border: "1px solid rgba(239, 68, 68, 0.3)",
-              color: "var(--state-error)",
-              fontSize: "12px",
+              display: "inline-block",
+              width: "7px",
+              height: "15px",
+              background: "var(--accent-teal)",
+              marginLeft: "4px",
+              verticalAlign: "middle",
+              borderRadius: "1px",
             }}
-          >
-            Error: {message.error}
-          </div>
+          />
         )}
       </div>
+
+      {/* Error notification if turn failed */}
+      {message.error && (
+        <div
+          className="message-error"
+          style={{
+            marginTop: message.content ? "8px" : "0",
+            color: "var(--state-error, #F87171)",
+            fontSize: "13px",
+            lineHeight: 1.5,
+          }}
+        >
+          Error: {message.error}
+        </div>
+      )}
+
+      {/* Subtle Copy button */}
+      {!message.streaming && message.content.trim().length > 0 && (
+        <div style={{ marginTop: "8px", display: "flex", alignItems: "center" }}>
+          <button
+            type="button"
+            onClick={handleCopy}
+            aria-label="Copy message"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+              padding: "2px 6px",
+              background: "transparent",
+              border: "none",
+              color: copied ? "var(--accent-teal)" : "var(--ink-muted)",
+              fontSize: "12px",
+              cursor: "pointer",
+              borderRadius: "var(--radius-xs)",
+              transition: "color 0.15s ease",
+            }}
+            title={copied ? "Copied" : "Copy"}
+          >
+            {copied ? <CheckIcon size={13} color="var(--accent-teal)" /> : <CopyIcon size={13} />}
+            <span style={{ fontSize: "11px" }}>{copied ? "Copied" : "Copy"}</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
