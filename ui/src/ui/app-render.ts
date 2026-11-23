@@ -30,18 +30,38 @@ export function renderApp(app: CoreBlowApp) {
             </div>
           </div>
 
-          <div class="topnav-shell__actions">
-            <!-- Theme toggle -->
+          <div class="topnav-shell__actions" style="display: flex; align-items: center; gap: 8px;">
+            <!-- Command Palette Trigger -->
             <div class="topbar-status">
-               <div class="theme-orb__trigger pill" style="cursor: pointer" @click=${() => {
-                 app.setTheme(app.theme === "core" ? "knot" : app.theme === "knot" ? "coredash" : "core");
-               }}>
-                  ${renderIcon("palette", "14px")}
-               </div>
+               <button class="pill" style="cursor: pointer; height: 30px; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px; background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--muted); font-size: 11px; white-space: nowrap;"
+                       title="Command Palette (⌘K)"
+                       @click=${() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}>
+                  ${renderIcon("search", "12px")}
+                  <span style="font-family: var(--mono); opacity: 0.85;">⌘K</span>
+               </button>
+            </div>
+            <!-- Light/Dark Mode Toggle -->
+            <div class="topbar-status">
+               <button class="pill" style="cursor: pointer; width: 30px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--text);"
+                       title="Toggle Light / Dark Mode"
+                       @click=${() => app.toggleThemeMode()}>
+                  ${renderIcon(document.documentElement.getAttribute("data-theme-mode") === "light" ? "moon" : "sun", "14px")}
+               </button>
+            </div>
+            <!-- Theme Family Switcher -->
+            <div class="topbar-status">
+               <button class="pill" style="cursor: pointer; height: 30px; padding: 0 11px; display: inline-flex; align-items: center; gap: 6px; background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); font-size: 12px; white-space: nowrap;"
+                       title="Switch CoreBlow Theme (${app.theme})"
+                       @click=${() => {
+                         app.setTheme(app.theme === "core" ? "obsidian" : app.theme === "obsidian" ? "coredash" : "core");
+                       }}>
+                  ${renderIcon("palette", "13px", "color: var(--accent);")}
+                  <span style="text-transform: capitalize; color: var(--text); font-weight: 500;">${app.theme}</span>
+               </button>
             </div>
             <!-- Status Pill -->
             <div class="topbar-status">
-               <div class="pill">
+               <div class="pill" style="height: 30px; padding: 0 11px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
                   <div class="statusDot ${app.connected ? "stat-ok" : "stat-error"}"></div>
                   ${app.connected ? "Online" : "Offline"}
                </div>
@@ -56,12 +76,12 @@ export function renderApp(app: CoreBlowApp) {
           <div class="sidebar-shell">
              <div class="sidebar-shell__header">
                 <div class="sidebar-brand">
-                   <div class="sidebar-brand__logo" style="background: var(--accent); display:flex; align-items:center; justify-content:center; color:white; border-radius: var(--radius-sm);">
-                      ${renderIcon("coreblow", "18px", "color: white;")}
+                   <div class="sidebar-brand__logo" style="background: var(--accent-subtle); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); display:flex; align-items:center; justify-content:center; color: var(--accent); border-radius: var(--radius-sm);">
+                      ${renderIcon("coreblow", "18px", "color: var(--accent);")}
                    </div>
                    <div class="sidebar-brand__copy">
-                      <div class="sidebar-brand__eyebrow">Gateway</div>
-                      <div class="sidebar-brand__title">CoreBlow</div>
+                      <div class="sidebar-brand__eyebrow">CoreBlow OS</div>
+                      <div class="sidebar-brand__title">Control Plane</div>
                    </div>
                 </div>
              </div>
@@ -90,7 +110,7 @@ export function renderApp(app: CoreBlowApp) {
 
              <div class="sidebar-shell__footer">
                 <div class="sidebar-version">
-                   <div class="sidebar-version__label">v1.0.0</div>
+                   <div class="sidebar-version__label">v2.1.2</div>
                    <div class="sidebar-version__status ${app.connected ? "sidebar-connection-status--online" : "sidebar-connection-status--offline"}"></div>
                 </div>
              </div>

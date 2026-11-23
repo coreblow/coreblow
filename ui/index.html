@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CoreBlow Control</title>
+    <title>CoreBlow Control — v2.1.2</title>
     <meta name="color-scheme" content="dark light" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <script>
       (function () {
-        var THEMES = { core: 1, knot: 1, coredash: 1 };
+        var THEMES = { core: 1, obsidian: 1, coredash: 1 };
         var MODES = { system: 1, light: 1, dark: 1 };
         try {
           var keys = Object.keys(localStorage);
@@ -25,6 +25,7 @@
           var s = JSON.parse(raw);
           var t = s && s.theme;
           var m = s && s.themeMode;
+          if (t === "knot") t = "obsidian";
           if (typeof t !== "string") t = "";
           if (typeof m !== "string") m = "";
           var theme = THEMES[t] ? t : "core";
@@ -33,10 +34,10 @@
             mode = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
           }
           var resolved =
-            theme === "knot"
+            theme === "obsidian"
               ? mode === "light"
-                ? "openknot-light"
-                : "openknot"
+                ? "obsidian-light"
+                : "obsidian"
               : theme === "coredash"
                 ? mode === "light"
                   ? "coredash-light"

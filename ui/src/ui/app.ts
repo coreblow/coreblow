@@ -91,15 +91,44 @@ export class CoreBlowApp extends LitElement {
     window.location.hash = `#${next}`;
   }
 
+  private applyThemeAttributes(theme: ThemeName, mode: ThemeMode) {
+    try {
+      const effectiveMode =
+        mode === "system"
+          ? window.matchMedia("(prefers-color-scheme: light)").matches
+            ? "light"
+            : "dark"
+          : mode;
+      const resolved =
+        theme === "obsidian"
+          ? effectiveMode === "light"
+            ? "obsidian-light"
+            : "obsidian"
+          : theme === "coredash"
+            ? effectiveMode === "light"
+              ? "coredash-light"
+              : "coredash"
+            : effectiveMode === "light"
+              ? "light"
+              : "dark";
+      document.documentElement.setAttribute("data-theme", resolved);
+      document.documentElement.setAttribute("data-theme-mode", effectiveMode);
+    } catch {}
+  }
+
   setTheme(next: ThemeName) {
     this.theme = next;
     this.applySettings({ ...this.settings, theme: next });
+    this.applyThemeAttributes(next, this.themeMode);
+  }
 
-    // Apply data-theme attribute for CSS variable switching
-    try {
-       const resolved = next === "knot" ? "openknot" : next === "coredash" ? "coredash" : "dark";
-       document.documentElement.setAttribute("data-theme", resolved);
-    } catch {}
+  toggleThemeMode() {
+    const currentIsLight =
+      document.documentElement.getAttribute("data-theme-mode") === "light";
+    const nextMode: ThemeMode = currentIsLight ? "dark" : "light";
+    this.themeMode = nextMode;
+    this.applySettings({ ...this.settings, themeMode: nextMode });
+    this.applyThemeAttributes(this.theme, nextMode);
   }
 
   applySettings(next: UiSettings) {

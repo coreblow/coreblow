@@ -1,25 +1,23 @@
-<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="cb-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#818cf8"/>
-      <stop offset="100%" stop-color="#4f46e5"/>
+    <linearGradient id="cb-bg" x1="6" y1="4" x2="58" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0E221D"/>
+      <stop offset="100%" stop-color="#050B09"/>
     </linearGradient>
-    <linearGradient id="cb-top" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#a5b4fc"/>
-      <stop offset="100%" stop-color="#6366f1"/>
+    <linearGradient id="cb-teal" x1="14" y1="12" x2="50" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5EEAD4"/>
+      <stop offset="55%" stop-color="#2DD4BF"/>
+      <stop offset="100%" stop-color="#0D9488"/>
     </linearGradient>
-    <linearGradient id="cb-dark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4338ca"/>
-      <stop offset="100%" stop-color="#312e81"/>
-    </linearGradient>
+    <radialGradient id="cb-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2DD4BF" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#2DD4BF" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <!-- Rounded Base Plate -->
-  <rect x="8" y="8" width="104" height="104" rx="28" fill="#0f172a" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
-  <!-- Isometric Geometric Core Structure -->
-  <polygon points="60,20 100,42 60,65 20,42" fill="url(#cb-top)"/>
-  <polygon points="20,42 60,65 60,102 20,79" fill="url(#cb-grad)"/>
-  <polygon points="100,42 60,65 60,102 100,79" fill="url(#cb-dark)"/>
-  <!-- Central Pulse Core -->
-  <circle cx="60" cy="62" r="8" fill="#38bdf8"/>
-  <circle cx="60" cy="62" r="3" fill="#ffffff"/>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#cb-bg)" stroke="#2DD4BF" stroke-opacity="0.28" stroke-width="1.5"/>
+  <circle cx="32" cy="32" r="22" fill="url(#cb-glow)"/>
+  <path d="M32 12L49 21.8V42.2L32 52L15 42.2V21.8L32 12Z" stroke="url(#cb-teal)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M38.5 23.2C36.6 21.6 34.4 20.8 32 20.8C25.8 20.8 20.8 25.8 20.8 32C20.8 38.2 25.8 43.2 32 43.2C34.5 43.2 36.8 42.3 38.7 40.7" stroke="#D9FBF3" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="32" cy="32" r="4.5" fill="#2DD4BF"/>
+  <circle cx="32" cy="32" r="2" fill="#08110F"/>
 </svg>

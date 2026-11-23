@@ -34,9 +34,11 @@ export function loadSettings(): UiSettings {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw);
+    const normalizedTheme = parsed?.theme === "knot" ? "obsidian" : parsed?.theme;
     return {
       ...DEFAULT_SETTINGS,
       ...parsed,
+      ...(normalizedTheme ? { theme: normalizedTheme } : {}),
       locale: isSupportedLocale(parsed?.locale) ? parsed.locale : undefined,
     };
   } catch {

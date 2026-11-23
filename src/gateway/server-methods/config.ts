@@ -16,10 +16,10 @@ import {
   redactConfigSnapshot,
   restoreRedactedValues,
 } from "../../config/redact-snapshot.js";
-import { lookupConfigSchema, type ConfigSchemaResponse } from "../../config/schema.js";
-/** Stub: loads gateway runtime config schema */
+import { buildConfigSchema, lookupConfigSchema, type ConfigSchemaResponse } from "../../config/schema.js";
+/** Loads gateway runtime config schema */
 function loadGatewayRuntimeConfigSchema(): ConfigSchemaResponse {
-  return { schema: {}, uiHints: {}, version: '0.0.0', generatedAt: Date.now() } as unknown as ConfigSchemaResponse;
+  return buildConfigSchema();
 }
 import { validateRuntimeConfig } from "../../config/runtime-schema.js";
 import { extractDeliveryInfo } from "../../config/sessions.js";

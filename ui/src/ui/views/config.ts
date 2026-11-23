@@ -1,227 +1,773 @@
-import { LitElement, html } from "lit";
+import { LitElement, html, type PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { t } from "../../i18n/index.ts";
 import type { CoreBlowApp } from "../app.ts";
 import { renderIcon } from "../icons.ts";
-
-type EngineConfig = {
-   defaultModel?: string;
-   defaultProvider?: string;
-   dmScope?: string;
-   maxConcurrentSessions?: number;
-   maxTurnsPerRun?: number;
-   maxOutputTokens?: number;
-   contextWindow?: number;
-   sandboxBaseDir?: string;
-   toolApproval?: { autoApprove?: string[]; requireApproval?: string[]; deny?: string[] };
-   providers?: string[];
-   activeSessions?: number;
-   registeredTools?: string[];
-};
+import {
+  type JsonSchemaNode,
+  type SchemaSection,
+  extractSchemaSections,
+  OFFLINE_SCHEMA_CATALOG,
+  renderSchemaField,
+  getByPath,
+  setByPath,
+  isSecretField,
+  searchSchemaFields,
+  type FlatFieldMatch,
+} from "./config-schema-renderer.ts";
 
 @customElement("coreblow-config-view")
 export class ConfigView extends LitElement {
   @property({ attribute: false }) app!: CoreBlowApp;
-  @state() config: EngineConfig | null = null;
+
+  @state() schema: JsonSchemaNode = OFFLINE_SCHEMA_CATALOG;
+  @state() sections: SchemaSection[] = [];
+  @state() activeSectionId = "gateway";
+  @state() rawConfig: Record<string, unknown> = {};
+  @state() dirtyChanges: Map<string, unknown> = new Map();
+  @state() searchQuery = "";
+  @state() viewMode: "visual" | "json" = "visual";
+  @state() rawJsonText = "{}";
+  @state() rawJsonError: string | null = null;
+
+  @state() collapsedPaths: Set<string> = new Set();
+  @state() revealedSecrets: Set<string> = new Set();
+
   @state() loading = false;
   @state() saving = false;
-  @state() editModel = "";
-  @state() editProvider = "";
-  @state() apiKeyInput = "";
-  @state() viewMode: "visual" | "raw" = "visual";
   @state() saveStatus: { success: boolean; message: string } | null = null;
+  @state() configPath = "~/.coreblow/config.json";
+  @state() snapshotHash: string | undefined = undefined;
 
-  createRenderRoot() { return this; }
+  // Gateway Connection Form
+  @state() editGatewayUrl = "";
+  @state() editGatewayToken = "";
+  @state() isGatewaySecretRevealed = false;
+
+  private wasConnected = false;
+
+  createRenderRoot() {
+    return this;
+  }
 
   connectedCallback() {
-      super.connectedCallback();
-      this.loadConfig();
+    super.connectedCallback();
+    this.editGatewayUrl = this.app?.settings?.gatewayUrl ?? "ws://127.0.0.1:18789";
+    this.editGatewayToken = this.app?.settings?.token ?? "";
+    this.sections = extractSchemaSections(this.schema);
+    this.rawConfig = this.buildInitialDefaults();
+    this.rawJsonText = JSON.stringify(this.rawConfig, null, 2);
+    void this.loadConfig();
+  }
+
+  override updated(changedProperties: PropertyValues) {
+    super.updated(changedProperties);
+    const isConn = Boolean(this.app?.connected);
+    if (isConn !== this.wasConnected) {
+      this.wasConnected = isConn;
+      if (isConn) {
+        void this.loadConfig();
+      }
+    }
+  }
+
+  private buildInitialDefaults(): Record<string, unknown> {
+    const defaults: Record<string, unknown> = {
+      gateway: {
+        port: 18789,
+        mode: "local",
+        bind: "loopback",
+        customBindHost: "127.0.0.1",
+        controlUi: true,
+        auth: { token: "", required: false },
+        tailscale: false,
+      },
+      agents: {
+        defaults: {
+          model: "gemini-2.5-pro",
+          workspace: "~/.coreblow/workspace",
+          thinkingDefault: "auto",
+          contextTokens: 1000000,
+          timeoutSeconds: 600,
+          maxConcurrent: 16,
+        },
+      },
+      models: {
+        default: "gemini-2.5-pro",
+        providers: ["google", "openai", "anthropic", "ollama", "openrouter"],
+        mode: "direct",
+      },
+      tools: {
+        autoApprove: ["read_file", "list_dir", "grep_search", "memory_search"],
+        requireApproval: ["run_command", "write_file", "git_push", "screen_capture"],
+        deny: [],
+      },
+      channels: {
+        telegram: { enabled: false, dmScope: "per-channel-peer" },
+        discord: { enabled: false },
+        slack: { enabled: false },
+        signal: { enabled: false },
+        web: { enabled: false, port: 3000 },
+      },
+      browser: {
+        enabled: true,
+        headless: true,
+        color: "forest-teal",
+        attachOnly: false,
+      },
+      logging: {
+        level: "info",
+        file: "~/.coreblow/logs/gateway.log",
+        consoleLevel: "info",
+        consoleStyle: "pretty",
+        redactSensitive: true,
+      },
+      ui: {
+        theme: "obsidian",
+        accentColor: "forest-teal",
+        assistantName: "CoreBlow",
+      },
+    };
+    return defaults;
   }
 
   private async loadConfig() {
-      const client = this.app.gateway.getClient();
-      if (!client?.connected) return;
-      this.loading = true;
-      try {
-         const res = await client.request<{ config: EngineConfig }>("config.get", {});
-         this.config = res?.config ?? null;
-         if (this.config) {
-            this.editModel = this.config.defaultModel ?? "";
-            this.editProvider = this.config.defaultProvider ?? "";
-         }
-      } catch { this.config = null; }
-      this.loading = false;
-  }
-
-  private async saveField(path: string, value: unknown) {
-      const client = this.app.gateway.getClient();
-      if (!client?.connected) return;
-      this.saving = true;
-      try {
-         await client.request("config.set", { path, value });
-         this.saveStatus = { success: true, message: t("config.updated", { path }) };
-         setTimeout(() => this.saveStatus = null, 2000);
-         this.loadConfig();
-      } catch (err: unknown) {
-         const msg = err instanceof Error ? err.message : String(err);
-         this.saveStatus = { success: false, message: t("config.saveFailed", { message: msg }) };
+    const client = this.app?.gateway?.getClient();
+    if (!client?.connected) {
+      // Offline fallback
+      if (this.sections.length === 0) {
+        this.sections = extractSchemaSections(OFFLINE_SCHEMA_CATALOG);
       }
+      return;
+    }
+
+    this.loading = true;
+    try {
+      // 1. Fetch live Draft-07 JSON Schema
+      try {
+        const schemaRes = await client.request<{
+          schema?: JsonSchemaNode;
+          version?: string;
+        }>("config.schema", {});
+        if (
+          schemaRes?.schema &&
+          schemaRes.schema.properties &&
+          Object.keys(schemaRes.schema.properties).length > 0
+        ) {
+          this.schema = schemaRes.schema;
+          this.sections = extractSchemaSections(this.schema);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch live schema from gateway:", err);
+      }
+
+      // 2. Fetch live config snapshot
+      const getRes = await client.request<{
+        path?: string;
+        hash?: string;
+        config?: Record<string, unknown>;
+        raw?: string | null;
+      }>("config.get", {});
+
+      if (getRes) {
+        if (getRes.path) this.configPath = getRes.path;
+        if (getRes.hash) this.snapshotHash = getRes.hash;
+        if (getRes.config && typeof getRes.config === "object") {
+          this.rawConfig = getRes.config;
+          this.rawJsonText = JSON.stringify(this.rawConfig, null, 2);
+          this.dirtyChanges.clear();
+        }
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.saveStatus = { success: false, message: `Load failed: ${msg}` };
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  private handleFieldChange = (path: string, newValue: unknown) => {
+    const baseline = getByPath(this.rawConfig, path);
+    if (newValue === baseline) {
+      this.dirtyChanges.delete(path);
+    } else {
+      this.dirtyChanges.set(path, newValue);
+    }
+
+    // Keep JSON editor in sync with changes
+    let merged = { ...this.rawConfig };
+    for (const [p, val] of this.dirtyChanges.entries()) {
+      merged = setByPath(merged, p, val);
+    }
+    this.rawJsonText = JSON.stringify(merged, null, 2);
+    this.rawJsonError = null;
+    this.requestUpdate();
+  };
+
+  private toggleCollapse = (path: string) => {
+    if (this.collapsedPaths.has(path)) {
+      this.collapsedPaths.delete(path);
+    } else {
+      this.collapsedPaths.add(path);
+    }
+    this.requestUpdate();
+  };
+
+  private toggleReveal = (path: string) => {
+    if (this.revealedSecrets.has(path)) {
+      this.revealedSecrets.delete(path);
+    } else {
+      this.revealedSecrets.add(path);
+    }
+    this.requestUpdate();
+  };
+
+  private saveGatewayConnection() {
+    if (!this.app) return;
+    this.app.applySettings({
+      ...this.app.settings,
+      gatewayUrl: this.editGatewayUrl.trim(),
+      token: this.editGatewayToken.trim(),
+    });
+    this.app.gateway?.reconnect();
+    this.saveStatus = {
+      success: true,
+      message: "Gateway connection settings updated. Reconnecting...",
+    };
+    setTimeout(() => {
+      if (this.saveStatus?.message.includes("Reconnecting")) {
+        this.saveStatus = null;
+      }
+    }, 4000);
+  }
+
+  private async saveChanges() {
+    const client = this.app?.gateway?.getClient();
+    if (!client?.connected) {
+      this.saveStatus = {
+        success: false,
+        message: "Cannot save: Gateway is offline. Verify connection settings.",
+      };
+      return;
+    }
+
+    this.saving = true;
+    this.saveStatus = null;
+
+    try {
+      if (this.viewMode === "json") {
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(this.rawJsonText);
+        } catch (err) {
+          this.rawJsonError = `JSON Syntax Error: ${err instanceof Error ? err.message : String(err)}`;
+          this.saving = false;
+          return;
+        }
+
+        await client.request("config.apply", {
+          raw: JSON.stringify(parsed, null, 2),
+          baseHash: this.snapshotHash,
+          note: "Web Control UI JSON editor update",
+        });
+
+        this.saveStatus = {
+          success: true,
+          message: "Configuration saved and applied via Gateway RPC.",
+        };
+      } else {
+        if (this.dirtyChanges.size === 0) {
+          this.saveStatus = { success: true, message: "No changes to save." };
+          this.saving = false;
+          return;
+        }
+
+        let patchObj: Record<string, unknown> = {};
+        for (const [path, val] of this.dirtyChanges.entries()) {
+          patchObj = setByPath(patchObj, path, val);
+        }
+
+        await client.request("config.patch", {
+          raw: JSON.stringify(patchObj),
+          baseHash: this.snapshotHash,
+          note: `Web Control UI update (${this.dirtyChanges.size} fields)`,
+        });
+
+        this.saveStatus = {
+          success: true,
+          message: `Successfully saved ${this.dirtyChanges.size} modified field(s).`,
+        };
+        this.dirtyChanges.clear();
+      }
+
+      await this.loadConfig();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.saveStatus = { success: false, message: `Save error: ${msg}` };
+    } finally {
       this.saving = false;
+    }
   }
 
-  private renderField(label: string, value: unknown, mono = false) {
-      const display = value === undefined || value === null ? "—" : String(value);
-      return html`
-         <div class="config-field" style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border);">
-            <span class="config-label" style="min-width: 180px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">${label}</span>
-            <span style="flex: 1; ${mono ? 'font-family: var(--mono); font-size: 12px;' : ''}">${display}</span>
-         </div>
-      `;
+  private exportJson() {
+    let effective = { ...this.rawConfig };
+    for (const [p, val] of this.dirtyChanges.entries()) {
+      effective = setByPath(effective, p, val);
+    }
+    const dataStr =
+      "data:text/json;charset=utf-8," +
+      encodeURIComponent(JSON.stringify(effective, null, 2));
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "coreblow-config.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
   }
 
-  private renderEditableField(label: string, value: string, path: string, onInput: (v: string) => void) {
-      return html`
-         <div class="config-field" style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 12px;">
-            <span class="config-label" style="min-width: 180px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">${label}</span>
-            <input style="flex: 1; background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
-                   .value=${value}
-                   @input=${(e: Event) => onInput((e.target as HTMLInputElement).value)} />
-            <button style="background: var(--accent); color: white; border: none; padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 11px; font-weight: 600;"
-                    ?disabled=${this.saving}
-                    @click=${() => this.saveField(path, value)}>${t("config.save")}</button>
-         </div>
-      `;
+  private isSectionDirty(sectionId: string): boolean {
+    for (const path of this.dirtyChanges.keys()) {
+      if (path === sectionId || path.startsWith(`${sectionId}.`)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   render() {
-    const c = this.config;
+    const isConnected = Boolean(this.app?.connected);
+    const activeSection = this.sections.find((s) => s.id === this.activeSectionId);
+    const searchMatches = this.searchQuery
+      ? searchSchemaFields(this.schema, this.searchQuery)
+      : [];
 
     return html`
-      <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div
+        class="config-view-root"
+        style="padding: 24px 32px; max-width: 1200px; margin: 0 auto; color: var(--text);"
+      >
+        <!-- Header Bar -->
+        <div
+          class="config-header"
+          style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;"
+        >
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 20px; font-weight: 700; color: var(--text-strong); letter-spacing: -0.02em;">
+                ${t("config.title")}
+              </span>
+              <span
+                style="display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 3px 9px; border-radius: 12px; background: ${isConnected
+                  ? "var(--surface-flat-hover)"
+                  : "var(--bg-muted)"}; color: ${isConnected
+                  ? "var(--accent)"
+                  : "var(--muted)"}; border: 1px solid var(--border-hairline); font-family: var(--mono);"
+              >
+                <span
+                  style="width: 6px; height: 6px; border-radius: 50%; background: ${isConnected
+                    ? "var(--accent)"
+                    : "var(--muted)"};"
+                ></span>
+                ${isConnected ? this.configPath : "Offline Defaults"}
+              </span>
+              <span
+                style="font-size: 11px; color: var(--muted); font-family: var(--mono);"
+              >
+                ${this.sections.length} sections
+              </span>
+            </div>
+            <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">
+              CoreBlow Schema-Driven Quiet Instrument · Full Draft-07 Parity
+            </div>
+          </div>
 
-         <!-- Header -->
-         <div class="card">
-            <div style="display: flex; align-items: center; gap: 12px;">
-               <div style="flex: 1;">
-                  <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                     ${renderIcon("settings", "18px", "color: var(--accent);")}
-                     <span>${t("config.title")}</span>
+          <!-- Controls: Search + Mode + Actions -->
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <!-- Real-time Search Input -->
+            <div style="position: relative; width: 230px;">
+              <input
+                type="text"
+                placeholder="Search config fields..."
+                style="width: 100%; background: var(--card); border: 1px solid var(--border-hairline); padding: 7px 10px 7px 30px; border-radius: var(--radius-sm); color: var(--text-strong); font-size: 12px; font-family: var(--mono); outline: none;"
+                .value=${this.searchQuery}
+                @input=${(e: Event) => (this.searchQuery = (e.target as HTMLInputElement).value)}
+              />
+              <span
+                style="position: absolute; left: 9px; top: 8px; width: 14px; height: 14px; color: var(--muted); pointer-events: none;"
+              >
+                ${renderIcon("search")}
+              </span>
+              ${this.searchQuery
+                ? html`
+                    <button
+                      type="button"
+                      style="position: absolute; right: 8px; top: 8px; width: 14px; height: 14px; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0;"
+                      @click=${() => (this.searchQuery = "")}
+                    >
+                      ${renderIcon("x")}
+                    </button>
+                  `
+                : ""}
+            </div>
+
+            <!-- Visual / JSON Mode Toggle -->
+            <div
+              style="display: flex; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 2px;"
+            >
+              <button
+                type="button"
+                style="padding: 5px 12px; font-size: 11px; font-weight: 600; border-radius: 3px; border: none; cursor: pointer; background: ${this.viewMode === "visual"
+                  ? "var(--accent)"
+                  : "transparent"}; color: ${this.viewMode === "visual"
+                  ? "var(--primary-foreground)"
+                  : "var(--muted)"}; transition: all 0.15s ease;"
+                @click=${() => (this.viewMode = "visual")}
+              >
+                Visual
+              </button>
+              <button
+                type="button"
+                style="padding: 5px 12px; font-size: 11px; font-weight: 600; border-radius: 3px; border: none; cursor: pointer; background: ${this.viewMode === "json"
+                  ? "var(--accent)"
+                  : "transparent"}; color: ${this.viewMode === "json"
+                  ? "var(--primary-foreground)"
+                  : "var(--muted)"}; transition: all 0.15s ease;"
+                @click=${() => (this.viewMode = "json")}
+              >
+                JSON
+              </button>
+            </div>
+
+            <!-- Export JSON Button -->
+            <button
+              type="button"
+              style="display: flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--border-hairline); padding: 6px 12px; border-radius: var(--radius-sm); color: var(--text-strong); font-size: 11px; font-weight: 500; cursor: pointer;"
+              title="Export configuration as JSON"
+              @click=${() => this.exportJson()}
+            >
+              <span style="width: 13px; height: 13px;">${renderIcon("download")}</span>
+              Export
+            </button>
+
+            <!-- Refresh Button -->
+            <button
+              type="button"
+              style="display: flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--border-hairline); padding: 6px 12px; border-radius: var(--radius-sm); color: var(--text-strong); font-size: 11px; font-weight: 500; cursor: pointer;"
+              title="Reload configuration from gateway"
+              @click=${() => void this.loadConfig()}
+            >
+              <span style="width: 13px; height: 13px;">${renderIcon("refresh")}</span>
+              ${this.loading ? "Loading..." : "Refresh"}
+            </button>
+
+            <!-- Save Changes Button -->
+            <button
+              type="button"
+              style="display: flex; align-items: center; gap: 6px; background: var(--accent); border: none; padding: 7px 16px; border-radius: var(--radius-sm); color: var(--primary-foreground); font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"
+              ?disabled=${this.saving}
+              @click=${() => void this.saveChanges()}
+            >
+              ${this.saving
+                ? "Saving..."
+                : this.dirtyChanges.size > 0
+                  ? `Save (${this.dirtyChanges.size})`
+                  : "Save Changes"}
+            </button>
+          </div>
+        </div>
+
+        <!-- Notification Banner -->
+        ${this.saveStatus
+          ? html`
+              <div
+                style="padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 12px; display: flex; align-items: center; justify-content: space-between; background: ${this.saveStatus.success
+                  ? "var(--surface-flat-hover)"
+                  : "rgba(239, 68, 68, 0.1)"}; border: 1px solid ${this.saveStatus.success
+                  ? "var(--accent)"
+                  : "rgba(239, 68, 68, 0.3)"}; color: ${this.saveStatus.success
+                  ? "var(--accent)"
+                  : "var(--danger, #f87171)"};"
+              >
+                <span>${this.saveStatus.message}</span>
+                <button
+                  type="button"
+                  style="background: transparent; border: none; color: inherit; cursor: pointer; font-size: 13px;"
+                  @click=${() => (this.saveStatus = null)}
+                >
+                  ✕
+                </button>
+              </div>
+            `
+          : ""}
+
+        <!-- Gateway Connection Strip (Always accessible) -->
+        <div
+          class="cb-gateway-strip"
+          style="background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;"
+        >
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 18px; height: 18px; color: var(--accent);">
+              ${renderIcon("globe")}
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 600; color: var(--text-strong);">
+                Gateway Control Plane
+              </div>
+              <div style="font-size: 11px; color: var(--muted); font-family: var(--mono);">
+                ${isConnected ? "Connected (:18789) · SQLite WAL active" : "Disconnected · Loopback offline"}
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; flex: 1; max-width: 620px; justify-content: flex-end;">
+            <input
+              type="text"
+              placeholder="ws://127.0.0.1:18789"
+              style="max-width: 200px; background: var(--input, var(--bg-elevated)); border: 1px solid var(--border-hairline); padding: 6px 10px; border-radius: var(--radius-sm); color: var(--text-strong); font-size: 11px; font-family: var(--mono); outline: none;"
+              .value=${this.editGatewayUrl}
+              @input=${(e: Event) => (this.editGatewayUrl = (e.target as HTMLInputElement).value)}
+            />
+            <div style="position: relative; max-width: 200px; width: 100%;">
+              <input
+                type=${this.isGatewaySecretRevealed ? "text" : "password"}
+                placeholder="Auth Token (optional)"
+                style="width: 100%; background: var(--input, var(--bg-elevated)); border: 1px solid var(--border-hairline); padding: 6px 28px 6px 10px; border-radius: var(--radius-sm); color: var(--text-strong); font-size: 11px; font-family: var(--mono); outline: none;"
+                .value=${this.editGatewayToken}
+                @input=${(e: Event) => (this.editGatewayToken = (e.target as HTMLInputElement).value)}
+              />
+              <button
+                type="button"
+                style="position: absolute; right: 5px; top: 6px; width: 18px; height: 18px; background: transparent; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;"
+                @click=${() => (this.isGatewaySecretRevealed = !this.isGatewaySecretRevealed)}
+              >
+                ${renderIcon(this.isGatewaySecretRevealed ? "eyeOff" : "eye")}
+              </button>
+            </div>
+            <button
+              type="button"
+              style="background: var(--surface-flat-hover); border: 1px solid var(--border-hairline); color: var(--accent); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;"
+              @click=${() => this.saveGatewayConnection()}
+            >
+              Save &amp; Reconnect
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Body: JSON Mode vs Visual Mode -->
+        ${this.viewMode === "json"
+          ? html`
+              <div
+                class="config-json-editor"
+                style="background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 16px;"
+              >
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                  <span style="font-size: 12px; font-weight: 600; color: var(--text-strong);">
+                    Raw JSON Config Editor
+                  </span>
+                  <span style="font-size: 11px; color: var(--muted); font-family: var(--mono);">
+                    Direct Draft-07 representation
+                  </span>
+                </div>
+                ${this.rawJsonError
+                  ? html`
+                      <div
+                        style="padding: 8px 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger, #f87171); border-radius: var(--radius-sm); font-size: 11px; font-family: var(--mono); margin-bottom: 10px;"
+                      >
+                        ${this.rawJsonError}
+                      </div>
+                    `
+                  : ""}
+                <textarea
+                  style="width: 100%; height: 560px; background: var(--bg); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); color: var(--text-strong); padding: 14px; font-size: 12px; font-family: var(--mono); line-height: 1.5; resize: vertical; outline: none;"
+                  .value=${this.rawJsonText}
+                  @input=${(e: Event) => {
+                    this.rawJsonText = (e.target as HTMLTextAreaElement).value;
+                    this.rawJsonError = null;
+                  }}
+                ></textarea>
+              </div>
+            `
+          : html`
+              <!-- Visual Mode: Section Navigation + Field List -->
+              <div
+                class="config-visual-grid"
+                style="display: grid; grid-template-columns: 240px 1fr; gap: 20px; align-items: start;"
+              >
+                <!-- Left Section Navigation -->
+                <div
+                  class="config-section-nav"
+                  style="background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 8px; display: flex; flex-direction: column; gap: 2px;"
+                >
+                  <div
+                    style="padding: 6px 10px 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 1px solid var(--border-subtle); margin-bottom: 4px;"
+                  >
+                    Configuration Sections
                   </div>
-                  <div class="card-sub">${t("config.subtitle")}</div>
-               </div>
-               <div style="display: flex; gap: 8px;">
-                  <button class="btn" style="background: ${this.viewMode === 'visual' ? 'var(--accent)' : 'var(--bg-elevated)'}; color: ${this.viewMode === 'visual' ? 'white' : 'var(--foreground)'}; border: 1px solid var(--border); padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px;"
-                   @click=${() => this.viewMode = "visual"}>${t("config.visual")}</button>
-                  <button class="btn" style="background: ${this.viewMode === 'raw' ? 'var(--accent)' : 'var(--bg-elevated)'}; color: ${this.viewMode === 'raw' ? 'white' : 'var(--foreground)'}; border: 1px solid var(--border); padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px;"
-                   @click=${() => this.viewMode = "raw"}>JSON</button>
-               </div>
-               <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px; display: flex; align-items: center; gap: 6px;"
-                @click=${() => this.loadConfig()}>
-                  ${renderIcon("refresh", "13px")}
-                  <span>${t("common.refresh")}</span>
-               </button>
-            </div>
-            ${this.saveStatus ? html`
-               <div style="margin-top: 8px; font-size: 12px; display: flex; align-items: center; gap: 6px; color: ${this.saveStatus.success ? "var(--success, #22c55e)" : "var(--destructive, #ef4444)"};">
-                  ${renderIcon(this.saveStatus.success ? "check" : "x", "14px")}
-                  <span>${this.saveStatus.message}</span>
-               </div>
-            ` : ""}
-         </div>
+                  ${this.sections.map((sec) => {
+                    const isActive = this.activeSectionId === sec.id;
+                    const isDirty = this.isSectionDirty(sec.id);
+                    return html`
+                      <button
+                        type="button"
+                        style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 10px; border-radius: var(--radius-sm); border: none; cursor: pointer; text-align: left; background: ${isActive
+                          ? "var(--surface-flat-hover)"
+                          : "transparent"}; color: ${isActive
+                          ? "var(--accent)"
+                          : "var(--text)"}; transition: all 0.12s ease;"
+                        @click=${() => {
+                          this.activeSectionId = sec.id;
+                          this.searchQuery = "";
+                        }}
+                      >
+                        <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                          <span style="width: 14px; height: 14px; flex-shrink: 0; color: ${isActive
+                            ? "var(--accent)"
+                            : "var(--muted)"};">
+                            ${renderIcon(sec.icon)}
+                          </span>
+                          <span style="font-size: 12px; font-weight: ${isActive ? "600" : "500"}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            ${sec.label}
+                          </span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                          ${isDirty
+                            ? html`<span style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent);"></span>`
+                            : ""}
+                          <span
+                            style="font-size: 10px; padding: 1px 5px; border-radius: 8px; background: var(--bg-muted); color: var(--muted); font-family: var(--mono);"
+                          >
+                            ${sec.fieldCount}
+                          </span>
+                        </div>
+                      </button>
+                    `;
+                  })}
+                </div>
 
-         ${this.loading ? html`<div class="card" style="text-align: center; padding: 40px; color: var(--muted);">${t("config.loading")}</div>` : ""}
+                <!-- Right Field List Panel -->
+                <div
+                  class="config-field-panel"
+                  style="background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 18px 20px;"
+                >
+                  <!-- Search Results View -->
+                  ${this.searchQuery
+                    ? html`
+                        <div>
+                          <div style="margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px;">
+                            <div>
+                              <div style="font-size: 14px; font-weight: 600; color: var(--text-strong);">
+                                Search Results for "${this.searchQuery}"
+                              </div>
+                              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">
+                                Found ${searchMatches.length} matching field(s) across all schema sections
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              style="background: transparent; border: 1px solid var(--border-hairline); padding: 4px 10px; border-radius: var(--radius-sm); font-size: 11px; color: var(--muted); cursor: pointer;"
+                              @click=${() => (this.searchQuery = "")}
+                            >
+                              Clear Search
+                            </button>
+                          </div>
+                          ${searchMatches.length === 0
+                            ? html`<div style="padding: 24px 0; text-align: center; color: var(--muted); font-size: 13px;">
+                                No configuration fields matched "${this.searchQuery}".
+                              </div>`
+                            : searchMatches.map((m: FlatFieldMatch) => {
+                                const val = this.dirtyChanges.has(m.path)
+                                  ? this.dirtyChanges.get(m.path)
+                                  : getByPath(this.rawConfig, m.path);
+                                const isMod = this.dirtyChanges.has(m.path);
+                                const isSec = isSecretField(m.key, m.path);
+                                const isRev = this.revealedSecrets.has(m.path);
+                                return renderSchemaField({
+                                  path: m.path,
+                                  key: m.key,
+                                  schema: m.schema,
+                                  value: val,
+                                  isModified: isMod,
+                                  isSecret: isSec,
+                                  isRevealed: isRev,
+                                  depth: 0,
+                                  collapsedPaths: this.collapsedPaths,
+                                  onToggleCollapse: this.toggleCollapse,
+                                  onToggleReveal: this.toggleReveal,
+                                  onChange: this.handleFieldChange,
+                                });
+                              })}
+                        </div>
+                      `
+                    : activeSection
+                      ? html`
+                          <div>
+                            <!-- Section Header -->
+                            <div
+                              style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; margin-bottom: 16px;"
+                            >
+                              <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 20px; height: 20px; color: var(--accent);">
+                                  ${renderIcon(activeSection.icon)}
+                                </div>
+                                <div>
+                                  <div style="font-size: 16px; font-weight: 700; color: var(--text-strong);">
+                                    ${activeSection.label}
+                                  </div>
+                                  ${activeSection.description
+                                    ? html`<div style="font-size: 12px; color: var(--muted); margin-top: 2px;">
+                                        ${activeSection.description}
+                                      </div>`
+                                    : ""}
+                                </div>
+                              </div>
+                              <span
+                                style="font-size: 11px; padding: 3px 8px; border-radius: 10px; background: var(--bg-muted); color: var(--muted); font-family: var(--mono);"
+                              >
+                                ${activeSection.fieldCount} leaf fields
+                              </span>
+                            </div>
 
-         ${!this.loading && this.viewMode === "raw" && c ? html`
-            <div class="card">
-               <pre style="background: var(--bg-elevated); padding: 16px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px; overflow-x: auto; max-height: 600px; overflow-y: auto;">${JSON.stringify(c, null, 2)}</pre>
-            </div>
-         ` : ""}
+                            <!-- Section Fields List -->
+                            <div>
+                              ${activeSection.schema.properties
+                                ? Object.entries(activeSection.schema.properties).map(
+                                    ([fieldKey, fieldSchema]) => {
+                                      const fieldPath = `${activeSection.id}.${fieldKey}`;
+                                      const fieldValue = this.dirtyChanges.has(fieldPath)
+                                        ? this.dirtyChanges.get(fieldPath)
+                                        : getByPath(this.rawConfig, fieldPath);
+                                      const isMod = this.dirtyChanges.has(fieldPath);
+                                      const isSec = isSecretField(fieldKey, fieldPath);
+                                      const isRev = this.revealedSecrets.has(fieldPath);
 
-         ${!this.loading && this.viewMode === "visual" && c ? html`
-            <!-- Model & Provider -->
-            <div class="card">
-               <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
-                  ${renderIcon("bot", "16px", "color: var(--accent);")}
-                  <span>${t("config.modelConfiguration")}</span>
-               </div>
-               ${this.renderEditableField(t("agents.defaultModel"), this.editModel, "defaultModel", v => this.editModel = v)}
-               ${this.renderEditableField(t("agents.defaultProvider"), this.editProvider, "defaultProvider", v => this.editProvider = v)}
-            </div>
-
-            <!-- Security & DM Isolation Policy -->
-            <div class="card">
-               <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
-                  ${renderIcon("shield", "16px", "color: var(--accent);")}
-                  <span>DM Isolation &amp; Security Policy</span>
-               </div>
-               ${this.renderField("DM Scope Isolation", c.dmScope ?? "per-channel-peer (Recommended Default)", true)}
-               ${this.renderField("Skill Security Guard", "TypeScript AST Static Scanner Active")}
-               ${this.renderField("Session Storage", "SQLite WAL + FTS5 Indexing")}
-            </div>
-
-            <!-- Engine Limits -->
-            <div class="card">
-               <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
-                  ${renderIcon("barChart", "16px", "color: var(--muted);")}
-                  <span>${t("config.engineLimits")}</span>
-               </div>
-               ${this.renderField(t("sessions.maxConcurrent"), c.maxConcurrentSessions)}
-               ${this.renderField(t("agents.maxTurns"), c.maxTurnsPerRun)}
-               ${this.renderField(t("agents.maxOutput"), c.maxOutputTokens?.toLocaleString())}
-               ${this.renderField(t("agents.contextWindow"), c.contextWindow?.toLocaleString())}
-               ${this.renderField(t("agents.sandboxDir"), c.sandboxBaseDir, true)}
-            </div>
-
-            <!-- Tool Policy -->
-            <div class="card">
-               <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
-                  ${renderIcon("wrench", "16px", "color: var(--muted);")}
-                  <span>${t("config.toolPolicy")}</span>
-               </div>
-               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 12px;">
-                  <div>
-                     <div style="font-size: 11px; color: var(--success, #22c55e); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">${t("config.autoApprove")}</div>
-                     ${(c.toolApproval?.autoApprove ?? []).map(t => html`<div style="font-family: var(--mono); font-size: 12px; padding: 2px 0;">${t}</div>`)}
-                  </div>
-                  <div>
-                     <div style="font-size: 11px; color: var(--warning, #f59e0b); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">${t("config.requireApproval")}</div>
-                     ${(c.toolApproval?.requireApproval ?? []).map(t => html`<div style="font-family: var(--mono); font-size: 12px; padding: 2px 0;">${t}</div>`)}
-                  </div>
-                  <div>
-                     <div style="font-size: 11px; color: var(--destructive, #ef4444); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">${t("config.denied")}</div>
-                     ${(c.toolApproval?.deny ?? []).length === 0 ? html`<div style="font-size: 12px; color: var(--muted);">${t("common.none")}</div>` : ""}
-                     ${(c.toolApproval?.deny ?? []).map(t => html`<div style="font-family: var(--mono); font-size: 12px; padding: 2px 0;">${t}</div>`)}
-                  </div>
-               </div>
-            </div>
-
-            <!-- Runtime Info -->
-            <div class="card">
-               <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
-                  ${renderIcon("radio", "16px", "color: var(--muted);")}
-                  <span>${t("config.runtimeStatus")}</span>
-               </div>
-               ${this.renderField(t("sessions.active"), c.activeSessions)}
-               ${this.renderField(t("agents.registeredTools"), t("config.toolsCount", { count: String(c.registeredTools?.length ?? 0) }))}
-               ${c.registeredTools && c.registeredTools.length > 0 ? html`
-                  <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;">
-                     ${c.registeredTools.map(t => html`
-                        <span style="font-size: 11px; padding: 2px 8px; background: var(--bg-elevated); border-radius: 12px; font-family: var(--mono); color: var(--accent, #6366f1);">${t}</span>
-                     `)}
-                  </div>
-               ` : ""}
-            </div>
-
-            <!-- Gateway Connection -->
-            <div class="card">
-               <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
-                  ${renderIcon("globe", "16px", "color: var(--muted);")}
-                  <span>${t("config.gatewayConnection")}</span>
-               </div>
-               ${this.renderField(t("common.url"), this.app.settings.gatewayUrl, true)}
-               ${this.renderField(t("common.status"), html`<span style="display:inline-flex; align-items:center; gap:6px;"><span class="statusDot ${this.app.connected ? "stat-ok" : "stat-error"}"></span><span>${this.app.connected ? t("overview.status.connected") : t("overview.status.disconnected")}</span></span>`)}
-            </div>
-         ` : ""}
+                                      return renderSchemaField({
+                                        path: fieldPath,
+                                        key: fieldKey,
+                                        schema: fieldSchema,
+                                        value: fieldValue,
+                                        isModified: isMod,
+                                        isSecret: isSec,
+                                        isRevealed: isRev,
+                                        depth: 0,
+                                        collapsedPaths: this.collapsedPaths,
+                                        onToggleCollapse: this.toggleCollapse,
+                                        onToggleReveal: this.toggleReveal,
+                                        onChange: this.handleFieldChange,
+                                      });
+                                    },
+                                  )
+                                : html`<div style="color: var(--muted); font-size: 12px; padding: 12px 0;">
+                                    No direct properties defined for this section.
+                                  </div>`}
+                            </div>
+                          </div>
+                        `
+                      : html`<div style="color: var(--muted); font-size: 12px;">
+                          Select a section from the left navigation.
+                        </div>`}
+                </div>
+              </div>
+            `}
       </div>
     `;
   }
