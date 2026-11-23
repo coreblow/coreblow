@@ -301,7 +301,7 @@ export class StorageService {
             setupCompleted: true,
             onboardingCompleted: true,
             layoutMode: "pro",
-            inspectorOpen: true,
+            inspectorOpen: false,
           };
         }
         return DEFAULT_PREFERENCES;

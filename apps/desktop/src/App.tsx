@@ -96,7 +96,7 @@ export const App: React.FC = () => {
     const p = storageService.getPreferences();
     return {
       ...p,
-      inspectorOpen: p.layoutMode === "pro",
+      inspectorOpen: false,
     };
   });
   const [project, setProject] = useState<ActiveProjectState>(() => storageService.getProject());
