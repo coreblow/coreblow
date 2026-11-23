@@ -4472,34 +4472,23 @@ details[open] > .ov-expandable-toggle::after {
 .config-section-nav {
   position: sticky;
   top: 16px;
-  max-height: calc(100vh - 120px);
+  max-height: calc(100vh - 80px);
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-hairline) transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   background: var(--card);
   border: 1px solid var(--border-hairline);
   border-radius: var(--radius-sm);
   padding: 10px 8px 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .config-section-nav::-webkit-scrollbar {
-  width: 5px;
-}
-
-.config-section-nav::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.config-section-nav::-webkit-scrollbar-thumb {
-  background: var(--border-hairline);
-  border-radius: 4px;
-}
-
-.config-section-nav::-webkit-scrollbar-thumb:hover {
-  background: var(--muted);
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .config-nav-header {
