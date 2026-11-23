@@ -170,57 +170,30 @@ export class OverviewView extends LitElement {
            ${this.renderStatCard("scrollText", t("common.events"), String(this.app.eventLog.length))}
         </div>
 
-        <!-- Quick Actions + Connection -->
-        <div style="display: grid; gap: 16px; grid-template-columns: 1fr 1fr;">
-
-           <!-- Gateway Connection -->
+        <!-- Quick Actions & Preferences -->
+        <div style="display: grid; gap: 16px; grid-template-columns: 1fr;">
            <div class="card">
-              <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                 ${renderIcon("globe", "16px", "color: var(--muted);")}
-                 <span>${t("overview.access.title")}</span>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                 <div class="card-title" style="display: flex; align-items: center; gap: 8px; margin: 0;">
+                    ${renderIcon("zap", "16px", "color: var(--accent);")}
+                    <span>${t("common.actions")}</span>
+                 </div>
+                 <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted);">
+                    <span>${t("overview.access.language")}</span>
+                    <select
+                           style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px;"
+                           .value=${currentLocale}
+                           @input=${(e: Event) => this.handleLocaleChange(e)}
+                           @change=${(e: Event) => this.handleLocaleChange(e)}>
+                       ${SUPPORTED_LOCALES.map((locale) => html`
+                         <option value=${locale} ?selected=${currentLocale === locale}>
+                           ${t(`languages.${locale}`)}
+                         </option>
+                       `)}
+                    </select>
+                 </label>
               </div>
-              <div style="margin-top: 12px; display: grid; gap: 10px;">
-                <label class="field">
-                   <span style="font-size: 12px; color: var(--muted);">${t("overview.access.wsUrl")}</span>
-                   <input style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
-                          .value=${this.app.settings.gatewayUrl}
-                          @input=${(e: Event) => this.app.applySettings({...this.app.settings, gatewayUrl: (e.target as HTMLInputElement).value})}/>
-                </label>
-                <label class="field">
-                   <span style="font-size: 12px; color: var(--muted);">${t("overview.access.token")}</span>
-                   <input type="password"
-                          style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
-                          .value=${this.app.settings.token}
-                          @input=${(e: Event) => this.app.applySettings({...this.app.settings, token: (e.target as HTMLInputElement).value})}/>
-                </label>
-                <label class="field">
-                   <span style="font-size: 12px; color: var(--muted);">${t("overview.access.language")}</span>
-                   <select
-                          style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px;"
-                          .value=${currentLocale}
-                          @input=${(e: Event) => this.handleLocaleChange(e)}
-                          @change=${(e: Event) => this.handleLocaleChange(e)}>
-                      ${SUPPORTED_LOCALES.map((locale) => html`
-                        <option value=${locale} ?selected=${currentLocale === locale}>
-                          ${t(`languages.${locale}`)}
-                        </option>
-                      `)}
-                   </select>
-                </label>
-                <button class="btn" style="background: var(--accent); color: var(--primary-foreground); border:none; padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; transition: filter 0.15s;"
-                 @click=${() => this.app.gateway.reconnect()}>
-                   ${connected ? t("overview.status.reconnect") : t("common.connect")}
-                </button>
-              </div>
-           </div>
-
-           <!-- Quick Actions -->
-           <div class="card">
-              <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                 ${renderIcon("zap", "16px", "color: var(--accent);")}
-                 <span>${t("common.actions")}</span>
-              </div>
-              <div style="margin-top: 12px; display: grid; gap: 8px;">
+              <div style="margin-top: 12px; display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
                  <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
                   @click=${() => this.app.setTab("chat" as any)}>
                     ${renderIcon("messageSquare", "15px", "color: var(--accent);")}

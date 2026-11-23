@@ -509,59 +509,6 @@ export class ConfigView extends LitElement {
             `
           : ""}
 
-        <!-- Gateway Connection Strip (Always accessible) -->
-        <div
-          class="cb-gateway-strip"
-          style="background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;"
-        >
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 18px; height: 18px; color: var(--accent);">
-              ${renderIcon("globe")}
-            </div>
-            <div>
-              <div style="font-size: 12px; font-weight: 600; color: var(--text-strong);">
-                Gateway Control Plane
-              </div>
-              <div style="font-size: 11px; color: var(--muted); font-family: var(--mono);">
-                ${isConnected ? "Connected (:18789) · SQLite WAL active" : "Disconnected · Loopback offline"}
-              </div>
-            </div>
-          </div>
-
-          <div style="display: flex; align-items: center; gap: 8px; flex: 1; max-width: 620px; justify-content: flex-end;">
-            <input
-              type="text"
-              placeholder="ws://127.0.0.1:18789"
-              style="max-width: 200px; background: var(--input, var(--bg-elevated)); border: 1px solid var(--border-hairline); padding: 6px 10px; border-radius: var(--radius-sm); color: var(--text-strong); font-size: 11px; font-family: var(--mono); outline: none;"
-              .value=${this.editGatewayUrl}
-              @input=${(e: Event) => (this.editGatewayUrl = (e.target as HTMLInputElement).value)}
-            />
-            <div style="position: relative; max-width: 200px; width: 100%;">
-              <input
-                type=${this.isGatewaySecretRevealed ? "text" : "password"}
-                placeholder="Auth Token (optional)"
-                style="width: 100%; background: var(--input, var(--bg-elevated)); border: 1px solid var(--border-hairline); padding: 6px 28px 6px 10px; border-radius: var(--radius-sm); color: var(--text-strong); font-size: 11px; font-family: var(--mono); outline: none;"
-                .value=${this.editGatewayToken}
-                @input=${(e: Event) => (this.editGatewayToken = (e.target as HTMLInputElement).value)}
-              />
-              <button
-                type="button"
-                style="position: absolute; right: 5px; top: 6px; width: 18px; height: 18px; background: transparent; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;"
-                @click=${() => (this.isGatewaySecretRevealed = !this.isGatewaySecretRevealed)}
-              >
-                ${renderIcon(this.isGatewaySecretRevealed ? "eyeOff" : "eye")}
-              </button>
-            </div>
-            <button
-              type="button"
-              style="background: var(--surface-flat-hover); border: 1px solid var(--border-hairline); color: var(--accent); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;"
-              @click=${() => this.saveGatewayConnection()}
-            >
-              Save &amp; Reconnect
-            </button>
-          </div>
-        </div>
-
         <!-- Main Body: JSON Mode vs Visual Mode -->
         ${this.viewMode === "json"
           ? html`

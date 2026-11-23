@@ -601,32 +601,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <span>Run Setup Wizard</span>
                 </button>
               </div>
-
-              <div>
-                <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-primary)", marginBottom: "4px" }}>
-                  Gateway Connection
-                </h4>
-                <p style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "8px" }}>
-                  Single-Brain Daemon URL:
-                </p>
-                <input
-                  type="text"
-                  readOnly
-                  value="http://127.0.0.1:18789"
-                  style={{
-                    width: "320px",
-                    height: "32px",
-                    background: "var(--bg-input)",
-                    border: "1px solid var(--border-subtle)",
-                    borderRadius: "var(--radius-xs)",
-                    padding: "0 10px",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "12px",
-                    color: "var(--accent-teal)",
-                    outline: "none",
-                  }}
-                />
-              </div>
             </div>
           )}
 

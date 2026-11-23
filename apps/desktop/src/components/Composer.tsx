@@ -11,10 +11,8 @@ import {
   SendIcon,
   ShieldIcon,
   SparklesIcon,
-  SpeakerIcon,
   StopIcon,
   UsersIcon,
-  VolumeXIcon,
 } from "./Icons";
 
 export interface ComposerProps {
@@ -789,65 +787,6 @@ export const Composer: React.FC<ComposerProps> = ({
               )}
             </div>
 
-            {/* Live Push-to-Talk Mic Dictation */}
-            <button
-              type="button"
-              onClick={handleToggleMic}
-              title={isRecording ? "Listening... Click to finish dictation" : "Push-to-Talk Voice Dictation (Mic)"}
-              style={{
-                width: "30px",
-                height: "30px",
-                borderRadius: "8px",
-                background: isRecording ? "rgba(239, 68, 68, 0.15)" : "var(--bg-chip)",
-                border: isRecording ? "1px solid #EF4444" : "1px solid var(--border-subtle)",
-                color: isRecording ? "#EF4444" : "var(--ink-secondary)",
-                display: "grid",
-                placeItems: "center",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-                flexShrink: 0,
-              }}
-            >
-              <MicIcon size={14} color={isRecording ? "#EF4444" : "currentColor"} />
-            </button>
-
-            {/* Auto-Speak Replies Toggle */}
-            <button
-              type="button"
-              onClick={isSpeaking ? onStopSpeaking : onToggleAutoSpeak}
-              title={
-                isSpeaking
-                  ? "Speaking reply. Click to stop (Silence)"
-                  : autoSpeak
-                    ? "Auto-Speak Replies enabled (Click to mute)"
-                    : "Auto-Speak Replies disabled (Click to enable)"
-              }
-              style={{
-                width: "30px",
-                height: "30px",
-                borderRadius: "8px",
-                background: isSpeaking
-                  ? "var(--accent-teal-glow)"
-                  : autoSpeak
-                    ? "var(--accent-teal-subtle)"
-                    : "var(--bg-chip)",
-                border: isSpeaking || autoSpeak ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
-                color: isSpeaking || autoSpeak ? "var(--accent-teal)" : "var(--ink-muted)",
-                display: "grid",
-                placeItems: "center",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-                flexShrink: 0,
-              }}
-            >
-              {isSpeaking ? (
-                <SpeakerIcon size={14} color="var(--accent-teal)" />
-              ) : autoSpeak ? (
-                <SpeakerIcon size={14} color="var(--accent-teal)" />
-              ) : (
-                <VolumeXIcon size={14} color="var(--ink-muted)" />
-              )}
-            </button>
           </div>
 
           {/* Right Controls */}
@@ -1152,7 +1091,7 @@ export const Composer: React.FC<ComposerProps> = ({
               )}
             </div>
 
-            {/* Circular Send / Stop Button */}
+            {/* Rightmost Morphing Action Slot: Stop (streaming) | Send ↑ (typing) | Mic (idle) */}
             {isStreaming ? (
               <button
                 type="button"
@@ -1175,28 +1114,48 @@ export const Composer: React.FC<ComposerProps> = ({
               >
                 <StopIcon size={16} color="#FFFFFF" />
               </button>
-            ) : (
+            ) : prompt.trim().length > 0 ? (
               <button
                 type="button"
                 onClick={onSend}
-                disabled={!prompt.trim()}
                 title="Send message"
                 style={{
                   width: "34px",
                   height: "34px",
                   borderRadius: "50%",
-                  background: prompt.trim() ? "var(--accent-teal)" : "rgba(45, 212, 191, 0.18)",
-                  border: "1px solid rgba(45, 212, 191, 0.35)",
-                  color: prompt.trim() ? "#08110F" : "var(--accent-teal)",
+                  background: "var(--accent-teal)",
+                  border: "1px solid var(--accent-teal)",
+                  color: "#08110F",
                   display: "grid",
                   placeItems: "center",
-                  cursor: prompt.trim() ? "pointer" : "default",
-                  boxShadow: prompt.trim() ? "0 2px 10px var(--accent-teal-glow)" : "none",
+                  cursor: "pointer",
+                  boxShadow: "0 2px 10px var(--accent-teal-glow)",
                   transition: "all 0.15s ease",
                   flexShrink: 0,
                 }}
               >
-                <SendIcon size={16} color={prompt.trim() ? "#08110F" : "var(--accent-teal)"} />
+                <SendIcon size={16} color="#08110F" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleToggleMic}
+                title={isRecording ? "Listening... Click to finish dictation" : "Push-to-Talk Voice Dictation (Mic)"}
+                style={{
+                  width: "34px",
+                  height: "34px",
+                  borderRadius: "50%",
+                  background: isRecording ? "rgba(239, 68, 68, 0.15)" : "var(--bg-chip)",
+                  border: isRecording ? "1px solid #EF4444" : "1px solid var(--border-subtle)",
+                  color: isRecording ? "#EF4444" : "var(--ink-secondary)",
+                  display: "grid",
+                  placeItems: "center",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                  flexShrink: 0,
+                }}
+              >
+                <MicIcon size={15} color={isRecording ? "#EF4444" : "currentColor"} />
               </button>
             )}
           </div>

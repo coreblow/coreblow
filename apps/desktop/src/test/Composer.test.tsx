@@ -199,4 +199,21 @@ describe("Composer Component", () => {
     expect(container.textContent).toContain("@workspace");
     expect(container.textContent).toContain("Reference the active project workspace");
   });
+
+  it("shows Mic at far right when empty, morphs to Send arrow when typing, and omits mute button", () => {
+    act(() => {
+      root.render(<Composer {...defaultProps} prompt="" />);
+    });
+
+    expect(container.querySelector('button[title*="Voice Dictation"]')).not.toBeNull();
+    expect(container.querySelector('button[title="Send message"]')).toBeNull();
+    expect(container.querySelector('button[title*="Auto-Speak"]')).toBeNull();
+
+    act(() => {
+      root.render(<Composer {...defaultProps} prompt="Build CoreBlow" />);
+    });
+
+    expect(container.querySelector('button[title="Send message"]')).not.toBeNull();
+    expect(container.querySelector('button[title*="Voice Dictation"]')).toBeNull();
+  });
 });
