@@ -46,12 +46,17 @@
 
 /* ─── Tool Cards ────────────────────────────────────────────── */
 .tool-card {
-  margin-top: 8px;
-  padding: 8px 12px;
+  margin-top: 6px;
   border-radius: var(--radius-sm, 6px);
-  background: rgba(0, 0, 0, 0.15);
-  border: 1px solid var(--border, #333);
+  background: var(--surface-flat-muted, rgba(0, 0, 0, 0.15));
+  border: 1px solid var(--border-hairline, var(--border, #333));
   font-size: 12px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.tool-card[open] {
+  border-color: var(--border-strong, #444);
 }
 
 .tool-card--running {
@@ -120,6 +125,78 @@
 
 .tool-card-output {
   margin-top: 4px;
+}
+
+/* ─── Quiet-Instrument Context Ring ────────────────────────── */
+.context-ring {
+  transition: opacity 0.2s ease;
+}
+.context-ring:hover {
+  opacity: 0.85;
+}
+.context-ring svg {
+  transition: stroke-dasharray 0.3s ease;
+}
+
+/* ─── Collapsible Thinking Block ───────────────────────────── */
+.thinking-block {
+  border: 1px solid var(--border-hairline, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface-flat-muted, rgba(255, 255, 255, 0.02));
+  margin-bottom: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+.thinking-block[open] {
+  border-color: var(--border-strong, #444);
+}
+.thinking-block summary {
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+.thinking-block summary:hover {
+  background: var(--surface-flat-hover, rgba(255, 255, 255, 0.04));
+}
+
+/* ─── Collapsible Right Workspace Drawer ───────────────────── */
+.chat-workspace-wrapper {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.chat-workspace-drawer {
+  width: 320px;
+  border-left: 1px solid var(--border-hairline, rgba(255, 255, 255, 0.08));
+  background: var(--bg-elevated, var(--card));
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  flex-shrink: 0;
+  animation: drawerSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes drawerSlideIn {
+  from { transform: translateX(100%); opacity: 0.8; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.workspace-file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm, 4px);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.workspace-file-row:hover {
+  background: var(--surface-flat-hover, rgba(255, 255, 255, 0.04));
 }
 
 /* ─── Stop Button ───────────────────────────────────────────── */

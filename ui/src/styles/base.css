@@ -32,6 +32,12 @@
   --border: #1e2028;
   --border-strong: #2e3040;
   --border-hover: #3e4050;
+  --border-hairline: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --surface-flat: var(--card);
+  --surface-flat-muted: rgba(255, 255, 255, 0.02);
+  --surface-flat-hover: rgba(255, 255, 255, 0.04);
+  --stroke-hairline: 1px solid var(--border-hairline);
   --input: #1e2028;
   --ring: #ff5c5c;
 
@@ -141,6 +147,12 @@
   --border: #e5e5ea;
   --border-strong: #d1d1d6;
   --border-hover: #aeaeb2;
+  --border-hairline: rgba(0, 0, 0, 0.08);
+  --border-subtle: rgba(0, 0, 0, 0.04);
+  --surface-flat: var(--card);
+  --surface-flat-muted: rgba(0, 0, 0, 0.02);
+  --surface-flat-hover: rgba(0, 0, 0, 0.04);
+  --stroke-hairline: 1px solid var(--border-hairline);
   --input: #e5e5ea;
 
   --accent: #dc2626;
@@ -243,6 +255,12 @@
   --border: #1a1a1e;
   --border-strong: #2a2a30;
   --border-hover: #3a3a42;
+  --border-hairline: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --surface-flat: var(--card);
+  --surface-flat-muted: rgba(255, 255, 255, 0.02);
+  --surface-flat-hover: rgba(255, 255, 255, 0.04);
+  --stroke-hairline: 1px solid var(--border-hairline);
   --input: #1a1a1e;
 
   --secondary: #111113;
@@ -309,6 +327,12 @@
   --border: #e2e2e8;
   --border-strong: #ccccd4;
   --border-hover: #adadb8;
+  --border-hairline: rgba(0, 0, 0, 0.08);
+  --border-subtle: rgba(0, 0, 0, 0.04);
+  --surface-flat: var(--card);
+  --surface-flat-muted: rgba(0, 0, 0, 0.02);
+  --surface-flat-hover: rgba(0, 0, 0, 0.04);
+  --stroke-hairline: 1px solid var(--border-hairline);
   --input: #e2e2e8;
 
   --secondary: #f2f2f5;
@@ -377,6 +401,12 @@
   --border: #302418;
   --border-strong: #443828;
   --border-hover: #5a4c3a;
+  --border-hairline: rgba(180, 120, 64, 0.16);
+  --border-subtle: rgba(180, 120, 64, 0.08);
+  --surface-flat: var(--card);
+  --surface-flat-muted: rgba(180, 120, 64, 0.03);
+  --surface-flat-hover: rgba(180, 120, 64, 0.06);
+  --stroke-hairline: 1px solid var(--border-hairline);
   --input: #302418;
 
   --secondary: #221a16;
@@ -441,6 +471,12 @@
   --border: #ddd0c2;
   --border-strong: #c8b8a6;
   --border-hover: #b0a090;
+  --border-hairline: rgba(110, 72, 40, 0.12);
+  --border-subtle: rgba(110, 72, 40, 0.05);
+  --surface-flat: var(--card);
+  --surface-flat-muted: rgba(110, 72, 40, 0.02);
+  --surface-flat-hover: rgba(110, 72, 40, 0.04);
+  --stroke-hairline: 1px solid var(--border-hairline);
   --input: #ddd0c2;
 
   --secondary: #f0e8e0;

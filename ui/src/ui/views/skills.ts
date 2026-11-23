@@ -85,23 +85,23 @@ export class SkillsView extends LitElement {
                  </div>
                  <div class="card-sub">${t("skills.readySummary", { ready: String(ready), total: String(total) })} · Zero-Trust Static AST Security Verification</div>
               </div>
-              <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
+              <button style="background: var(--bg-elevated); border: 1px solid var(--border-hairline); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
                @click=${() => this.app.setTab("coreHub")}>CoreHub</button>
               <a href="https://coreblow.com/corehub" target="_blank" rel="noopener noreferrer"
-                 style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px; text-decoration: none;">
+                 style="background: var(--bg-elevated); border: 1px solid var(--border-hairline); padding: 6px 12px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px; text-decoration: none;">
                 Browse CoreHub
               </a>
-              <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px; display: inline-flex; align-items: center; gap: 6px;"
+              <button style="background: var(--bg-elevated); border: 1px solid var(--border-hairline); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px; display: inline-flex; align-items: center; gap: 6px;"
                @click=${() => this.loadSkills()}>${renderIcon("refresh", "12px")} ${t("common.refresh")}</button>
            </div>
 
            <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
-              <input style="flex: 1; background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px;"
+              <input style="flex: 1; background: var(--bg-elevated); border: 1px solid var(--border-hairline); padding: 6px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px;"
                      placeholder=${t("skills.searchPlaceholder")}
                      .value=${this.filter}
                      @input=${(e: Event) => this.filter = (e.target as HTMLInputElement).value} />
               ${(["all", "ready", "disabled"] as const).map(f => html`
-                 <button style="font-size: 11px; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid ${this.statusFilter === f ? 'var(--accent)' : 'var(--border)'}; background: ${this.statusFilter === f ? 'var(--accent)' : 'var(--bg-elevated)'}; color: ${this.statusFilter === f ? 'white' : 'var(--foreground)'}; cursor: pointer;"
+                 <button style="font-size: 11px; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid ${this.statusFilter === f ? 'var(--accent)' : 'var(--border-hairline)'}; background: ${this.statusFilter === f ? 'var(--accent)' : 'var(--bg-elevated)'}; color: ${this.statusFilter === f ? 'white' : 'var(--foreground)'}; cursor: pointer;"
                   @click=${() => this.statusFilter = f}>${t(`skills.filter.${f}`)}</button>
               `)}
            </div>
@@ -121,11 +121,11 @@ export class SkillsView extends LitElement {
               <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 12px;">${cat}</div>
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px;">
                  ${items.map(s => html`
-                    <div style="background: var(--bg-elevated); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); ${!s.enabled ? 'opacity: 0.5;' : ''}">
+                    <div style="background: var(--surface-flat-muted); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-hairline); ${!s.enabled ? 'opacity: 0.5;' : ''}">
                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                           <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
                              <span style="font-weight: 600; font-size: 13px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${s.name}</span>
-                             ${s.source ? html`<span style="font-size: 10px; padding: 1px 6px; border-radius: var(--radius-sm); background: var(--bg-card, rgba(255,255,255,0.06)); border: 1px solid var(--border); font-family: var(--mono); color: var(--muted);">${s.source}</span>` : ""}
+                             ${s.source ? html`<span style="font-size: 10px; padding: 1px 6px; border-radius: var(--radius-sm); background: var(--bg-card, rgba(255,255,255,0.06)); border: 1px solid var(--border-hairline); font-family: var(--mono); color: var(--muted);">${s.source}</span>` : ""}
                           </div>
                           <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                              <span style="font-size: 10px; padding: 1px 6px; border-radius: var(--radius-sm); background: rgba(34,197,94,0.1); color: var(--ok, #22c55e); font-family: var(--mono);" title="TypeScript AST Security Verified">AST: Clean</span>

@@ -193,13 +193,13 @@ export class SessionsView extends LitElement {
               </div>
               <button class="btn" style="background: var(--accent); color: var(--primary-foreground); border:none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;"
                @click=${this.createNewSession}>+ ${t("sessions.newSession")}</button>
-              <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground);"
+              <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border-hairline); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground);"
                @click=${() => this.loadSessions()}>↻ ${t("common.refresh")}</button>
            </div>
 
            <!-- Search + Bulk Actions -->
            <div style="margin-top: 16px; display: flex; gap: 12px; align-items: center;">
-              <input style="flex: 1; background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--font-sans);"
+              <input style="flex: 1; background: var(--bg-elevated); border: 1px solid var(--border-hairline); padding: 8px 12px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--font-sans);"
                      placeholder=${t("sessions.searchPlaceholder")}
                      .value=${this.searchQuery}
                      @input=${(e: Event) => this.searchQuery = (e.target as HTMLInputElement).value} />

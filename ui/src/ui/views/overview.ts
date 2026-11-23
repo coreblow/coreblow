@@ -143,18 +143,18 @@ export class OverviewView extends LitElement {
            </div>
 
            <!-- Runtime Posture Chips -->
-           <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+           <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-hairline); display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
               <span style="font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px;">Posture:</span>
-              <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--bg-elevated); border: 1px solid var(--border); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
+              <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
                  <span style="color: var(--ok, #22c55e);">●</span> SQLite WAL + FTS5
               </span>
-              <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--bg-elevated); border: 1px solid var(--border); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
+              <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
                  <span style="color: var(--accent, #6366f1);">●</span> dmScope: per-channel-peer
               </span>
-              <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--bg-elevated); border: 1px solid var(--border); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
+              <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
                  <span style="color: var(--ok, #22c55e);">●</span> AST Skill Guard
               </span>
-              <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--bg-elevated); border: 1px solid var(--border); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
+              <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
                  <span style="color: var(--accent, #6366f1);">●</span> MCP Sovereign Bridge
               </span>
            </div>
