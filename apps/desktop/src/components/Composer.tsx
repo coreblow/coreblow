@@ -59,6 +59,21 @@ const EFFORT_OPTIONS: { label: string; tier: ModelTier; desc: string }[] = [
   { label: "High", tier: "High Reasoning", desc: "Deep analytical reasoning" },
 ];
 
+const SLASH_COMMANDS = [
+  { cmd: "/help", desc: "List all CoreBlow commands & shortcuts" },
+  { cmd: "/clear", desc: "Clear current chat session messages" },
+  { cmd: "/mode", desc: "Switch execution mode (standard, autonomous, warroom)" },
+  { cmd: "/model", desc: "Change reasoning model tier" },
+  { cmd: "/estop", desc: "Trigger or toggle emergency stop pause" },
+  { cmd: "/sync", desc: "Synchronize sessions and memory with gateway" },
+];
+
+const AT_SUGGESTIONS = [
+  { prefix: "@workspace", desc: "Reference the active project workspace" },
+  { prefix: "@files", desc: "Attach or browse workspace files" },
+  { prefix: "@sessions", desc: "Reference recent conversation history" },
+];
+
 export const Composer: React.FC<ComposerProps> = ({
   prompt,
   onChangePrompt,
@@ -101,6 +116,34 @@ export const Composer: React.FC<ComposerProps> = ({
   const modelPopoverRef = useRef<HTMLDivElement>(null);
   const permissionPopoverRef = useRef<HTMLDivElement>(null);
   const modePopoverRef = useRef<HTMLDivElement>(null);
+
+  // Slash commands & @ references autocomplete state
+  const isSlashTriggered = prompt.startsWith("/") && !prompt.includes(" ");
+  const matchingSlashCommands = isSlashTriggered
+    ? SLASH_COMMANDS.filter((s) => s.cmd.startsWith(prompt.toLowerCase()))
+    : [];
+
+  const atMatch = prompt.match(/@(\w*)$/);
+  const isAtTriggered = Boolean(atMatch);
+  const atQuery = atMatch ? atMatch[1].toLowerCase() : "";
+  const matchingAtSuggestions = isAtTriggered
+    ? AT_SUGGESTIONS.filter((s) => s.prefix.slice(1).startsWith(atQuery))
+    : [];
+
+  const handleSelectSlashCommand = (cmd: string) => {
+    onChangePrompt(cmd + " ");
+    setTimeout(() => textareaRef.current?.focus(), 20);
+  };
+
+  const handleSelectAtSuggestion = (prefix: string) => {
+    if (atMatch) {
+      const replaced = prompt.slice(0, prompt.length - atMatch[0].length) + prefix + " ";
+      onChangePrompt(replaced);
+    } else {
+      onChangePrompt((prompt ? prompt + " " : "") + prefix + " ");
+    }
+    setTimeout(() => textareaRef.current?.focus(), 20);
+  };
 
   // Close menus when clicking outside or pressing Escape
   useEffect(() => {
@@ -524,6 +567,90 @@ export const Composer: React.FC<ComposerProps> = ({
           />
         </div>
 
+        {/* Autocomplete Popover for / commands and @ references */}
+        {(matchingSlashCommands.length > 0 || matchingAtSuggestions.length > 0) && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "calc(100% + 8px)",
+              left: "16px",
+              width: "280px",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-medium)",
+              borderRadius: "10px",
+              boxShadow: "var(--shadow-composer)",
+              overflow: "hidden",
+              zIndex: 75,
+              padding: "4px 0",
+            }}
+          >
+            {matchingSlashCommands.map((sc) => (
+              <button
+                key={sc.cmd}
+                type="button"
+                onClick={() => handleSelectSlashCommand(sc.cmd)}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "6px 12px",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  transition: "background 0.1s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "var(--accent-teal-subtle)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--accent-teal)" }}>
+                  {sc.cmd}
+                </span>
+                <span style={{ fontSize: "11px", color: "var(--ink-muted)" }}>
+                  {sc.desc}
+                </span>
+              </button>
+            ))}
+            {matchingAtSuggestions.map((at) => (
+              <button
+                key={at.prefix}
+                type="button"
+                onClick={() => handleSelectAtSuggestion(at.prefix)}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "6px 12px",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  transition: "background 0.1s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "var(--accent-teal-subtle)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--accent-teal)" }}>
+                  {at.prefix}
+                </span>
+                <span style={{ fontSize: "11px", color: "var(--ink-muted)" }}>
+                  {at.desc}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Bottom Toolbar */}
         <div
           style={{
@@ -531,10 +658,21 @@ export const Composer: React.FC<ComposerProps> = ({
             alignItems: "center",
             justifyContent: "space-between",
             paddingTop: "6px",
+            gap: "8px",
+            flexWrap: "nowrap",
+            minWidth: 0,
           }}
         >
           {/* Left Controls */}
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              flexShrink: 0,
+              minWidth: 0,
+            }}
+          >
             {/* Circular + attach button */}
             <button
               type="button"
@@ -551,6 +689,7 @@ export const Composer: React.FC<ComposerProps> = ({
                 placeItems: "center",
                 cursor: "pointer",
                 transition: "all 0.15s ease",
+                flexShrink: 0,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = "var(--accent-teal-subtle)";
@@ -567,7 +706,7 @@ export const Composer: React.FC<ComposerProps> = ({
             </button>
 
             {/* Minimal Ghost Permission Selector */}
-            <div style={{ position: "relative" }} ref={permissionPopoverRef}>
+            <div style={{ position: "relative", flexShrink: 0 }} ref={permissionPopoverRef}>
               <button
                 type="button"
                 onClick={() => setIsPermissionMenuOpen((prev) => !prev)}
@@ -583,6 +722,8 @@ export const Composer: React.FC<ComposerProps> = ({
                   gap: "6px",
                   cursor: "pointer",
                   transition: "background 0.15s ease",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = "var(--bg-hover)";
@@ -594,7 +735,7 @@ export const Composer: React.FC<ComposerProps> = ({
                 }}
               >
                 <ShieldIcon size={12} color="#F59E0B" />
-                <span>{permissionMode}</span>
+                <span style={{ whiteSpace: "nowrap", flexShrink: 0 }}>{permissionMode}</span>
                 <ChevronDownIcon size={11} color="var(--ink-muted)" />
               </button>
 
@@ -636,6 +777,7 @@ export const Composer: React.FC<ComposerProps> = ({
                           fontSize: "12px",
                           cursor: "pointer",
                           textAlign: "left",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         <span>{mode}</span>
@@ -663,6 +805,7 @@ export const Composer: React.FC<ComposerProps> = ({
                 placeItems: "center",
                 cursor: "pointer",
                 transition: "all 0.15s ease",
+                flexShrink: 0,
               }}
             >
               <MicIcon size={14} color={isRecording ? "#EF4444" : "currentColor"} />
@@ -694,6 +837,7 @@ export const Composer: React.FC<ComposerProps> = ({
                 placeItems: "center",
                 cursor: "pointer",
                 transition: "all 0.15s ease",
+                flexShrink: 0,
               }}
             >
               {isSpeaking ? (
@@ -707,9 +851,17 @@ export const Composer: React.FC<ComposerProps> = ({
           </div>
 
           {/* Right Controls */}
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              flexShrink: 0,
+              minWidth: 0,
+            }}
+          >
             {/* Unified Model + Effort Pill & Floating Popover */}
-            <div style={{ position: "relative" }} ref={modelPopoverRef}>
+            <div style={{ position: "relative", flexShrink: 0 }} ref={modelPopoverRef}>
               <button
                 type="button"
                 onClick={() => setIsModelPopoverOpen((prev) => !prev)}
@@ -720,19 +872,23 @@ export const Composer: React.FC<ComposerProps> = ({
                   background: isModelPopoverOpen ? "rgba(249, 115, 22, 0.16)" : "rgba(249, 115, 22, 0.08)",
                   border: "1px solid rgba(249, 115, 22, 0.28)",
                   color: "var(--ink-secondary)",
-                  padding: "0 12px",
+                  padding: "0 10px",
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: "6px",
+                  gap: "5px",
                   fontSize: "11px",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
                 }}
               >
                 <SparklesIcon size={12} color="#F97316" />
-                <span style={{ fontWeight: 600, color: "var(--ink-primary)" }}>{shortModelName}</span>
-                <span style={{ color: "var(--ink-muted)" }}>·</span>
-                <span>{effortShortLabel}</span>
+                <span style={{ fontWeight: 600, color: "var(--ink-primary)", whiteSpace: "nowrap", flexShrink: 0 }}>
+                  {shortModelName}
+                </span>
+                <span style={{ color: "var(--ink-muted)", flexShrink: 0 }}>·</span>
+                <span style={{ whiteSpace: "nowrap", flexShrink: 0 }}>{effortShortLabel}</span>
                 <span
                   title="Effort status indicator"
                   style={{
@@ -743,6 +899,7 @@ export const Composer: React.FC<ComposerProps> = ({
                     background: "#F97316",
                     boxShadow: "0 0 6px rgba(249, 115, 22, 0.6)",
                     marginLeft: "2px",
+                    flexShrink: 0,
                   }}
                 />
                 <ChevronUpIcon size={12} color="#F97316" />
@@ -1013,6 +1170,7 @@ export const Composer: React.FC<ComposerProps> = ({
                   cursor: "pointer",
                   boxShadow: "0 2px 8px rgba(239, 68, 68, 0.4)",
                   transition: "transform 0.1s ease",
+                  flexShrink: 0,
                 }}
               >
                 <StopIcon size={16} color="#FFFFFF" />
@@ -1035,6 +1193,7 @@ export const Composer: React.FC<ComposerProps> = ({
                   cursor: prompt.trim() ? "pointer" : "default",
                   boxShadow: prompt.trim() ? "0 2px 10px var(--accent-teal-glow)" : "none",
                   transition: "all 0.15s ease",
+                  flexShrink: 0,
                 }}
               >
                 <SendIcon size={16} color={prompt.trim() ? "#08110F" : "var(--accent-teal)"} />

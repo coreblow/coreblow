@@ -164,4 +164,39 @@ describe("Composer Component", () => {
     expect(onChangeExecutionMode).toHaveBeenCalledWith("warroom");
     expect(onToggleAgentTeamwork).toHaveBeenCalledWith(true);
   });
+
+  it("enforces whiteSpace: nowrap and flexShrink: 0 on permission button and model pill to prevent toolbar wrapping", () => {
+    act(() => {
+      root.render(<Composer {...defaultProps} permissionMode="Full access" />);
+    });
+
+    const buttons = Array.from(container.querySelectorAll("button"));
+    const permBtn = buttons.find((b) => b.textContent?.includes("Full access"));
+    expect(permBtn).toBeDefined();
+    expect(permBtn?.style.whiteSpace).toBe("nowrap");
+    expect(permBtn?.style.flexShrink).toBe("0");
+
+    const pillBtn = buttons.find((b) => b.textContent?.includes("coreblow/balanced"));
+    expect(pillBtn).toBeDefined();
+    expect(pillBtn?.style.whiteSpace).toBe("nowrap");
+    expect(pillBtn?.style.flexShrink).toBe("0");
+  });
+
+  it("renders non-clipping autocomplete popover when typing slash command /", () => {
+    act(() => {
+      root.render(<Composer {...defaultProps} prompt="/h" />);
+    });
+
+    expect(container.textContent).toContain("/help");
+    expect(container.textContent).toContain("List all CoreBlow commands & shortcuts");
+  });
+
+  it("renders non-clipping autocomplete popover when typing @ reference", () => {
+    act(() => {
+      root.render(<Composer {...defaultProps} prompt="Check @wo" />);
+    });
+
+    expect(container.textContent).toContain("@workspace");
+    expect(container.textContent).toContain("Reference the active project workspace");
+  });
 });

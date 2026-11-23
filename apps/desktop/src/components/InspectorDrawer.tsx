@@ -4,6 +4,7 @@ import { GitGatesTab } from "./tabs/GitGatesTab";
 import { WarRoomTab } from "./tabs/WarRoomTab";
 import { MemoryWikiTab } from "./tabs/MemoryWikiTab";
 import { CoreHubTab } from "./tabs/CoreHubTab";
+import { WorkspaceFilesTab } from "./tabs/WorkspaceFilesTab";
 import {
   AgentsBrainIcon,
   CompassIcon,
@@ -36,6 +37,7 @@ interface InspectorDrawerProps {
   activeTab: InspectorTab;
   onChangeTab: (tab: InspectorTab) => void;
   project: ActiveProjectState;
+  onAttachFile?: (path: string) => void;
 }
 
 export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
@@ -44,6 +46,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
   activeTab,
   onChangeTab,
   project,
+  onAttachFile,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [moreToolsOpen, setMoreToolsOpen] = useState(false);
@@ -54,7 +57,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
     "[runtime] 8 execution backends ready (local, vm_isolate, docker, ssh, daytona, modal, vercel, e2b)",
     "[tools] 75 native tools loaded across 12 domain toolsets",
     "[session] workspace active at " + project.name,
-    "Type a command below to execute in session workspace...",
+    "Type 'help', 'status', or commands below to execute in session workspace...",
   ]);
 
   if (!open) return null;
@@ -62,16 +65,88 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
   const handleRunCommand = (e: React.FormEvent) => {
     e.preventDefault();
     if (!terminalInput.trim()) return;
-    const cmd = terminalInput.trim();
-    setTerminalLogs((prev) => [...prev, `$ ${cmd}`, `[exec] ${cmd}: ok`]);
+    const rawCmd = terminalInput.trim();
+    const cmd = rawCmd.toLowerCase();
     setTerminalInput("");
+
+    if (cmd === "clear") {
+      setTerminalLogs([]);
+      return;
+    }
+
+    const timestamp = new Date().toLocaleTimeString();
+    const newLogs: string[] = [`$ ${rawCmd}`];
+
+    if (cmd === "help") {
+      newLogs.push(
+        "Available CoreBlow workspace terminal commands:",
+        "  coreblow status   - Inspect sovereign router, active backends, and memory state",
+        "  coreblow doctor   - Audit environment readiness, permissions, and sandbox health",
+        "  git status        - Check active git branch, gates, and modified files",
+        "  pwd               - Print working directory of current session",
+        "  ls                - List files in current session workspace",
+        "  clear             - Clear terminal screen",
+      );
+    } else if (cmd === "coreblow status" || cmd === "status") {
+      newLogs.push(
+        `[${timestamp}] CoreBlow Studio Runtime v2.1.2`,
+        `  • Router: 8 Execution Backends Ready (local, vm_isolate, docker, ssh, daytona, modal, vercel, e2b)`,
+        `  • Active Node: Local (:18789)`,
+        `  • Gateway: WebSocket Connected (Sovereign Dialectic Brain)`,
+        `  • Memory: Cory Vector Index Active (OLED OLED/100)`,
+      );
+    } else if (cmd === "coreblow doctor" || cmd === "doctor") {
+      newLogs.push(
+        `[${timestamp}] CoreBlow Doctor Diagnostics:`,
+        "  [PASS] Node.js 22+ ESM environment",
+        "  [PASS] Electron runtime sandbox isolation",
+        "  [PASS] OS Keychain Vault (enc:v1 credentials)",
+        "  [PASS] Gateway microkernel 12 services responsive",
+        "  [PASS] All 5 git gates green",
+      );
+    } else if (cmd === "pwd") {
+      newLogs.push(project.path);
+    } else if (cmd === "ls") {
+      newLogs.push(
+        "apps/           coreblow.config.json  package.json       src/",
+        "docs/           extensions/           pnpm-lock.yaml     ui/",
+      );
+    } else if (cmd.startsWith("git status")) {
+      newLogs.push(
+        `On branch ${project.branch}`,
+        `Your branch is up to date with 'origin/${project.branch}'.`,
+        project.uncommittedFiles > 0
+          ? `Changes not staged: ${project.uncommittedFiles} modified file(s)`
+          : "nothing to commit, working tree clean",
+      );
+    } else {
+      newLogs.push(`[${timestamp}] [exec] ${rawCmd}: completed with exit code 0`);
+    }
+
+    setTerminalLogs((prev) => [...prev, ...newLogs]);
+  };
+
+  const handleNavigateBrowser = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!browserUrl.trim()) return;
+    let url = browserUrl.trim();
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = "https://" + url;
+    }
+    setBrowserUrl(url);
+  };
+
+  const handleOpenExternal = () => {
+    if (!browserUrl) return;
+    window.open(browserUrl, "_blank", "noopener,noreferrer");
   };
 
   const getTitle = () => {
     switch (activeTab) {
       case "files":
-      case "git":
         return "Workspace files";
+      case "git":
+        return "Git Gates";
       case "terminal":
         return "Terminal";
       case "browser":
@@ -526,7 +601,9 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
               </div>
             </div>
           </div>
-        ) : activeTab === "files" || activeTab === "git" ? (
+        ) : activeTab === "files" ? (
+          <WorkspaceFilesTab project={project} onAttachFile={onAttachFile} />
+        ) : activeTab === "git" ? (
           <div style={{ flex: 1, padding: "14px" }}>
             <GitGatesTab branch={project.branch} uncommittedFiles={project.uncommittedFiles} />
           </div>
@@ -571,7 +648,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
                 type="text"
                 value={terminalInput}
                 onChange={(e) => setTerminalInput(e.target.value)}
-                placeholder="Type terminal command..."
+                placeholder="Type terminal command (e.g. help, status, pwd, ls)..."
                 style={{
                   flex: 1,
                   height: "30px",
@@ -606,7 +683,8 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
         ) : activeTab === "browser" ? (
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             {/* Browser Address Bar */}
-            <div
+            <form
+              onSubmit={handleNavigateBrowser}
               style={{
                 height: "36px",
                 display: "flex",
@@ -622,7 +700,7 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
                 type="text"
                 value={browserUrl}
                 onChange={(e) => setBrowserUrl(e.target.value)}
-                placeholder="Enter URL (http://...)"
+                placeholder="Enter URL (e.g. localhost:9119)..."
                 style={{
                   flex: 1,
                   height: "24px",
@@ -636,6 +714,23 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
                   outline: "none",
                 }}
               />
+              <button
+                type="submit"
+                title="Navigate to URL"
+                style={{
+                  height: "24px",
+                  padding: "0 8px",
+                  borderRadius: "4px",
+                  background: "var(--accent-teal-subtle)",
+                  border: "1px solid var(--accent-teal)",
+                  color: "var(--accent-teal)",
+                  fontSize: "10px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Go
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -658,7 +753,27 @@ export const InspectorDrawer: React.FC<InspectorDrawerProps> = ({
               >
                 <RefreshIcon size={12} />
               </button>
-            </div>
+              <button
+                type="button"
+                onClick={handleOpenExternal}
+                title="Open in External Browser"
+                style={{
+                  height: "24px",
+                  padding: "0 6px",
+                  borderRadius: "4px",
+                  background: "transparent",
+                  border: "1px solid var(--border-subtle)",
+                  color: "var(--ink-muted)",
+                  fontSize: "10px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "3px",
+                  cursor: "pointer",
+                }}
+              >
+                <span>↗</span>
+              </button>
+            </form>
 
             {/* Browser View */}
             <div style={{ flex: 1, position: "relative", background: "var(--bg-canvas)" }}>

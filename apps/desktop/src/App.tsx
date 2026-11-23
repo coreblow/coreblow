@@ -195,6 +195,12 @@ export const App: React.FC = () => {
         const name = newPath.split("/").pop() || newPath;
         setProject((p) => ({ ...p, path: newPath, name }));
       }
+    } else {
+      const fallbackPaths = ["~/coreblow", "~/workspaces/agent-suite", "~/dev/sovereign-kernel"];
+      const nextIdx = (fallbackPaths.indexOf(project.path) + 1) % fallbackPaths.length;
+      const newPath = fallbackPaths[nextIdx];
+      const name = newPath.split("/").pop() || newPath;
+      setProject((p) => ({ ...p, path: newPath, name }));
     }
   };
 
@@ -684,28 +690,10 @@ export const App: React.FC = () => {
         topbar={
           <Topbar
             sidebarCollapsed={preferences.sidebarCollapsed}
-            project={project}
-            onChangeProject={(newPath) => {
-              const name = newPath.split("/").pop() || newPath;
-              setProject((p) => ({ ...p, path: newPath, name }));
-            }}
             inspectorOpen={preferences.inspectorOpen}
             onToggleInspector={() =>
               setPreferences((p) => ({ ...p, inspectorOpen: !p.inspectorOpen }))
             }
-            gatewayHealthy={gatewayHealthy}
-            onReconnectGateway={handleReconnectGateway}
-            nodes={nodes}
-            activeNodeId={activeNodeId}
-            onSelectNode={handleSelectNode}
-            onSyncSessions={handleSyncSessions}
-            onOpenRemoteSettings={() => {
-              setSettingsSection("remotes");
-              setSettingsOpen(true);
-            }}
-            isSyncingSessions={isSyncingSessions}
-            layoutMode={preferences.layoutMode || "basic"}
-            onToggleLayoutMode={handleToggleLayoutMode}
           />
         }
         content={
@@ -772,6 +760,7 @@ export const App: React.FC = () => {
             activeTab={preferences.inspectorTab}
             onChangeTab={(tab) => setPreferences((p) => ({ ...p, inspectorTab: tab }))}
             project={project}
+            onAttachFile={(path) => setAttachedFiles((prev) => [...prev, path])}
           />
         }
         statusBar={undefined}

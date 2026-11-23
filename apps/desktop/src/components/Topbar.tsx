@@ -1,23 +1,10 @@
 import React from "react";
-import type { ActiveProjectState, RemoteNodeConfig } from "../types/gateway";
 import { InspectorIcon } from "./Icons";
 
 export interface TopbarProps {
   sidebarCollapsed: boolean;
-  project?: ActiveProjectState;
-  onChangeProject?: (newPath: string) => void;
   inspectorOpen: boolean;
   onToggleInspector: () => void;
-  gatewayHealthy?: boolean;
-  onReconnectGateway?: () => void;
-  nodes?: RemoteNodeConfig[];
-  activeNodeId?: string;
-  onSelectNode?: (nodeId: string) => void;
-  onSyncSessions?: () => void;
-  onOpenRemoteSettings?: () => void;
-  isSyncingSessions?: boolean;
-  layoutMode?: "basic" | "pro";
-  onToggleLayoutMode?: () => void;
 }
 
 export const Topbar: React.FC<TopbarProps> = ({
