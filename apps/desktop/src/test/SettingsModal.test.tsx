@@ -408,25 +408,38 @@ describe("SettingsModal Component", () => {
     expect(text).toContain("MEMORY.md");
     expect(text).toContain("CONSTRAINTS.md");
 
-    // Check textarea content
-    const textarea = container.querySelector<HTMLTextAreaElement>("textarea");
-    expect(textarea).not.toBeNull();
-    expect(textarea?.value).toBe("# User Profile\n- Dark mode");
+    // Verify all 3 textareas exist simultaneously for the 3 stacked cards
+    const textareas = container.querySelectorAll<HTMLTextAreaElement>("textarea");
+    expect(textareas.length).toBe(3);
+
+    const userTextarea = container.querySelector<HTMLTextAreaElement>('textarea[aria-label="Edit USER.md"]');
+    const memoryTextarea = container.querySelector<HTMLTextAreaElement>('textarea[aria-label="Edit MEMORY.md"]');
+    const constraintsTextarea = container.querySelector<HTMLTextAreaElement>('textarea[aria-label="Edit CONSTRAINTS.md"]');
+
+    expect(userTextarea).not.toBeNull();
+    expect(memoryTextarea).not.toBeNull();
+    expect(constraintsTextarea).not.toBeNull();
+
+    expect(userTextarea?.value).toBe("# User Profile\n- Dark mode");
+    expect(memoryTextarea?.value).toBe("# Workspace Memory\n- TypeScript");
+    expect(constraintsTextarea?.value).toBe("# Invariants\n- No any");
     expect(text).toContain("26 / 1375 chars");
 
-    // Edit textarea
+    // Edit USER.md textarea
     act(() => {
-      if (textarea) {
-        setTextareaValue(textarea, "# User Profile\n- Dark mode\n- Sovereign Teal");
+      if (userTextarea) {
+        setTextareaValue(userTextarea, "# User Profile\n- Dark mode\n- Sovereign Teal");
       }
     });
 
-    // Check live char count updated
+    // Check live char count updated for USER.md while memory textarea is unchanged
     expect(container.textContent).toContain("43 / 1375 chars");
+    expect(memoryTextarea?.value).toBe("# Workspace Memory\n- TypeScript");
 
-    // Click Save File
-    const saveButton = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Save File"),
+    // Click Save on the USER.md card
+    const userCard = userTextarea?.parentElement;
+    const saveButton = Array.from(userCard?.querySelectorAll("button") || []).find(
+      (b) => b.textContent?.trim() === "Save",
     );
     expect(saveButton).toBeDefined();
 

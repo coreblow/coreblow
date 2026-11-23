@@ -563,16 +563,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   // Curated Memory Files state
   const [memoryFiles, setMemoryFiles] = useState<CuratedMemoryFile[]>([]);
-  const [selectedMemoryFileId, setSelectedMemoryFileId] = useState<CuratedMemoryFileId>("user");
   const [memoryDrafts, setMemoryDrafts] = useState<Record<CuratedMemoryFileId, string>>({
     user: "",
     memory: "",
     constraints: "",
   });
   const [loadingMemoryFiles, setLoadingMemoryFiles] = useState(false);
-  const [savingMemoryFile, setSavingMemoryFile] = useState(false);
-  const [resettingMemoryFile, setResettingMemoryFile] = useState(false);
-  const [memoryStatus, setMemoryStatus] = useState<{ text: string; ok: boolean } | null>(null);
+  const [savingMemoryFiles, setSavingMemoryFiles] = useState<Record<CuratedMemoryFileId, boolean>>({
+    user: false,
+    memory: false,
+    constraints: false,
+  });
+  const [resettingMemoryFiles, setResettingMemoryFiles] = useState<Record<CuratedMemoryFileId, boolean>>({
+    user: false,
+    memory: false,
+    constraints: false,
+  });
+  const [memoryStatusMap, setMemoryStatusMap] = useState<Record<CuratedMemoryFileId, { text: string; ok: boolean } | null>>({
+    user: null,
+    memory: null,
+    constraints: null,
+  });
 
   const fetchMemoryFiles = async () => {
     setLoadingMemoryFiles(true);
@@ -593,58 +604,64 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }
   };
 
-  const handleSaveMemoryFile = async () => {
-    const content = memoryDrafts[selectedMemoryFileId] ?? "";
-    setSavingMemoryFile(true);
-    setMemoryStatus(null);
+  const handleSaveMemoryFile = async (fileId: CuratedMemoryFileId) => {
+    const content = memoryDrafts[fileId] ?? "";
+    setSavingMemoryFiles((prev) => ({ ...prev, [fileId]: true }));
+    setMemoryStatusMap((prev) => ({ ...prev, [fileId]: null }));
     try {
-      const res = await gatewayClient.saveMemoryFile(selectedMemoryFileId, content);
+      const res = await gatewayClient.saveMemoryFile(fileId, content);
       if (res.ok && res.file) {
         setMemoryFiles((prev) =>
-          prev.map((f) => (f.id === selectedMemoryFileId ? res.file! : f)),
+          prev.map((f) => (f.id === fileId ? res.file! : f)),
         );
-        setMemoryStatus({ text: "Saved", ok: true });
+        setMemoryStatusMap((prev) => ({ ...prev, [fileId]: { text: "Saved", ok: true } }));
       } else {
-        setMemoryStatus({ text: res.error || "Failed to save file", ok: false });
+        setMemoryStatusMap((prev) => ({ ...prev, [fileId]: { text: res.error || "Failed to save file", ok: false } }));
       }
     } finally {
-      setSavingMemoryFile(false);
-      setTimeout(() => setMemoryStatus(null), 3000);
+      setSavingMemoryFiles((prev) => ({ ...prev, [fileId]: false }));
+      setTimeout(() => {
+        setMemoryStatusMap((prev) => ({ ...prev, [fileId]: null }));
+      }, 3000);
     }
   };
 
-  const handleResetMemoryFile = async () => {
-    setResettingMemoryFile(true);
-    setMemoryStatus(null);
+  const handleResetMemoryFile = async (fileId: CuratedMemoryFileId) => {
+    setResettingMemoryFiles((prev) => ({ ...prev, [fileId]: true }));
+    setMemoryStatusMap((prev) => ({ ...prev, [fileId]: null }));
     try {
-      const res = await gatewayClient.resetMemoryFile(selectedMemoryFileId);
+      const res = await gatewayClient.resetMemoryFile(fileId);
       if (res.ok && res.file) {
         setMemoryFiles((prev) =>
-          prev.map((f) => (f.id === selectedMemoryFileId ? res.file! : f)),
+          prev.map((f) => (f.id === fileId ? res.file! : f)),
         );
         setMemoryDrafts((prev) => ({
           ...prev,
-          [selectedMemoryFileId]: res.file!.content,
+          [fileId]: res.file!.content,
         }));
-        setMemoryStatus({ text: "Reset to default", ok: true });
+        setMemoryStatusMap((prev) => ({ ...prev, [fileId]: { text: "Reset to default", ok: true } }));
       } else {
-        setMemoryStatus({ text: res.error || "Failed to reset file", ok: false });
+        setMemoryStatusMap((prev) => ({ ...prev, [fileId]: { text: res.error || "Failed to reset file", ok: false } }));
       }
     } finally {
-      setResettingMemoryFile(false);
-      setTimeout(() => setMemoryStatus(null), 3000);
+      setResettingMemoryFiles((prev) => ({ ...prev, [fileId]: false }));
+      setTimeout(() => {
+        setMemoryStatusMap((prev) => ({ ...prev, [fileId]: null }));
+      }, 3000);
     }
   };
 
-  const handleRevertMemoryFile = () => {
-    const file = memoryFiles.find((f) => f.id === selectedMemoryFileId);
+  const handleRevertMemoryFile = (fileId: CuratedMemoryFileId) => {
+    const file = memoryFiles.find((f) => f.id === fileId);
     if (file) {
       setMemoryDrafts((prev) => ({
         ...prev,
-        [selectedMemoryFileId]: file.content,
+        [fileId]: file.content,
       }));
-      setMemoryStatus({ text: "Reverted", ok: true });
-      setTimeout(() => setMemoryStatus(null), 2000);
+      setMemoryStatusMap((prev) => ({ ...prev, [fileId]: { text: "Reverted", ok: true } }));
+      setTimeout(() => {
+        setMemoryStatusMap((prev) => ({ ...prev, [fileId]: null }));
+      }, 2000);
     }
   };
 
@@ -2419,182 +2436,172 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: "12px",
+                    gap: "14px",
                     padding: "4px 0",
                   }}
                 >
-                  {/* 3-tab file selector */}
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "6px",
-                      background: "var(--bg-chip)",
-                      padding: "3px",
-                      borderRadius: "8px",
-                      border: "1px solid var(--border-subtle)",
-                      width: "fit-content",
-                    }}
-                  >
-                    {[
-                      { id: "user" as const, label: "USER.md", subtitle: "User Profile" },
-                      { id: "memory" as const, label: "MEMORY.md", subtitle: "Agent Notes" },
-                      { id: "constraints" as const, label: "CONSTRAINTS.md", subtitle: "Always Follow" },
-                    ].map((tab) => {
-                      const isSel = selectedMemoryFileId === tab.id;
-                      return (
-                        <button
-                          key={tab.id}
-                          type="button"
-                          onClick={() => setSelectedMemoryFileId(tab.id)}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "6px",
-                            padding: "6px 12px",
-                            borderRadius: "6px",
-                            border: "none",
-                            background: isSel ? "var(--bg-card)" : "transparent",
-                            color: isSel ? "var(--accent-teal)" : "var(--ink-secondary)",
-                            fontSize: "12px",
-                            fontWeight: isSel ? 600 : 500,
-                            cursor: "pointer",
-                            boxShadow: isSel ? "0 1px 3px rgba(0,0,0,0.12)" : "none",
-                            transition: "all 0.15s ease",
-                          }}
-                        >
-                          <span style={{ fontFamily: "var(--font-mono, monospace)" }}>{tab.label}</span>
-                          <span style={{ fontSize: "11px", color: isSel ? "var(--ink-primary)" : "var(--ink-muted)" }}>
-                            ({tab.subtitle})
-                          </span>
-                        </button>
-                      );
-                    })}
+                  <div style={{ fontSize: "11px", color: "var(--ink-muted)", lineHeight: 1.4 }}>
+                    Injected as a frozen snapshot at session start. Saved edits apply immediately to new sessions.
                   </div>
 
-                  {/* Header metadata strip: path + capacity indicator + progress bar */}
-                  {(() => {
-                    const activeFile = memoryFiles.find((f) => f.id === selectedMemoryFileId) || {
-                      id: selectedMemoryFileId,
-                      filename:
-                        selectedMemoryFileId === "user"
-                          ? "USER.md"
-                          : selectedMemoryFileId === "memory"
-                            ? "MEMORY.md"
-                            : "CONSTRAINTS.md",
-                      path: `~/.coreblow/memory/${
-                        selectedMemoryFileId === "user"
-                          ? "users/default/USER.md"
-                          : selectedMemoryFileId === "memory"
-                            ? "workspaces/default/MEMORY.md"
-                            : "workspaces/default/CONSTRAINTS.md"
-                      }`,
+                  {[
+                    {
+                      id: "user" as const,
+                      filename: "USER.md",
+                      subtitle: "(User Profile)",
+                      charLimit: 1375,
+                      defaultPath: "~/.coreblow/memory/users/default/USER.md",
+                    },
+                    {
+                      id: "memory" as const,
+                      filename: "MEMORY.md",
+                      subtitle: "(Agent Notes)",
+                      charLimit: 2200,
+                      defaultPath: "~/.coreblow/memory/workspaces/default/MEMORY.md",
+                    },
+                    {
+                      id: "constraints" as const,
+                      filename: "CONSTRAINTS.md",
+                      subtitle: "(Always Follow)",
+                      charLimit: 1500,
+                      defaultPath: "~/.coreblow/memory/workspaces/default/CONSTRAINTS.md",
+                    },
+                  ].map((cfg) => {
+                    const activeFile = memoryFiles.find((f) => f.id === cfg.id) || {
+                      id: cfg.id,
+                      filename: cfg.filename,
+                      path: cfg.defaultPath,
                       content: "",
                       charCount: 0,
-                      charLimit:
-                        selectedMemoryFileId === "user" ? 1375 : selectedMemoryFileId === "memory" ? 2200 : 1500,
+                      charLimit: cfg.charLimit,
                       updatedAt: "",
                     };
-                    const draftContent = memoryDrafts[selectedMemoryFileId] ?? activeFile.content;
+                    const draftContent = memoryDrafts[cfg.id] ?? activeFile.content;
                     const charCount = draftContent.length;
-                    const charLimit =
-                      activeFile.charLimit ||
-                      (selectedMemoryFileId === "user" ? 1375 : selectedMemoryFileId === "memory" ? 2200 : 1500);
+                    const charLimit = activeFile.charLimit || cfg.charLimit;
                     const usageRatio = charLimit > 0 ? charCount / charLimit : 0;
                     const progressColor =
                       usageRatio > 1.0 ? "#EF4444" : usageRatio > 0.85 ? "#F59E0B" : "var(--accent-teal)";
                     const progressWidth = Math.min(100, Math.round(usageRatio * 100));
                     const isUnchanged = draftContent === activeFile.content;
+                    const isSaving = savingMemoryFiles[cfg.id] ?? false;
+                    const isResetting = resettingMemoryFiles[cfg.id] ?? false;
+                    const status = memoryStatusMap[cfg.id];
 
                     return (
                       <div
+                        key={cfg.id}
                         style={{
+                          padding: "14px",
+                          borderRadius: "10px",
+                          background: "var(--bg-card)",
+                          border: "1px solid var(--border-subtle)",
                           display: "flex",
                           flexDirection: "column",
-                          gap: "8px",
-                          background: "var(--bg-input)",
-                          padding: "12px",
-                          borderRadius: "8px",
-                          border: "1px solid var(--border-medium)",
+                          gap: "10px",
                         }}
                       >
+                        {/* Header row */}
                         <div
                           style={{
                             display: "flex",
-                            alignItems: "center",
+                            alignItems: "flex-start",
                             justifyContent: "space-between",
-                            flexWrap: "wrap",
-                            gap: "8px",
+                            gap: "12px",
                           }}
                         >
+                          <div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              <span
+                                style={{
+                                  fontWeight: 700,
+                                  fontSize: "13px",
+                                  color: "var(--accent-teal)",
+                                  fontFamily: "var(--font-mono, monospace)",
+                                }}
+                              >
+                                {cfg.filename}
+                              </span>
+                              <span style={{ fontSize: "12px", color: "var(--ink-muted)" }}>
+                                {cfg.subtitle}
+                              </span>
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "11px",
+                                fontFamily: "var(--font-mono, monospace)",
+                                color: "var(--ink-muted)",
+                                marginTop: "3px",
+                                wordBreak: "break-all",
+                              }}
+                            >
+                              {activeFile.path}
+                            </div>
+                          </div>
+
                           <div
                             style={{
-                              fontSize: "11px",
-                              fontFamily: "var(--font-mono, monospace)",
-                              color: "var(--ink-muted)",
-                              wordBreak: "break-all",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "flex-end",
+                              gap: "4px",
+                              flexShrink: 0,
                             }}
                           >
-                            {activeFile.path}
+                            <span
+                              style={{
+                                fontSize: "11px",
+                                fontFamily: "var(--font-mono, monospace)",
+                                fontWeight: 600,
+                                color:
+                                  usageRatio > 1.0
+                                    ? "#EF4444"
+                                    : usageRatio > 0.85
+                                      ? "#F59E0B"
+                                      : "var(--ink-secondary)",
+                              }}
+                            >
+                              {charCount} / {charLimit} chars
+                            </span>
+                            <div
+                              style={{
+                                width: "140px",
+                                height: "4px",
+                                borderRadius: "2px",
+                                background: "var(--bg-chip)",
+                                overflow: "hidden",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: `${progressWidth}%`,
+                                  height: "100%",
+                                  background: progressColor,
+                                  transition: "width 0.2s ease, background 0.2s ease",
+                                }}
+                              />
+                            </div>
                           </div>
-                          <div
-                            style={{
-                              fontSize: "11px",
-                              fontFamily: "var(--font-mono, monospace)",
-                              color:
-                                usageRatio > 1.0
-                                  ? "#EF4444"
-                                  : usageRatio > 0.85
-                                    ? "#F59E0B"
-                                    : "var(--ink-secondary)",
-                              fontWeight: 600,
-                            }}
-                          >
-                            {charCount} / {charLimit} chars
-                          </div>
-                        </div>
-
-                        {/* 4px progress bar */}
-                        <div
-                          style={{
-                            width: "100%",
-                            height: "4px",
-                            borderRadius: "2px",
-                            background: "var(--bg-chip)",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: `${progressWidth}%`,
-                              height: "100%",
-                              background: progressColor,
-                              transition: "width 0.2s ease, background 0.2s ease",
-                            }}
-                          />
-                        </div>
-
-                        {/* Helper note */}
-                        <div style={{ fontSize: "11px", color: "var(--ink-muted)", lineHeight: 1.4 }}>
-                          Injected as a frozen snapshot at session start. Saved edits apply immediately to new sessions.
                         </div>
 
                         {/* Monospace Markdown textarea */}
                         <textarea
+                          aria-label={`Edit ${cfg.filename}`}
                           value={draftContent}
                           onChange={(e) => {
                             const val = e.target.value;
                             setMemoryDrafts((prev) => ({
                               ...prev,
-                              [selectedMemoryFileId]: val,
+                              [cfg.id]: val,
                             }));
                           }}
-                          placeholder={`Enter markdown content for ${activeFile.filename}...`}
+                          placeholder={`Enter markdown content for ${cfg.filename}...`}
                           style={{
                             width: "100%",
-                            minHeight: "220px",
-                            padding: "10px",
+                            minHeight: "112px",
+                            padding: "8px 10px",
                             borderRadius: "6px",
-                            background: "var(--bg-card)",
+                            background: "var(--bg-input)",
                             border: "1px solid var(--border-medium)",
                             color: "var(--ink-primary)",
                             fontFamily: "var(--font-mono, monospace)",
@@ -2606,88 +2613,90 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           }}
                         />
 
-                        {/* Footer action bar */}
+                        {/* Footer action row */}
                         <div
                           style={{
                             display: "flex",
-                            alignItems: "center",
                             justifyContent: "space-between",
+                            alignItems: "center",
                             flexWrap: "wrap",
-                            gap: "10px",
-                            paddingTop: "4px",
+                            gap: "8px",
+                            paddingTop: "2px",
                           }}
                         >
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                             <button
                               type="button"
-                              onClick={handleResetMemoryFile}
-                              disabled={resettingMemoryFile || loadingMemoryFiles}
+                              onClick={() => handleResetMemoryFile(cfg.id)}
+                              disabled={isResetting || loadingMemoryFiles}
                               style={{
-                                padding: "6px 12px",
+                                padding: "4px 10px",
                                 borderRadius: "6px",
                                 border: "1px solid var(--border-medium)",
                                 background: "transparent",
                                 color: "var(--ink-secondary)",
-                                fontSize: "12px",
+                                fontSize: "11px",
                                 cursor: "pointer",
-                                opacity: resettingMemoryFile ? 0.6 : 1,
+                                opacity: isResetting ? 0.6 : 1,
                               }}
                             >
-                              {resettingMemoryFile ? "Resetting..." : "Reset to Default"}
+                              {isResetting ? "Reset" : "Reset"}
                             </button>
                             <button
                               type="button"
-                              onClick={handleRevertMemoryFile}
+                              onClick={() => handleRevertMemoryFile(cfg.id)}
                               disabled={isUnchanged || loadingMemoryFiles}
                               style={{
-                                padding: "6px 12px",
+                                padding: "4px 10px",
                                 borderRadius: "6px",
                                 border: "1px solid var(--border-medium)",
                                 background: "transparent",
                                 color: "var(--ink-muted)",
-                                fontSize: "12px",
+                                fontSize: "11px",
                                 cursor: isUnchanged ? "default" : "pointer",
                                 opacity: isUnchanged ? 0.4 : 1,
                               }}
                             >
                               Revert
                             </button>
-                            {memoryStatus && (
+                          </div>
+
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            {status && (
                               <span
                                 style={{
-                                  fontSize: "12px",
-                                  color: memoryStatus.ok ? "var(--accent-teal)" : "#EF4444",
+                                  fontSize: "11px",
+                                  color: status.ok ? "var(--accent-teal)" : "#EF4444",
                                   fontWeight: 500,
                                 }}
                               >
-                                {memoryStatus.text}
+                                {status.text}
                               </span>
                             )}
+                            <button
+                              type="button"
+                              onClick={() => handleSaveMemoryFile(cfg.id)}
+                              disabled={isUnchanged || isSaving || loadingMemoryFiles}
+                              style={{
+                                padding: "5px 14px",
+                                borderRadius: "6px",
+                                border: "none",
+                                background: "var(--accent-teal)",
+                                color: "#08110F",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                cursor: isUnchanged || isSaving ? "default" : "pointer",
+                                opacity: isUnchanged || isSaving ? 0.5 : 1,
+                                transition: "opacity 0.15s ease",
+                              }}
+                            >
+                              {isSaving ? "Saving..." : "Save"}
+                            </button>
                           </div>
-
-                          <button
-                            type="button"
-                            onClick={handleSaveMemoryFile}
-                            disabled={isUnchanged || savingMemoryFile || loadingMemoryFiles}
-                            style={{
-                              padding: "6px 16px",
-                              borderRadius: "6px",
-                              border: "none",
-                              background: "var(--accent-teal)",
-                              color: "#08110F",
-                              fontSize: "12px",
-                              fontWeight: 600,
-                              cursor: isUnchanged || savingMemoryFile ? "default" : "pointer",
-                              opacity: isUnchanged || savingMemoryFile ? 0.5 : 1,
-                              transition: "opacity 0.15s ease",
-                            }}
-                          >
-                            {savingMemoryFile ? "Saving..." : "Save File"}
-                          </button>
                         </div>
                       </div>
                     );
-                  })()}
+                  })}
                 </div>
               </SettingGroup>
             </div>

@@ -71,6 +71,21 @@ export class ConfigView extends LitElement {
   @state() private savingMemoryFile = false;
   @state() private resettingMemoryFile = false;
   @state() private memoryFileStatus: { message: string; ok: boolean } | null = null;
+  @state() private savingMemoryFiles: Record<string, boolean> = {
+    user: false,
+    memory: false,
+    constraints: false,
+  };
+  @state() private resettingMemoryFiles: Record<string, boolean> = {
+    user: false,
+    memory: false,
+    constraints: false,
+  };
+  @state() private memoryFileStatusMap: Record<string, { message: string; ok: boolean } | null> = {
+    user: null,
+    memory: null,
+    constraints: null,
+  };
 
   private wasConnected = false;
 
@@ -428,8 +443,11 @@ export class ConfigView extends LitElement {
 
   private async saveCuratedMemoryFile(fileId: "user" | "memory" | "constraints") {
     const content = this.memoryDrafts[fileId] ?? "";
+    this.savingMemoryFiles = { ...this.savingMemoryFiles, [fileId]: true };
     this.savingMemoryFile = true;
     this.memoryFileStatus = null;
+    this.memoryFileStatusMap = { ...this.memoryFileStatusMap, [fileId]: null };
+    this.requestUpdate();
     try {
       const res = await fetch(`${this.getGatewayHttpUrl()}/api/cory/files/${encodeURIComponent(fileId)}`, {
         method: "PUT",
@@ -441,25 +459,36 @@ export class ConfigView extends LitElement {
         if (data.file) {
           this.memoryFiles = this.memoryFiles.map((f) => (f.id === fileId ? data.file : f));
         }
-        this.memoryFileStatus = { message: "Saved", ok: true };
+        const status = { message: "Saved", ok: true };
+        this.memoryFileStatus = status;
+        this.memoryFileStatusMap = { ...this.memoryFileStatusMap, [fileId]: status };
       } else {
-        this.memoryFileStatus = { message: "Failed to save", ok: false };
+        const status = { message: "Failed to save", ok: false };
+        this.memoryFileStatus = status;
+        this.memoryFileStatusMap = { ...this.memoryFileStatusMap, [fileId]: status };
       }
     } catch (err: any) {
-      this.memoryFileStatus = { message: err?.message || "Save error", ok: false };
+      const status = { message: err?.message || "Save error", ok: false };
+      this.memoryFileStatus = status;
+      this.memoryFileStatusMap = { ...this.memoryFileStatusMap, [fileId]: status };
     } finally {
+      this.savingMemoryFiles = { ...this.savingMemoryFiles, [fileId]: false };
       this.savingMemoryFile = false;
       this.requestUpdate();
       setTimeout(() => {
         this.memoryFileStatus = null;
+        this.memoryFileStatusMap = { ...this.memoryFileStatusMap, [fileId]: null };
         this.requestUpdate();
       }, 3000);
     }
   }
 
   private async resetCuratedMemoryFile(fileId: "user" | "memory" | "constraints") {
+    this.resettingMemoryFiles = { ...this.resettingMemoryFiles, [fileId]: true };
     this.resettingMemoryFile = true;
     this.memoryFileStatus = null;
+    this.memoryFileStatusMap = { ...this.memoryFileStatusMap, [fileId]: null };
+    this.requestUpdate();
     try {
       const res = await fetch(`${this.getGatewayHttpUrl()}/api/cory/files/${encodeURIComponent(fileId)}/reset`, {
         method: "POST",
@@ -473,17 +502,25 @@ export class ConfigView extends LitElement {
             [fileId]: data.file.content,
           };
         }
-        this.memoryFileStatus = { message: "Reset to default", ok: true };
+        const status = { message: "Reset to default", ok: true };
+        this.memoryFileStatus = status;
+        this.memoryFileStatusMap = { ...this.memoryFileStatusMap, [fileId]: status };
       } else {
-        this.memoryFileStatus = { message: "Failed to reset", ok: false };
+        const status = { message: "Failed to reset", ok: false };
+        this.memoryFileStatus = status;
+        this.memoryFileStatusMap = { ...this.memoryFileStatusMap, [fileId]: status };
       }
     } catch (err: any) {
-      this.memoryFileStatus = { message: err?.message || "Reset error", ok: false };
+      const status = { message: err?.message || "Reset error", ok: false };
+      this.memoryFileStatus = status;
+      this.memoryFileStatusMap = { ...this.memoryFileStatusMap, [fileId]: status };
     } finally {
+      this.resettingMemoryFiles = { ...this.resettingMemoryFiles, [fileId]: false };
       this.resettingMemoryFile = false;
       this.requestUpdate();
       setTimeout(() => {
         this.memoryFileStatus = null;
+        this.memoryFileStatusMap = { ...this.memoryFileStatusMap, [fileId]: null };
         this.requestUpdate();
       }, 3000);
     }
@@ -496,163 +533,168 @@ export class ConfigView extends LitElement {
         ...this.memoryDrafts,
         [fileId]: file.content,
       };
-      this.memoryFileStatus = { message: "Reverted", ok: true };
+      const status = { message: "Reverted", ok: true };
+      this.memoryFileStatus = status;
+      this.memoryFileStatusMap = { ...this.memoryFileStatusMap, [fileId]: status };
       this.requestUpdate();
       setTimeout(() => {
         this.memoryFileStatus = null;
+        this.memoryFileStatusMap = { ...this.memoryFileStatusMap, [fileId]: null };
         this.requestUpdate();
       }, 2000);
     }
   }
 
   private renderCuratedMemoryPanel() {
-    const activeFile = this.memoryFiles.find((f) => f.id === this.selectedMemoryFileId) || {
-      id: this.selectedMemoryFileId,
-      filename:
-        this.selectedMemoryFileId === "user"
-          ? "USER.md"
-          : this.selectedMemoryFileId === "memory"
-            ? "MEMORY.md"
-            : "CONSTRAINTS.md",
-      path: `~/.coreblow/memory/${
-        this.selectedMemoryFileId === "user"
-          ? "users/default/USER.md"
-          : this.selectedMemoryFileId === "memory"
-            ? "workspaces/default/MEMORY.md"
-            : "workspaces/default/CONSTRAINTS.md"
-      }`,
-      content: this.memoryDrafts[this.selectedMemoryFileId] ?? "",
-      charCount: 0,
-      charLimit:
-        this.selectedMemoryFileId === "user" ? 1375 : this.selectedMemoryFileId === "memory" ? 2200 : 1500,
-      updatedAt: "",
-    };
-
-    const draft = this.memoryDrafts[this.selectedMemoryFileId] ?? activeFile.content;
-    const charCount = draft.length;
-    const charLimit = activeFile.charLimit || (this.selectedMemoryFileId === "user" ? 1375 : this.selectedMemoryFileId === "memory" ? 2200 : 1500);
-    const usageRatio = charLimit > 0 ? charCount / charLimit : 0;
-    const progressColor = usageRatio > 1.0 ? "#EF4444" : usageRatio > 0.85 ? "#F59E0B" : "var(--accent)";
-    const progressWidth = Math.min(100, Math.round(usageRatio * 100));
-    const isUnchanged = draft === activeFile.content;
+    const fileConfigs = [
+      {
+        id: "user" as const,
+        filename: "USER.md",
+        subtitle: "User Profile",
+        charLimit: 1375,
+        defaultPath: "~/.coreblow/memory/users/default/USER.md",
+      },
+      {
+        id: "memory" as const,
+        filename: "MEMORY.md",
+        subtitle: "Agent Notes",
+        charLimit: 2200,
+        defaultPath: "~/.coreblow/memory/workspaces/default/MEMORY.md",
+      },
+      {
+        id: "constraints" as const,
+        filename: "CONSTRAINTS.md",
+        subtitle: "Always Follow",
+        charLimit: 1500,
+        defaultPath: "~/.coreblow/memory/workspaces/default/CONSTRAINTS.md",
+      },
+    ];
 
     return html`
       <div
         class="card"
         style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 20px;"
       >
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-          <div>
-            <div style="font-size: 14px; font-weight: 700; color: var(--foreground); display: flex; align-items: center; gap: 8px;">
-              ${renderIcon("memory", "16px", "color: var(--accent);")}
-              <span>Curated Memory Files (USER.md · MEMORY.md · CONSTRAINTS.md)</span>
-            </div>
-            <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">
-              Inspect, edit, and budget CoreBlow's frozen markdown memory files injected at session startup.
-            </div>
+        <div style="margin-bottom: 14px;">
+          <div style="font-size: 14px; font-weight: 700; color: var(--foreground); display: flex; align-items: center; gap: 8px;">
+            ${renderIcon("brain", "16px", "color: var(--accent);")}
+            <span>Curated Memory Files (USER.md · MEMORY.md · CONSTRAINTS.md)</span>
           </div>
-          <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--accent-subtle); color: var(--accent); font-weight: 600; font-family: var(--mono);">
-            ${activeFile.filename}
-          </span>
-        </div>
-
-        <!-- 3 file tabs -->
-        <div style="display: flex; gap: 6px; background: var(--surface-flat-muted); padding: 4px; border-radius: var(--radius-sm); margin-bottom: 14px; border: 1px solid var(--border-hairline); width: fit-content;">
-          ${[
-            { id: "user" as const, label: "USER.md", subtitle: "User Profile" },
-            { id: "memory" as const, label: "MEMORY.md", subtitle: "Agent Notes" },
-            { id: "constraints" as const, label: "CONSTRAINTS.md", subtitle: "Always Follow" },
-          ].map((tab) => {
-            const isSel = this.selectedMemoryFileId === tab.id;
-            return html`
-              <button
-                type="button"
-                style="padding: 6px 12px; border-radius: var(--radius-xs); border: 1px solid ${isSel ? "var(--accent)" : "transparent"}; background: ${isSel ? "var(--accent-subtle)" : "transparent"}; color: ${isSel ? "var(--accent)" : "var(--foreground)"}; font-size: 12px; font-weight: ${isSel ? 600 : 500}; cursor: pointer; display: flex; align-items: center; gap: 6px;"
-                @click=${() => {
-                  this.selectedMemoryFileId = tab.id;
-                  this.requestUpdate();
-                }}
-              >
-                <span style="font-family: var(--mono);">${tab.label}</span>
-                <span style="font-size: 10px; color: var(--muted);">(${tab.subtitle})</span>
-              </button>
-            `;
-          })}
-        </div>
-
-        <!-- Header metadata strip: path + capacity + progress bar -->
-        <div style="background: var(--card, var(--bg-elevated)); border: 1px solid var(--border-hairline); border-radius: var(--radius-xs); padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-            <div style="font-size: 11px; font-family: var(--mono); color: var(--muted); word-break: break-all;">
-              ${activeFile.path}
-            </div>
-            <div style="font-size: 11px; font-family: var(--mono); font-weight: 600; color: ${progressColor};">
-              ${charCount} / ${charLimit} chars
-            </div>
-          </div>
-
-          <!-- 4px progress bar -->
-          <div style="width: 100%; height: 4px; border-radius: 2px; background: var(--surface-flat-muted); overflow: hidden;">
-            <div style="width: ${progressWidth}%; height: 100%; background: ${progressColor}; transition: width 0.2s ease, background 0.2s ease;"></div>
-          </div>
-
-          <!-- Session snapshot note -->
-          <div style="font-size: 11px; color: var(--muted); line-height: 1.4;">
+          <div style="font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.4;">
             Injected as a frozen snapshot at session start. Saved edits apply immediately to new sessions.
           </div>
         </div>
 
-        <!-- Monospace Markdown textarea -->
-        <textarea
-          style="width: 100%; min-height: 220px; padding: 10px; border-radius: var(--radius-xs); background: var(--bg); border: 1px solid var(--border); color: var(--foreground); font-family: var(--mono); font-size: 12px; line-height: 1.5; resize: vertical; outline: none; box-sizing: border-box; margin-bottom: 12px;"
-          placeholder="Enter markdown content for ${activeFile.filename}..."
-          .value=${draft}
-          @input=${(e: Event) => {
-            const val = (e.target as HTMLTextAreaElement).value;
-            this.memoryDrafts = { ...this.memoryDrafts, [this.selectedMemoryFileId]: val };
-            this.requestUpdate();
-          }}
-        ></textarea>
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          ${fileConfigs.map((cfg) => {
+            const activeFile = this.memoryFiles.find((f) => f.id === cfg.id) || {
+              id: cfg.id,
+              filename: cfg.filename,
+              path: cfg.defaultPath,
+              content: this.memoryDrafts[cfg.id] ?? "",
+              charCount: 0,
+              charLimit: cfg.charLimit,
+              updatedAt: "",
+            };
 
-        <!-- Footer action bar -->
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <button
-              type="button"
-              class="btn"
-              style="background: var(--bg-elevated); border: 1px solid var(--border); color: var(--foreground); padding: 6px 12px; border-radius: var(--radius-xs); font-size: 12px; cursor: pointer;"
-              ?disabled=${this.resettingMemoryFile || this.loadingMemoryFiles}
-              @click=${() => this.resetCuratedMemoryFile(this.selectedMemoryFileId)}
-            >
-              ${this.resettingMemoryFile ? "Resetting..." : "Reset to Default"}
-            </button>
-            <button
-              type="button"
-              class="btn"
-              style="background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: var(--radius-xs); font-size: 12px; cursor: ${isUnchanged ? "default" : "pointer"}; opacity: ${isUnchanged ? 0.5 : 1};"
-              ?disabled=${isUnchanged || this.loadingMemoryFiles}
-              @click=${() => this.revertCuratedMemoryFile(this.selectedMemoryFileId)}
-            >
-              Revert
-            </button>
-            ${this.memoryFileStatus
-              ? html`
-                  <span style="font-size: 12px; color: ${this.memoryFileStatus.ok ? "var(--ok, #22c55e)" : "var(--error, #ef4444)"}; font-weight: 500;">
-                    ${this.memoryFileStatus.message}
-                  </span>
-                `
-              : ""}
-          </div>
+            const draft = this.memoryDrafts[cfg.id] ?? activeFile.content;
+            const charCount = draft.length;
+            const charLimit = activeFile.charLimit || cfg.charLimit;
+            const usageRatio = charLimit > 0 ? charCount / charLimit : 0;
+            const progressColor = usageRatio > 1.0 ? "#EF4444" : usageRatio > 0.85 ? "#F59E0B" : "var(--accent)";
+            const progressWidth = Math.min(100, Math.round(usageRatio * 100));
+            const isUnchanged = draft === activeFile.content;
+            const isSaving = this.savingMemoryFiles[cfg.id] ?? false;
+            const isResetting = this.resettingMemoryFiles[cfg.id] ?? false;
+            const status = this.memoryFileStatusMap[cfg.id] ?? (this.selectedMemoryFileId === cfg.id ? this.memoryFileStatus : null);
 
-          <button
-            type="button"
-            class="btn"
-            style="background: var(--accent); color: var(--accent-ink, #000); border: none; padding: 6px 16px; border-radius: var(--radius-xs); font-size: 12px; font-weight: 600; cursor: ${isUnchanged || this.savingMemoryFile ? "default" : "pointer"}; opacity: ${isUnchanged || this.savingMemoryFile ? 0.5 : 1};"
-            ?disabled=${isUnchanged || this.savingMemoryFile || this.loadingMemoryFiles}
-            @click=${() => this.saveCuratedMemoryFile(this.selectedMemoryFileId)}
-          >
-            ${this.savingMemoryFile ? "Saving..." : "Save File"}
-          </button>
+            return html`
+              <div
+                class="card"
+                style="background: var(--card, var(--bg-elevated)); border: 1px solid var(--border-hairline); border-radius: var(--radius-xs); padding: 14px; display: flex; flex-direction: column; gap: 10px;"
+              >
+                <!-- Card Header -->
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <span style="font-weight: 700; font-size: 13px; color: var(--accent); font-family: var(--mono);">
+                        ${cfg.filename}
+                      </span>
+                      <span style="font-size: 11px; color: var(--muted);">
+                        (${cfg.subtitle})
+                      </span>
+                    </div>
+                    <div style="font-size: 11px; font-family: var(--mono); color: var(--muted); margin-top: 3px; word-break: break-all;">
+                      ${activeFile.path}
+                    </div>
+                  </div>
+
+                  <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0;">
+                    <span style="font-size: 11px; font-family: var(--mono); font-weight: 600; color: ${progressColor};">
+                      ${charCount} / ${charLimit} chars
+                    </span>
+                    <div style="width: 140px; height: 4px; border-radius: 2px; background: var(--surface-flat-muted); overflow: hidden;">
+                      <div style="width: ${progressWidth}%; height: 100%; background: ${progressColor}; transition: width 0.2s ease, background 0.2s ease;"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Monospace Markdown textarea -->
+                <textarea
+                  aria-label="Edit ${cfg.filename}"
+                  style="width: 100%; min-height: 112px; padding: 10px; border-radius: var(--radius-xs); background: var(--bg); border: 1px solid var(--border); color: var(--foreground); font-family: var(--mono); font-size: 12px; line-height: 1.5; resize: vertical; outline: none; box-sizing: border-box;"
+                  placeholder="Enter markdown content for ${cfg.filename}..."
+                  .value=${draft}
+                  @input=${(e: Event) => {
+                    const val = (e.target as HTMLTextAreaElement).value;
+                    this.memoryDrafts = { ...this.memoryDrafts, [cfg.id]: val };
+                    this.requestUpdate();
+                  }}
+                ></textarea>
+
+                <!-- Card Footer Actions -->
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding-top: 2px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <button
+                      type="button"
+                      class="btn"
+                      style="background: var(--bg-elevated); border: 1px solid var(--border); color: var(--foreground); padding: 5px 12px; border-radius: var(--radius-xs); font-size: 11px; cursor: pointer;"
+                      ?disabled=${isResetting || this.loadingMemoryFiles}
+                      @click=${() => this.resetCuratedMemoryFile(cfg.id)}
+                    >
+                      ${isResetting ? "Resetting..." : "Reset to Default"}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn"
+                      style="background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 5px 12px; border-radius: var(--radius-xs); font-size: 11px; cursor: ${isUnchanged ? "default" : "pointer"}; opacity: ${isUnchanged ? 0.5 : 1};"
+                      ?disabled=${isUnchanged || this.loadingMemoryFiles}
+                      @click=${() => this.revertCuratedMemoryFile(cfg.id)}
+                    >
+                      Revert
+                    </button>
+                    ${status
+                      ? html`
+                          <span style="font-size: 11px; color: ${status.ok ? "var(--ok, #22c55e)" : "var(--error, #ef4444)"}; font-weight: 500;">
+                            ${status.message}
+                          </span>
+                        `
+                      : ""}
+                  </div>
+
+                  <button
+                    type="button"
+                    class="btn"
+                    style="background: var(--accent); color: var(--accent-ink, #000); border: none; padding: 5px 14px; border-radius: var(--radius-xs); font-size: 11px; font-weight: 600; cursor: ${isUnchanged || isSaving ? "default" : "pointer"}; opacity: ${isUnchanged || isSaving ? 0.5 : 1};"
+                    ?disabled=${isUnchanged || isSaving || this.loadingMemoryFiles}
+                    @click=${() => this.saveCuratedMemoryFile(cfg.id)}
+                  >
+                    ${isSaving ? "Saving..." : "Save File"}
+                  </button>
+                </div>
+              </div>
+            `;
+          })}
         </div>
       </div>
     `;

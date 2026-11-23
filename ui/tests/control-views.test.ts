@@ -315,6 +315,13 @@ describe("Dedicated Control Views Smoke Tests (Offline & Connected)", () => {
       expect(container.textContent).toContain("Save File");
       expect(container.textContent).toContain("Reset to Default");
       expect(container.textContent).toContain("Revert");
+
+      // Verify all 3 stacked cards render textareas simultaneously
+      const textareas = container.querySelectorAll("textarea");
+      expect(textareas.length).toBe(3);
+      expect(container.querySelector('textarea[aria-label="Edit USER.md"]')).not.toBeNull();
+      expect(container.querySelector('textarea[aria-label="Edit MEMORY.md"]')).not.toBeNull();
+      expect(container.querySelector('textarea[aria-label="Edit CONSTRAINTS.md"]')).not.toBeNull();
     });
 
     it("switches file tabs and updates draft memory contents cleanly", async () => {
@@ -343,6 +350,7 @@ describe("Dedicated Control Views Smoke Tests (Offline & Connected)", () => {
       // Revert action
       (view as any).revertCuratedMemoryFile("constraints");
       expect((view as any).memoryFileStatus?.message).toBe("Reverted");
+      expect((view as any).memoryFileStatusMap?.constraints?.message).toBe("Reverted");
     });
   });
 });
