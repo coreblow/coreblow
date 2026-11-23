@@ -1027,7 +1027,6 @@ export class ConfigView extends LitElement {
   }
 
   render() {
-    const isConnected = Boolean(this.app?.connected);
     const activeSection = this.sections.find((s) => s.id === this.activeSectionId);
     const searchMatches = this.searchQuery
       ? searchSchemaFields(this.schema, this.searchQuery)
@@ -1048,28 +1047,6 @@ export class ConfigView extends LitElement {
               <span style="font-size: 20px; font-weight: 700; color: var(--text-strong); letter-spacing: -0.02em;">
                 ${t("config.title")}
               </span>
-              <span
-                style="display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 3px 9px; border-radius: 12px; background: ${isConnected
-                  ? "var(--surface-flat-hover)"
-                  : "var(--bg-muted)"}; color: ${isConnected
-                  ? "var(--accent)"
-                  : "var(--muted)"}; border: 1px solid var(--border-hairline); font-family: var(--mono);"
-              >
-                <span
-                  style="width: 6px; height: 6px; border-radius: 50%; background: ${isConnected
-                    ? "var(--accent)"
-                    : "var(--muted)"};"
-                ></span>
-                ${isConnected ? this.configPath : "Offline Defaults"}
-              </span>
-              <span
-                style="font-size: 11px; color: var(--muted); font-family: var(--mono);"
-              >
-                ${this.sections.length} sections
-              </span>
-            </div>
-            <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">
-              CoreBlow Schema-Driven Quiet Instrument · Full Draft-07 Parity
             </div>
           </div>
 
