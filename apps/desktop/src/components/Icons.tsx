@@ -213,6 +213,13 @@ export const AgentsBrainIcon: React.FC<IconProps> = ({ size = 16, color = "curre
   </svg>
 );
 
+// Capabilities 4-point diamond sparkle
+export const DiamondSparkIcon: React.FC<IconProps> = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
+    <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z" />
+  </svg>
+);
+
 // Skills — sovereign capability microchip with 4-point neural spark core
 export const SkillsChipIcon: React.FC<IconProps> = ({ size = 16, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">

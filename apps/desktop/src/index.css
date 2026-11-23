@@ -1,10 +1,10 @@
 :root {
   /* Quiet Instrument Design Tokens (Dark Mode) */
-  --bg-canvas: #08110F;
-  --bg-sidebar: #09130F;
-  --bg-card: #0A1815;
+  --bg-canvas: #060B09;
+  --bg-sidebar: #08110D;
+  --bg-card: #0A1612;
   --bg-card-hover: #0E201C;
-  --bg-input: #081512;
+  --bg-input: #081410;
   --bg-code: #050B09;
   --bg-chip: #0E221D;
   --bg-hover: #0E201C;

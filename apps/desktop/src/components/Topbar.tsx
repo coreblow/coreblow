@@ -92,78 +92,78 @@ export const Topbar: React.FC<TopbarProps> = ({
         alignItems: "center",
         justifyContent: "space-between",
         padding: `0 ${paddingRight} 0 ${paddingLeft}`,
-        background: "var(--bg-canvas)",
-        borderBottom: "1px solid var(--border-subtle)",
+        background: "transparent",
+        borderBottom: layoutMode === "pro" ? "1px solid var(--border-subtle)" : "none",
         boxSizing: "border-box",
         flexShrink: 0,
         transition: "padding-left 0.2s ease",
         position: "relative",
       }}
     >
-      {/* Active Project & Git Branch Pill (⌘O) */}
+      {/* Active Project & Git Branch Pill (⌘O) — Visible in Pro mode */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <button
-          type="button"
-          onClick={handleSelectFolder}
-          title={layoutMode === "basic" ? "Change active workspace folder (⌘O)" : "Change active project directory (⌘O)"}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "7px",
-            height: "28px",
-            padding: "0 10px",
-            background: "var(--bg-chip)",
-            border: "1px solid var(--border-medium)",
-            borderRadius: "var(--radius-sm)",
-            color: "var(--ink-primary)",
-            fontSize: "12px",
-            fontWeight: 500,
-            cursor: "pointer",
-            transition: "all 0.15s ease",
-          }}
-        >
-          <FolderIcon size={13} color="var(--accent-teal)" />
-          <span style={{ maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {project.name}
-          </span>
-          {layoutMode === "pro" && (
-            <>
-              <span style={{ color: "var(--border-strong)" }}>/</span>
-              <GitBranchIcon size={12} color="var(--ink-secondary)" />
-              <span style={{ color: "var(--ink-secondary)", maxWidth: "100px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {project.branch}
-              </span>
-            </>
-          )}
-        </button>
+        {layoutMode === "pro" && (
+          <button
+            type="button"
+            onClick={handleSelectFolder}
+            title="Change active project directory (⌘O)"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "7px",
+              height: "28px",
+              padding: "0 10px",
+              background: "var(--bg-chip)",
+              border: "1px solid var(--border-medium)",
+              borderRadius: "var(--radius-sm)",
+              color: "var(--ink-primary)",
+              fontSize: "12px",
+              fontWeight: 500,
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+            }}
+          >
+            <FolderIcon size={13} color="var(--accent-teal)" />
+            <span style={{ maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {project.name}
+            </span>
+            <span style={{ color: "var(--border-strong)" }}>/</span>
+            <GitBranchIcon size={12} color="var(--ink-secondary)" />
+            <span style={{ color: "var(--ink-secondary)", maxWidth: "100px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {project.branch}
+            </span>
+          </button>
+        )}
       </div>
 
       {/* Right Controls: Basic/Pro Toggle, Node Switcher Dropdown & Inspector Toggle */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        {/* 1-Click Basic / Pro Toggle Pill */}
-        <button
-          type="button"
-          onClick={onToggleLayoutMode}
-          title={`Active layout: ${layoutMode.toUpperCase()}. Click to switch to ${layoutMode === "basic" ? "Pro (Full 3-pane developer workspace)" : "Basic (Everyday clean chat & memory)"}`}
-          style={{
-            height: "28px",
-            padding: "0 10px",
-            borderRadius: "var(--radius-sm)",
-            background: layoutMode === "basic" ? "var(--accent-teal-subtle)" : "var(--bg-chip)",
-            border: layoutMode === "basic" ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
-            color: layoutMode === "basic" ? "var(--accent-teal)" : "var(--ink-secondary)",
-            fontSize: "11px",
-            fontWeight: 600,
-            cursor: "pointer",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "5px",
-            transition: "all 0.15s ease",
-          }}
-        >
-          <span style={{ fontSize: "10px" }}>{layoutMode === "basic" ? "⚡" : "🛠"}</span>
-          <span>{layoutMode === "basic" ? "Basic" : "Pro"}</span>
-        </button>
+        {layoutMode === "pro" && (
+          <>
+            {/* 1-Click Basic / Pro Toggle Pill */}
+            <button
+              type="button"
+              onClick={onToggleLayoutMode}
+              title={`Active layout: ${layoutMode.toUpperCase()}. Click to switch to ${layoutMode === "basic" ? "Pro (Full 3-pane developer workspace)" : "Basic (Everyday clean chat & memory)"}`}
+              style={{
+                height: "28px",
+                padding: "0 10px",
+                borderRadius: "var(--radius-sm)",
+                background: layoutMode === "basic" ? "var(--accent-teal-subtle)" : "var(--bg-chip)",
+                border: layoutMode === "basic" ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
+                color: layoutMode === "basic" ? "var(--accent-teal)" : "var(--ink-secondary)",
+                fontSize: "11px",
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <span style={{ fontSize: "10px" }}>{layoutMode === "basic" ? "⚡" : "🛠"}</span>
+              <span>{layoutMode === "basic" ? "Basic" : "Pro"}</span>
+            </button>
         {/* Interactive 1-Click Node Switcher Pill */}
         <div style={{ position: "relative" }} ref={dropdownRef}>
           <button
@@ -382,6 +382,8 @@ export const Topbar: React.FC<TopbarProps> = ({
             </div>
           )}
         </div>
+          </>
+        )}
 
         {/* Inspector Toggle (⌘I) */}
         <button
@@ -393,7 +395,7 @@ export const Topbar: React.FC<TopbarProps> = ({
             height: "28px",
             borderRadius: "var(--radius-sm)",
             background: inspectorOpen ? "var(--accent-teal-subtle)" : "transparent",
-            border: inspectorOpen ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
+            border: inspectorOpen ? "1px solid var(--accent-teal)" : "none",
             color: inspectorOpen ? "var(--accent-teal)" : "var(--ink-secondary)",
             display: "grid",
             placeItems: "center",
@@ -401,7 +403,7 @@ export const Topbar: React.FC<TopbarProps> = ({
             transition: "all 0.15s ease",
           }}
         >
-          <InspectorIcon size={15} />
+          <InspectorIcon size={16} />
         </button>
       </div>
     </header>

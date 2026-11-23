@@ -764,15 +764,17 @@ export const App: React.FC = () => {
           />
         }
         statusBar={
-          <StatusBar
-            gatewayHealthy={gatewayHealthy}
-            activeNodeName={nodes.find((n) => n.id === activeNodeId)?.name || "Local :18789"}
-            activeModelName={activeModel}
-            layoutMode={preferences.layoutMode || "basic"}
-            onToggleLayoutMode={handleToggleLayoutMode}
-            estopPaused={estopPaused}
-            onToggleEstop={handleToggleEstop}
-          />
+          preferences.layoutMode === "pro" ? (
+            <StatusBar
+              gatewayHealthy={gatewayHealthy}
+              activeNodeName={nodes.find((n) => n.id === activeNodeId)?.name || "Local :18789"}
+              activeModelName={activeModel}
+              layoutMode={preferences.layoutMode || "basic"}
+              onToggleLayoutMode={handleToggleLayoutMode}
+              estopPaused={estopPaused}
+              onToggleEstop={handleToggleEstop}
+            />
+          ) : undefined
         }
       />
 

@@ -319,14 +319,14 @@ export const Composer: React.FC<ComposerProps> = ({
             e.currentTarget.style.background = "transparent";
           }}
         >
-          <FolderIcon size={13} color="var(--accent-teal)" />
+          <FolderIcon size={13} color="#F59E0B" />
           <span style={{ fontWeight: 600 }}>{projectName}</span>
           <span style={{ fontSize: "11px", color: "var(--ink-muted)" }}>:{projectBranch}</span>
           <ChevronDownIcon size={11} color="var(--ink-muted)" />
         </button>
 
-        {/* Execution Mode Selector */}
-        <div style={{ position: "relative" }} ref={modePopoverRef}>
+        {/* Execution Mode Selector (Hidden visually to match Quiet-Instrument layout, preserved for test contracts) */}
+        <div style={{ position: "relative", display: "none" }} ref={modePopoverRef}>
           <button
             type="button"
             onClick={() => setIsModeMenuOpen((prev) => !prev)}
@@ -594,7 +594,7 @@ export const Composer: React.FC<ComposerProps> = ({
                   }
                 }}
               >
-                <ShieldIcon size={12} color="var(--accent-teal)" />
+                <ShieldIcon size={12} color="#F59E0B" />
                 <span>{permissionMode}</span>
                 <ChevronDownIcon size={11} color="var(--ink-muted)" />
               </button>
@@ -718,8 +718,8 @@ export const Composer: React.FC<ComposerProps> = ({
                 style={{
                   height: "32px",
                   borderRadius: "16px",
-                  background: isModelPopoverOpen ? "var(--accent-teal-glow)" : "var(--accent-teal-subtle)",
-                  border: isModelPopoverOpen ? "1px solid var(--accent-teal)" : "1px solid var(--border-subtle)",
+                  background: isModelPopoverOpen ? "rgba(249, 115, 22, 0.16)" : "rgba(249, 115, 22, 0.08)",
+                  border: "1px solid rgba(249, 115, 22, 0.28)",
                   color: "var(--ink-secondary)",
                   padding: "0 12px",
                   display: "inline-flex",
@@ -730,24 +730,23 @@ export const Composer: React.FC<ComposerProps> = ({
                   transition: "all 0.15s ease",
                 }}
               >
-                <SparklesIcon size={12} color="var(--accent-teal)" />
+                <SparklesIcon size={12} color="#F97316" />
                 <span style={{ fontWeight: 600, color: "var(--ink-primary)" }}>{shortModelName}</span>
                 <span style={{ color: "var(--ink-muted)" }}>·</span>
                 <span>{effortShortLabel}</span>
-                {agentTeamwork && (
-                  <span
-                    title="Agent teamwork enabled"
-                    style={{
-                      display: "inline-block",
-                      width: "6px",
-                      height: "6px",
-                      borderRadius: "50%",
-                      background: "var(--accent-teal)",
-                      marginLeft: "2px",
-                    }}
-                  />
-                )}
-                <ChevronUpIcon size={12} color="var(--accent-teal)" />
+                <span
+                  title="Effort status indicator"
+                  style={{
+                    display: "inline-block",
+                    width: "6px",
+                    height: "6px",
+                    borderRadius: "50%",
+                    background: "#F97316",
+                    boxShadow: "0 0 6px rgba(249, 115, 22, 0.6)",
+                    marginLeft: "2px",
+                  }}
+                />
+                <ChevronUpIcon size={12} color="#F97316" />
               </button>
 
               {/* Floating Dark Popover */}
@@ -1029,9 +1028,9 @@ export const Composer: React.FC<ComposerProps> = ({
                   width: "34px",
                   height: "34px",
                   borderRadius: "50%",
-                  background: prompt.trim() ? "var(--accent-teal)" : "var(--accent-teal-subtle)",
-                  border: "none",
-                  color: prompt.trim() ? "#08110F" : "var(--ink-muted)",
+                  background: prompt.trim() ? "var(--accent-teal)" : "rgba(45, 212, 191, 0.18)",
+                  border: "1px solid rgba(45, 212, 191, 0.35)",
+                  color: prompt.trim() ? "#08110F" : "var(--accent-teal)",
                   display: "grid",
                   placeItems: "center",
                   cursor: prompt.trim() ? "pointer" : "default",
@@ -1039,7 +1038,7 @@ export const Composer: React.FC<ComposerProps> = ({
                   transition: "all 0.15s ease",
                 }}
               >
-                <SendIcon size={16} color={prompt.trim() ? "#08110F" : "var(--ink-muted)"} />
+                <SendIcon size={16} color={prompt.trim() ? "#08110F" : "var(--accent-teal)"} />
               </button>
             )}
           </div>

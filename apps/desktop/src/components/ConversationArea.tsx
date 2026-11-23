@@ -114,7 +114,7 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
         flexDirection: "column",
         position: "relative",
         overflow: "hidden",
-        background: "var(--bg-canvas, #08110F)",
+        background: "var(--bg-canvas, #060B09)",
       }}
     >
       {showOnboarding && onboardingProps ? (
@@ -179,6 +179,7 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
               </h1>
               <span
                 style={{
+                  display: "none",
                   background: "var(--accent-teal-subtle)",
                   color: "var(--accent-teal)",
                   border: "1px solid var(--accent-teal-glow)",
