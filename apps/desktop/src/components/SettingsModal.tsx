@@ -2211,7 +2211,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   CoreBlow Studio
                 </h3>
                 <div style={{ fontSize: "12px", color: "var(--accent-teal)", fontWeight: 600, marginTop: "2px" }}>
-                  Version 2.0.0 (Release)
+                  Version 2.1.2 (Release)
                 </div>
                 <div style={{ fontSize: "11px", color: "var(--ink-muted)", marginTop: "4px" }}>
                   Application ID: ai.coreblow.studio

@@ -577,7 +577,7 @@ export class CoreBlowGatewayClient {
         description: String(card.description || card.summary || card.headline || ""),
         category: String(card.category || card.tier || "General"),
         author: String(card.author || card.publisher || "CoreBlow"),
-        version: String(card.version || "2.0.0"),
+        version: String(card.version || "2.1.2"),
         installed: Boolean(card.installed || card.enabled),
       }));
     } catch {

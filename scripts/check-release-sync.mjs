@@ -64,6 +64,40 @@ if (targetVersion) {
     recordError("VERSION", `Failed to read ui/package.json: ${err.message}`);
   }
 
+  // apps/desktop/src/components/StatusBar.tsx
+  const statusBarPath = path.join(repoRoot, "apps/desktop/src/components/StatusBar.tsx");
+  try {
+    const statusBarContent = fs.readFileSync(statusBarPath, "utf-8");
+    const match = statusBarContent.match(/version\s*=\s*"v([^"]+)"/);
+    if (!match) {
+      recordError("VERSION", "apps/desktop/src/components/StatusBar.tsx missing default version assignment");
+    } else if (match[1] !== targetVersion) {
+      recordError(
+        "VERSION",
+        `apps/desktop/src/components/StatusBar.tsx version (v${match[1]}) does not match root (${targetVersion})`
+      );
+    }
+  } catch (err) {
+    recordError("VERSION", `Failed to read apps/desktop/src/components/StatusBar.tsx: ${err.message}`);
+  }
+
+  // apps/desktop/src/components/SettingsModal.tsx
+  const settingsModalPath = path.join(repoRoot, "apps/desktop/src/components/SettingsModal.tsx");
+  try {
+    const settingsModalContent = fs.readFileSync(settingsModalPath, "utf-8");
+    const match = settingsModalContent.match(/Version\s+([0-9]+\.[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[a-zA-Z0-9.]+)?)\s+\(Release\)/);
+    if (!match) {
+      recordError("VERSION", "apps/desktop/src/components/SettingsModal.tsx missing Version (Release) text");
+    } else if (match[1] !== targetVersion) {
+      recordError(
+        "VERSION",
+        `apps/desktop/src/components/SettingsModal.tsx version (${match[1]}) does not match root (${targetVersion})`
+      );
+    }
+  } catch (err) {
+    recordError("VERSION", `Failed to read apps/desktop/src/components/SettingsModal.tsx: ${err.message}`);
+  }
+
   // scripts/install.sh
   const installShPath = path.join(repoRoot, "scripts/install.sh");
   try {

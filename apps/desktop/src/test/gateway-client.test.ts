@@ -173,7 +173,7 @@ describe("CoreBlowGatewayClient", () => {
     expect(skills[0].id).toBe("skill-1");
     expect(skills[0].name).toBe("Git Auditor");
     expect(skills[0].description).toBe("Audits git repo");
-    expect(skills[0].version).toBe("2.0.0");
+    expect(skills[0].version).toBe("2.1.2");
     expect(global.fetch).toHaveBeenCalledWith(
       "http://127.0.0.1:18789/api/corehub/storefront",
       expect.objectContaining({ method: "GET" }),
