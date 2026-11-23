@@ -106,6 +106,8 @@ describe("Sidebar Component", () => {
     const buttons = Array.from(container.querySelectorAll("button"));
     const capBtn = buttons.find((b) => b.textContent?.includes("Capabilities"));
     expect(capBtn).toBeDefined();
+    expect(capBtn?.style.borderStyle).toBe("none");
+    expect(capBtn?.style.background).toBe("transparent");
     act(() => {
       capBtn?.click();
     });
@@ -113,6 +115,8 @@ describe("Sidebar Component", () => {
 
     const schedBtn = buttons.find((b) => b.textContent?.includes("Scheduled jobs"));
     expect(schedBtn).toBeDefined();
+    expect(schedBtn?.style.borderStyle).toBe("none");
+    expect(schedBtn?.style.background).toBe("transparent");
     act(() => {
       schedBtn?.click();
     });
@@ -161,6 +165,15 @@ describe("Sidebar Component", () => {
 
     const buttons = Array.from(container.querySelectorAll("button"));
     const newChatBtn = buttons.find((b) => b.textContent?.includes("New Chat"));
+    expect(newChatBtn).toBeDefined();
+    expect(newChatBtn?.style.borderStyle).toBe("none");
+    expect(newChatBtn?.style.background).toBe("transparent");
+
+    const kbd = newChatBtn?.querySelector("kbd");
+    expect(kbd).not.toBeNull();
+    expect(kbd?.style.borderStyle).toBe("none");
+    expect(kbd?.style.background).toBe("transparent");
+
     act(() => {
       newChatBtn?.click();
     });

@@ -229,12 +229,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             width: "36px",
             height: "36px",
             borderRadius: "var(--radius-sm)",
-            background: "var(--bg-chip)",
-            border: "1px solid var(--border-subtle)",
+            background: "transparent",
+            border: "none",
             color: "var(--accent-teal)",
             display: "grid",
             placeItems: "center",
             cursor: "pointer",
+            transition: "all 0.12s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "var(--bg-hover)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
           }}
         >
           <PlusIcon size={18} />
@@ -254,6 +261,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             display: "grid",
             placeItems: "center",
             cursor: "pointer",
+            transition: "all 0.12s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "var(--bg-hover)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
           }}
         >
           <SkillsChipIcon size={18} color="var(--accent-teal)" />
@@ -273,6 +287,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             display: "grid",
             placeItems: "center",
             cursor: "pointer",
+            transition: "all 0.12s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "var(--bg-hover)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
           }}
         >
           <ClockIcon size={18} color="var(--accent-teal)" />
@@ -856,14 +877,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 alignItems: "center",
                 justifyContent: "space-between",
                 padding: "0 12px",
-                background: "var(--bg-chip)",
-                border: "1px solid var(--border-medium)",
+                background: "transparent",
+                border: "none",
                 borderRadius: "var(--radius-sm)",
                 color: "var(--ink-primary)",
                 fontSize: "13px",
                 fontWeight: 500,
                 cursor: "pointer",
-                transition: "all 0.15s ease",
+                transition: "all 0.12s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "var(--bg-hover)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
               }}
             >
               <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -872,12 +899,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </span>
               <kbd
                 style={{
-                  fontSize: "10px",
-                  padding: "1px 4px",
-                  borderRadius: "3px",
-                  background: "var(--kbd-bg)",
+                  fontSize: "11px",
+                  padding: 0,
+                  background: "transparent",
                   color: "var(--ink-muted)",
-                  border: "1px solid var(--border-subtle)",
+                  border: "none",
                   fontFamily: "var(--font-mono)",
                 }}
               >
@@ -902,9 +928,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               style={{
                 height: "32px",
                 padding: "0 10px",
-                borderRadius: "8px",
+                borderRadius: "var(--radius-sm)",
                 background: "transparent",
-                border: "1px solid var(--border-subtle)",
+                border: "none",
                 color: "var(--ink-secondary)",
                 fontSize: "12.5px",
                 display: "flex",
@@ -934,9 +960,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               style={{
                 height: "32px",
                 padding: "0 10px",
-                borderRadius: "8px",
+                borderRadius: "var(--radius-sm)",
                 background: "transparent",
-                border: "1px solid var(--border-subtle)",
+                border: "none",
                 color: "var(--ink-secondary)",
                 fontSize: "12.5px",
                 display: "flex",
