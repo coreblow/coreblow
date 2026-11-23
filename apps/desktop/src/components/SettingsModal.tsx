@@ -1658,50 +1658,68 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </SettingGroup>
 
                   <SettingGroup title="LIVE USAGE TELEMETRY">
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(4, 1fr)",
-                        gap: "10px",
-                        marginTop: "8px",
-                      }}
-                    >
-                      {[
-                        { label: "Today's Requests", val: "142" },
-                        { label: "Tokens Processed", val: "384.2k" },
-                        { label: "Failovers", val: "0" },
-                        { label: "Est. Cost", val: "$0.042" },
-                      ].map((stat) => (
+                    {(() => {
+                      const todayKey = new Date().toISOString().slice(0, 10);
+                      const daily = poolData?.telemetry?.daily?.[todayKey] ?? {
+                        requests: 0,
+                        totalTokens: 0,
+                        failovers: 0,
+                        estimatedCostUsd: 0,
+                      };
+                      const stats = [
+                        { label: "Today's Requests", val: String(daily.requests) },
+                        {
+                          label: "Tokens Processed",
+                          val:
+                            daily.totalTokens > 1000
+                              ? `${(daily.totalTokens / 1000).toFixed(1)}k`
+                              : String(daily.totalTokens),
+                        },
+                        { label: "Failovers", val: String(daily.failovers) },
+                        { label: "Est. Cost", val: `$${daily.estimatedCostUsd.toFixed(4)}` },
+                      ];
+                      return (
                         <div
-                          key={stat.label}
                           style={{
-                            padding: "10px",
-                            borderRadius: "8px",
-                            background: "var(--bg-input)",
-                            border: "1px solid var(--border-subtle)",
+                            display: "grid",
+                            gridTemplateColumns: "repeat(4, 1fr)",
+                            gap: "10px",
+                            marginTop: "8px",
                           }}
                         >
-                          <div
-                            style={{
-                              fontSize: "11px",
-                              color: "var(--ink-muted)",
-                              marginBottom: "4px",
-                            }}
-                          >
-                            {stat.label}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "16px",
-                              fontWeight: 700,
-                              color: "var(--accent-teal)",
-                            }}
-                          >
-                            {stat.val}
-                          </div>
+                          {stats.map((stat) => (
+                            <div
+                              key={stat.label}
+                              style={{
+                                padding: "10px",
+                                borderRadius: "8px",
+                                background: "var(--bg-input)",
+                                border: "1px solid var(--border-subtle)",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  fontSize: "11px",
+                                  color: "var(--ink-muted)",
+                                  marginBottom: "4px",
+                                }}
+                              >
+                                {stat.label}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "16px",
+                                  fontWeight: 700,
+                                  color: "var(--accent-teal)",
+                                }}
+                              >
+                                {stat.val}
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })()}
                   </SettingGroup>
                 </div>
               )}
@@ -2769,101 +2787,249 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     Loading skills catalog...
                   </div>
                 ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                    {skills.slice(0, 8).map((sk) => (
-                      <div
-                        key={sk.id}
-                        style={{
-                          padding: "10px",
-                          background: "var(--bg-input)",
-                          borderRadius: "8px",
-                          border: "1px solid var(--border-subtle)",
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: "12.5px",
-                            fontWeight: 600,
-                            color: "var(--ink-primary)",
-                          }}
-                        >
-                          {sk.name}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                    {learnedSkills.length > 0 && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <div style={{ fontSize: "10.5px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+                          Learned Skills ({learnedSkills.length})
                         </div>
-                        <div
-                          style={{ fontSize: "11px", color: "var(--ink-muted)", margin: "4px 0" }}
-                        >
-                          {sk.description}
-                        </div>
-                        <span
-                          style={{ fontSize: "10px", color: "var(--accent-teal)", fontWeight: 600 }}
-                        >
-                          v{sk.version}
-                        </span>
+                        {learnedSkills.map((sk) => (
+                          <div
+                            key={sk.id}
+                            style={{
+                              padding: "9px 12px",
+                              background: "var(--bg-input)",
+                              borderRadius: "8px",
+                              border: "1px solid var(--border-subtle)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: "10px",
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontSize: "12.5px", fontWeight: 600, color: "var(--accent-teal)" }}>
+                                {sk.name}
+                              </div>
+                              <div style={{ fontSize: "11px", color: "var(--ink-muted)", marginTop: "2px" }}>
+                                {sk.description}
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                await gatewayClient.toggleLearnedSkill(sk.id, !sk.installed);
+                                const [storefront, learned] = await Promise.all([
+                                  gatewayClient.getStorefront(),
+                                  gatewayClient.getLearnedSkills(),
+                                ]);
+                                setSkills(storefront);
+                                setLearnedSkills(learned);
+                              }}
+                              style={{
+                                padding: "4px 10px",
+                                borderRadius: "5px",
+                                border: sk.installed ? "1px solid var(--border-medium)" : "1px solid var(--accent-teal)",
+                                background: sk.installed ? "var(--bg-card)" : "var(--accent-teal-subtle)",
+                                color: sk.installed ? "var(--ink-secondary)" : "var(--accent-teal)",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                flexShrink: 0,
+                              }}
+                            >
+                              {sk.installed ? "Disable" : "Enable"}
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
+
+                    {skills.length > 0 ? (
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                        {skills.map((sk) => (
+                          <div
+                            key={sk.id}
+                            style={{
+                              padding: "10px 12px",
+                              background: "var(--bg-input)",
+                              borderRadius: "8px",
+                              border: "1px solid var(--border-subtle)",
+                              display: "flex",
+                              flexDirection: "column",
+                              justifyContent: "space-between",
+                              gap: "8px",
+                            }}
+                          >
+                            <div>
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}>
+                                <span style={{ fontSize: "12.5px", fontWeight: 600, color: "var(--ink-primary)" }}>
+                                  {sk.name}
+                                </span>
+                                {sk.version && (
+                                  <span style={{ fontSize: "10px", color: "var(--ink-muted)", fontFamily: "var(--font-mono)" }}>
+                                    v{sk.version}
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ fontSize: "11px", color: "var(--ink-muted)", marginTop: "4px" }}>
+                                {sk.description}
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (sk.installed) {
+                                  await gatewayClient.uninstallStorefrontItem(sk.id);
+                                } else {
+                                  await gatewayClient.installStorefrontItem(sk.id);
+                                }
+                                const [storefront, learned] = await Promise.all([
+                                  gatewayClient.getStorefront(),
+                                  gatewayClient.getLearnedSkills(),
+                                ]);
+                                setSkills(storefront);
+                                setLearnedSkills(learned);
+                              }}
+                              style={{
+                                alignSelf: "flex-start",
+                                padding: "4px 10px",
+                                borderRadius: "5px",
+                                border: sk.installed ? "1px solid var(--border-medium)" : "none",
+                                background: sk.installed ? "var(--bg-card)" : "var(--accent-teal)",
+                                color: sk.installed ? "var(--ink-secondary)" : "#08110F",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                              }}
+                            >
+                              {sk.installed ? "Uninstall" : "Install"}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: "12px", color: "var(--ink-muted)", padding: "8px 0" }}>
+                        Connected to Gateway skill registry.
+                      </div>
+                    )}
                   </div>
                 )}
               </SettingGroup>
 
               <SettingGroup title="MCP SERVERS (MODEL CONTEXT PROTOCOL)">
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {mcpServers.map((s) => (
-                    <div
-                      key={s.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "8px 12px",
-                        background: "var(--bg-input)",
-                        borderRadius: "6px",
-                      }}
-                    >
-                      <div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {mcpServers.length > 0 && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      {mcpServers.map((s) => (
                         <div
+                          key={s.id}
                           style={{
-                            fontSize: "12.5px",
-                            fontWeight: 600,
-                            color: "var(--ink-primary)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "8px 12px",
+                            background: "var(--bg-input)",
+                            borderRadius: "6px",
+                            border: "1px solid var(--border-subtle)",
                           }}
                         >
-                          {s.name}
+                          <div>
+                            <div style={{ fontSize: "12.5px", fontWeight: 600, color: "var(--ink-primary)" }}>
+                              {s.name}
+                            </div>
+                            <div style={{ fontSize: "11px", color: "var(--ink-muted)" }}>
+                              {s.description || s.command || s.url}
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                            <button
+                              type="button"
+                              onClick={() => handleProbeMcp(s.id)}
+                              style={{
+                                padding: "4px 8px",
+                                fontSize: "11px",
+                                background: "var(--bg-card)",
+                                border: "1px solid var(--border-medium)",
+                                borderRadius: "4px",
+                                color: "var(--ink-primary)",
+                                cursor: "pointer",
+                              }}
+                            >
+                              {mcpProbeStatus[s.id]?.status === "probing" ? "Probing..." : "Probe"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMcp(s.id)}
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                color: "var(--ink-muted)",
+                                cursor: "pointer",
+                              }}
+                            >
+                              <TrashIcon size={13} />
+                            </button>
+                          </div>
                         </div>
-                        <div style={{ fontSize: "11px", color: "var(--ink-muted)" }}>
-                          {s.command}
-                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {mcpCatalog.length > 0 && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <div style={{ fontSize: "10.5px", fontWeight: 700, color: "var(--accent-teal)", textTransform: "uppercase" }}>
+                        Curated CoreBlow MCP Catalog
                       </div>
-                      <div style={{ display: "flex", gap: "6px" }}>
-                        <button
-                          type="button"
-                          onClick={() => handleProbeMcp(s.id)}
-                          style={{
-                            padding: "4px 8px",
-                            fontSize: "11px",
-                            background: "var(--bg-card)",
-                            border: "1px solid var(--border-medium)",
-                            borderRadius: "4px",
-                            color: "var(--ink-primary)",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {mcpProbeStatus[s.id]?.status === "probing" ? "Probing..." : "Test"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteMcp(s.id)}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            color: "var(--ink-muted)",
-                            cursor: "pointer",
-                          }}
-                        >
-                          <TrashIcon size={13} />
-                        </button>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                        {mcpCatalog.map((item) => {
+                          const isInstalled = mcpServers.some((s) => s.id === item.id);
+                          return (
+                            <div
+                              key={item.id}
+                              style={{
+                                background: "var(--bg-input)",
+                                padding: "10px 12px",
+                                borderRadius: "8px",
+                                border: "1px solid var(--border-subtle)",
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "space-between",
+                                gap: "8px",
+                              }}
+                            >
+                              <div>
+                                <div style={{ fontWeight: 600, fontSize: "12px", color: "var(--ink-primary)" }}>
+                                  {item.name}
+                                </div>
+                                <div style={{ fontSize: "11px", color: "var(--ink-muted)", marginTop: "3px" }}>
+                                  {item.description}
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                disabled={isInstalled}
+                                onClick={() => handleInstallMcp(item.id)}
+                                style={{
+                                  alignSelf: "flex-start",
+                                  padding: "4px 10px",
+                                  borderRadius: "5px",
+                                  border: isInstalled ? "1px solid var(--border-subtle)" : "none",
+                                  background: isInstalled ? "var(--bg-card)" : "var(--accent-teal)",
+                                  color: isInstalled ? "var(--ink-muted)" : "#08110F",
+                                  fontSize: "10.5px",
+                                  fontWeight: 600,
+                                  cursor: isInstalled ? "default" : "pointer",
+                                }}
+                              >
+                                {isInstalled ? "Installed" : "1-Click Install"}
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
               </SettingGroup>
             </div>
@@ -2876,8 +3042,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <p
                   style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "12px" }}
                 >
-                  Connect to remote 24/7 CoreBlow nodes across VPS, Tailscale, or cloud machines.
+                  Connect to remote 24/7 CoreBlow nodes across VPS, Tailscale, or Docker machines.
                 </p>
+                {nodeActionStatus && (
+                  <div
+                    style={{
+                      padding: "6px 10px",
+                      borderRadius: "6px",
+                      background: "var(--accent-teal-subtle)",
+                      border: "1px solid var(--accent-teal-glow)",
+                      fontSize: "11.5px",
+                      color: "var(--accent-teal)",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    {nodeActionStatus}
+                  </div>
+                )}
                 <div
                   style={{
                     display: "flex",
@@ -2897,6 +3078,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         background: "var(--bg-input)",
                         borderRadius: "8px",
                         border: "1px solid var(--border-subtle)",
+                        gap: "10px",
                       }}
                     >
                       <div>
@@ -2909,28 +3091,72 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           {node.url} ({node.kind})
                         </div>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span
-                          style={{ fontSize: "11px", color: "var(--accent-teal)", fontWeight: 600 }}
-                        >
-                          Active
-                        </span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                         <button
                           type="button"
                           onClick={async () => {
-                            await gatewayClient.deleteRemoteNode(node.id);
+                            setNodeActionStatus(`Probing ${node.name}...`);
+                            const p = await gatewayClient.probeNode(node.id);
+                            setNodeActionStatus(
+                              p.healthy
+                                ? `✓ ${node.name} Online (${p.latencyMs}ms)`
+                                : `✗ ${node.name} Offline: ${p.error || "unreachable"}`,
+                            );
                             await fetchNodes();
                           }}
                           style={{
-                            background: "transparent",
-                            border: "none",
-                            color: "var(--ink-muted)",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            background: "var(--bg-card)",
+                            border: "1px solid var(--border-medium)",
+                            color: "var(--ink-primary)",
+                            fontSize: "11px",
                             cursor: "pointer",
-                            padding: "2px",
                           }}
                         >
-                          <TrashIcon size={13} />
+                          Probe
                         </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            setNodeActionStatus(`Syncing sessions with ${node.name}...`);
+                            const s = await gatewayClient.syncNodeSessions(node.id);
+                            setNodeActionStatus(
+                              s.ok
+                                ? `✓ Synced ${s.syncedCount ?? 0} sessions with ${node.name}`
+                                : `✗ Sync error: ${s.error || "failed"}`,
+                            );
+                          }}
+                          style={{
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            background: "var(--bg-card)",
+                            border: "1px solid var(--border-medium)",
+                            color: "var(--accent-teal)",
+                            fontSize: "11px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Sync
+                        </button>
+                        {node.id !== "local" && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              await gatewayClient.deleteRemoteNode(node.id);
+                              await fetchNodes();
+                            }}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: "var(--ink-muted)",
+                              cursor: "pointer",
+                              padding: "2px",
+                            }}
+                          >
+                            <TrashIcon size={13} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -2948,20 +3174,38 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     borderRadius: "8px",
                   }}
                 >
-                  <input
-                    type="text"
-                    placeholder="Node Name (e.g. Frankfurt VPS)"
-                    value={newNodeName}
-                    onChange={(e) => setNewNodeName(e.target.value)}
-                    style={{
-                      padding: "5px 10px",
-                      borderRadius: "6px",
-                      background: "var(--bg-card)",
-                      border: "1px solid var(--border-medium)",
-                      color: "var(--ink-primary)",
-                      fontSize: "12px",
-                    }}
-                  />
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    <input
+                      type="text"
+                      placeholder="Node Name (e.g. Frankfurt VPS)"
+                      value={newNodeName}
+                      onChange={(e) => setNewNodeName(e.target.value)}
+                      style={{
+                        padding: "5px 10px",
+                        borderRadius: "6px",
+                        background: "var(--bg-card)",
+                        border: "1px solid var(--border-medium)",
+                        color: "var(--ink-primary)",
+                        fontSize: "12px",
+                      }}
+                    />
+                    <select
+                      value={newNodeKind}
+                      onChange={(e) => setNewNodeKind(e.target.value as RemoteNodeKind)}
+                      style={{
+                        padding: "5px 10px",
+                        borderRadius: "6px",
+                        background: "var(--bg-card)",
+                        border: "1px solid var(--border-medium)",
+                        color: "var(--ink-primary)",
+                        fontSize: "12px",
+                      }}
+                    >
+                      <option value="vps">VPS (Cloud Server 24/7)</option>
+                      <option value="tailscale">Tailscale Mesh Gateway</option>
+                      <option value="docker">Docker Container</option>
+                    </select>
+                  </div>
                   <input
                     type="text"
                     placeholder="Node Gateway URL (e.g. http://100.x.y.z:18789)"
@@ -2976,18 +3220,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       fontSize: "12px",
                     }}
                   />
+                  <input
+                    type="password"
+                    placeholder="Bearer Auth Token (Optional)"
+                    value={newNodeToken}
+                    onChange={(e) => setNewNodeToken(e.target.value)}
+                    style={{
+                      padding: "5px 10px",
+                      borderRadius: "6px",
+                      background: "var(--bg-card)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                    }}
+                  />
                   <button
                     type="button"
                     onClick={async () => {
-                      if (!newNodeName || !newNodeUrl) return;
-                      await gatewayClient.saveRemoteNode({
-                        name: newNodeName,
-                        url: newNodeUrl,
+                      if (!newNodeName.trim() || !newNodeUrl.trim()) return;
+                      const res = await gatewayClient.saveRemoteNode({
+                        name: newNodeName.trim(),
+                        url: newNodeUrl.trim(),
                         kind: newNodeKind,
+                        bearerToken: newNodeToken.trim() || undefined,
                       });
-                      setNewNodeName("");
-                      setNewNodeUrl("");
-                      await fetchNodes();
+                      if (res.ok) {
+                        setNewNodeName("");
+                        setNewNodeUrl("");
+                        setNewNodeToken("");
+                        setNodeActionStatus(`✓ Added remote node "${res.node?.name}"`);
+                        await fetchNodes();
+                      }
                     }}
                     style={{
                       padding: "6px 14px",
