@@ -38,6 +38,8 @@ export const en: TranslationMap = {
   tabs: {
     overview: "Overview",
     channels: "Channels",
+    models: "Models",
+    mcp: "MCP",
     sessions: "Sessions",
     usage: "Usage & Metrics",
     cron: "Cron Jobs",
@@ -53,6 +55,8 @@ export const en: TranslationMap = {
   subtitles: {
     overview: "Status, entry points, health.",
     channels: "Channels and settings.",
+    models: "Model catalog and provider routing.",
+    mcp: "Model Context Protocol tools and servers.",
     sessions: "Active sessions and defaults.",
     usage: "API usage and costs.",
     cron: "Wakeups and recurring runs.",

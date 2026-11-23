@@ -2,6 +2,8 @@ export type Tab =
   | "chat"
   | "overview"
   | "channels"
+  | "models"
+  | "mcp"
   | "instances"
   | "sessions"
   | "usage"

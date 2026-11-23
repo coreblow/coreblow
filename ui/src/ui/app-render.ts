@@ -14,6 +14,9 @@ import "./views/skills.ts";
 import "./views/corehub.ts";
 import "./views/command-palette.ts";
 import "./views/cron.ts";
+import "./views/channels.ts";
+import "./views/models.ts";
+import "./views/mcp.ts";
 
 export function renderApp(app: CoreBlowApp) {
   return html`
@@ -99,10 +102,67 @@ export function renderApp(app: CoreBlowApp) {
                 </div>
              </div>
 
-             <div class="sidebar-shell__footer">
-                <div class="sidebar-version">
-                   <div class="sidebar-version__label">v2.1.2</div>
-                   <div class="sidebar-version__status ${app.connected ? "sidebar-connection-status--online" : "sidebar-connection-status--offline"}"></div>
+             <div class="sidebar-shell__footer" style="padding: 10px 0 0; border-top: 1px solid var(--border-hairline); display: flex; flex-direction: column; gap: 8px;">
+                <!-- Status line: Live dot + Online/Offline + sessions count -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 4px; font-size: 11px;">
+                   <div style="display: flex; align-items: center; gap: 6px;">
+                      <span style="width: 7px; height: 7px; border-radius: 50%; background: ${app.connected ? "var(--ok, #22c55e)" : "var(--danger, #f87171)"}; box-shadow: 0 0 0 3px ${app.connected ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)"};"></span>
+                      <span style="font-weight: 600; color: ${app.connected ? "var(--text-strong)" : "var(--muted)"};">
+                         Gateway: ${app.connected ? "Online" : "Offline"}
+                      </span>
+                   </div>
+                   ${app.sessionsCount > 0
+                     ? html`<span style="font-size: 10px; font-family: var(--mono); color: var(--muted);">${app.sessionsCount} active</span>`
+                     : ""}
+                </div>
+
+                <!-- Status Toast/Feedback text if active -->
+                ${app.footerStatusText
+                  ? html`
+                      <div style="font-size: 10px; font-weight: 600; color: var(--accent); padding: 2px 6px; background: var(--surface-flat-muted); border-radius: var(--radius-sm); text-align: center;">
+                         ${app.footerStatusText}
+                      </div>
+                    `
+                  : ""}
+
+                <!-- Action buttons: Restart Gateway & Check Update -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                   <button
+                      type="button"
+                      style="display: flex; align-items: center; justify-content: center; gap: 4px; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 5px 6px; font-size: 10px; font-weight: 500; color: ${app.connected ? "var(--text)" : "var(--muted)"}; cursor: ${app.connected && !app.gatewayRestarting ? "pointer" : "default"}; opacity: ${app.connected ? "1" : "0.6"}; outline: none;"
+                      title=${app.connected ? "Restart Gateway process" : "Gateway is offline"}
+                      ?disabled=${!app.connected || app.gatewayRestarting}
+                      @click=${() => app.restartGateway()}
+                   >
+                      <span style="width: 10px; height: 10px; display: inline-flex;">${renderIcon("refresh")}</span>
+                      ${app.gatewayRestarting ? "Restarting..." : "Restart"}
+                   </button>
+
+                   <button
+                      type="button"
+                      style="display: flex; align-items: center; justify-content: center; gap: 4px; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 5px 6px; font-size: 10px; font-weight: 500; color: ${app.connected ? "var(--text)" : "var(--muted)"}; cursor: ${app.connected && !app.updateChecking ? "pointer" : "default"}; opacity: ${app.connected ? "1" : "0.6"}; outline: none;"
+                      title=${app.connected ? "Check for CoreBlow updates" : "Gateway is offline"}
+                      ?disabled=${!app.connected || app.updateChecking}
+                      @click=${() => app.checkUpdate()}
+                   >
+                      <span style="width: 10px; height: 10px; display: inline-flex;">${renderIcon("download")}</span>
+                      ${app.updateChecking ? "Checking..." : "Update"}
+                   </button>
+                </div>
+
+                <!-- Bottom utility row: version badge + Docs link -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 0; font-size: 11px;">
+                   <span style="font-family: var(--mono); font-weight: 600; color: var(--muted); font-size: 10px; letter-spacing: 0.02em;">
+                      v2.1.2
+                   </span>
+                   <a
+                      href="https://docs.coreblow.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style="display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--accent); text-decoration: none; font-weight: 500;"
+                   >
+                      Docs ↗
+                   </a>
                 </div>
              </div>
           </div>
@@ -128,6 +188,15 @@ function renderCurrentTab(app: CoreBlowApp) {
   }
   if (app.tab === "sessions") {
      return html`<coreblow-sessions-view .app=${app}></coreblow-sessions-view>`;
+  }
+  if (app.tab === "channels") {
+     return html`<coreblow-channels-view .app=${app}></coreblow-channels-view>`;
+  }
+  if (app.tab === "models") {
+     return html`<coreblow-models-view .app=${app}></coreblow-models-view>`;
+  }
+  if (app.tab === "mcp") {
+     return html`<coreblow-mcp-view .app=${app}></coreblow-mcp-view>`;
   }
   if (app.tab === "config") {
      return html`<coreblow-config-view .app=${app}></coreblow-config-view>`;

@@ -38,6 +38,8 @@ export const id: TranslationMap = {
   tabs: {
     overview: "Ringkasan",
     channels: "Saluran",
+    models: "Model",
+    mcp: "MCP",
     sessions: "Sesi",
     usage: "Penggunaan & Metrik",
     cron: "Tugas Terjadwal",
@@ -53,6 +55,8 @@ export const id: TranslationMap = {
   subtitles: {
     overview: "Status, titik masuk, kesehatan.",
     channels: "Saluran dan pengaturan.",
+    models: "Katalog model dan perutean penyedia.",
+    mcp: "Alat dan server Model Context Protocol.",
     sessions: "Sesi aktif dan default.",
     usage: "Penggunaan API dan biaya.",
     cron: "Jadwal bangun dan tugas berulang.",

@@ -46,6 +46,11 @@ export class CoreBlowApp extends LitElement {
   @state() sessionsCount = 0;
   @state() presenceCount = 0;
 
+  // Live Gateway sidebar footer state
+  @state() gatewayRestarting = false;
+  @state() updateChecking = false;
+  @state() footerStatusText: string | null = null;
+
   // Model catalog
   @state() chatModelCatalog: import('./controllers/models.ts').ModelCatalogEntry[] = [];
   @state() chatModelsLoading = false;
@@ -142,6 +147,48 @@ export class CoreBlowApp extends LitElement {
 
   addEventLog(msg: string) {
     this.eventLog = [{ ts: Date.now(), raw: msg, level: "info" }, ...this.eventLog].slice(0, 100);
+  }
+
+  async restartGateway() {
+    const client = this.gateway.getClient();
+    if (!client?.connected || this.gatewayRestarting) return;
+
+    this.gatewayRestarting = true;
+    this.footerStatusText = "Restarting...";
+    try {
+      await client.request("gateway.restart.request", {});
+      this.footerStatusText = "Restart initiated";
+      this.addEventLog("Gateway restart requested");
+    } catch (err) {
+      console.warn("Failed to request gateway restart:", err);
+      this.footerStatusText = "Restart failed";
+    } finally {
+      setTimeout(() => {
+        this.gatewayRestarting = false;
+        this.footerStatusText = null;
+      }, 3000);
+    }
+  }
+
+  async checkUpdate() {
+    const client = this.gateway.getClient();
+    if (!client?.connected || this.updateChecking) return;
+
+    this.updateChecking = true;
+    this.footerStatusText = "Checking...";
+    try {
+      const res = await client.request<{ status?: string }>("update.run", {});
+      this.footerStatusText = res?.status ? `Update: ${res.status}` : "Up to date";
+      this.addEventLog(`Gateway update check: ${res?.status ?? "done"}`);
+    } catch (err) {
+      console.warn("Failed to run gateway update check:", err);
+      this.footerStatusText = "Check failed";
+    } finally {
+      setTimeout(() => {
+        this.updateChecking = false;
+        this.footerStatusText = null;
+      }, 3000);
+    }
   }
 
   render() {
