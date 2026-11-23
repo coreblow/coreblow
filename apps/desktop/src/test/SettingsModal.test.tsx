@@ -73,7 +73,7 @@ describe("SettingsModal Component", () => {
     expect(text).toContain("Safety & Permissions");
     expect(text).toContain("Channels");
     expect(text).toContain("Skills & Tool Keys");
-    expect(text).toContain("Remotes");
+    expect(text).toContain("Gateways");
     expect(text).toContain("Automations");
     expect(text).toContain("About");
   });
@@ -112,6 +112,141 @@ describe("SettingsModal Component", () => {
 
     expect(container.textContent).toContain("Auxiliary & Subagents");
     expect(container.textContent).toContain("SUBAGENT DELEGATION LIMITS");
+  });
+
+  it("toggles Gateways accordion and switches sub-views updating breadcrumbs", () => {
+    act(() => {
+      root.render(<SettingsModal {...createProps({ initialSection: "remotes:primary" })} />);
+    });
+
+    expect(container.textContent).toContain("Settings");
+    expect(container.textContent).toContain("Gateways");
+    expect(container.textContent).toContain("Primary gateway");
+    expect(container.textContent).toContain("PRIMARY GATEWAY CONNECTION");
+
+    // Click "Saved nodes"
+    const savedNodesButton = Array.from(container.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("Saved nodes"),
+    );
+    expect(savedNodesButton).toBeDefined();
+
+    act(() => {
+      savedNodesButton?.click();
+    });
+
+    expect(container.textContent).toContain("Saved nodes");
+    expect(container.textContent).toContain("ALWAYS-ON REMOTE NODES");
+    expect(container.textContent).toContain("ADD REMOTE NODE");
+  });
+
+  it("updates preferences when selecting each Connection Mode card and reveals contextual SSH inputs", () => {
+    const onUpdatePreferences = vi.fn();
+    act(() => {
+      root.render(
+        <SettingsModal
+          {...createProps({
+            initialSection: "remotes:primary",
+            onUpdatePreferences,
+          })}
+        />,
+      );
+    });
+
+    // 1. Click "Remote gateway"
+    const remoteCard = Array.from(container.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("Remote gateway"),
+    );
+    expect(remoteCard).toBeDefined();
+    act(() => {
+      remoteCard?.click();
+    });
+    expect(onUpdatePreferences).toHaveBeenCalledWith({ connectionMode: "remote" });
+
+    // 2. Click "Connect via SSH"
+    const sshCard = Array.from(container.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("Connect via SSH"),
+    );
+    expect(sshCard).toBeDefined();
+    act(() => {
+      sshCard?.click();
+    });
+    expect(onUpdatePreferences).toHaveBeenCalledWith({ connectionMode: "ssh" });
+
+    // Verify contextual SSH inputs are visible
+    expect(container.textContent).toContain("SSH Tunnel Parameters");
+    expect(container.textContent).toContain("SSH Host");
+    expect(container.textContent).toContain("SSH Username");
+    expect(container.textContent).toContain("Tunnel Command Preview");
+
+    // 3. Click "Local gateway"
+    const localCard = Array.from(container.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("Local gateway"),
+    );
+    expect(localCard).toBeDefined();
+    act(() => {
+      localCard?.click();
+    });
+    expect(onUpdatePreferences).toHaveBeenCalledWith({ connectionMode: "local" });
+  });
+
+  it("OS keychain encryption toggle defaults to enabled and updates preferences", () => {
+    const onUpdatePreferences = vi.fn();
+    act(() => {
+      root.render(
+        <SettingsModal
+          {...createProps({
+            initialSection: "remotes:primary",
+            preferences: { ...DEFAULT_PREFERENCES, encryptSecretsWithKeychain: true },
+            onUpdatePreferences,
+          })}
+        />,
+      );
+    });
+
+    expect(container.textContent).toContain("Encrypt saved secrets with the OS keychain");
+
+    // Find the toggle button in the Security & Diagnostics section
+    const toggleButton = container.querySelector(
+      'button[role="switch"]',
+    ) as HTMLButtonElement | null;
+    expect(toggleButton).not.toBeNull();
+
+    act(() => {
+      toggleButton?.click();
+    });
+
+    expect(onUpdatePreferences).toHaveBeenCalledWith({
+      encryptSecretsWithKeychain: false,
+    });
+  });
+
+  it("invokes window.coreblowDesktop.diagnostics.openLogs when clicking Open logs button", async () => {
+    const openLogsMock = vi.fn().mockResolvedValue({ ok: true, path: "/mock/logs/desktop.log" });
+    (window as any).coreblowDesktop = {
+      diagnostics: { openLogs: openLogsMock },
+    };
+
+    act(() => {
+      root.render(
+        <SettingsModal
+          {...createProps({
+            initialSection: "remotes:primary",
+          })}
+        />,
+      );
+    });
+
+    const openLogsBtn = Array.from(container.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("Open logs"),
+    );
+    expect(openLogsBtn).toBeDefined();
+
+    await act(async () => {
+      openLogsBtn?.click();
+    });
+
+    expect(openLogsMock).toHaveBeenCalled();
+    delete (window as any).coreblowDesktop;
   });
 
   it("filters settings through instant search index and jumps to target section", () => {

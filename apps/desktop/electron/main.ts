@@ -470,6 +470,24 @@ ipcMain.handle("coreblow:screen:captureActive", async () => {
   return capturePath;
 });
 
+ipcMain.handle("coreblow:diagnostics:openLogs", async () => {
+  try {
+    const logsDir = app.getPath("logs");
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true });
+    }
+    const logFilePath = path.join(logsDir, "desktop.log");
+    if (fs.existsSync(logFilePath)) {
+      shell.showItemInFolder(logFilePath);
+      return { ok: true, path: logFilePath };
+    }
+    await shell.openPath(logsDir);
+    return { ok: true, path: logsDir };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || String(err) };
+  }
+});
+
 // ─── App Lifecycle ─────────────────────────────────────────────────────────
 
 app.whenReady().then(async () => {

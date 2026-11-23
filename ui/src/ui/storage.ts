@@ -15,6 +15,13 @@ export interface UiSettings {
   coreHubRegistryUrl?: string;
   coreHubActor?: string;
   coreHubToken?: string;
+  connectionMode?: "local" | "remote" | "ssh";
+  activeRemoteNodeId?: string;
+  sshTunnelHost?: string;
+  sshTunnelUser?: string;
+  sshTunnelPort?: number;
+  sshTunnelRemotePort?: number;
+  sshTunnelIdentityFile?: string;
 }
 
 const DEFAULT_SETTINGS: UiSettings = {
@@ -27,6 +34,13 @@ const DEFAULT_SETTINGS: UiSettings = {
   coreHubRegistryUrl: "https://coreblow.com/corehub",
   coreHubActor: "github:coreblow-admin",
   coreHubToken: "",
+  connectionMode: "local",
+  activeRemoteNodeId: "local",
+  sshTunnelHost: "",
+  sshTunnelUser: "",
+  sshTunnelPort: 22,
+  sshTunnelRemotePort: 18789,
+  sshTunnelIdentityFile: "~/.ssh/id_ed25519",
 };
 
 export function loadSettings(): UiSettings {

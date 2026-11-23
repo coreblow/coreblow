@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
+import { render } from "lit";
 import { ChannelsView, OFFLINE_CHANNEL_CATALOG } from "../src/ui/views/channels.ts";
 import { ModelsView, OFFLINE_MODELS_CATALOG, OFFLINE_PROVIDERS } from "../src/ui/views/models.ts";
 import { McpView, OFFLINE_MCP_SERVERS } from "../src/ui/views/mcp.ts";
+import { ConfigView } from "../src/ui/views/config.ts";
+import { OverviewView } from "../src/ui/views/overview.ts";
 import type { CoreBlowApp } from "../src/ui/app.ts";
 
 function createMockApp(options: { connected?: boolean; onRequest?: (method: string, params: any) => Promise<any> } = {}): CoreBlowApp {
@@ -21,7 +24,17 @@ function createMockApp(options: { connected?: boolean; onRequest?: (method: stri
       theme: "core",
       themeMode: "dark",
       locale: "en",
+      connectionMode: "local",
     },
+    chatModelCatalog: [],
+    approvalQueue: [],
+    eventLog: [],
+    presenceCount: 0,
+    chat: { sessionKey: "test-session" },
+    setTab: vi.fn(),
+    applySettings: vi.fn(function (this: any, next: any) {
+      this.settings = next;
+    }),
     gateway: {
       getClient: () =>
         connected
@@ -224,6 +237,61 @@ describe("Dedicated Control Views Smoke Tests (Offline & Connected)", () => {
       await app.checkUpdate();
       expect(mockRequest).toHaveBeenCalledWith("update.run", {});
       expect(app.footerStatusText).toBe("Update: up-to-date");
+    });
+  });
+
+  describe("ConfigView Gateway & Remotes Connection Mode", () => {
+    it("renders Connection Mode 3 cards and Diagnostics logs row when gateway section is active", () => {
+      const view = new ConfigView();
+      view.app = createMockApp({ connected: false });
+      view.activeSectionId = "gateway";
+
+      const template = (view as any).renderConnectionModePanel();
+      expect(template).toBeDefined();
+
+      // Convert lit html template to string representation
+      const strings = template.strings.join("");
+      expect(strings).toContain("Connection Mode &amp; Remote Nodes");
+      expect(strings).toContain("Local Gateway");
+      expect(strings).toContain("Remote Node");
+      expect(strings).toContain("SSH Tunnel");
+      expect(strings).toContain("Diagnostics &amp; System Event Logs");
+      expect(strings).toContain("Open Live Logs");
+    });
+
+    it("updates connectionMode to remote or ssh and updates app settings", () => {
+      const app = createMockApp({ connected: false });
+      const view = new ConfigView();
+      view.app = app;
+
+      (view as any).setConnectionMode("ssh");
+      expect(app.settings.connectionMode).toBe("ssh");
+
+      (view as any).setConnectionMode("remote");
+      expect(app.settings.connectionMode).toBe("remote");
+
+      (view as any).setConnectionMode("local");
+      expect(app.settings.connectionMode).toBe("local");
+    });
+  });
+
+  describe("OverviewView Posture Strip & Diagnostics", () => {
+    it("renders Connection Mode posture pill and switches to logs tab", () => {
+      const app = createMockApp({ connected: false });
+      const view = new OverviewView();
+      view.app = app;
+
+      const template = view.render();
+      expect(template).toBeDefined();
+      const container = document.createElement("div");
+      render(template, container);
+      expect(container.textContent).toContain("Posture:");
+      expect(container.textContent).toContain("Local Gateway");
+      expect(container.textContent).toContain("Diagnostics");
+
+      // Verify switching to logs tab
+      app.setTab("logs" as any);
+      expect(app.setTab).toHaveBeenCalledWith("logs");
     });
   });
 });

@@ -154,6 +154,10 @@ export class CoreBlowGatewayClient {
     }
   }
 
+  async health(): Promise<boolean> {
+    return this.checkHealth();
+  }
+
   /**
    * Send a streaming ReAct chat request to POST /api/corehub/chat/react
    */

@@ -45,6 +45,8 @@ export type SettingsSection =
   | "channels"
   | "skills"
   | "remotes"
+  | "remotes:primary"
+  | "remotes:saved"
   | "automations"
   | "about";
 
@@ -325,11 +327,53 @@ const SEARCH_INDEX: SearchableSetting[] = [
   },
 
   {
-    id: "remotes-nodes",
-    section: "remotes",
-    title: "Always-On Remote Nodes",
-    description: "24/7 VPS, Tailscale, Docker gateway nodes",
-    keywords: ["remote", "nodes", "vps", "tailscale", "gateway"],
+    id: "gateway-primary",
+    section: "remotes:primary",
+    title: "Primary Gateway",
+    description: "Select connection mode: Local gateway, Remote node, or SSH tunnel",
+    keywords: ["gateway", "primary", "connection", "daemon", "node"],
+  },
+  {
+    id: "gateway-local",
+    section: "remotes:primary",
+    title: "Local Gateway",
+    description: "Start a private CoreBlow daemon on localhost (:18789)",
+    keywords: ["local", "gateway", "daemon", "localhost", "18789"],
+  },
+  {
+    id: "gateway-remote",
+    section: "remotes:primary",
+    title: "Remote Node Gateway",
+    description: "Connect to a 24/7 CoreBlow VPS, Tailscale, or Docker node",
+    keywords: ["remote", "vps", "tailscale", "docker", "gateway"],
+  },
+  {
+    id: "gateway-ssh",
+    section: "remotes:primary",
+    title: "SSH Tunnel Connection",
+    description: "Tunnel securely over key-based SSH without exposing public ports",
+    keywords: ["ssh", "tunnel", "port forward", "remote port", "identity key"],
+  },
+  {
+    id: "gateway-keychain",
+    section: "remotes:primary",
+    title: "OS Keychain Secret Encryption",
+    description: "Encrypt saved API keys and tokens with macOS Keychain / OS Vault",
+    keywords: ["keychain", "vault", "encrypt", "secrets", "os", "security"],
+  },
+  {
+    id: "gateway-diagnostics",
+    section: "remotes:primary",
+    title: "Diagnostics & Desktop Logs",
+    description: "Reveal desktop logs in file manager for troubleshooting",
+    keywords: ["diagnostics", "logs", "desktop.log", "debug", "troubleshooting", "open logs"],
+  },
+  {
+    id: "gateway-saved-nodes",
+    section: "remotes:saved",
+    title: "Saved Remote Nodes",
+    description: "Manage 24/7 VPS, Tailscale, and Docker gateway nodes with live probe and sync",
+    keywords: ["remote", "nodes", "saved", "vps", "tailscale", "gateway", "probe", "sync"],
   },
   {
     id: "automations-cron",
@@ -405,6 +449,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [newKeyLabel, setNewKeyLabel] = useState("");
 
   // Remote Nodes state
+  const [remotesExpanded, setRemotesExpanded] = useState<boolean>(true);
+  const [connectionMode, setConnectionMode] = useState<"local" | "remote" | "ssh">(
+    preferences.connectionMode ?? "local",
+  );
+  const [selectedRemoteNodeId, setSelectedRemoteNodeId] = useState<string>(
+    preferences.activeRemoteNodeId ?? "local",
+  );
+  const [sshHost, setSshHost] = useState(preferences.sshTunnelHost ?? "");
+  const [sshUser, setSshUser] = useState(preferences.sshTunnelUser ?? "");
+  const [sshPort, setSshPort] = useState(preferences.sshTunnelPort ?? 22);
+  const [sshRemotePort, setSshRemotePort] = useState(preferences.sshTunnelRemotePort ?? 18789);
+  const [sshKeyPath, setSshKeyPath] = useState(
+    preferences.sshTunnelIdentityFile ?? "~/.ssh/id_ed25519",
+  );
+  const [reconnectStatus, setReconnectStatus] = useState<string | null>(null);
+  const [diagnosticsStatus, setDiagnosticsStatus] = useState<string | null>(null);
+
   const [remoteNodes, setRemoteNodes] = useState<RemoteNodeConfig[]>([]);
   const [loadingNodes, setLoadingNodes] = useState(false);
   const [newNodeName, setNewNodeName] = useState("");
@@ -412,6 +473,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [newNodeKind, setNewNodeKind] = useState<RemoteNodeKind>("vps");
   const [newNodeToken, setNewNodeToken] = useState("");
   const [nodeActionStatus, setNodeActionStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (preferences.connectionMode) setConnectionMode(preferences.connectionMode);
+    if (preferences.activeRemoteNodeId) setSelectedRemoteNodeId(preferences.activeRemoteNodeId);
+    if (preferences.sshTunnelHost !== undefined) setSshHost(preferences.sshTunnelHost);
+    if (preferences.sshTunnelUser !== undefined) setSshUser(preferences.sshTunnelUser);
+    if (preferences.sshTunnelPort !== undefined) setSshPort(preferences.sshTunnelPort);
+    if (preferences.sshTunnelRemotePort !== undefined) setSshRemotePort(preferences.sshTunnelRemotePort);
+    if (preferences.sshTunnelIdentityFile !== undefined) setSshKeyPath(preferences.sshTunnelIdentityFile);
+  }, [preferences]);
 
   // MCP Servers state
   const [mcpServers, setMcpServers] = useState<any[]>([]);
@@ -487,12 +558,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       if (initialSection.startsWith("models")) {
         setModelsExpanded(true);
       }
+      if (initialSection.startsWith("remotes")) {
+        setRemotesExpanded(true);
+      }
     }
   }, [initialSection, open]);
 
   useEffect(() => {
     if (open) {
-      if (activeSection === "remotes") fetchNodes();
+      if (activeSection === "remotes" || activeSection.startsWith("remotes")) fetchNodes();
       if (activeSection === "skills") {
         fetchMcpData();
         setLoadingSkills(true);
@@ -720,7 +794,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       case "skills":
         return "Skills & Tool Keys";
       case "remotes":
-        return "Remotes";
+      case "remotes:primary":
+        return "Gateways > Primary gateway";
+      case "remotes:saved":
+        return "Gateways > Saved nodes";
       case "automations":
         return "Automations";
       case "about":
@@ -823,6 +900,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     : activeSection === "models:subagents"
                       ? "Auxiliary & Subagents"
                       : "Main & Reasoning"}
+                </span>
+              </>
+            ) : activeSection.startsWith("remotes") || activeSection === "remotes" ? (
+              <>
+                <span style={{ color: "var(--ink-muted)" }}>Gateways</span>
+                <ChevronRightIcon size={12} color="var(--ink-muted)" />
+                <span>
+                  {activeSection === "remotes:saved"
+                    ? "Saved nodes"
+                    : "Primary gateway"}
                 </span>
               </>
             ) : (
@@ -941,6 +1028,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 label: "Models",
                 icon: <SparklesIcon size={14} />,
                 isAccordion: true,
+                expanded: modelsExpanded,
+                setExpanded: setModelsExpanded,
+                defaultSubId: "models:main",
                 subItems: [
                   { id: "models:main", label: "Main & Reasoning" },
                   { id: "models:fallback", label: "Fallback & Pools" },
@@ -952,12 +1042,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               { id: "permissions", label: "Safety & Permissions", icon: <ShieldIcon size={14} /> },
               { id: "channels", label: "Channels", icon: <RadioIcon size={14} /> },
               { id: "skills", label: "Skills & Tool Keys", icon: <SkillsChipIcon size={14} /> },
-              { id: "remotes", label: "Remotes", icon: <ServerIcon size={14} /> },
+              {
+                id: "remotes",
+                label: "Gateways",
+                icon: <ServerIcon size={14} />,
+                isAccordion: true,
+                expanded: remotesExpanded,
+                setExpanded: setRemotesExpanded,
+                defaultSubId: "remotes:primary",
+                subItems: [
+                  { id: "remotes:primary", label: "Primary gateway" },
+                  { id: "remotes:saved", label: "Saved nodes" },
+                ],
+              },
               { id: "automations", label: "Automations", icon: <ClockIcon size={14} /> },
               { id: "about", label: "About", icon: <CoreBlowEmblem size={14} /> },
             ].map((cat) => {
               if (cat.isAccordion) {
-                const isModelsActive = activeSection.startsWith("models");
+                const isCatActive =
+                  cat.id === "models"
+                    ? activeSection.startsWith("models")
+                    : activeSection.startsWith("remotes") || activeSection === "remotes";
                 return (
                   <div
                     key={cat.id}
@@ -966,8 +1071,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <button
                       type="button"
                       onClick={() => {
-                        setModelsExpanded((prev) => !prev);
-                        if (!isModelsActive) setActiveSection("models:main");
+                        cat.setExpanded?.((prev: boolean) => !prev);
+                        if (!isCatActive) setActiveSection(cat.defaultSubId as SettingsSection);
                       }}
                       style={{
                         display: "flex",
@@ -976,13 +1081,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         height: "34px",
                         padding: "0 10px",
                         borderRadius: "var(--radius-sm)",
-                        background: isModelsActive ? "var(--bg-chip)" : "transparent",
-                        border: isModelsActive
+                        background: isCatActive ? "var(--bg-chip)" : "transparent",
+                        border: isCatActive
                           ? "1px solid var(--border-medium)"
                           : "1px solid transparent",
-                        color: isModelsActive ? "var(--ink-primary)" : "var(--ink-secondary)",
+                        color: isCatActive ? "var(--ink-primary)" : "var(--ink-secondary)",
                         fontSize: "13px",
-                        fontWeight: isModelsActive ? 600 : 400,
+                        fontWeight: isCatActive ? 600 : 400,
                         cursor: "pointer",
                         textAlign: "left",
                         transition: "all 0.12s ease",
@@ -991,7 +1096,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                         <span
                           style={{
-                            color: isModelsActive ? "var(--accent-teal)" : "var(--ink-muted)",
+                            color: isCatActive ? "var(--accent-teal)" : "var(--ink-muted)",
                           }}
                         >
                           {cat.icon}
@@ -1001,7 +1106,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       <span
                         style={{ color: "var(--ink-muted)", display: "grid", placeItems: "center" }}
                       >
-                        {modelsExpanded ? (
+                        {cat.expanded ? (
                           <ChevronDownIcon size={12} />
                         ) : (
                           <ChevronRightIcon size={12} />
@@ -1009,7 +1114,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       </span>
                     </button>
 
-                    {modelsExpanded && (
+                    {cat.expanded && (
                       <div
                         style={{
                           display: "flex",
@@ -1022,7 +1127,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         {cat.subItems?.map((sub) => {
                           const isSubActive =
                             activeSection === sub.id ||
-                            (sub.id === "models:main" && activeSection === "models");
+                            (sub.id === "models:main" && activeSection === "models") ||
+                            (sub.id === "remotes:primary" && activeSection === "remotes");
                           return (
                             <button
                               key={sub.id}
@@ -3035,8 +3141,522 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           )}
 
-          {/* 8. REMOTES CATEGORY */}
-          {activeSection === "remotes" && (
+          {/* 8. GATEWAYS & REMOTES CATEGORY */}
+          {(activeSection === "remotes:primary" || activeSection === "remotes") && (
+            <div>
+              <SettingGroup title="PRIMARY GATEWAY CONNECTION">
+                <p
+                  style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "14px" }}
+                >
+                  Configure where CoreBlow Studio directs its reasoning sessions, tools, and storage operations.
+                </p>
+
+                {/* 3-card Connection Mode grid */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gap: "12px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  {[
+                    {
+                      mode: "local" as const,
+                      title: "Local gateway",
+                      desc: "Start a private CoreBlow daemon on localhost (:18789). Default offline-first mode.",
+                    },
+                    {
+                      mode: "remote" as const,
+                      title: "Remote gateway",
+                      desc: "Connect this desktop shell to a 24/7 CoreBlow VPS, Tailscale, or Docker node.",
+                    },
+                    {
+                      mode: "ssh" as const,
+                      title: "Connect via SSH",
+                      desc: "Tunnel securely over key-based SSH to a remote host without exposing public ports.",
+                    },
+                  ].map((card) => {
+                    const isSelected = connectionMode === card.mode;
+                    return (
+                      <button
+                        key={card.mode}
+                        type="button"
+                        onClick={() => {
+                          setConnectionMode(card.mode);
+                          onUpdatePreferences({ connectionMode: card.mode });
+                        }}
+                        style={{
+                          padding: "14px",
+                          borderRadius: "8px",
+                          background: isSelected ? "rgba(45, 212, 191, 0.08)" : "var(--bg-input)",
+                          border: isSelected
+                            ? "1px solid var(--accent-teal)"
+                            : "1px solid var(--border-subtle)",
+                          textAlign: "left",
+                          cursor: "pointer",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "6px",
+                          transition: "all 0.15s ease",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            width: "100%",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "13px",
+                              fontWeight: 600,
+                              color: "var(--ink-primary)",
+                            }}
+                          >
+                            {card.title}
+                          </span>
+                          {isSelected && (
+                            <span
+                              style={{
+                                color: "var(--accent-teal)",
+                                display: "flex",
+                                alignItems: "center",
+                              }}
+                            >
+                              <CheckIcon size={14} />
+                            </span>
+                          )}
+                        </div>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: "11.5px",
+                            color: "var(--ink-muted)",
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          {card.desc}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Contextual configuration strip */}
+                {connectionMode === "remote" && (
+                  <div
+                    style={{
+                      padding: "14px",
+                      borderRadius: "8px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-subtle)",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: "10px",
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: "12px", fontWeight: 600, color: "var(--ink-primary)" }}
+                      >
+                        Select Remote Gateway Node
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setActiveSection("remotes:saved")}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "var(--accent-teal)",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                          padding: 0,
+                          fontWeight: 500,
+                        }}
+                      >
+                        Manage saved nodes &rarr;
+                      </button>
+                    </div>
+                    <select
+                      value={selectedRemoteNodeId}
+                      onChange={(e) => {
+                        setSelectedRemoteNodeId(e.target.value);
+                        onUpdatePreferences({ activeRemoteNodeId: e.target.value });
+                      }}
+                      style={{
+                        width: "100%",
+                        padding: "6px 10px",
+                        borderRadius: "6px",
+                        background: "var(--bg-card)",
+                        border: "1px solid var(--border-medium)",
+                        color: "var(--ink-primary)",
+                        fontSize: "12px",
+                      }}
+                    >
+                      <option value="local">Default Local Daemon (127.0.0.1:18789)</option>
+                      {remoteNodes.map((n) => (
+                        <option key={n.id} value={n.id}>
+                          {n.name} &mdash; {n.url} ({n.kind})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {connectionMode === "ssh" && (
+                  <div
+                    style={{
+                      padding: "14px",
+                      borderRadius: "8px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-subtle)",
+                      marginBottom: "16px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "10px",
+                    }}
+                  >
+                    <div
+                      style={{ fontSize: "12px", fontWeight: 600, color: "var(--ink-primary)" }}
+                    >
+                      SSH Tunnel Parameters
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "11px",
+                            color: "var(--ink-muted)",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          SSH Host
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="gateway.internal.net or 100.x.y.z"
+                          value={sshHost}
+                          onChange={(e) => setSshHost(e.target.value)}
+                          style={{
+                            width: "100%",
+                            padding: "5px 10px",
+                            borderRadius: "6px",
+                            background: "var(--bg-card)",
+                            border: "1px solid var(--border-medium)",
+                            color: "var(--ink-primary)",
+                            fontSize: "12px",
+                            boxSizing: "border-box",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "11px",
+                            color: "var(--ink-muted)",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          SSH Username
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="coreblow or root"
+                          value={sshUser}
+                          onChange={(e) => setSshUser(e.target.value)}
+                          style={{
+                            width: "100%",
+                            padding: "5px 10px",
+                            borderRadius: "6px",
+                            background: "var(--bg-card)",
+                            border: "1px solid var(--border-medium)",
+                            color: "var(--ink-primary)",
+                            fontSize: "12px",
+                            boxSizing: "border-box",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "11px",
+                            color: "var(--ink-muted)",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          SSH Port
+                        </label>
+                        <input
+                          type="number"
+                          value={sshPort}
+                          onChange={(e) => setSshPort(Number(e.target.value) || 22)}
+                          style={{
+                            width: "100%",
+                            padding: "5px 10px",
+                            borderRadius: "6px",
+                            background: "var(--bg-card)",
+                            border: "1px solid var(--border-medium)",
+                            color: "var(--ink-primary)",
+                            fontSize: "12px",
+                            boxSizing: "border-box",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "11px",
+                            color: "var(--ink-muted)",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Remote Gateway Port
+                        </label>
+                        <input
+                          type="number"
+                          value={sshRemotePort}
+                          onChange={(e) => setSshRemotePort(Number(e.target.value) || 18789)}
+                          style={{
+                            width: "100%",
+                            padding: "5px 10px",
+                            borderRadius: "6px",
+                            background: "var(--bg-card)",
+                            border: "1px solid var(--border-medium)",
+                            color: "var(--ink-primary)",
+                            fontSize: "12px",
+                            boxSizing: "border-box",
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "11px",
+                          color: "var(--ink-muted)",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        Identity Key Path
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="~/.ssh/id_ed25519"
+                        value={sshKeyPath}
+                        onChange={(e) => setSshKeyPath(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "5px 10px",
+                          borderRadius: "6px",
+                          background: "var(--bg-card)",
+                          border: "1px solid var(--border-medium)",
+                          color: "var(--ink-primary)",
+                          fontSize: "12px",
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    </div>
+                    <div style={{ marginTop: "4px" }}>
+                      <div
+                        style={{ fontSize: "11px", color: "var(--ink-muted)", marginBottom: "4px" }}
+                      >
+                        Tunnel Command Preview
+                      </div>
+                      <code
+                        style={{
+                          display: "block",
+                          padding: "8px 10px",
+                          borderRadius: "6px",
+                          background: "var(--bg-card)",
+                          border: "1px solid var(--border-subtle)",
+                          color: "var(--accent-teal)",
+                          fontSize: "11px",
+                          fontFamily: "var(--font-mono, monospace)",
+                          wordBreak: "break-all",
+                        }}
+                      >
+                        ssh -N -L 18789:127.0.0.1:{sshRemotePort || 18789} {sshUser || "user"}@
+                        {sshHost || "host"} -p {sshPort || 22}
+                      </code>
+                    </div>
+                  </div>
+                )}
+
+                {/* Right-aligned action bar below cards */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "20px",
+                    gap: "10px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    {reconnectStatus && (
+                      <span
+                        style={{
+                          fontSize: "11.5px",
+                          color: reconnectStatus.startsWith("✓")
+                            ? "var(--accent-teal)"
+                            : reconnectStatus.startsWith("✗")
+                              ? "#ef4444"
+                              : "var(--ink-muted)",
+                        }}
+                      >
+                        {reconnectStatus}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onUpdatePreferences({
+                          connectionMode,
+                          activeRemoteNodeId: selectedRemoteNodeId,
+                          sshTunnelHost: sshHost,
+                          sshTunnelUser: sshUser,
+                          sshTunnelPort: sshPort,
+                          sshTunnelRemotePort: sshRemotePort,
+                          sshTunnelIdentityFile: sshKeyPath,
+                        });
+                        setReconnectStatus("✓ Connection configuration saved for next startup.");
+                      }}
+                      style={{
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                        background: "var(--bg-card)",
+                        border: "1px solid var(--border-medium)",
+                        color: "var(--ink-primary)",
+                        fontSize: "12px",
+                        cursor: "pointer",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Save for next restart
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        onUpdatePreferences({
+                          connectionMode,
+                          activeRemoteNodeId: selectedRemoteNodeId,
+                          sshTunnelHost: sshHost,
+                          sshTunnelUser: sshUser,
+                          sshTunnelPort: sshPort,
+                          sshTunnelRemotePort: sshRemotePort,
+                          sshTunnelIdentityFile: sshKeyPath,
+                        });
+                        setReconnectStatus("Reconnecting to gateway...");
+                        try {
+                          if (window.coreblowDesktop?.gateway?.ensure) {
+                            await window.coreblowDesktop.gateway.ensure();
+                          }
+                          const healthy = await gatewayClient.health();
+                          if (healthy) {
+                            setReconnectStatus("✓ Connected successfully to gateway.");
+                          } else {
+                            setReconnectStatus("✗ Gateway responded with error or offline.");
+                          }
+                        } catch (err: any) {
+                          setReconnectStatus(
+                            `✗ Reconnect failed: ${err?.message || "unreachable"}`,
+                          );
+                        }
+                      }}
+                      style={{
+                        padding: "6px 14px",
+                        borderRadius: "6px",
+                        background: "var(--accent-teal)",
+                        border: "none",
+                        color: "#000000",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Save and reconnect
+                    </button>
+                  </div>
+                </div>
+              </SettingGroup>
+
+              {/* Security & Diagnostics Settings */}
+              <SettingGroup title="SECURITY & DIAGNOSTICS">
+                <SettingRow
+                  label="Encrypt saved secrets with the OS keychain"
+                  description="Encrypt API keys, tokens, and credentials using macOS Keychain / OS Vault (enc:v1:)."
+                >
+                  <ToggleSwitch
+                    checked={preferences.encryptSecretsWithKeychain ?? true}
+                    onChange={(checked) =>
+                      onUpdatePreferences({ encryptSecretsWithKeychain: checked })
+                    }
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label="Diagnostics"
+                  description="Reveal desktop logs in your file manager — helpful when troubleshooting startup or daemon issues."
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    {diagnosticsStatus && (
+                      <span style={{ fontSize: "11px", color: "var(--accent-teal)" }}>
+                        {diagnosticsStatus}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (window.coreblowDesktop?.diagnostics?.openLogs) {
+                          const res = await window.coreblowDesktop.diagnostics.openLogs();
+                          if (res.ok) {
+                            setDiagnosticsStatus(`Opened ${res.path}`);
+                          } else {
+                            setDiagnosticsStatus(res.error || "Failed to open logs");
+                          }
+                        } else {
+                          setDiagnosticsStatus(
+                            "Desktop log viewer available in desktop environment.",
+                          );
+                        }
+                      }}
+                      style={{
+                        padding: "5px 12px",
+                        borderRadius: "6px",
+                        background: "var(--bg-input)",
+                        border: "1px solid var(--border-medium)",
+                        color: "var(--ink-primary)",
+                        fontSize: "12px",
+                        cursor: "pointer",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Open logs
+                    </button>
+                  </div>
+                </SettingRow>
+              </SettingGroup>
+            </div>
+          )}
+
+          {/* 8B. SAVED NODES SUB-VIEW */}
+          {activeSection === "remotes:saved" && (
             <div>
               <SettingGroup title="ALWAYS-ON REMOTE NODES">
                 <p

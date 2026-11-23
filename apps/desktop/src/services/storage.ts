@@ -105,6 +105,16 @@ export interface UiPreferences {
   e2bApiKey?: string;
   modalApiKey?: string;
   daytonaApiKey?: string;
+
+  // Gateways & Remotes
+  connectionMode?: "local" | "remote" | "ssh";
+  activeRemoteNodeId?: string;
+  sshTunnelHost?: string;
+  sshTunnelUser?: string;
+  sshTunnelPort?: number;
+  sshTunnelRemotePort?: number;
+  sshTunnelIdentityFile?: string;
+  encryptSecretsWithKeychain?: boolean;
 }
 
 export const DEFAULT_PREFERENCES: UiPreferences = {
@@ -158,6 +168,15 @@ export const DEFAULT_PREFERENCES: UiPreferences = {
   commandDenylist: "rm -rf /, sudo rm, mkfs",
   secretRedactionEnabled: true,
   checkpointSnapshotLimit: 20,
+
+  connectionMode: "local",
+  activeRemoteNodeId: "local",
+  sshTunnelHost: "",
+  sshTunnelUser: "",
+  sshTunnelPort: 22,
+  sshTunnelRemotePort: 18789,
+  sshTunnelIdentityFile: "~/.ssh/id_ed25519",
+  encryptSecretsWithKeychain: true,
 };
 
 const DEFAULT_PROJECT: ActiveProjectState = {

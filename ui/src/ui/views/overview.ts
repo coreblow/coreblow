@@ -146,6 +146,9 @@ export class OverviewView extends LitElement {
            <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-hairline); display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
               <span style="font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px;">Posture:</span>
               <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
+                 <span style="color: var(--accent, #6366f1);">●</span> ${this.app.settings.connectionMode === "remote" ? "Remote Node" : this.app.settings.connectionMode === "ssh" ? "SSH Tunnel" : "Local Gateway"}
+              </span>
+              <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
                  <span style="color: var(--ok, #22c55e);">●</span> SQLite WAL + FTS5
               </span>
               <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--foreground); display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono);">
@@ -228,6 +231,11 @@ export class OverviewView extends LitElement {
                   @click=${() => this.app.setTab("debug" as any)}>
                     ${renderIcon("bug", "15px", "color: var(--accent);")}
                     <span>${t("debug.title")}</span>
+                 </button>
+                 <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); display: flex; align-items: center; gap: 10px; text-align: left; transition: border-color 0.15s;"
+                  @click=${() => this.app.setTab("logs" as any)}>
+                    ${renderIcon("scrollText", "15px", "color: var(--accent);")}
+                    <span>${t("tabs.logs") || "Logs"} (Diagnostics)</span>
                  </button>
               </div>
            </div>

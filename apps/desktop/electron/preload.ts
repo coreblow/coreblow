@@ -45,6 +45,9 @@ export interface CoreBlowDesktopApi {
     openExternal: (cwd?: string) => Promise<boolean>;
     getInfo: (cwd?: string) => Promise<{ shell: string; cwd: string; username: string; hostname: string; platform: string }>;
   };
+  diagnostics: {
+    openLogs: () => Promise<{ ok: boolean; path?: string; error?: string }>;
+  };
 }
 
 const desktopApi: CoreBlowDesktopApi = {
@@ -103,6 +106,9 @@ const desktopApi: CoreBlowDesktopApi = {
     exec: (command: string, cwd?: string) => ipcRenderer.invoke("coreblow:terminal:exec", { command, cwd }),
     openExternal: (cwd?: string) => ipcRenderer.invoke("coreblow:terminal:openExternal", { cwd }),
     getInfo: (cwd?: string) => ipcRenderer.invoke("coreblow:terminal:getInfo", { cwd }),
+  },
+  diagnostics: {
+    openLogs: () => ipcRenderer.invoke("coreblow:diagnostics:openLogs"),
   },
 };
 

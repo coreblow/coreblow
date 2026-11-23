@@ -44,6 +44,13 @@ export class ConfigView extends LitElement {
   @state() editGatewayToken = "";
   @state() isGatewaySecretRevealed = false;
 
+  // Remote Nodes & Connection Mode
+  @state() private remoteNodes: Array<{ id: string; name: string; url: string; kind?: string }> = [];
+  @state() private loadingNodes = false;
+  @state() private nodeProbeStatus: Record<string, { status: string; latencyMs?: number; error?: string }> = {};
+  @state() private nodeSyncStatus: Record<string, { status: string; syncedCount?: number; error?: string }> = {};
+  @state() private copyTooltip: string | null = null;
+
   private wasConnected = false;
 
   createRenderRoot() {
@@ -58,6 +65,7 @@ export class ConfigView extends LitElement {
     this.rawConfig = this.buildInitialDefaults();
     this.rawJsonText = JSON.stringify(this.rawConfig, null, 2);
     void this.loadConfig();
+    void this.loadRemoteNodes();
   }
 
   override updated(changedProperties: PropertyValues) {
@@ -248,6 +256,324 @@ export class ConfigView extends LitElement {
         this.saveStatus = null;
       }
     }, 4000);
+  }
+
+  private getGatewayHttpUrl(): string {
+    const wsUrl = this.app?.settings?.gatewayUrl;
+    if (!wsUrl) return window.location.origin;
+    try {
+      const parsed = new URL(wsUrl);
+      const protocol = parsed.protocol === "wss:" ? "https:" : "http:";
+      return `${protocol}//${parsed.host}`;
+    } catch {
+      return window.location.origin;
+    }
+  }
+
+  private async loadRemoteNodes() {
+    this.loadingNodes = true;
+    try {
+      const res = await fetch(`${this.getGatewayHttpUrl()}/api/nodes`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.nodes)) {
+          this.remoteNodes = data.nodes;
+        } else if (Array.isArray(data)) {
+          this.remoteNodes = data;
+        }
+      }
+    } catch {
+      // Gracefully degrade when offline or endpoint unavailable
+    } finally {
+      this.loadingNodes = false;
+    }
+  }
+
+  private async probeRemoteNode(nodeId: string) {
+    this.nodeProbeStatus = { ...this.nodeProbeStatus, [nodeId]: { status: "probing" } };
+    try {
+      const res = await fetch(
+        `${this.getGatewayHttpUrl()}/api/corehub/nodes/${encodeURIComponent(nodeId)}/probe`,
+        { method: "POST" },
+      );
+      if (res.ok) {
+        const data = await res.json();
+        this.nodeProbeStatus = {
+          ...this.nodeProbeStatus,
+          [nodeId]: { status: "online", latencyMs: data.latencyMs ?? 18 },
+        };
+      } else {
+        this.nodeProbeStatus = {
+          ...this.nodeProbeStatus,
+          [nodeId]: { status: "offline", error: "HTTP error" },
+        };
+      }
+    } catch (err: any) {
+      this.nodeProbeStatus = {
+        ...this.nodeProbeStatus,
+        [nodeId]: { status: "offline", error: err?.message || "unreachable" },
+      };
+    }
+  }
+
+  private async syncRemoteNode(nodeId: string) {
+    this.nodeSyncStatus = { ...this.nodeSyncStatus, [nodeId]: { status: "syncing" } };
+    try {
+      const res = await fetch(
+        `${this.getGatewayHttpUrl()}/api/corehub/nodes/${encodeURIComponent(nodeId)}/sync`,
+        { method: "POST" },
+      );
+      if (res.ok) {
+        const data = await res.json();
+        this.nodeSyncStatus = {
+          ...this.nodeSyncStatus,
+          [nodeId]: { status: "synced", syncedCount: data.syncedCount ?? 0 },
+        };
+      } else {
+        this.nodeSyncStatus = {
+          ...this.nodeSyncStatus,
+          [nodeId]: { status: "error", error: "Sync failed" },
+        };
+      }
+    } catch (err: any) {
+      this.nodeSyncStatus = {
+        ...this.nodeSyncStatus,
+        [nodeId]: { status: "error", error: err?.message || "failed" },
+      };
+    }
+  }
+
+  private setConnectionMode(mode: "local" | "remote" | "ssh") {
+    if (!this.app) return;
+    this.app.applySettings({
+      ...this.app.settings,
+      connectionMode: mode,
+    });
+    this.requestUpdate();
+  }
+
+  private renderConnectionModePanel() {
+    const currentMode = this.app?.settings?.connectionMode || "local";
+    const sshCmd = `ssh -N -L 18789:127.0.0.1:18789 ${this.app?.settings?.sshTunnelUser || "user"}@${this.app?.settings?.sshTunnelHost || "gateway-host"} -p ${this.app?.settings?.sshTunnelPort || 22}`;
+
+    return html`
+      <div
+        class="card"
+        style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 20px;"
+      >
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <div>
+            <div style="font-size: 14px; font-weight: 700; color: var(--foreground); display: flex; align-items: center; gap: 8px;">
+              ${renderIcon("settings", "16px", "color: var(--accent);")}
+              <span>Connection Mode &amp; Remote Nodes</span>
+            </div>
+            <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">
+              Select how this Control UI reaches the CoreBlow Gateway daemon.
+            </div>
+          </div>
+          <span style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--accent-subtle); color: var(--accent); font-weight: 600; font-family: var(--mono);">
+            Mode: ${currentMode === "remote" ? "Remote Node" : currentMode === "ssh" ? "SSH Tunnel" : "Local Gateway"}
+          </span>
+        </div>
+
+        <!-- 3-card Connection Mode grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 14px;">
+          <!-- 1. Local Gateway -->
+          <div
+            style="padding: 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; background: ${currentMode === "local" ? "var(--accent-subtle)" : "var(--card, var(--bg-elevated))"}; border: 1px solid ${currentMode === "local" ? "var(--accent)" : "var(--border)"};"
+            @click=${() => this.setConnectionMode("local")}
+          >
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span style="font-size: 13px; font-weight: 600; color: var(--foreground);">Local Gateway</span>
+              ${currentMode === "local" ? html`<span style="color: var(--accent); font-size: 12px;">✓</span>` : ""}
+            </div>
+            <div style="font-size: 11px; color: var(--muted); line-height: 1.4;">
+              localhost:18789. Private offline-first CoreBlow daemon on this host.
+            </div>
+          </div>
+
+          <!-- 2. Remote Node -->
+          <div
+            style="padding: 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; background: ${currentMode === "remote" ? "var(--accent-subtle)" : "var(--card, var(--bg-elevated))"}; border: 1px solid ${currentMode === "remote" ? "var(--accent)" : "var(--border)"};"
+            @click=${() => this.setConnectionMode("remote")}
+          >
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span style="font-size: 13px; font-weight: 600; color: var(--foreground);">Remote Node</span>
+              ${currentMode === "remote" ? html`<span style="color: var(--accent); font-size: 12px;">✓</span>` : ""}
+            </div>
+            <div style="font-size: 11px; color: var(--muted); line-height: 1.4;">
+              Connect to a 24/7 CoreBlow VPS, Tailscale, or Docker node.
+            </div>
+          </div>
+
+          <!-- 3. SSH Tunnel -->
+          <div
+            style="padding: 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; background: ${currentMode === "ssh" ? "var(--accent-subtle)" : "var(--card, var(--bg-elevated))"}; border: 1px solid ${currentMode === "ssh" ? "var(--accent)" : "var(--border)"};"
+            @click=${() => this.setConnectionMode("ssh")}
+          >
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span style="font-size: 13px; font-weight: 600; color: var(--foreground);">SSH Tunnel</span>
+              ${currentMode === "ssh" ? html`<span style="color: var(--accent); font-size: 12px;">✓</span>` : ""}
+            </div>
+            <div style="font-size: 11px; color: var(--muted); line-height: 1.4;">
+              Tunnel over encrypted SSH to a remote node without opening ports.
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode-specific contextual views -->
+        ${currentMode === "remote"
+          ? html`
+              <div style="padding: 10px 12px; border-radius: var(--radius-sm); background: var(--card, var(--bg)); border: 1px solid var(--border-hairline); margin-bottom: 14px;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--foreground); margin-bottom: 6px;">
+                  Active Remote Gateway Node
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <select
+                    style="flex: 1; background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px;"
+                    .value=${this.app?.settings?.activeRemoteNodeId || "local"}
+                    @change=${(e: Event) => {
+                      const id = (e.target as HTMLSelectElement).value;
+                      this.app.applySettings({ ...this.app.settings, activeRemoteNodeId: id });
+                      this.requestUpdate();
+                    }}
+                  >
+                    <option value="local">Default Local Daemon (127.0.0.1:18789)</option>
+                    ${this.remoteNodes.map(
+                      (n) =>
+                        html`<option value=${n.id} ?selected=${this.app?.settings?.activeRemoteNodeId === n.id}>${n.name} (${n.url})</option>`,
+                    )}
+                  </select>
+                  <button
+                    type="button"
+                    class="btn"
+                    style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 11px; color: var(--foreground); cursor: pointer;"
+                    @click=${() => void this.loadRemoteNodes()}
+                  >
+                    Refresh Nodes
+                  </button>
+                </div>
+              </div>
+            `
+          : currentMode === "ssh"
+            ? html`
+                <div style="padding: 10px 12px; border-radius: var(--radius-sm); background: var(--card, var(--bg)); border: 1px solid var(--border-hairline); margin-bottom: 14px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 12px; font-weight: 600; color: var(--foreground);">
+                      SSH Port-Forward Generator
+                    </span>
+                    <button
+                      type="button"
+                      style="background: transparent; border: none; color: var(--accent); font-size: 11px; cursor: pointer; padding: 0;"
+                      @click=${() => {
+                        void navigator.clipboard?.writeText(sshCmd);
+                        this.copyTooltip = "Copied command!";
+                        setTimeout(() => (this.copyTooltip = null), 2000);
+                      }}
+                    >
+                      ${this.copyTooltip || "Copy Command"}
+                    </button>
+                  </div>
+                  <code
+                    style="display: block; padding: 8px 10px; border-radius: var(--radius-sm); background: var(--bg-elevated); border: 1px solid var(--border); color: var(--accent); font-size: 11px; font-family: var(--mono); word-break: break-all;"
+                  >
+                    ${sshCmd}
+                  </code>
+                </div>
+              `
+            : ""}
+
+        <!-- Saved Remote Nodes Management -->
+        <div style="border-top: 1px solid var(--border-hairline); padding-top: 12px; margin-top: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 12px; font-weight: 600; color: var(--foreground);">
+              Saved Remote Nodes (${this.remoteNodes.length})
+            </span>
+            <button
+              type="button"
+              style="background: transparent; border: none; color: var(--accent); font-size: 11px; cursor: pointer; padding: 0;"
+              @click=${() => void this.loadRemoteNodes()}
+            >
+              ${this.loadingNodes ? "Probing..." : "Sync List"}
+            </button>
+          </div>
+
+          ${this.remoteNodes.length === 0
+            ? html`
+                <div style="font-size: 11.5px; color: var(--muted); font-style: italic; padding: 6px 0;">
+                  No remote nodes registered on this gateway yet. Add remote nodes in CoreBlow Studio Desktop or through /api/nodes.
+                </div>
+              `
+            : html`
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  ${this.remoteNodes.map((n) => {
+                    const probe = this.nodeProbeStatus[n.id];
+                    const sync = this.nodeSyncStatus[n.id];
+                    return html`
+                      <div
+                        style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--card, var(--bg)); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); font-size: 12px;"
+                      >
+                        <div>
+                          <span style="font-weight: 600; color: var(--foreground); margin-right: 6px;">${n.name}</span>
+                          <span style="font-size: 11px; color: var(--muted); font-family: var(--mono);">${n.url}</span>
+                          ${probe
+                            ? html`<span style="margin-left: 8px; font-size: 10px; color: ${probe.status === "online" ? "var(--ok, #22c55e)" : "var(--danger, #ef4444)"}; font-weight: 600;">
+                                ${probe.status === "online" ? `✓ Online (${probe.latencyMs}ms)` : `✗ Offline`}
+                              </span>`
+                            : ""}
+                          ${sync
+                            ? html`<span style="margin-left: 8px; font-size: 10px; color: var(--accent); font-weight: 600;">
+                                ${sync.status === "synced" ? `✓ Synced ${sync.syncedCount} sessions` : sync.status}
+                              </span>`
+                            : ""}
+                        </div>
+                        <div style="display: flex; gap: 6px;">
+                          <button
+                            type="button"
+                            class="btn"
+                            style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 3px 8px; border-radius: var(--radius-sm); font-size: 10.5px; color: var(--foreground); cursor: pointer;"
+                            @click=${() => void this.probeRemoteNode(n.id)}
+                          >
+                            Probe
+                          </button>
+                          <button
+                            type="button"
+                            class="btn"
+                            style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 3px 8px; border-radius: var(--radius-sm); font-size: 10.5px; color: var(--accent); cursor: pointer;"
+                            @click=${() => void this.syncRemoteNode(n.id)}
+                          >
+                            Sync
+                          </button>
+                        </div>
+                      </div>
+                    `;
+                  })}
+                </div>
+              `}
+        </div>
+
+        <!-- Diagnostics Row -->
+        <div style="border-top: 1px solid var(--border-hairline); padding-top: 12px; margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+          <div>
+            <div style="font-size: 12px; font-weight: 600; color: var(--foreground);">
+              Diagnostics &amp; System Event Logs
+            </div>
+            <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">
+              Live streaming log of daemon lifecycle events, tool calls, and WebSocket traces.
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn"
+            style="background: var(--bg-elevated); border: 1px solid var(--border); color: var(--foreground); padding: 6px 14px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+            @click=${() => this.app.setTab("logs" as any)}
+          >
+            ${renderIcon("scrollText", "14px", "color: var(--accent);")}
+            <span>Open Live Logs</span>
+          </button>
+        </div>
+      </div>
+    `;
   }
 
   private async saveChanges() {
@@ -675,6 +1001,9 @@ export class ConfigView extends LitElement {
                                 ${activeSection.fieldCount} leaf fields
                               </span>
                             </div>
+
+                            <!-- Connection Mode & Remote Nodes for Gateway Section -->
+                            ${activeSection.id === "gateway" ? this.renderConnectionModePanel() : ""}
 
                             <!-- Section Fields List -->
                             <div>
