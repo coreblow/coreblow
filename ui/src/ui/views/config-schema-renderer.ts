@@ -55,50 +55,53 @@ export interface FlatFieldMatch {
   schema: JsonSchemaNode;
 }
 
-const SECTION_ICON_MAP: Record<string, IconName> = {
+export const SECTION_ICON_MAP: Record<string, IconName> = {
   gateway: "globe",
   agents: "bot",
   models: "spark",
+  memory: "memoryBrain",
   tools: "wrench",
   channels: "radio",
   browser: "monitor",
   secrets: "lock", // pragma: allowlist secret
   auth: "shield",
-  diagnostics: "activity",
+  diagnostics: "gauge",
   logging: "scrollText",
-  acp: "zap",
+  acp: "network",
   update: "refresh",
   ui: "palette",
-  env: "terminal",
+  env: "sliders",
   cli: "terminal",
   bindings: "link",
   accessGroups: "users",
-  nodeHost: "globe",
-  session: "messageSquare",
+  nodeHost: "server",
+  session: "fileText",
   cron: "clock",
-  hooks: "wrench",
-  web: "globe",
+  hooks: "webhook",
+  web: "compass",
   discovery: "search",
-  canvasHost: "palette",
-  talk: "radio",
-  memory: "brain",
+  canvasHost: "layout",
+  talk: "mic",
   mcp: "package",
-  skills: "spark",
-  plugins: "package",
-  commands: "terminal",
-  approvals: "shield",
+  skills: "zap",
+  plugins: "puzzle",
+  commands: "command",
+  approvals: "checkCircle",
   messages: "messageSquare",
-  audio: "radio",
-  media: "fileText",
-  broadcast: "radio",
-  meta: "fileText",
+  audio: "waveform",
+  media: "image",
+  broadcast: "megaphone",
+  meta: "tag",
   wizard: "settings",
+  presence: "radar",
+  voicewake: "bell",
 };
 
 const PREFERRED_SECTION_ORDER: string[] = [
   "gateway",
   "agents",
   "models",
+  "memory",
   "tools",
   "channels",
   "browser",
@@ -114,7 +117,6 @@ const PREFERRED_SECTION_ORDER: string[] = [
   "bindings",
   "accessGroups",
   "nodeHost",
-  "memory",
   "mcp",
   "skills",
   "plugins",
@@ -263,6 +265,82 @@ export function extractSchemaSections(schema: JsonSchemaNode): SchemaSection[] {
     if (orderB !== -1) return 1;
     return a.label.localeCompare(b.label);
   });
+}
+
+export interface SectionGroupDefinition {
+  name: string;
+  icon: IconName;
+  ids: string[];
+}
+
+export const SECTION_GROUPS: SectionGroupDefinition[] = [
+  {
+    name: "Core Engine",
+    icon: "bot",
+    ids: ["gateway", "agents", "models", "memory", "tools", "skills", "mcp"],
+  },
+  {
+    name: "Connectivity & I/O",
+    icon: "radio",
+    ids: ["channels", "browser", "nodeHost", "canvasHost", "web", "discovery", "talk"],
+  },
+  {
+    name: "Security & Access",
+    icon: "shield",
+    ids: ["secrets", "auth", "accessGroups", "bindings", "approvals"], // pragma: allowlist secret
+  },
+  {
+    name: "System & Operations",
+    icon: "sliders",
+    ids: [
+      "logging",
+      "diagnostics",
+      "acp",
+      "update",
+      "ui",
+      "env",
+      "cli",
+      "session",
+      "cron",
+      "hooks",
+    ],
+  },
+];
+
+export interface CategorizedSections {
+  groupName: string;
+  groupIcon: IconName;
+  sections: SchemaSection[];
+}
+
+export function groupSchemaSections(sections: SchemaSection[]): CategorizedSections[] {
+  const result: CategorizedSections[] = [];
+  const assigned = new Set<string>();
+
+  for (const group of SECTION_GROUPS) {
+    const matched = sections.filter((s) => group.ids.includes(s.id));
+    if (matched.length > 0) {
+      result.push({
+        groupName: group.name,
+        groupIcon: group.icon,
+        sections: matched,
+      });
+      for (const m of matched) {
+        assigned.add(m.id);
+      }
+    }
+  }
+
+  const unassigned = sections.filter((s) => !assigned.has(s.id));
+  if (unassigned.length > 0) {
+    result.push({
+      groupName: "Plugins & Extensions",
+      groupIcon: "puzzle",
+      sections: unassigned,
+    });
+  }
+
+  return result;
 }
 
 export function getByPath(obj: unknown, path: string): unknown {
@@ -690,6 +768,46 @@ export const OFFLINE_SCHEMA_CATALOG: JsonSchemaNode = {
           anyOf: [{ const: "direct" }, { const: "pool" }, { const: "fallback" }],
           default: "direct",
           description: "Inference routing strategy across pooled accounts",
+        },
+      },
+    },
+    memory: {
+      type: "object",
+      description: "Persistent SQLite WAL/FTS5 memory engine, citations, and QMD sidecar",
+      properties: {
+        backend: {
+          type: "string",
+          anyOf: [{ const: "builtin" }, { const: "qmd" }],
+          default: "builtin",
+          description: "Global memory engine: builtin CoreBlow SQLite FTS5 or QMD sidecar pipeline",
+        },
+        citations: {
+          type: "string",
+          anyOf: [{ const: "auto" }, { const: "on" }, { const: "off" }],
+          default: "auto",
+          description: "Controls memory citation visibility in agent replies",
+        },
+        qmd: {
+          type: "object",
+          description: "QMD sidecar retrieval & MCPorter daemon settings",
+          properties: {
+            command: {
+              type: "string",
+              default: "qmd",
+              description: "Executable path for the qmd binary used by the QMD backend",
+            },
+            searchMode: {
+              type: "string",
+              anyOf: [{ const: "query" }, { const: "search" }, { const: "vsearch" }],
+              default: "query",
+              description: "QMD retrieval path (standard query, search, or vector vsearch)",
+            },
+            mcporterEnabled: {
+              type: "boolean",
+              default: false,
+              description: "Route QMD calls through mcporter daemon to reduce cold-start overhead",
+            },
+          },
         },
       },
     },

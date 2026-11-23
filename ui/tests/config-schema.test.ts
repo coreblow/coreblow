@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   extractSchemaSections,
+  groupSchemaSections,
   countLeafFields,
   resolveNodeType,
   resolveEnumOptions,
@@ -9,6 +10,7 @@ import {
   getByPath,
   setByPath,
   OFFLINE_SCHEMA_CATALOG,
+  SECTION_ICON_MAP,
   type JsonSchemaNode,
 } from "../src/ui/views/config-schema-renderer.ts";
 import { ConfigView } from "../src/ui/views/config.ts";
@@ -179,11 +181,37 @@ describe("Config Schema Parser & Renderer Engine", () => {
     expect(sectionIds).toContain("gateway");
     expect(sectionIds).toContain("agents");
     expect(sectionIds).toContain("models");
+    expect(sectionIds).toContain("memory");
     expect(sectionIds).toContain("tools");
     expect(sectionIds).toContain("channels");
     expect(sectionIds).toContain("logging");
     expect(sectionIds).toContain("browser");
     expect(sectionIds).toContain("secrets");
     expect(sectionIds).toContain("ui");
+
+    // Ensure every section in the offline catalog has a strictly unique icon
+    const offlineIcons = view.sections.map((s) => s.icon);
+    expect(new Set(offlineIcons).size).toBe(offlineIcons.length);
+  });
+
+  it("guarantees zero duplicate icons across all mapped configuration sections", () => {
+    const mappedIcons = Object.values(SECTION_ICON_MAP);
+    expect(new Set(mappedIcons).size).toBe(mappedIcons.length);
+  });
+
+  it("groups configuration sections into ergonomic categories without orphaned sections", () => {
+    const sections = extractSchemaSections(OFFLINE_SCHEMA_CATALOG);
+    const groups = groupSchemaSections(sections);
+
+    expect(groups.length).toBeGreaterThanOrEqual(4);
+    const groupNames = groups.map((g) => g.groupName);
+    expect(groupNames).toContain("Core Engine");
+    expect(groupNames).toContain("Connectivity & I/O");
+    expect(groupNames).toContain("Security & Access");
+    expect(groupNames).toContain("System & Operations");
+
+    // Ensure all sections are accounted for in the categories
+    const totalCategorizedSections = groups.reduce((acc, g) => acc + g.sections.length, 0);
+    expect(totalCategorizedSections).toBe(sections.length);
   });
 });

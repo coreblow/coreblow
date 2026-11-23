@@ -43,7 +43,25 @@ export type IconName =
   | "xCircle"
   | "sun"
   | "moon"
-  | "coreblow";
+  | "coreblow"
+  | "network"
+  | "sliders"
+  | "server"
+  | "webhook"
+  | "compass"
+  | "layout"
+  | "mic"
+  | "puzzle"
+  | "command"
+  | "waveform"
+  | "image"
+  | "megaphone"
+  | "tag"
+  | "radar"
+  | "bell"
+  | "database"
+  | "gauge"
+  | "memoryBrain";
 
 function cbIcon(body: ReturnType<typeof svg>) {
   return html`<svg
@@ -339,6 +357,144 @@ export const icons: Record<IconName, ReturnType<typeof html>> = {
     <path d="M12 2.5L20 7.1V16.9L12 21.5L4 16.9V7.1L12 2.5Z" fill="currentColor" fill-opacity="0.14"/>
     <path d="M15.4 8.2A5 5 0 1 0 15.4 15.8" stroke-width="1.95"/>
     <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>
+  `),
+
+  // ACP — multi-agent mesh orchestration nodes
+  network: cbIcon(svg`
+    <circle cx="12" cy="5" r="2.5" fill="currentColor" fill-opacity="0.16"/>
+    <circle cx="5.5" cy="18" r="2.5" fill="currentColor" fill-opacity="0.16"/>
+    <circle cx="18.5" cy="18" r="2.5" fill="currentColor" fill-opacity="0.16"/>
+    <line x1="10.8" y1="7.2" x2="6.7" y2="15.8"/>
+    <line x1="13.2" y1="7.2" x2="17.3" y2="15.8"/>
+    <line x1="8" y1="18" x2="16" y2="18"/>
+  `),
+
+  // Environment — precision calibration sliders
+  sliders: cbIcon(svg`
+    <line x1="4" y1="7" x2="20" y2="7"/>
+    <circle cx="9" cy="7" r="2.2" fill="currentColor" fill-opacity="0.2"/>
+    <line x1="4" y1="12" x2="20" y2="12"/>
+    <circle cx="15.5" cy="12" r="2.2" fill="currentColor" fill-opacity="0.2"/>
+    <line x1="4" y1="17" x2="20" y2="17"/>
+    <circle cx="11" cy="17" r="2.2" fill="currentColor" fill-opacity="0.2"/>
+  `),
+
+  // Node Host — dual rack server daemon blades
+  server: cbIcon(svg`
+    <rect x="3" y="4" width="18" height="6.5" rx="1.8" fill="currentColor" fill-opacity="0.14"/>
+    <rect x="3" y="13.5" width="18" height="6.5" rx="1.8" fill="currentColor" fill-opacity="0.1"/>
+    <circle cx="7" cy="7.25" r="1" fill="currentColor" stroke="none"/>
+    <circle cx="7" cy="16.75" r="1" fill="currentColor" stroke="none"/>
+    <line x1="11" y1="7.25" x2="17.5" y2="7.25"/>
+    <line x1="11" y1="16.75" x2="17.5" y2="16.75"/>
+  `),
+
+  // Hooks — event webhook trigger loop
+  webhook: cbIcon(svg`
+    <circle cx="12" cy="6" r="2.5" fill="currentColor" fill-opacity="0.16"/>
+    <circle cx="6.5" cy="17.5" r="2.5" fill="currentColor" fill-opacity="0.16"/>
+    <circle cx="17.5" cy="17.5" r="2.5" fill="currentColor" fill-opacity="0.16"/>
+    <path d="M12 8.5v3.5l-3.8 3.8"/>
+    <path d="M12 12l3.8 3.8"/>
+  `),
+
+  // Web — directional navigation compass
+  compass: cbIcon(svg`
+    <circle cx="12" cy="12" r="9" fill="currentColor" fill-opacity="0.1"/>
+    <polygon points="15.8 8.2 13.6 13.6 8.2 15.8 10.4 10.4 15.8 8.2" fill="currentColor" fill-opacity="0.22"/>
+  `),
+
+  // Canvas Host — modular grid workspace frame
+  layout: cbIcon(svg`
+    <rect x="3.5" y="3.5" width="17" height="17" rx="2.2" fill="currentColor" fill-opacity="0.1"/>
+    <line x1="3.5" y1="9.5" x2="20.5" y2="9.5"/>
+    <line x1="10" y1="9.5" x2="10" y2="20.5"/>
+  `),
+
+  // Talk — voice condenser microphone
+  mic: cbIcon(svg`
+    <rect x="9" y="3" width="6" height="10.5" rx="3" fill="currentColor" fill-opacity="0.16"/>
+    <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/>
+    <line x1="12" y1="18" x2="12" y2="21"/>
+    <line x1="9" y1="21" x2="15" y2="21"/>
+  `),
+
+  // Plugins — modular extension block
+  puzzle: cbIcon(svg`
+    <path d="M10 4h4a1.5 1.5 0 0 1 1.5 1.5V7h2a2 2 0 0 1 2 2v3h-1.5a1.5 1.5 0 0 0 0 3H19.5v3a2 2 0 0 1-2 2h-3v-1.5a1.5 1.5 0 0 0-3 0V20h-5a2 2 0 0 1-2-2v-3.5h1.5a1.5 1.5 0 0 0 0-3H4.5V9a2 2 0 0 1 2-2h2V5.5A1.5 1.5 0 0 1 10 4z" fill="currentColor" fill-opacity="0.12"/>
+  `),
+
+  // Commands — command modifier loop glyph
+  command: cbIcon(svg`
+    <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" fill="currentColor" fill-opacity="0.1"/>
+  `),
+
+  // Audio — acoustic frequency waveform bars
+  waveform: cbIcon(svg`
+    <line x1="4" y1="10" x2="4" y2="14"/>
+    <line x1="8" y1="6.5" x2="8" y2="17.5"/>
+    <line x1="12" y1="4" x2="12" y2="20"/>
+    <line x1="16" y1="7.5" x2="16" y2="16.5"/>
+    <line x1="20" y1="10.5" x2="20" y2="13.5"/>
+  `),
+
+  // Media — framed media viewport
+  image: cbIcon(svg`
+    <rect x="3.5" y="4.5" width="17" height="15" rx="2.2" fill="currentColor" fill-opacity="0.12"/>
+    <circle cx="8.5" cy="9.5" r="1.4" fill="currentColor" stroke="none"/>
+    <path d="M20.5 15.5l-4.5-4.5-6.5 6.5"/>
+  `),
+
+  // Broadcast — signal transmission megaphone
+  megaphone: cbIcon(svg`
+    <path d="M3.5 11v2a1.5 1.5 0 0 0 1.5 1.5h2l4.5 4.5v-14L7 9.5H5A1.5 1.5 0 0 0 3.5 11z" fill="currentColor" fill-opacity="0.14"/>
+    <path d="M15.5 8.5a4.5 4.5 0 0 1 0 7"/>
+    <path d="M18.5 6a8 8 0 0 1 0 12"/>
+  `),
+
+  // Meta — chamfered metadata tag
+  tag: cbIcon(svg`
+    <path d="M12 3.5H5.5a2 2 0 0 0-2 2V12l8.5 8.5 8.5-8.5L12 3.5z" fill="currentColor" fill-opacity="0.12"/>
+    <circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"/>
+  `),
+
+  // Presence — live beacon pulse rings
+  radar: cbIcon(svg`
+    <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+    <circle cx="12" cy="12" r="6" stroke-opacity="0.65"/>
+    <circle cx="12" cy="12" r="9.5" stroke-opacity="0.3"/>
+  `),
+
+  // Voicewake — acoustic wake chime bell
+  bell: cbIcon(svg`
+    <path d="M18 9a6 6 0 0 0-12 0c0 6-2.5 7.5-2.5 7.5h17S18 15 18 9z" fill="currentColor" fill-opacity="0.14"/>
+    <path d="M10.2 19.5a2 2 0 0 0 3.6 0"/>
+  `),
+
+  // Memory — persistent SQLite WAL/FTS5 layered memory vault
+  database: cbIcon(svg`
+    <ellipse cx="12" cy="5.5" rx="8" ry="3" fill="currentColor" fill-opacity="0.16"/>
+    <path d="M4 5.5v6.5c0 1.66 3.58 3 8 3s8-1.34 8-3V5.5"/>
+    <path d="M4 12v6.5c0 1.66 3.58 3 8 3s8-1.34 8-3V12" fill="currentColor" fill-opacity="0.08"/>
+    <circle cx="16.2" cy="10.8" r="1" fill="currentColor" stroke="none"/>
+  `),
+
+  // Diagnostics — precision telemetry needle gauge
+  gauge: cbIcon(svg`
+    <path d="M4.5 17.5a8.5 8.5 0 1 1 15 0" fill="currentColor" fill-opacity="0.12"/>
+    <line x1="12" y1="14" x2="16.2" y2="9.5"/>
+    <circle cx="12" cy="14" r="1.6" fill="currentColor" stroke="none"/>
+    <line x1="6.5" y1="19.5" x2="17.5" y2="19.5"/>
+  `),
+
+  // Memory — stylized dual-hemisphere brain
+  memoryBrain: cbIcon(svg`
+    <path d="M9.5 4.5a3 3 0 0 0-3 2.7A3.2 3.2 0 0 0 4 10.3a3.1 3.1 0 0 0 1.4 2.6A3.2 3.2 0 0 0 6.8 18a3 3 0 0 0 2.7 1.7c1.4 0 2.5-1.1 2.5-2.5V7a2.5 2.5 0 0 0-2.5-2.5z" fill="currentColor" fill-opacity="0.14"/>
+    <path d="M14.5 4.5a3 3 0 0 1 3 2.7A3.2 3.2 0 0 1 20 10.3a3.1 3.1 0 0 1-1.4 2.6A3.2 3.2 0 0 1 17.2 18a3 3 0 0 1-2.7 1.7c-1.4 0-2.5-1.1-2.5-2.5V7a2.5 2.5 0 0 1 2.5-2.5z" fill="currentColor" fill-opacity="0.14"/>
+    <path d="M9.5 9.5a2 2 0 0 1-2 1.8"/>
+    <path d="M14.5 9.5a2 2 0 0 0 2 1.8"/>
+    <path d="M9.5 14.5a2 2 0 0 0-1.8 1.2"/>
+    <path d="M14.5 14.5a2 2 0 0 1 1.8 1.2"/>
   `),
 };
 

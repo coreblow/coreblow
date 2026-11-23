@@ -4458,3 +4458,197 @@ details[open] > .ov-expandable-toggle::after {
     gap: 4px;
   }
 }
+
+/* ===========================================
+   Quiet-Instrument Schema Config Navigation
+   =========================================== */
+.config-visual-grid {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.config-section-nav {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-hairline) transparent;
+  background: var(--card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  padding: 10px 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.config-section-nav::-webkit-scrollbar {
+  width: 5px;
+}
+
+.config-section-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.config-section-nav::-webkit-scrollbar-thumb {
+  background: var(--border-hairline);
+  border-radius: 4px;
+}
+
+.config-section-nav::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+.config-nav-header {
+  padding: 4px 8px 8px;
+  border-bottom: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.config-nav-header__title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.config-nav-header__count {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--muted);
+  background: var(--surface-flat-muted);
+  border: 1px solid var(--border-subtle);
+  padding: 1px 6px;
+  border-radius: 9px;
+}
+
+.config-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.config-nav-category-header {
+  padding: 8px 8px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.config-nav-group:not(:first-of-type) .config-nav-category-header {
+  margin-top: 4px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 10px;
+}
+
+.config-section-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  background: transparent;
+  color: var(--text-strong);
+  transition: all 0.12s ease;
+  position: relative;
+  font-family: inherit;
+}
+
+.config-section-btn:hover {
+  background: var(--surface-flat-hover);
+  color: var(--text-strong);
+}
+
+.config-section-btn.active {
+  background: var(--surface-flat-hover);
+  color: var(--accent);
+  border-color: var(--border-hairline);
+  font-weight: 600;
+}
+
+.config-section-btn__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.config-section-btn__icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--muted);
+  transition: color 0.12s ease;
+}
+
+.config-section-btn:hover .config-section-btn__icon,
+.config-section-btn.active .config-section-btn__icon {
+  color: var(--accent);
+}
+
+.config-section-btn__label {
+  font-size: 12px;
+  font-weight: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.config-section-btn__right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.config-section-btn__badge {
+  font-size: 10px;
+  font-family: var(--mono);
+  font-weight: 500;
+  min-width: 20px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 9px;
+  padding: 0 6px;
+  background: var(--surface-flat-muted);
+  color: var(--muted);
+  border: 1px solid var(--border-subtle);
+  font-variant-numeric: tabular-nums;
+  transition: all 0.12s ease;
+}
+
+.config-section-btn.active .config-section-btn__badge {
+  background: rgba(20, 184, 166, 0.12);
+  color: var(--accent);
+  border-color: rgba(20, 184, 166, 0.25);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .config-visual-grid {
+    grid-template-columns: 1fr;
+  }
+  .config-section-nav {
+    position: static;
+    max-height: none;
+  }
+}

@@ -7,6 +7,7 @@ import {
   type JsonSchemaNode,
   type SchemaSection,
   extractSchemaSections,
+  groupSchemaSections,
   OFFLINE_SCHEMA_CATALOG,
   renderSchemaField,
   getByPath,
@@ -96,6 +97,15 @@ export class ConfigView extends LitElement {
         default: "gemini-2.5-pro",
         providers: ["google", "openai", "anthropic", "ollama", "openrouter"],
         mode: "direct",
+      },
+      memory: {
+        backend: "builtin",
+        citations: "auto",
+        qmd: {
+          command: "qmd",
+          searchMode: "query",
+          mcporterEnabled: false,
+        },
       },
       tools: {
         autoApprove: ["read_file", "list_dir", "grep_search", "memory_search"],
@@ -340,6 +350,7 @@ export class ConfigView extends LitElement {
     const searchMatches = this.searchQuery
       ? searchSchemaFields(this.schema, this.searchQuery)
       : [];
+    const categorized = groupSchemaSections(this.sections);
 
     return html`
       <div
@@ -589,65 +600,63 @@ export class ConfigView extends LitElement {
             `
           : html`
               <!-- Visual Mode: Section Navigation + Field List -->
-              <div
-                class="config-visual-grid"
-                style="display: grid; grid-template-columns: 240px 1fr; gap: 20px; align-items: start;"
-              >
-                <!-- Left Section Navigation -->
-                <div
-                  class="config-section-nav"
-                  style="background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 8px; display: flex; flex-direction: column; gap: 2px;"
-                >
-                  <div
-                    style="padding: 6px 10px 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 1px solid var(--border-subtle); margin-bottom: 4px;"
-                  >
-                    Configuration Sections
+              <div class="config-visual-grid">
+                <!-- Left Section Navigation (Grouped, Sticky, Scrollable) -->
+                <aside class="config-section-nav">
+                  <div class="config-nav-header">
+                    <span class="config-nav-header__title">Sections</span>
+                    <span class="config-nav-header__count">
+                      ${this.sections.length} total
+                    </span>
                   </div>
-                  ${this.sections.map((sec) => {
-                    const isActive = this.activeSectionId === sec.id;
-                    const isDirty = this.isSectionDirty(sec.id);
-                    return html`
-                      <button
-                        type="button"
-                        style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 10px; border-radius: var(--radius-sm); border: none; cursor: pointer; text-align: left; background: ${isActive
-                          ? "var(--surface-flat-hover)"
-                          : "transparent"}; color: ${isActive
-                          ? "var(--accent)"
-                          : "var(--text)"}; transition: all 0.12s ease;"
-                        @click=${() => {
-                          this.activeSectionId = sec.id;
-                          this.searchQuery = "";
-                        }}
-                      >
-                        <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                          <span style="width: 14px; height: 14px; flex-shrink: 0; color: ${isActive
-                            ? "var(--accent)"
-                            : "var(--muted)"};">
-                            ${renderIcon(sec.icon)}
-                          </span>
-                          <span style="font-size: 12px; font-weight: ${isActive ? "600" : "500"}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                            ${sec.label}
-                          </span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                          ${isDirty
-                            ? html`<span style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent);"></span>`
-                            : ""}
-                          <span
-                            style="font-size: 10px; padding: 1px 5px; border-radius: 8px; background: var(--bg-muted); color: var(--muted); font-family: var(--mono);"
+
+                  ${categorized.map((group) => html`
+                    <div class="config-nav-group">
+                      <div class="config-nav-category-header">
+                        <span>${group.groupName}</span>
+                      </div>
+                      ${group.sections.map((sec) => {
+                        const isActive = this.activeSectionId === sec.id;
+                        const isDirty = this.isSectionDirty(sec.id);
+                        return html`
+                          <button
+                            type="button"
+                            class="config-section-btn ${isActive ? "active" : ""}"
+                            @click=${() => {
+                              this.activeSectionId = sec.id;
+                              this.searchQuery = "";
+                            }}
                           >
-                            ${sec.fieldCount}
-                          </span>
-                        </div>
-                      </button>
-                    `;
-                  })}
-                </div>
+                            <div class="config-section-btn__left">
+                              <span class="config-section-btn__icon">
+                                ${renderIcon(sec.icon)}
+                              </span>
+                              <span class="config-section-btn__label">
+                                ${sec.label}
+                              </span>
+                            </div>
+                            <div class="config-section-btn__right">
+                              ${isDirty
+                                ? html`<span
+                                    style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0;"
+                                    title="Has unsaved changes"
+                                  ></span>`
+                                : ""}
+                              <span class="config-section-btn__badge">
+                                ${sec.fieldCount}
+                              </span>
+                            </div>
+                          </button>
+                        `;
+                      })}
+                    </div>
+                  `)}
+                </aside>
 
                 <!-- Right Field List Panel -->
                 <div
                   class="config-field-panel"
-                  style="background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 18px 20px;"
+                  style="background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 18px 20px; min-width: 0;"
                 >
                   <!-- Search Results View -->
                   ${this.searchQuery
