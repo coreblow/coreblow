@@ -1233,9 +1233,6 @@ export class ConfigView extends LitElement {
                 <aside class="config-section-nav">
                   <div class="config-nav-header">
                     <span class="config-nav-header__title">Sections</span>
-                    <span class="config-nav-header__count">
-                      ${this.sections.length} total
-                    </span>
                   </div>
 
                   <div class="config-section-list" style="display: flex; flex-direction: column; gap: 2px;">
@@ -1259,17 +1256,14 @@ export class ConfigView extends LitElement {
                               ${sec.label}
                             </span>
                           </div>
-                          <div class="config-section-btn__right">
-                            ${isDirty
-                              ? html`<span
+                          ${isDirty
+                            ? html`<div class="config-section-btn__right">
+                                <span
                                   style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0;"
                                   title="Has unsaved changes"
-                                ></span>`
-                              : ""}
-                            <span class="config-section-btn__badge">
-                              ${sec.fieldCount}
-                            </span>
-                          </div>
+                                ></span>
+                              </div>`
+                            : ""}
                         </button>
                       `;
                     })}
