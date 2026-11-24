@@ -25,7 +25,7 @@
 
 ---
 
-## ⚡ Try CoreBlow in 30 Seconds
+## Try CoreBlow in 30 Seconds
 
 Install the global CLI binary and launch your sovereign agent session immediately:
 
@@ -49,7 +49,7 @@ coreblow
 
 ---
 
-## 🚀 What You Can Do Right Away
+## What You Can Do Right Away
 
 CoreBlow is built for Unix composability, real developer workflows, and immediate terminal productivity:
 
@@ -79,7 +79,7 @@ coreblow mcp serve            # Expose 75 native tools via stdio / JSON-RPC to a
 
 ---
 
-## 💎 Why Engineers Switch to CoreBlow
+## Why Engineers Switch to CoreBlow
 
 | Pillar | Engineering Reality | What You Get |
 | :--- | :--- | :--- |
@@ -92,7 +92,7 @@ coreblow mcp serve            # Expose 75 native tools via stdio / JSON-RPC to a
 
 ---
 
-## 🏛️ Architecture at a Glance
+## Architecture at a Glance
 
 CoreBlow is architected as an enterprise-grade **12-Service Hybrid OOP/DOP Microkernel**: OOP enforces strict lifecycle ownership, connection pools, and service registries, while Data-Oriented Programming (DOP) delivers zero-copy transforms and sub-millisecond cold boot on hot inference paths.
 
@@ -127,7 +127,7 @@ flowchart TD
 ```
 
 <details>
-<summary><strong>📁 Monorepo Directory Layout & Subsystem Responsibilities</strong></summary>
+<summary><strong>Monorepo Directory Layout &amp; Subsystem Responsibilities</strong></summary>
 
 <br>
 
@@ -151,7 +151,7 @@ flowchart TD
 
 ---
 
-## 🌐 The Federated CoreBlow Fleet
+## The Federated CoreBlow Fleet
 
 CoreBlow maintains a federated constellation of specialized, high-performance companion tools and deployment packages:
 
@@ -173,7 +173,7 @@ CoreBlow maintains a federated constellation of specialized, high-performance co
 
 ---
 
-## 🛠️ Operator Quick Reference
+## Operator Quick Reference
 
 ```bash
 # ─── Configuration & Onboarding ──────────────────────────────────
@@ -199,7 +199,7 @@ coreblow security audit        # Run comprehensive local security and credential
 
 ---
 
-## 💻 Development & Contributing
+## Development & Contributing
 
 Prerequisites: Node.js 22.12+, pnpm 10+, and Bun (or native toolchain for companions).
 
@@ -231,7 +231,7 @@ For deeper architectural specifications and development guides:
 
 ---
 
-## 📄 License
+## License
 
 CoreBlow is open-source software licensed under the [MIT License](LICENSE).
 Copyright © 2026 Febrinanda and CoreBlow contributors.
