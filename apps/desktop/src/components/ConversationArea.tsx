@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import type { ChatMessage, DesktopAgent, ModelTier, PermissionMode } from "../types/gateway";
 import { MessageBubble } from "./MessageBubble";
 import { Composer } from "./Composer";
-import { CoreBlowAppIcon, CoreBlowEmblem } from "./Icons";
+import { CoreBlowEmblem } from "./Icons";
 import { GettingStartedFlow, type GettingStartedFlowProps } from "./GettingStartedFlow";
 
 export interface ConversationAreaProps {
@@ -234,13 +234,7 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
                 gap: "14px",
               }}
             >
-              <div
-                style={{
-                  filter: "drop-shadow(0 8px 20px rgba(233, 84, 32, 0.25))",
-                }}
-              >
-                <CoreBlowAppIcon size={64} />
-              </div>
+              <CoreBlowEmblem size={64} color="var(--accent-teal)" />
               <h1
                 style={{
                   fontSize: "40px",
