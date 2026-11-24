@@ -26,9 +26,13 @@ vi.mock("./session-utils.js", () => ({
   loadSessionEntry: loadSessionEntryMock,
 }));
 
-vi.mock("../agents/subagent-registry.js", () => ({
-  getLatestSubagentRunByChildSessionKey: getLatestSubagentRunByChildSessionKeyMock,
-}));
+vi.mock("../agents/subagent-registry.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../agents/subagent-registry.js")>();
+  return {
+    ...actual,
+    getLatestSubagentRunByChildSessionKey: getLatestSubagentRunByChildSessionKeyMock,
+  };
+});
 
 vi.mock("../agents/subagent-control.js", () => ({
   killControlledSubagentRun: killControlledSubagentRunMock,
