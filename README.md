@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/assets/coreblow-banner.svg" width="520" alt="CoreBlow" />
+  <img src="https://raw.githubusercontent.com/coreblow/coreblow/main/.github/assets/coreblow-banner.png" width="640" alt="CoreBlow" />
 </p>
 
 <p align="center">
@@ -8,11 +8,11 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/coreblow/coreblow/actions/workflows/ci.yml"><img src="https://github.com/coreblow/coreblow/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://github.com/coreblow/coreblow/actions/workflows/security.yml"><img src="https://github.com/coreblow/coreblow/actions/workflows/security.yml/badge.svg" alt="Security" /></a>
   <a href="https://www.npmjs.com/package/coreblow"><img src="https://img.shields.io/npm/v/coreblow?color=E95420&label=coreblow" alt="npm version" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-E95420" alt="MIT License" /></a>
+  <a href="https://github.com/coreblow/coreblow/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-E95420" alt="MIT License" /></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D22.12-171C1F" alt="Node >= 22.12" /></a>
-  <a href="https://docs.coreblow.com/mcp"><img src="https://img.shields.io/badge/MCP%20Tools-75%20Native-E95420" alt="75 Native MCP Tools" /></a>
-  <a href="docs/ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-Hybrid%20OOP%2FDOP-171C1F" alt="Hybrid OOP/DOP Architecture" /></a>
 </p>
 
 <p align="center">
@@ -25,76 +25,76 @@
 
 ---
 
-## Try CoreBlow in 30 Seconds
+Start a task in your terminal, hand the exact session off to CoreBlow Studio Desktop without losing context, or let it keep running 24/7 over Telegram, Discord, Slack, and scheduled cron jobs. Everything connects to one local Gateway backed by SQLite memory and OS-level sandboxing — no cloud lock-in, no account wall, and no split state across devices.
 
-Install the global CLI binary and launch your sovereign agent session immediately:
+Use any model you want — local Ollama, Anthropic, OpenAI, Google Gemini, OpenRouter, or your own OpenAI-compatible endpoint. Switch models mid-session with `/model`, or let the adaptive router fail over automatically when provider quotas tighten.
+
+- **A real terminal UI, plus Desktop and Web** — Full React + Ink terminal interface (`coreblow`) with multiline editing, inline colored diffs, and approval prompts, seamlessly synchronized with CoreBlow Studio Desktop (`apps/desktop/`), Web Control UI, Go terminal companion (`corechat`), and macOS Menu Bar (`corebar`).
+- **One memory that persists and learns** — Four-layer local memory (`USER.md`, `MEMORY.md`, `CONSTRAINTS.md`, daily journals) indexed with SQLite WAL + FTS5/BM25 (`< 2ms` recall). Completed tasks feed EvoLoop skill synthesis so your agent gets more useful without manual prompt rewrites.
+- **Safe execution by default** — Loopback-only local Gateway by default, OS-level bash sandboxing (Apple Seatbelt on macOS, Bubblewrap on Linux), TypeScript AST skill security scanning, `per-channel-peer` DM isolation, and a SHA-256 tamper-evident audit journal.
+- **Any model, automatic failover** — Route across 8 backends and 6 task tiers (`fast`, `deep`, `local`, `coding`, `vision`, `decision`) with Daybreak quota failover to fallback cloud models or local Ollama without dropping active turns.
+- **Multi-agent delegation and PR gates** — Escalate complex tasks to specialist agents (`@coder`, `@researcher`, `@auditor`, `@verifier`, `@all`) on a Kanban DAG, backed by a 5-gate PR workflow (`typecheck`, `linter`, `unit_tests`, `secret_scan`, `forbidden_paths`).
+- **24/7 channels, cron, and 75 MCP tools** — Built-in cron scheduler (`coreblow cron`), unified bot monitor (`coreblow bots`), and a live Model Context Protocol server (`coreblow mcp serve`) exposing 75 native tools over stdio and JSON-RPC.
+- **Two-tier extensibility** — Install verified channel drivers and integrations on demand from CoreHub behind `coreblow/plugin-sdk`, or drop zero-dependency `SKILL.md` V2 cognitive workflows indexed in `< 2ms`.
+
+---
+
+## Quick Start
+
+Requires **Node.js 22.12+**.
 
 ```bash
-# 1. Install globally via npm (Node.js 22.12+ required)
 npm install -g coreblow
-
-# 2. Launch interactive React + Ink TUI (with automatic first-run setup wizard)
 coreblow
 ```
 
-> **Prefer Homebrew or Docker?**
-> ```bash
-> # macOS / Linux via Homebrew
-> brew install coreblow/tap/coreblow
->
-> # Docker Compose (local containerized gateway on port 3000)
-> git clone https://github.com/coreblow/coreblow.git && cd coreblow
-> docker compose up -d
-> ```
+Running `coreblow` for the first time launches an interactive setup wizard inside your terminal to pick your provider, model, and theme in under 30 seconds.
 
----
-
-## What You Can Do Right Away
-
-CoreBlow is built for Unix composability, real developer workflows, and immediate terminal productivity:
+Other install options:
 
 ```bash
-# 1. Headless Unix Pipe with Structured JSON Output
-git diff | coreblow -p "Review these changes for security and edge cases" --output-format json
+# Homebrew (macOS / Linux)
+brew install coreblow/tap/coreblow
 
-# 2. Instant Session Resume via SQLite FTS5 Full-Text Search
-coreblow -c                   # Seamlessly continue the latest workspace session
-coreblow -r                   # Open interactive fuzzy session picker (< 2ms recall)
-
-# 3. Studio Desktop Handoff
-coreblow desktop --session latest  # Launch CoreBlow Studio Desktop with synchronized state
-
-# 4. Run 24/7 Gateway Daemon, Scheduled Cron & Messaging Bots
-coreblow gateway run          # Foreground WebSocket Gateway on loopback ws://127.0.0.1:18789
-coreblow cron                 # Inspect and manage persistent agent background automations
-coreblow bots                 # Monitor connected 24/7 channel bots (Telegram, Discord, Slack, etc.)
-
-# 5. Network Latency & Security Diagnostics
-coreblow doctor --net         # Real RTT latency probe (min/median/p95/max ms) against gateway
-coreblow security audit       # Scan local config, AST permissions, and runtime credentials
-
-# 6. Live Model Context Protocol (MCP) Tool Server
-coreblow mcp serve            # Expose 75 native tools via stdio / JSON-RPC to any MCP client
+# Docker Compose (local containerized gateway)
+git clone https://github.com/coreblow/coreblow.git && cd coreblow
+docker compose up -d
 ```
 
 ---
 
-## Why Engineers Switch to CoreBlow
+## Daily Workflows
 
-| Pillar | Engineering Reality | What You Get |
-| :--- | :--- | :--- |
-| **One Brain, Every Surface** | Single Gateway authority at `ws://127.0.0.1:18789` | Terminal TUI (`src/tui/ink/`), Studio Desktop (`apps/desktop/`), Web Control UI (`ui/`), Go terminal companion (`corechat`), native macOS menu bar (`corebar`), and 24/7 chat channels share identical state and memory. |
-| **Persistent Memory That Learns** | SQLite WAL + BM25 FTS5 indexing with `< 2ms` recall | Cory 4-Layer Memory (`USER.md`, `MEMORY.md`, `CONSTRAINTS.md`, daily journals), Knowledge Scribes, entity graphs, and EvoLoop closed-loop skill synthesis (`src/learning/`) with Bayesian Wilson scoring. |
-| **8-Backend Adaptive Router** | Unified streaming interface across local and cloud LLMs | Zero vendor lock-in: route dynamically across local Ollama, Anthropic, OpenAI, Google Gemini, OpenRouter, and custom gateways across 6 task tiers with Daybreak quota window failover. |
-| **Multi-Agent War Room** | Deterministic Kanban DAG coordinator | Assemble specialized agents (`@coder`, `@researcher`, `@auditor`, `@verifier`, `@all`) with round-robin consensus, dispute arbitration, and automated 5-gate PR verification workflows (`src/agents/`). |
-| **Security-First by Default** | Loopback isolation & OS-level confinement | Strict `127.0.0.1` default bind, Apple Seatbelt / Linux Bubblewrap process isolation, TypeScript AST skill scanner, `per-channel-peer` DM isolation, and SHA-256 tamper-evident audit journal. |
-| **Two-Tier Extensibility** | Verified app store + zero-overhead skills | **Tier A:** Enterprise plugins backed by the type-safe `coreblow/plugin-sdk`. **Tier B:** Zero-dependency `SKILL.md` V2 cognitive instructions discovered instantly without bundle recompilation. |
+```bash
+# Pipe diffs, logs, or files into headless mode (CI & Unix-friendly)
+git diff | coreblow -p "Review these changes for security and edge cases" --output-format json
+
+# Pick up right where you left off (SQLite FTS5 session store)
+coreblow -c                           # continue the latest session in this folder
+coreblow -r                           # fuzzy full-text search across past sessions
+
+# Move from terminal to Desktop with the same live session
+coreblow desktop --session latest
+
+# Run the local Gateway, scheduled jobs, and messaging bots 24/7
+coreblow gateway run                  # start the loopback gateway in the foreground
+coreblow cron                         # manage scheduled background jobs
+coreblow bots                         # monitor Telegram, Discord, Slack, WhatsApp, Signal
+
+# Check Gateway latency and security posture
+coreblow doctor --net                 # real RTT percentiles (min/median/p95/max ms)
+coreblow security audit               # check config, permissions, and secret hygiene
+
+# Launch the lightweight Go terminal client or serve 75 native MCP tools
+coreblow chat --go
+coreblow mcp serve
+```
 
 ---
 
-## Architecture at a Glance
+## Architecture
 
-CoreBlow is architected as an enterprise-grade **12-Service Hybrid OOP/DOP Microkernel**: OOP enforces strict lifecycle ownership, connection pools, and service registries, while Data-Oriented Programming (DOP) delivers zero-copy transforms and sub-millisecond cold boot on hot inference paths.
+CoreBlow runs as a **12-service Hybrid OOP/DOP microkernel** inside a single local Gateway. Stateful services (registries, SQLite WAL, plugin sandboxes, War Room orchestration) stay isolated behind explicit OOP boundaries, while hot paths (prompt assembly, SSE streaming, model routing, skill distillation) run as pure data transforms.
 
 ```mermaid
 flowchart TD
@@ -102,136 +102,137 @@ flowchart TD
         TUI["Terminal TUI (React + Ink)<br/><code>coreblow</code>"]
         DESK["Studio Desktop (Electron + Vite)<br/><code>apps/desktop/</code>"]
         WEB["Web Control UI<br/><code>ui/</code>"]
-        GO["Go Terminal Companion<br/><code>corechat</code>"]
-        MAC["macOS Menu Bar<br/><code>corebar</code>"]
-        BOTS["24/7 Messaging Channels<br/>Discord, Telegram, Slack, WebChat"]
+        COMP["CoreChat (Go) &amp; CoreBar (macOS)<br/>24/7 Messaging Channels"]
     end
 
-    subgraph Gateway["CoreBlow Gateway Control Plane (ws://127.0.0.1:18789)"]
-        WS["WebSocket Server & RPC Router"]
-        AUTH["OS Keychain Vault & RBAC Auth"]
-        SEC["Seatbelt / Bubblewrap Confinement"]
+    subgraph Gateway["CoreBlow Gateway Control Plane"]
+        GW["WebSocket / HTTP Control Plane"]
     end
 
-    subgraph Kernel["12-Service Hybrid Microkernel"]
-        MEM["Cory Memory & Scribes<br/>(SQLite WAL + FTS5)"]
-        LEARN["EvoLoop Skill Synthesizer<br/>(AST Security Scanner)"]
-        ROUTER["Adaptive Decision Router<br/>(8 Backends + Daybreak)"]
-        WAR["War Room & Kanban DAG<br/>(5-Gate PR Engine)"]
-        MCP["Sovereign MCP Bridge<br/>(75 Native Tools)"]
-        STORE["CoreHub App Store Host<br/>(plugin-sdk runtime)"]
+    subgraph Microkernel["12-Service Hybrid Microkernel"]
+        LOOP["Agent Turn Loop<br/>Cognitive Coordinator &amp; War Room"]
+        COG["Cory Memory (SQLite WAL + FTS5)<br/>EvoLoop &amp; Knowledge Scribes"]
+        ROUTE["8-Backend Adaptive Router<br/>(Daybreak Failover)"]
+        MCP["MCP Bridge (75 Native Tools)<br/>&amp; CoreHub Plugin Host"]
+        SEC["Seatbelt / Bubblewrap Sandbox<br/>AST Scanner &amp; 5-Gate PR Engine"]
     end
 
-    Clients <-->|WebSocket / JSON-RPC| Gateway
-    Gateway <--> Kernel
+    Clients <-->|WebSocket / JSON-RPC| GW
+    GW <--> LOOP
+    LOOP <--> COG
+    LOOP <--> ROUTE
+    LOOP <--> MCP
+    LOOP <--> SEC
 ```
 
 <details>
-<summary><strong>Monorepo Directory Layout &amp; Subsystem Responsibilities</strong></summary>
+<summary><strong>Monorepo Directory Layout</strong></summary>
 
 <br>
 
-| Directory | Subsystem Responsibility | Architectural Tier |
+| Directory | Responsibility | Tier |
 | :--- | :--- | :--- |
-| `src/gateway/` | WebSocket server, RPC message router, HTTP API, and 12-Service DI container (`MicrokernelRegistryService`). | Kernel Host |
-| `src/memory/` | Cory 4-layer semantic memory, entity graph, Knowledge Scribes, browsable wiki, and compaction (`CoryMemoryService`). | Cognitive Subsystem |
-| `src/learning/` | EvoLoop Skill Synthesizer, DOP skill distiller, and per-skill lock registry (`SkillSynthesizerService`). | Cognitive Subsystem |
-| `src/providers/` | 8-Backend Adaptive Decision Router, Daybreak quota failover, and streaming model adapters (`DecisionRouterService`). | Inference Routing |
-| `src/agents/` | Single-agent turn coordinator, War Room multi-agent DAG, and autonomous 5-gate PR engine (`WarRoomService`). | Agent Orchestration |
-| `src/mcp/` | Sovereign Model Context Protocol bridge exposing 75 native tools over stdio and JSON-RPC (`SovereignMcpBridgeService`). | Protocol & Tools |
-| `src/plugins/` | CoreHub plugin lifecycle, permission sandboxing, and interactive chat views (`AppStoreRuntimeService`). | Extensibility Host |
-| `src/security/` | TypeScript AST skill scanner, execution approvals, loopback guards, and sandbox isolation profiles. | Governance & Trust |
-| `src/tui/ink/` | Production Terminal User Interface built with React, Ink, and syntax-highlighted streaming widgets. | User Interface |
-| `src/cli/` | Command-line interface definitions, automated onboarding wizard, and diagnostic tools. | User Interface |
-| `apps/desktop/` | CoreBlow Studio Desktop (Electron + Vite + React with CLI `--session` handoff and secure sandbox). | Native Clients |
-| `ui/` | Lightweight Web Control UI dashboard served directly by the Gateway. | Native Clients |
-| `extensions/` | Controlled workspace plugin packages managed via CoreHub and published to npm. | Ecosystem Layer |
+| `src/gateway/` | Gateway server, WebSocket/HTTP control plane, and 12-service DI registry. | Kernel Host |
+| `src/memory/` | Cory 4-layer memory, SQLite WAL + FTS5/BM25 index, Knowledge Scribes, and compaction. | Cognitive |
+| `src/learning/` | EvoLoop skill synthesizer, DOP trajectory distiller, Wilson scoring, and skill locks. | Cognitive |
+| `src/providers/` | 8-backend adaptive router, Daybreak quota failover, credential pool, and SSE streaming. | Routing |
+| `src/agents/` | Single-brain Cognitive Coordinator, War Room Kanban DAG, and 5-gate PR workflow engine. | Orchestration |
+| `src/mcp/` | Live Model Context Protocol bridge exposing 75 native tools over stdio and JSON-RPC. | Protocol |
+| `src/plugins/` | Controlled plugin host, CoreHub App Store lifecycle, trust policies, and chat views. | Extensibility |
+| `src/security/` | TypeScript AST skill scanner, execution approvals, secret redaction, and OS sandboxes. | Security |
+| `src/tui/ink/` | Production React + Ink terminal UI (diffs, inline approvals, `/model`, `/pool`, `/rewind`, `/sandbox`). | Interface |
+| `src/cli/` | Operator CLI (`onboard`, `doctor --net`, `chat --go`, `cron`, `bots`, `mcp`, `plugins`, `security`). | Interface |
+| `apps/desktop/` | CoreBlow Studio Desktop (Electron + Vite + React with `--session` handoff and `sandbox: true`). | Desktop |
+| `ui/` | Pre-built Web Control UI served directly by the Gateway. | Web |
+| `extensions/` | Controlled workspace plugins managed via CoreHub. | Plugins |
 
 </details>
 
----
+<details>
+<summary><strong>Companion Repositories &amp; Supply Chain (Fleet)</strong></summary>
 
-## The Federated CoreBlow Fleet
+<br>
 
-CoreBlow maintains a federated constellation of specialized, high-performance companion tools and deployment packages:
+All repositories under `github.com/coreblow` enforce 100% 40-character commit SHA-pinned GitHub Actions, automated CycloneDX SBOMs, and signed build provenance.
 
-| Repository | Purpose & Capabilities | Ecosystem Role |
-| :--- | :--- | :--- |
-| [**corehub**](https://github.com/coreblow/corehub) | Verified plugin storefront, cryptographic package signing, and catalog registry. | App Store Layer |
-| [**corechat**](https://github.com/coreblow/corechat) | Ultra-lightweight, standalone Go companion with real-time WebSocket streaming. | Terminal Companion |
-| [**corebar**](https://github.com/coreblow/corebar) | Native macOS menu bar status monitor and quick-prompt companion (Swift). | Desktop Integration |
-| [**trust**](https://github.com/coreblow/trust) | OWASP Top 10 for Agentic AI threat policy evaluator and safety bundle. | Security Governance |
-| [**corebox**](https://github.com/coreblow/corebox) | OS-level clean-room sandbox runner (Seatbelt, Bubblewrap, Docker confinement). | Process Confinement |
-| [**dolphin**](https://github.com/coreblow/dolphin) | Typed resumable workflow runner shell for complex multi-step pipelines. | Workflow Execution |
-| [**corebench**](https://github.com/coreblow/corebench) | Full-stack performance, latency, and throughput benchmark harness. | Benchmarks & QA |
-| [**coreblow-rtt**](https://github.com/coreblow/coreblow-rtt) | Streaming Time-to-First-Token (TTFT) and Round-Trip-Time (RTT) profiler. | Diagnostics |
-| [**homebrew-tap**](https://github.com/coreblow/homebrew-tap) | Official Homebrew formulas for CoreBlow and native fleet binaries. | Package Distribution |
-| [**nix-coreblow**](https://github.com/coreblow/nix-coreblow) | Nix flake and package declarations for reproducible, declarative environments. | Nix Ecosystem |
-| [**coreblow-ansible**](https://github.com/coreblow/coreblow-ansible) | Production deployment playbooks, systemd unit templates, and multi-node provisioning. | Infrastructure as Code |
+| Repository | Role |
+| :--- | :--- |
+| [`coreblow/corehub`](https://github.com/coreblow/corehub) | On-demand plugin App Store registry, Cloudflare Worker backend, and SHA-256 verified catalog |
+| [`coreblow/corechat`](https://github.com/coreblow/corechat) | Standalone Go 1.22+ WebSocket / JSON-RPC terminal client (`coreblow chat --go`) |
+| [`coreblow/corebar`](https://github.com/coreblow/corebar) | Native macOS SwiftUI Menu Bar status monitor for the local Gateway |
+| [`coreblow/trust`](https://github.com/coreblow/trust) | OWASP Agentic AI threat model and automated policy evaluator |
+| [`coreblow/corebox`](https://github.com/coreblow/corebox) | OS-level process isolation runner (Seatbelt, Bubblewrap, Docker) |
+| [`coreblow/dolphin`](https://github.com/coreblow/dolphin) | Typed resumable workflow runner with atomic disk checkpoints |
+| [`coreblow/corebench`](https://github.com/coreblow/corebench) &amp; [`coreblow-rtt`](https://github.com/coreblow/coreblow-rtt) | Gateway latency, TTFT/RTT network profiling, and benchmark harnesses |
+| [`coreblow/homebrew-tap`](https://github.com/coreblow/homebrew-tap), [`nix-coreblow`](https://github.com/coreblow/nix-coreblow), [`coreblow-ansible`](https://github.com/coreblow/coreblow-ansible) | Native packaging and hardened server provisioning |
 
-> **Supply-Chain Integrity:** All CoreBlow fleet repositories enforce 100% 40-character commit SHA-pinned GitHub Actions, automated CycloneDX Software Bills of Materials (SBOMs), and cryptographically signed build provenance attestations.
+</details>
 
 ---
 
 ## Operator Quick Reference
 
 ```bash
-# ─── Configuration & Onboarding ──────────────────────────────────
-coreblow onboard               # Guided interactive setup for models, channels, and skills
-coreblow configure             # Fast configuration editor for gateway and credentials
+# Setup & configuration
+coreblow onboard                  # Guided interactive setup for models, channels, and skills
+coreblow configure                # Edit gateway, provider, and credential settings
 
-# ─── Gateway Service Operations ──────────────────────────────────
-coreblow gateway run           # Start the gateway in the foreground
-coreblow gateway status        # Inspect daemon status and socket reachability
-coreblow health --json         # Fetch real-time health telemetry in JSON format
+# Gateway operations
+coreblow gateway run              # Start the local gateway in the foreground
+coreblow gateway status           # Check daemon status and socket reachability
+coreblow health --json            # Fetch structured health output
 
-# ─── Diagnostics & Companion Handoff ────────────────────────────
-coreblow doctor --net          # Measure Gateway round-trip latency (min/median/p95/max)
-coreblow chat --go             # Launch compiled Go terminal companion (corechat)
-coreblow desktop --session <id># Open CoreBlow Studio Desktop for an active session
+# Diagnostics & companions
+coreblow doctor --net             # Measure Gateway RTT latency (min/median/p95/max ms)
+coreblow chat --go                # Launch the compiled Go terminal companion (corechat)
+coreblow desktop --session <id>   # Open an active session in CoreBlow Studio Desktop
 
-# ─── 24/7 Automations & Protocols ────────────────────────────────
-coreblow cron                  # Inspect and manage scheduled background cron tasks
-coreblow bots                  # Monitor 24/7 background channel bots
-coreblow mcp serve             # Run Model Context Protocol server (75 native tools)
-coreblow security audit        # Run comprehensive local security and credential audit
+# Automations, protocols & security
+coreblow cron                     # Manage 24/7 scheduled background tasks
+coreblow bots                     # Monitor connected messaging bots
+coreblow mcp serve                # Serve 75 native tools via Model Context Protocol
+coreblow security audit           # Audit permissions, secrets, and sandbox posture
 ```
 
 ---
 
 ## Development & Contributing
 
-Prerequisites: Node.js 22.12+, pnpm 10+, and Bun (or native toolchain for companions).
+Requires **Node.js 22.12+** and **pnpm 10+**.
 
 ```bash
-# 1. Clone the repository and install workspace dependencies
 git clone https://github.com/coreblow/coreblow.git
 cd coreblow
 pnpm install
-
-# 2. Run local verification gates
-pnpm check                     # Run Oxlint and type-check verification
-pnpm test                      # Run Vitest test suite
-pnpm build                     # Build Control UI and runtime bundle
-
-# 3. Fleet companion development scripts
-pnpm corebar:dev               # Run macOS Swift menu-bar app in development
-pnpm chat:go                   # Run Go corechat companion via go run
-pnpm trust:eval --help         # Run OWASP Agentic AI trust policy evaluation
-pnpm rtt:probe                 # Probe live TTFT/RTT latency against the local gateway
-pnpm bench:run                 # Execute full-stack performance benchmarks
+pnpm check       # oxlint + tsgo + MCP budget + SDK boundary + security checks
+pnpm test        # vitest suite
+pnpm build       # Control UI + runtime bundles + plugin-sdk declarations
 ```
 
-For deeper architectural specifications and development guides:
-- [Architecture Blueprint](docs/ARCHITECTURE.md)
-- [Ecosystem Contract Map](docs/ECOSYSTEM_MAP.md)
-- [Product Requirements Document](docs/PRD.md)
-- [Phased Release Roadmap](docs/PHASE5_TO_7_ROADMAP.md)
-- [Online Documentation Portal](https://docs.coreblow.com/)
+Fleet companion scripts (automatically resolves binary on `$PATH` or local companion checkout):
+
+```bash
+pnpm corebar:dev           # Run macOS menu-bar companion
+pnpm chat:go               # Run Go terminal companion
+pnpm trust:eval --help     # Run OWASP Agentic AI policy evaluator
+pnpm rtt:probe             # Probe Gateway TTFT / RTT latency
+pnpm bench:run             # Run Gateway benchmark suite
+```
+
+See [CONTRIBUTING.md](https://github.com/coreblow/coreblow/blob/main/CONTRIBUTING.md) for contribution guidelines, code style standards, and verification workflows.
+
+Further reading:
+- [Architecture Blueprint](https://github.com/coreblow/coreblow/blob/main/docs/ARCHITECTURE.md)
+- [Ecosystem Contract Map](https://github.com/coreblow/coreblow/blob/main/docs/ECOSYSTEM_MAP.md)
+- [Product Requirements](https://github.com/coreblow/coreblow/blob/main/docs/PRD.md)
+- [Releases & Upcoming Work](https://github.com/coreblow/coreblow/releases)
+- [Discussions](https://github.com/coreblow/coreblow/discussions)
+- [Issues](https://github.com/coreblow/coreblow/issues)
+- [Documentation Portal](https://docs.coreblow.com/)
 
 ---
 
 ## License
 
-CoreBlow is open-source software licensed under the [MIT License](LICENSE).
+CoreBlow is open-source software licensed under the [MIT License](https://github.com/coreblow/coreblow/blob/main/LICENSE).
 Copyright © 2026 Febrinanda and CoreBlow contributors.
