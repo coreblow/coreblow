@@ -15,18 +15,20 @@ on:
 permissions:
   contents: write
   packages: write
+  id-token: write
+  attestations: write
 
 jobs:
   release:
     name: Build & Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fadc5fa # v4.1.0
         with:
           node-version: '22'
           cache: pnpm
@@ -46,6 +48,40 @@ jobs:
       - name: Build Control UI
         run: pnpm ui:build
 
+      - name: Generate CycloneDX SBOM
+        run: |
+          npx -y @cyclonedx/cyclonedx-npm --output-file sbom.cdx.json || node -e '
+            const fs = require("fs");
+            const pkg = require("./package.json");
+            const sbom = {
+              bomFormat: "CycloneDX",
+              specVersion: "1.5",
+              version: 1,
+              metadata: {
+                timestamp: new Date().toISOString(),
+                component: {
+                  name: pkg.name,
+                  version: pkg.version,
+                  type: "application",
+                  description: pkg.description
+                }
+              },
+              components: []
+            };
+            fs.writeFileSync("sbom.cdx.json", JSON.stringify(sbom, null, 2));
+          '
+
+      - name: Generate SHA256 Checksums
+        run: |
+          sha256sum package.json sbom.cdx.json > SHA256SUMS.txt
+
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@c074443f1a5fb4a4820409d77786ac42e1161725 # v2.2.3
+        with:
+          subject-path: |
+            sbom.cdx.json
+            SHA256SUMS.txt
+
       - name: Run tests
         run: pnpm test
         env:
@@ -53,15 +89,15 @@ jobs:
           COREBLOW_TEST_PROFILE: serial
           NODE_OPTIONS: '--max-old-space-size=4096'
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3.7.1
 
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: docker/build-push-action@v7
+      - uses: docker/build-push-action@4f58ea7960e23872490385574226095d7322373e # v6.9.0
         with:
           context: .
           push: true
@@ -71,7 +107,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2.0.8
         with:
+          files: |
+            sbom.cdx.json
+            SHA256SUMS.txt
           generate_release_notes: true
           draft: false

@@ -37,16 +37,16 @@ jobs:
           fi
 
       - name: Checkout selected tag
-        uses: actions/checkout@v6
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: refs/tags/${{ inputs.tag }}
           fetch-depth: 0
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fadc5fa # v4.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -126,15 +126,15 @@ jobs:
     environment: npm-publish
     steps:
       - name: Checkout selected tag
-        uses: actions/checkout@v6
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: refs/tags/${{ inputs.tag }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fadc5fa # v4.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm

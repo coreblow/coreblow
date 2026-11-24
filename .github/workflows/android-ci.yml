@@ -19,16 +19,16 @@ jobs:
         working-directory: apps/android
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
         with:
           java-version: "21"
           distribution: "temurin"
 
       - name: Cache Gradle
-        uses: actions/cache@v5
+        uses: actions/cache@1bd1e3241304d78e68535fe91d22e5217e30761d # v4.2.0
         with:
           path: |
             ~/.gradle/caches
@@ -44,7 +44,7 @@ jobs:
 
       - name: Upload APK
         if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.0
         with:
           name: coreblow-android-debug
           path: apps/android/app/build/outputs/apk/play/debug/*.apk
