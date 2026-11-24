@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 Entries are listed newest-first within each version block.
 Changelog covers user-facing changes only; internal/meta notes are omitted.
 
+## [2.1.4] (2026-11-25)
+
+### Fixes
+
+- **Fresh-Install Packaging Resolution (`ERR_MODULE_NOT_FOUND`):** Decoupled core session normalization (`src/config/sessions/discord-session-key.ts`), Matrix account/storage helpers (`src/infra/matrix-account-core.ts`), Discord timeout constants, generated bundled channel/plugin loaders, and `src/plugin-sdk/*` facades from npm-excluded `extensions/*` directories; packaged `packages/memory-host-sdk/src`, `tool-display.json`, and runtime `scripts/lib/*` metadata files; extracted `withFetchPreconnect` into `src/infra/net/fetch-preconnect.ts`; and made `typescript` optional in `src/security/skill-scanner.ts` so standalone npm installs execute `--version`, `--help`, `doctor`, `security audit`, and `mcp` cleanly.
+- **Automated Excluded-Extension Import Regression Gate:** Added a packaging boundary guard to `scripts/check-release-sync.mjs` enforcing zero non-test imports from npm-excluded `extensions/<name>/**` paths.
+
 ## [2.1.3] (2026-11-25)
 
 ### Highlights

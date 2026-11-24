@@ -1,8 +1,24 @@
 import fs from "node:fs/promises";
+import { createRequire } from "node:module";
 import path from "node:path";
-import ts from "typescript";
+import type tsTypes from "typescript";
 import { hasErrnoCode } from "../infra/errors.js";
 import { isPathInside } from "./scan-paths.js";
+
+const nodeRequire = createRequire(import.meta.url);
+let cachedTs: typeof tsTypes | null | undefined;
+
+function getOptionalTypeScript(): typeof tsTypes | null {
+  if (cachedTs !== undefined) {
+    return cachedTs;
+  }
+  try {
+    cachedTs = nodeRequire("typescript") as typeof tsTypes;
+  } catch {
+    cachedTs = null;
+  }
+  return cachedTs;
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -228,8 +244,12 @@ function truncateEvidence(evidence: string, maxLen = 120): string {
  * and obfuscated dynamic import bypass patterns.
  */
 export function scanAst(source: string, filePath: string): SkillScanFinding[] {
+  const ts = getOptionalTypeScript();
+  if (!ts) {
+    return [];
+  }
   const findings: SkillScanFinding[] = [];
-  let sourceFile: ts.SourceFile;
+  let sourceFile: tsTypes.SourceFile;
   try {
     sourceFile = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true);
   } catch {
@@ -237,7 +257,7 @@ export function scanAst(source: string, filePath: string): SkillScanFinding[] {
   }
 
   const lines = source.split("\n");
-  const getLine = (node: ts.Node): number => {
+  const getLine = (node: tsTypes.Node): number => {
     return sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;
   };
 
@@ -250,7 +270,10 @@ export function scanAst(source: string, filePath: string): SkillScanFinding[] {
 
   const seenRules = new Set<string>();
 
-  function visit(node: ts.Node) {
+  function visit(node: tsTypes.Node) {
+    if (!ts) {
+      return;
+    }
     if (ts.isCallExpression(node) || ts.isNewExpression(node)) {
       const expr = node.expression;
 

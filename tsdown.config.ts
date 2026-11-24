@@ -76,6 +76,7 @@ function nodeBuildConfig(config: UserConfig): UserConfig {
     env,
     fixedExtension: false,
     platform: "node",
+    shims: true,
     inputOptions: buildInputOptions,
   };
 }

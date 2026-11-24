@@ -87,5 +87,5 @@ export { generateSecureToken } from "../infra/secure-random.js";
 export { resolvePreferredCoreBlowTmpDir } from "../infra/tmp-coreblow-dir.js";
 export { rawDataToString } from "../infra/ws.js";
 export { runExec } from "../process/exec.js";
-export { withFetchPreconnect } from "../test-utils/fetch-mock.js";
+export { withFetchPreconnect } from "../infra/net/fetch-preconnect.js";
 export type { MockFn } from "../test-utils/vitest-mock-fn.js";

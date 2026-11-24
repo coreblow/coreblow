@@ -272,6 +272,70 @@ for (const relAsset of requiredAssets) {
   }
 }
 
+// ─── 5. Excluded Extension Import Regression Guard ────────────────────
+
+try {
+  const rootPkg = JSON.parse(fs.readFileSync(rootPkgPath, "utf-8"));
+  const excludedExtensionDirs = new Set();
+  if (Array.isArray(rootPkg.files)) {
+    for (const pattern of rootPkg.files) {
+      if (typeof pattern !== "string") continue;
+      const match = pattern.match(/^!extensions\/([^/*]+)\/\*\*$/);
+      if (match?.[1]) {
+        excludedExtensionDirs.add(match[1]);
+      }
+    }
+  }
+
+  const skippedDirNames = new Set([
+    "node_modules",
+    "dist",
+    "__tests__",
+    "test-fixtures",
+    "test-support",
+    "test-utils",
+    "test-helpers",
+  ]);
+  const testFilePattern = /\.(test|spec|test-support|test-helpers|test-harness|e2e)\./;
+  const importPattern =
+    /(?:from\s+["']|import\s*\(\s*["']|import\s+["']|require\s*\(\s*["'])([^"']*extensions\/([^/"']+)\/[^"']*)["']/g;
+
+  const scanNonTestSrcFiles = (dirPath) => {
+    if (!fs.existsSync(dirPath)) return;
+    for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
+      if (entry.name.startsWith(".") || skippedDirNames.has(entry.name)) continue;
+      const fullPath = path.join(dirPath, entry.name);
+      const relPath = path.relative(repoRoot, fullPath).replace(/\\/g, "/");
+      if (entry.isDirectory()) {
+        if (relPath === "src/channels/plugins/contracts") continue;
+        scanNonTestSrcFiles(fullPath);
+        continue;
+      }
+      if (!/\.(ts|tsx|js|mjs|cjs)$/.test(entry.name)) continue;
+      if (testFilePattern.test(entry.name) || entry.name.endsWith("-test-helpers.ts")) continue;
+
+      const content = fs.readFileSync(fullPath, "utf-8");
+      importPattern.lastIndex = 0;
+      let match;
+      while ((match = importPattern.exec(content)) !== null) {
+        const importSpecifier = match[1];
+        const extName = match[2];
+        if (!excludedExtensionDirs.has(extName)) continue;
+        const lineNumber = content.slice(0, match.index).split("\n").length;
+        recordError(
+          "PACKAGING_BOUNDARY",
+          `${relPath}:${lineNumber} imports npm-excluded extension "${extName}" (${importSpecifier})`
+        );
+      }
+    }
+  };
+
+  scanNonTestSrcFiles(path.join(repoRoot, "src"));
+  scanNonTestSrcFiles(path.join(repoRoot, "packages"));
+} catch (err) {
+  recordError("PACKAGING_BOUNDARY", `Failed excluded-extension import scan: ${err.message}`);
+}
+
 // ─── Result Reporting ────────────────────────────────────────────────
 
 if (errors.length > 0) {

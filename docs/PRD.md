@@ -1,6 +1,6 @@
 # Product Requirements Document (PRD): CoreBlow Sovereign Agent-OS
 
-**Document Version:** 2.1.3 (Sovereign Hybrid OOP/DOP Microkernel Baseline)<br />
+**Document Version:** 2.1.4 (Sovereign Hybrid OOP/DOP Microkernel Baseline)<br />
 **Status:** Production Certified (Stages 1–6 Complete | Stage 7 Active)<br />
 **Product Canonical URLs:** [https://coreblow.com](https://coreblow.com) | [https://github.com/coreblow](https://github.com/coreblow)<br />
 **Marketplace Registry:** [https://coreblow.com/corehub](https://coreblow.com/corehub)<br />

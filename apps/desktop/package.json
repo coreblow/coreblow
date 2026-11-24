@@ -1,6 +1,6 @@
 {
   "name": "@coreblow/desktop",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "CoreBlow Studio Desktop — Next-Generation Electron Desktop Shell",
   "author": "CoreBlow Team",
   "private": true,

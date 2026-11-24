@@ -56,6 +56,14 @@ function resolveFacadeModuleLocation(params: {
   });
 }
 
+export function hasBundledPluginPublicSurfaceModule(params: {
+  dirName: string;
+  artifactBasename: string;
+  env?: NodeJS.ProcessEnv;
+}): boolean {
+  return Boolean(resolveFacadeModuleLocation(params));
+}
+
 function getModuleLoader(modulePath: string) {
   return getCachedPluginModuleLoader({
     cache: moduleLoaders,

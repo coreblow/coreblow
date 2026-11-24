@@ -72,7 +72,7 @@
   <circle cx="40" cy="19" r="6" fill="#ffbd2e" />
   <circle cx="60" cy="19" r="6" fill="#27c93f" />
 
-  <text x="420" y="24" class="title-text">CoreBlow v2.1.3 — Sovereign Agent-OS &amp; Unified Gateway</text>
+  <text x="420" y="24" class="title-text">CoreBlow v2.1.4 — Sovereign Agent-OS &amp; Unified Gateway</text>
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- SCENE 1: Interactive TUI Terminal Execution (0s - 5s)           -->

@@ -153,7 +153,7 @@ export function renderApp(app: CoreBlowApp) {
                 <!-- Bottom utility row: version badge + Docs link -->
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 0; font-size: 11px;">
                    <span style="font-family: var(--mono); font-weight: 600; color: var(--muted); font-size: 10px; letter-spacing: 0.02em;">
-                      v2.1.3
+                      v2.1.4
                    </span>
                    <a
                       href="https://docs.coreblow.com"

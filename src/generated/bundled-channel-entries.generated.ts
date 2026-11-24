@@ -2,30 +2,15 @@
 
 import bluebubblesChannelEntry from "../../extensions/bluebubbles/index.js";
 import bluebubblesChannelSetupEntry from "../../extensions/bluebubbles/setup-entry.js";
-import discordChannelEntry from "../../extensions/discord/index.js";
-import discordChannelSetupEntry from "../../extensions/discord/setup-entry.js";
-import feishuChannelEntry from "../../extensions/feishu/index.js";
-import feishuChannelSetupEntry from "../../extensions/feishu/setup-entry.js";
 import imessageChannelEntry from "../../extensions/imessage/index.js";
 import imessageChannelSetupEntry from "../../extensions/imessage/setup-entry.js";
-import ircChannelEntry from "../../extensions/irc/index.js";
-import ircChannelSetupEntry from "../../extensions/irc/setup-entry.js";
-import lineChannelEntry from "../../extensions/line/index.js";
-import lineChannelSetupEntry from "../../extensions/line/setup-entry.js";
-import mattermostChannelEntry from "../../extensions/mattermost/index.js";
-import mattermostChannelSetupEntry from "../../extensions/mattermost/setup-entry.js";
-import nextcloudTalkChannelEntry from "../../extensions/nextcloud-talk/index.js";
-import nextcloudTalkChannelSetupEntry from "../../extensions/nextcloud-talk/setup-entry.js";
 import signalChannelEntry from "../../extensions/signal/index.js";
 import signalChannelSetupEntry from "../../extensions/signal/setup-entry.js";
 import slackChannelEntry from "../../extensions/slack/index.js";
 import slackChannelSetupEntry from "../../extensions/slack/setup-entry.js";
-import synologyChatChannelEntry from "../../extensions/synology-chat/index.js";
-import synologyChatChannelSetupEntry from "../../extensions/synology-chat/setup-entry.js";
 import telegramChannelEntry from "../../extensions/telegram/index.js";
 import telegramChannelSetupEntry from "../../extensions/telegram/setup-entry.js";
-import zaloChannelEntry from "../../extensions/zalo/index.js";
-import zaloChannelSetupEntry from "../../extensions/zalo/setup-entry.js";
+import { loadOptionalBundledChannelEntrySync } from "./optional-bundled-entries.js";
 
 export const GENERATED_BUNDLED_CHANNEL_ENTRIES = [
   {
@@ -35,13 +20,13 @@ export const GENERATED_BUNDLED_CHANNEL_ENTRIES = [
   },
   {
     id: "discord",
-    entry: discordChannelEntry,
-    setupEntry: discordChannelSetupEntry,
+    entry: loadOptionalBundledChannelEntrySync("discord", "index.js"),
+    setupEntry: loadOptionalBundledChannelEntrySync("discord", "setup-entry.js"),
   },
   {
     id: "feishu",
-    entry: feishuChannelEntry,
-    setupEntry: feishuChannelSetupEntry,
+    entry: loadOptionalBundledChannelEntrySync("feishu", "index.js"),
+    setupEntry: loadOptionalBundledChannelEntrySync("feishu", "setup-entry.js"),
   },
   {
     id: "imessage",
@@ -50,23 +35,23 @@ export const GENERATED_BUNDLED_CHANNEL_ENTRIES = [
   },
   {
     id: "irc",
-    entry: ircChannelEntry,
-    setupEntry: ircChannelSetupEntry,
+    entry: loadOptionalBundledChannelEntrySync("irc", "index.js"),
+    setupEntry: loadOptionalBundledChannelEntrySync("irc", "setup-entry.js"),
   },
   {
     id: "line",
-    entry: lineChannelEntry,
-    setupEntry: lineChannelSetupEntry,
+    entry: loadOptionalBundledChannelEntrySync("line", "index.js"),
+    setupEntry: loadOptionalBundledChannelEntrySync("line", "setup-entry.js"),
   },
   {
     id: "mattermost",
-    entry: mattermostChannelEntry,
-    setupEntry: mattermostChannelSetupEntry,
+    entry: loadOptionalBundledChannelEntrySync("mattermost", "index.js"),
+    setupEntry: loadOptionalBundledChannelEntrySync("mattermost", "setup-entry.js"),
   },
   {
     id: "nextcloud-talk",
-    entry: nextcloudTalkChannelEntry,
-    setupEntry: nextcloudTalkChannelSetupEntry,
+    entry: loadOptionalBundledChannelEntrySync("nextcloud-talk", "index.js"),
+    setupEntry: loadOptionalBundledChannelEntrySync("nextcloud-talk", "setup-entry.js"),
   },
   {
     id: "signal",
@@ -80,8 +65,8 @@ export const GENERATED_BUNDLED_CHANNEL_ENTRIES = [
   },
   {
     id: "synology-chat",
-    entry: synologyChatChannelEntry,
-    setupEntry: synologyChatChannelSetupEntry,
+    entry: loadOptionalBundledChannelEntrySync("synology-chat", "index.js"),
+    setupEntry: loadOptionalBundledChannelEntrySync("synology-chat", "setup-entry.js"),
   },
   {
     id: "telegram",
@@ -90,7 +75,7 @@ export const GENERATED_BUNDLED_CHANNEL_ENTRIES = [
   },
   {
     id: "zalo",
-    entry: zaloChannelEntry,
-    setupEntry: zaloChannelSetupEntry,
+    entry: loadOptionalBundledChannelEntrySync("zalo", "index.js"),
+    setupEntry: loadOptionalBundledChannelEntrySync("zalo", "setup-entry.js"),
   },
 ] as const;

@@ -1,7 +1,7 @@
 # Architecture and Security Blueprint: CoreBlow Agent-OS
 
-**Document Version:** 2.1.3 (Production GA Baseline)<br />
-**Status:** Production GA Certified (CoreBlow v2.1.3 GA Baseline)<br />
+**Document Version:** 2.1.4 (Production GA Baseline)<br />
+**Status:** Production GA Certified (CoreBlow v2.1.4 GA Baseline)<br />
 **Related Documents:** [PRD](/PRD)<br />
 **Product Canonical URLs:** [https://coreblow.com](https://coreblow.com) | [https://github.com/coreblow](https://github.com/coreblow)<br />
 **Documentation Portal:** [https://docs.coreblow.com](https://docs.coreblow.com)

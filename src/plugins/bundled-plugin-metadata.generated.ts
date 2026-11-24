@@ -133,8 +133,8 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       "thinking-policy.js",
     ],
     packageName: "@coreblow/amazon-bedrock",
-    packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow amazon-bedrock plugin",
+    packageVersion: "0.1.0",
+    packageDescription: "CoreBlow Amazon Bedrock provider plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -304,8 +304,8 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       "stream-runtime.js",
     ],
     packageName: "@coreblow/anthropic-vertex",
-    packageVersion: "2026.3.27",
-    packageDescription: "CoreBlow anthropic-vertex plugin",
+    packageVersion: "0.1.0",
+    packageDescription: "CoreBlow Anthropic Vertex provider plugin",
     packageManifest: {
       extensions: ["./index.ts"],
     },
@@ -1155,7 +1155,6 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           },
         },
       },
-      enabledByDefault: true,
       name: "Canvas",
       description: "Experimental Canvas control and A2UI rendering surfaces for paired nodes.",
       contracts: {
@@ -2415,7 +2414,6 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         additionalProperties: false,
         properties: {},
       },
-      enabledByDefault: true,
       providers: ["deepinfra"],
       providerAuthChoices: [
         {
@@ -2948,7 +2946,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/discord",
-    packageVersion: "0.1.0",
+    packageVersion: "1.0.0",
     packageDescription: "CoreBlow Discord channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -2966,7 +2964,8 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       install: {
         npmSpec: "@coreblow/discord",
         localPath: "extensions/discord",
-        defaultChoice: "npm",
+        defaultChoice: "corehub",
+        corehubSpec: "corehub:@coreblow/discord",
         minHostVersion: ">=1.0.0",
       },
     },
@@ -7024,7 +7023,6 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           },
         },
       },
-      enabledByDefault: true,
       name: "File Transfer",
       description:
         "Fetch, list, and write files on paired nodes via dedicated node commands. Bypasses bash stdout truncation by using base64 over node.invoke for binaries up to 16 MB.",
@@ -10164,7 +10162,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
   },
   {
     dirName: "kimi-coding",
-    idHint: "kimi",
+    idHint: "kimi-coding",
     source: {
       source: "./index.ts",
       built: "index.js",
@@ -10183,7 +10181,7 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       extensions: ["./index.ts"],
     },
     manifest: {
-      id: "kimi",
+      id: "kimi-coding",
       configSchema: {
         type: "object",
         additionalProperties: false,
@@ -10672,15 +10670,23 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
     },
     publicSurfaceArtifacts: [
       "api.js",
+      "channel-plugin-api.js",
+      "cli-metadata.js",
+      "contract-api.js",
+      "doctor-contract-api.js",
       "extension.js",
       "helper-api.js",
       "legacy-crypto-inspector.js",
       "runtime-api.js",
+      "runtime-setter-api.js",
+      "secret-contract-api.js",
+      "setup-plugin-api.js",
+      "subagent-hooks-api.js",
       "thread-bindings-runtime.js",
     ],
     runtimeSidecarArtifacts: ["helper-api.js", "runtime-api.js", "thread-bindings-runtime.js"],
     packageName: "@coreblow/matrix",
-    packageVersion: "0.1.0",
+    packageVersion: "1.0.0",
     packageDescription: "CoreBlow Matrix channel plugin",
     packageManifest: {
       extensions: ["./index.ts"],
@@ -10698,7 +10704,8 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       install: {
         npmSpec: "@coreblow/matrix",
         localPath: "extensions/matrix",
-        defaultChoice: "npm",
+        defaultChoice: "corehub",
+        corehubSpec: "corehub:@coreblow/matrix",
         minHostVersion: ">=1.0.0",
       },
     },
@@ -10745,8 +10752,17 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
               homeserver: {
                 type: "string",
               },
-              allowPrivateNetwork: {
-                type: "boolean",
+              network: {
+                type: "object",
+                properties: {
+                  dangerouslyAllowPrivateNetwork: {
+                    type: "boolean",
+                  },
+                },
+                additionalProperties: false,
+              },
+              proxy: {
+                type: "string",
               },
               userId: {
                 type: "string",
@@ -10901,6 +10917,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
               allowlistOnly: {
                 type: "boolean",
               },
+              dangerouslyAllowNameMatching: {
+                type: "boolean",
+              },
               allowBots: {
                 anyOf: [
                   {
@@ -10912,13 +10931,110 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                   },
                 ],
               },
+              botLoopProtection: {
+                type: "object",
+                properties: {
+                  enabled: {
+                    type: "boolean",
+                  },
+                  maxEventsPerWindow: {
+                    type: "integer",
+                    exclusiveMinimum: 0,
+                    maximum: 9007199254740991,
+                  },
+                  windowSeconds: {
+                    type: "integer",
+                    exclusiveMinimum: 0,
+                    maximum: 9007199254740991,
+                  },
+                  cooldownSeconds: {
+                    type: "integer",
+                    exclusiveMinimum: 0,
+                    maximum: 9007199254740991,
+                  },
+                },
+                additionalProperties: false,
+              },
               groupPolicy: {
                 type: "string",
                 enum: ["open", "disabled", "allowlist"],
               },
+              contextVisibility: {
+                type: "string",
+                enum: ["all", "allowlist", "allowlist_quote"],
+              },
+              blockStreaming: {
+                type: "boolean",
+              },
+              streaming: {
+                anyOf: [
+                  {
+                    type: "string",
+                    enum: ["partial", "quiet", "progress", "off"],
+                  },
+                  {
+                    type: "boolean",
+                  },
+                  {
+                    type: "object",
+                    properties: {
+                      mode: {
+                        type: "string",
+                        enum: ["partial", "quiet", "progress", "off"],
+                      },
+                      progress: {
+                        type: "object",
+                        properties: {
+                          label: {
+                            anyOf: [
+                              {
+                                type: "string",
+                              },
+                              {
+                                type: "boolean",
+                                const: false,
+                              },
+                            ],
+                          },
+                          labels: {
+                            type: "array",
+                            items: {
+                              type: "string",
+                            },
+                          },
+                          maxLines: {
+                            type: "integer",
+                            exclusiveMinimum: 0,
+                            maximum: 9007199254740991,
+                          },
+                          maxLineChars: {
+                            type: "integer",
+                            exclusiveMinimum: 0,
+                            maximum: 9007199254740991,
+                          },
+                          toolProgress: {
+                            type: "boolean",
+                          },
+                        },
+                        additionalProperties: false,
+                      },
+                      preview: {
+                        type: "object",
+                        properties: {
+                          toolProgress: {
+                            type: "boolean",
+                          },
+                        },
+                        additionalProperties: false,
+                      },
+                    },
+                    additionalProperties: false,
+                  },
+                ],
+              },
               replyToMode: {
                 type: "string",
-                enum: ["off", "first", "all"],
+                enum: ["off", "first", "all", "batched"],
               },
               threadReplies: {
                 type: "string",
@@ -10959,6 +11075,13 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                     type: "number",
                     minimum: 0,
                   },
+                  spawnSessions: {
+                    type: "boolean",
+                  },
+                  defaultSpawnContext: {
+                    type: "string",
+                    enum: ["isolated", "fork"],
+                  },
                   spawnSubagentSessions: {
                     type: "boolean",
                   },
@@ -10977,6 +11100,11 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
               },
               mediaMaxMb: {
                 type: "number",
+              },
+              historyLimit: {
+                type: "integer",
+                minimum: 0,
+                maximum: 9007199254740991,
               },
               autoJoin: {
                 type: "string",
@@ -11031,6 +11159,52 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       ],
                     },
                   },
+                  sessionScope: {
+                    type: "string",
+                    enum: ["per-user", "per-room"],
+                  },
+                  threadReplies: {
+                    type: "string",
+                    enum: ["off", "inbound", "always"],
+                  },
+                },
+                additionalProperties: false,
+              },
+              execApprovals: {
+                type: "object",
+                properties: {
+                  enabled: {
+                    type: "boolean",
+                  },
+                  approvers: {
+                    type: "array",
+                    items: {
+                      anyOf: [
+                        {
+                          type: "string",
+                        },
+                        {
+                          type: "number",
+                        },
+                      ],
+                    },
+                  },
+                  agentFilter: {
+                    type: "array",
+                    items: {
+                      type: "string",
+                    },
+                  },
+                  sessionFilter: {
+                    type: "array",
+                    items: {
+                      type: "string",
+                    },
+                  },
+                  target: {
+                    type: "string",
+                    enum: ["dm", "channel", "both"],
+                  },
                 },
                 additionalProperties: false,
               },
@@ -11040,10 +11214,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 additionalProperties: {
                   type: "object",
                   properties: {
-                    enabled: {
-                      type: "boolean",
+                    account: {
+                      type: "string",
                     },
-                    allow: {
+                    enabled: {
                       type: "boolean",
                     },
                     requireMention: {
@@ -11059,6 +11233,30 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                           const: "mentions",
                         },
                       ],
+                    },
+                    botLoopProtection: {
+                      type: "object",
+                      properties: {
+                        enabled: {
+                          type: "boolean",
+                        },
+                        maxEventsPerWindow: {
+                          type: "integer",
+                          exclusiveMinimum: 0,
+                          maximum: 9007199254740991,
+                        },
+                        windowSeconds: {
+                          type: "integer",
+                          exclusiveMinimum: 0,
+                          maximum: 9007199254740991,
+                        },
+                        cooldownSeconds: {
+                          type: "integer",
+                          exclusiveMinimum: 0,
+                          maximum: 9007199254740991,
+                        },
+                      },
+                      additionalProperties: false,
                     },
                     tools: {
                       type: "object",
@@ -11119,10 +11317,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 additionalProperties: {
                   type: "object",
                   properties: {
-                    enabled: {
-                      type: "boolean",
+                    account: {
+                      type: "string",
                     },
-                    allow: {
+                    enabled: {
                       type: "boolean",
                     },
                     requireMention: {
@@ -11138,6 +11336,30 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                           const: "mentions",
                         },
                       ],
+                    },
+                    botLoopProtection: {
+                      type: "object",
+                      properties: {
+                        enabled: {
+                          type: "boolean",
+                        },
+                        maxEventsPerWindow: {
+                          type: "integer",
+                          exclusiveMinimum: 0,
+                          maximum: 9007199254740991,
+                        },
+                        windowSeconds: {
+                          type: "integer",
+                          exclusiveMinimum: 0,
+                          maximum: 9007199254740991,
+                        },
+                        cooldownSeconds: {
+                          type: "integer",
+                          exclusiveMinimum: 0,
+                          maximum: 9007199254740991,
+                        },
+                      },
+                      additionalProperties: false,
                     },
                     tools: {
                       type: "object",
@@ -11221,6 +11443,60 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
               },
             },
             additionalProperties: false,
+          },
+          uiHints: {
+            allowBots: {
+              label: "Matrix Allow Bot Messages",
+              help: 'Allow messages from other configured Matrix bot accounts to trigger replies (default: false). Set "mentions" to require a visible room mention.',
+            },
+            botLoopProtection: {
+              label: "Matrix Bot Loop Protection",
+              help: "Sliding-window guard for accepted Matrix configured-bot loops. Default is enabled whenever allowBots lets configured bot messages reach dispatch.",
+            },
+            "botLoopProtection.enabled": {
+              label: "Matrix Bot Loop Protection Enabled",
+              help: 'Enable the bot-pair loop guard. Defaults to true when allowBots is true or "mentions", and false when configured bot messages are ignored.',
+            },
+            "botLoopProtection.maxEventsPerWindow": {
+              label: "Matrix Bot Loop Events per Window",
+              help: "Maximum accepted bot-pair messages within the sliding window before suppression starts. Default: 20.",
+            },
+            "botLoopProtection.windowSeconds": {
+              label: "Matrix Bot Loop Window Seconds",
+              help: "Sliding window length for counting bot-pair messages. Default: 60.",
+            },
+            "botLoopProtection.cooldownSeconds": {
+              label: "Matrix Bot Loop Cooldown Seconds",
+              help: "How long to suppress the bot pair after it exceeds the budget. Default: 60.",
+            },
+            dangerouslyAllowNameMatching: {
+              label: "Matrix Display Name Matching",
+              help: "Compatibility opt-in for resolving Matrix display names and joined room names in allowlists. Prefer full @user:server IDs and room IDs or aliases because names are mutable.",
+            },
+            "streaming.progress.label": {
+              label: "Matrix Progress Label",
+              help: 'Initial progress draft title. Use "auto" for built-in single-word labels, a custom string, or false to hide the title.',
+            },
+            "streaming.progress.labels": {
+              label: "Matrix Progress Label Pool",
+              help: 'Candidate labels for streaming.progress.label="auto". Leave unset to use CoreBlow built-in progress labels.',
+            },
+            "streaming.progress.maxLines": {
+              label: "Matrix Progress Max Lines",
+              help: "Maximum number of compact progress lines to keep below the draft label (default: 8).",
+            },
+            "streaming.progress.maxLineChars": {
+              label: "Matrix Progress Max Line Chars",
+              help: "Maximum characters per compact progress line before truncation (default: 120). Prose cuts at word boundaries; commands and paths keep useful suffixes.",
+            },
+            "streaming.progress.toolProgress": {
+              label: "Matrix Progress Tool Lines",
+              help: "Show compact tool/progress lines in progress draft mode (default: true). Set false to keep only the label until final delivery.",
+            },
+            "streaming.progress.commandText": {
+              label: "Matrix Progress Command Text",
+              help: 'Command/exec detail in progress draft lines: "raw" preserves released behavior; "status" shows only the tool label.',
+            },
           },
           label: "Matrix",
           description: "open protocol; install the plugin to enable.",
@@ -15287,7 +15563,6 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
           },
         },
       },
-      enabledByDefault: true,
       channels: ["qqbot"],
       skills: ["./skills"],
       contracts: {
@@ -16355,7 +16630,29 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       source: "./setup-entry.ts",
       built: "setup-entry.js",
     },
-    publicSurfaceArtifacts: ["api.js", "channel-config-api.js", "extension.js", "runtime-api.js"],
+    publicSurfaceArtifacts: [
+      "account-inspect-api.js",
+      "api.js",
+      "channel-config-api.js",
+      "channel-entry.js",
+      "channel-plugin-api.js",
+      "config-api.js",
+      "configured-state.js",
+      "contract-api.js",
+      "directory-contract-api.js",
+      "doctor-contract-api.js",
+      "extension.js",
+      "http-routes-api.js",
+      "inbound-contract-test-api.js",
+      "interactive-replies-api.js",
+      "message-tool-api.js",
+      "outbound-payload-test-api.js",
+      "runtime-api.js",
+      "runtime-setter-api.js",
+      "secret-contract-api.js",
+      "security-contract-api.js",
+      "setup-plugin-api.js",
+    ],
     runtimeSidecarArtifacts: ["runtime-api.js"],
     packageName: "@coreblow/slack",
     packageVersion: "0.1.0",
@@ -16395,6 +16692,25 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 default: "socket",
                 type: "string",
                 enum: ["socket", "http"],
+              },
+              socketMode: {
+                type: "object",
+                properties: {
+                  clientPingTimeout: {
+                    type: "integer",
+                    exclusiveMinimum: 0,
+                    maximum: 9007199254740991,
+                  },
+                  serverPingTimeout: {
+                    type: "integer",
+                    exclusiveMinimum: 0,
+                    maximum: 9007199254740991,
+                  },
+                  pingPongLoggingEnabled: {
+                    type: "boolean",
+                  },
+                },
+                additionalProperties: false,
               },
               signingSecret: {
                 anyOf: [
@@ -16776,6 +17092,12 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 type: "integer",
                 exclusiveMinimum: 0,
                 maximum: 9007199254740991,
+              },
+              unfurlLinks: {
+                type: "boolean",
+              },
+              unfurlMedia: {
+                type: "boolean",
               },
               chunkMode: {
                 type: "string",
@@ -17206,6 +17528,25 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       type: "string",
                       enum: ["socket", "http"],
                     },
+                    socketMode: {
+                      type: "object",
+                      properties: {
+                        clientPingTimeout: {
+                          type: "integer",
+                          exclusiveMinimum: 0,
+                          maximum: 9007199254740991,
+                        },
+                        serverPingTimeout: {
+                          type: "integer",
+                          exclusiveMinimum: 0,
+                          maximum: 9007199254740991,
+                        },
+                        pingPongLoggingEnabled: {
+                          type: "boolean",
+                        },
+                      },
+                      additionalProperties: false,
+                    },
                     signingSecret: {
                       anyOf: [
                         {
@@ -17584,6 +17925,12 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                       type: "integer",
                       exclusiveMinimum: 0,
                       maximum: 9007199254740991,
+                    },
+                    unfurlLinks: {
+                      type: "boolean",
+                    },
+                    unfurlMedia: {
+                      type: "boolean",
                     },
                     chunkMode: {
                       type: "string",
@@ -18467,9 +18814,12 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
       built: "setup-entry.js",
     },
     publicSurfaceArtifacts: [
+      "account-inspect-api.js",
       "allow-from.js",
       "api.js",
       "channel-config-api.js",
+      "config-api.js",
+      "configured-state.js",
       "extension.js",
       "runtime-api.js",
       "update-offset-runtime-api.js",
