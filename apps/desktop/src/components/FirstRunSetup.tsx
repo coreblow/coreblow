@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { CoreBlowEmblem, CheckIcon } from "./Icons";
+import { CoreBlowBrandSwirl, CoreBlowEmblem, CheckIcon } from "./Icons";
 import { gatewayClient } from "../services/gateway-client";
 
 interface StepItem {
@@ -158,20 +158,8 @@ export const FirstRunSetup: React.FC<FirstRunSetupProps> = ({ onComplete, onSkip
             animation: "fadeIn 0.25s ease",
           }}
         >
-          <div
-            style={{
-              width: "80px",
-              height: "80px",
-              borderRadius: "24px",
-              background: "rgba(45, 212, 191, 0.08)",
-              border: "1px solid rgba(45, 212, 191, 0.22)",
-              display: "grid",
-              placeItems: "center",
-              marginBottom: "24px",
-              boxShadow: "0 0 40px rgba(45, 212, 191, 0.12)",
-            }}
-          >
-            <CoreBlowEmblem size={44} color="var(--accent-teal, #2DD4BF)" />
+          <div style={{ marginBottom: "24px" }}>
+            <CoreBlowBrandSwirl size={72} />
           </div>
 
           <h1
@@ -529,8 +517,8 @@ export const FirstRunSetup: React.FC<FirstRunSetupProps> = ({ onComplete, onSkip
             gap: "16px",
           }}
         >
-          <div className="animate-spin" style={{ color: "var(--accent-teal)" }}>
-            <CoreBlowEmblem size={48} color="var(--accent-teal)" />
+          <div className="animate-spin">
+            <CoreBlowBrandSwirl size={52} />
           </div>
           <span
             className="animate-pulse"

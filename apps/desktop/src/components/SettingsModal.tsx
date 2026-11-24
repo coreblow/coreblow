@@ -16,6 +16,7 @@ import {
   ChevronRightIcon,
   ClockIcon,
   CloseIcon,
+  CoreBlowBrandSwirl,
   CoreBlowEmblem,
   DownloadIcon,
   FolderIcon,
@@ -4337,19 +4338,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     marginBottom: "20px",
                   }}
                 >
-                  <div
-                    style={{
-                      width: "48px",
-                      height: "48px",
-                      borderRadius: "12px",
-                      background: "var(--accent-teal-subtle)",
-                      border: "1px solid var(--accent-teal-glow)",
-                      display: "grid",
-                      placeItems: "center",
-                    }}
-                  >
-                    <CoreBlowEmblem size={28} color="var(--accent-teal)" />
-                  </div>
+                  <CoreBlowBrandSwirl size={48} />
                   <div>
                     <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--ink-primary)" }}>
                       CoreBlow Studio
