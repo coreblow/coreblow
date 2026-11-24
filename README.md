@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/coreblow/coreblow/main/.github/assets/logo.svg" width="96" alt="CoreBlow Logo" />
+  <img src=".github/assets/coreblow-banner.svg" width="520" alt="CoreBlow" />
 </p>
-
-<h1 align="center">CoreBlow</h1>
 
 <p align="center">
   <strong>One sovereign brain. Every surface.</strong><br>
