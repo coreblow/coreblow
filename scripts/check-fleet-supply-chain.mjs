@@ -2,6 +2,7 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import YAML from "yaml";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const monorepoRoot = path.resolve(__dirname, "..");
@@ -49,11 +50,11 @@ for (const file of workflowFiles) {
     continue;
   }
 
-  // Validate YAML syntax via Python PyYAML if available
+  // Validate YAML syntax via Node yaml parser
   try {
-    execSync(`python3 -c "import yaml; yaml.safe_load(open('${file}'))"`, { stdio: "ignore" });
-  } catch {
-    errors.push(`YAML syntax error in ${relPath}`);
+    YAML.parse(content);
+  } catch (err) {
+    errors.push(`YAML syntax error in ${relPath}: ${err.message}`);
   }
 
   // Check unpinned actions
