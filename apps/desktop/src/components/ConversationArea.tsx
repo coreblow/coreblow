@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import type { ChatMessage, DesktopAgent, ModelTier, PermissionMode } from "../types/gateway";
 import { MessageBubble } from "./MessageBubble";
 import { Composer } from "./Composer";
-import { CoreBlowEmblem } from "./Icons";
+import { CoreBlowAppIcon, CoreBlowEmblem } from "./Icons";
 import { GettingStartedFlow, type GettingStartedFlowProps } from "./GettingStartedFlow";
 
 export interface ConversationAreaProps {
@@ -169,7 +169,7 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
                   placeItems: "center",
                 }}
               >
-                <CoreBlowEmblem size={28} color={activeAgent.accentColor} />
+                <CoreBlowEmblem size={32} color={activeAgent.accentColor} />
               </div>
               <h1
                 style={{
@@ -231,21 +231,15 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: "12px",
+                gap: "14px",
               }}
             >
               <div
                 style={{
-                  width: "52px",
-                  height: "52px",
-                  borderRadius: "14px",
-                  background: "var(--accent-teal-subtle)",
-                  border: "1px solid var(--accent-teal-glow)",
-                  display: "grid",
-                  placeItems: "center",
+                  filter: "drop-shadow(0 8px 20px rgba(233, 84, 32, 0.25))",
                 }}
               >
-                <CoreBlowEmblem size={28} color="var(--accent-teal)" />
+                <CoreBlowAppIcon size={64} />
               </div>
               <h1
                 style={{
@@ -259,7 +253,7 @@ export const ConversationArea: React.FC<ConversationAreaProps> = ({
                   textAlign: "center",
                 }}
               >
-                CoreBlow Studio
+                CoreBlow
               </h1>
               <p
                 style={{

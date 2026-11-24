@@ -46,7 +46,8 @@ describe("ConversationArea Component", () => {
     act(() => {
       root.render(<ConversationArea {...baseProps} messages={[]} />);
     });
-    expect(container.textContent).toContain("CoreBlow Studio");
+    expect(container.textContent).toContain("CoreBlow");
+    expect(container.textContent).not.toContain("CoreBlow Studio");
     expect(container.textContent).toContain("v2.0");
     // Verify old suggestion cards are removed
     expect(container.textContent).not.toContain("Run Verification Gates");
