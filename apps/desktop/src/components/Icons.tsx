@@ -12,7 +12,7 @@ interface IconProps {
  * chamfered instrument silhouettes, core beacon dots, and subtle duotone accents.
  */
 
-// CoreBlow Sovereign Core Emblem
+// CoreBlow Sovereign Concentric Vortex Emblem
 export const CoreBlowEmblem: React.FC<IconProps> = ({ size = 20, color = "currentColor" }) => (
   <svg
     width={size}
@@ -20,14 +20,15 @@ export const CoreBlowEmblem: React.FC<IconProps> = ({ size = 20, color = "curren
     viewBox="0 0 24 24"
     fill="none"
     stroke={color}
-    strokeWidth="1.65"
+    strokeWidth="1.9"
     strokeLinecap="round"
     strokeLinejoin="round"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path d="M12 2.5L20 7.1V16.9L12 21.5L4 16.9V7.1L12 2.5Z" fill={color} fillOpacity="0.14" />
-    <path d="M15.4 8.2A5 5 0 1 0 15.4 15.8" strokeWidth="1.95" />
-    <circle cx="12" cy="12" r="2.2" fill={color} stroke="none" />
+    <path d="M10.8 3.2A8.8 8.8 0 0 1 18.7 17.5" strokeWidth="2.1" />
+    <path d="M17.2 18.8A8.8 8.8 0 0 1 3.6 10.6" strokeWidth="1.85" strokeOpacity="0.72" />
+    <path d="M14.2 18.2A6.2 6.2 0 0 1 7.8 7.5" strokeWidth="1.9" />
+    <circle cx="12.2" cy="12.4" r="3.4" strokeWidth="1.85" />
   </svg>
 );
 

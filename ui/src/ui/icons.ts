@@ -354,11 +354,12 @@ export const icons: Record<IconName, ReturnType<typeof html>> = {
     <path d="M12.5 3a6.5 6.5 0 0 0 8.5 8.5A9 9 0 1 1 12.5 3z" fill="currentColor" fill-opacity="0.16"/>
   `),
 
-  // CoreBlow Sovereign Core Emblem
+  // CoreBlow Sovereign Concentric Vortex Emblem
   coreblow: cbIcon(svg`
-    <path d="M12 2.5L20 7.1V16.9L12 21.5L4 16.9V7.1L12 2.5Z" fill="currentColor" fill-opacity="0.14"/>
-    <path d="M15.4 8.2A5 5 0 1 0 15.4 15.8" stroke-width="1.95"/>
-    <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>
+    <path d="M10.8 3.2A8.8 8.8 0 0 1 18.7 17.5" stroke-width="2.1"/>
+    <path d="M17.2 18.8A8.8 8.8 0 0 1 3.6 10.6" stroke-width="1.85" stroke-opacity="0.72"/>
+    <path d="M14.2 18.2A6.2 6.2 0 0 1 7.8 7.5" stroke-width="1.9"/>
+    <circle cx="12.2" cy="12.4" r="3.4" stroke-width="1.85"/>
   `),
 
   // ACP — multi-agent mesh orchestration nodes
