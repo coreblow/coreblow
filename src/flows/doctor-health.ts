@@ -21,6 +21,16 @@ export async function doctorCommand(
   runtime: RuntimeEnv = defaultRuntime,
   options: DoctorOptions = {},
 ) {
+  if (options.net) {
+    const { runDoctorNetProbe } = await import("../commands/doctor-net.js");
+    await runDoctorNetProbe(runtime, {
+      url: options.netUrl,
+      samples: options.netSamples,
+      json: options.json,
+    });
+    return;
+  }
+
   const prompter = createDoctorPrompter({ runtime, options });
   printWizardHeader(runtime);
   intro(t("doctor.title"));

@@ -22,7 +22,21 @@ export function registerChatCommand(program: Command): void {
         .description('Start an interactive chat session with CoreBlow')
         .option('-p, --port <port>', 'Gateway port', '3000')
         .option('-m, --model <model>', 'Model to use')
+        .option('--session <key>', 'Session key')
+        .option('--go', 'Launch Go companion (corechat) instead of Node REPL', false)
         .action(async (opts) => {
+            if (opts.go) {
+                const { runChatGoHandoff } = await import('../chat-go-handoff.js');
+                const ok = await runChatGoHandoff(undefined, {
+                    gatewayUrl: opts.port ? `http://127.0.0.1:${opts.port}` : undefined,
+                    sessionKey: opts.session,
+                });
+                if (!ok) {
+                    process.exit(1);
+                }
+                return;
+            }
+
             const port = opts.port;
             const baseUrl = `http://127.0.0.1:${port}`;
 

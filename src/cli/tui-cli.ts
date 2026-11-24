@@ -20,12 +20,27 @@ export function registerTuiCli(program: Command) {
     .option("--message <text>", t("cli_help.tui.options.message"))
     .option("--timeout-ms <ms>", t("cli_help.tui.options.timeout_ms"))
     .option("--history-limit <n>", t("cli_help.tui.options.history_limit"), "200")
+    .option("--go", "Launch Go companion (corechat) instead of Node TUI", false)
     .addHelpText(
       "after",
       () => `\n${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/tui", "docs.coreblow.com/cli/tui")}\n`,
     )
     .action(async (opts) => {
       try {
+        if (opts.go) {
+          const { runChatGoHandoff } = await import("./chat-go-handoff.js");
+          const ok = await runChatGoHandoff(defaultRuntime, {
+            gatewayUrl: opts.url as string | undefined,
+            sessionKey: opts.session as string | undefined,
+            token: opts.token as string | undefined,
+            prompt: opts.message as string | undefined,
+          });
+          if (!ok) {
+            defaultRuntime.exit(1);
+          }
+          return;
+        }
+
         const timeoutMs = parseTimeoutMs(opts.timeoutMs);
         if (opts.timeoutMs !== undefined && timeoutMs === undefined) {
           defaultRuntime.error(

@@ -134,6 +134,11 @@ const entrySpecs: readonly CommandGroupDescriptorSpec<SubCliRegistrar>[] = [
       exportName: "registerTuiCli",
     },
     {
+      commandNames: ["chat"],
+      loadModule: () => import("../commands/chat-cmd.js"),
+      exportName: "registerChatCommand",
+    },
+    {
       commandNames: ["desktop"],
       loadModule: () => import("../desktop-cli.js"),
       exportName: "registerDesktopCli",

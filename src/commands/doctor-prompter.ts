@@ -16,6 +16,10 @@ export type DoctorOptions = {
   repair?: boolean;
   force?: boolean;
   generateGatewayToken?: boolean;
+  net?: boolean;
+  netUrl?: string;
+  netSamples?: number;
+  json?: boolean;
 };
 
 export type DoctorPrompter = {

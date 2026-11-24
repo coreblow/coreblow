@@ -26,6 +26,10 @@ export function registerMaintenanceCommands(program: Command) {
     .option("--non-interactive", t("cli_help.doctor.options.non_interactive"), false)
     .option("--generate-gateway-token", t("cli_help.doctor.options.generate_gateway_credential"), false)
     .option("--deep", t("cli_help.doctor.options.deep"), false)
+    .option("--net", "Run network latency and gateway health probe", false)
+    .option("--net-url <url>", "Gateway URL to probe (default: http://127.0.0.1:18789/health)")
+    .option("--net-samples <n>", "Number of RTT samples to collect", "5")
+    .option("--json", "Output diagnostics in JSON format", false)
     .action(async (opts) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
         await doctorCommand(defaultRuntime, {
@@ -36,6 +40,10 @@ export function registerMaintenanceCommands(program: Command) {
           nonInteractive: Boolean(opts.nonInteractive),
           generateGatewayToken: Boolean(opts.generateGatewayToken),
           deep: Boolean(opts.deep),
+          net: Boolean(opts.net),
+          netUrl: typeof opts.netUrl === "string" ? opts.netUrl : undefined,
+          netSamples: opts.netSamples ? Number.parseInt(String(opts.netSamples), 10) : undefined,
+          json: Boolean(opts.json),
         });
         defaultRuntime.exit(0);
       });

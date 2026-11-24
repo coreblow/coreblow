@@ -252,6 +252,17 @@ export async function runCli(argv: string[] = process.argv) {
         const backendType = getFlagValue(normalizedArgv, "--backend") as any;
         const backendTarget = getFlagValue(normalizedArgv, "--backend-target") || undefined;
 
+        if (normalizedArgv.includes("--go")) {
+          const { runChatGoHandoff } = await import("./chat-go-handoff.js");
+          const ok = await runChatGoHandoff(undefined, {
+            sessionKey: targetSessionId,
+          });
+          if (!ok) {
+            process.exitCode = 1;
+          }
+          return;
+        }
+
         if (!normalizedArgv.includes("--simple")) {
           try {
             const { runTui } = await import("../tui/tui.js");

@@ -68,6 +68,11 @@ export const SUB_CLI_DESCRIPTORS = [
     hasSubcommands: false,
   },
   {
+    name: "chat",
+    description: commandDescription("chat", "Start interactive chat session (or pass --go for Go companion)"),
+    hasSubcommands: false,
+  },
+  {
     name: "cron",
     description: commandDescription("cron", "Manage cron jobs via the Gateway scheduler"),
     hasSubcommands: true,
