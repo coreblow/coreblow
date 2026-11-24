@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 Entries are listed newest-first within each version block.
 Changelog covers user-facing changes only; internal/meta notes are omitted.
 
+## [2.1.3] (2026-11-25)
+
+### Highlights
+
+- **Leaner npm Distribution:** Reduced unpacked publish footprint by 48.3% (202.2 MB to 104.6 MB) with 0 leaked test declaration files (`*.test.d.ts`).
+- **Real RTT Latency Diagnostics & Companion Handoff:** Added `coreblow doctor --net` for real-time provider RTT latency analysis and `coreblow chat --go` for zero-friction companion desktop handoff.
+- **Safe Fleet Dispatcher:** Added `scripts/fleet-exec.mjs` for federated tool execution with zero cross-repo runtime imports.
+- **Legacy TUI Quarantine & Plugin Parity:** Safely isolated legacy-only interactive components (`src/tui/legacy/`) and verified 142/142 extension plugin manifests.
+- **Fleet Supply-Chain Hardening:** Enforced 100% 40-character SHA pinning across all GitHub Actions workflows, CycloneDX SBOM generation, and signed provenance attestations across all 26 fleet repositories.
+
 ## [2.1.2] (2026-11-23)
 
 ### Security

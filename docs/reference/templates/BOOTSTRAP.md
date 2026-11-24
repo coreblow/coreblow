@@ -1,3 +1,3 @@
 # CoreBlow Workspace Bootstrap
 
-This workspace was initialized by CoreBlow v2.1.2. Customize `USER.md`, `AGENTS.md`, or `SOUL.md` anytime to tailor how CoreBlow works with you.
+This workspace was initialized by CoreBlow v2.1.3. Customize `USER.md`, `AGENTS.md`, or `SOUL.md` anytime to tailor how CoreBlow works with you.

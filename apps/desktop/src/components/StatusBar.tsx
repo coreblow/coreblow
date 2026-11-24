@@ -18,7 +18,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   activeModelName = "Auto",
   layoutMode,
   onToggleLayoutMode,
-  version = "v2.1.2",
+  version = "v2.1.3",
   estopPaused = false,
   onToggleEstop,
 }) => {
