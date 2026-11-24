@@ -5,8 +5,8 @@
 <h1 align="center">CoreBlow</h1>
 
 <p align="center">
-  <strong>The Sovereign, Self-Hosted AI Agent-OS & Enterprise Gateway</strong><br>
-  <em>One local brain. 75 native MCP tools. Persistent SQLite memory. Multi-agent War Room. Terminal, Desktop, Web, and 24/7 messaging channels — all under your own infrastructure.</em>
+  <strong>One sovereign brain. Every surface.</strong><br>
+  <em>The self-hosted AI Agent-OS &amp; Enterprise Gateway for terminal, desktop, web, and 24/7 channels — built with security by default.</em>
 </p>
 
 <p align="center">
