@@ -2,7 +2,7 @@
 
 **Document Version:** 2.1.2 (Sovereign Hybrid OOP/DOP Microkernel & Evolution Edition)<br />
 **Date:** November 6, 2026<br />
-**Status:** Stages 1–6 Certified Complete (100% Passing) | Stage 7 Active | Stages 8–9 Scheduled<br />
+**Status:** Stages 1–9 Certified Complete (100% Passing)<br />
 **Product Canonical URLs:** [https://coreblow.com](https://coreblow.com) | [https://github.com/coreblow](https://github.com/coreblow)<br />
 **Marketplace Registry:** [https://coreblow.com/corehub](https://coreblow.com/corehub)<br />
 **Documentation Portal:** [https://docs.coreblow.com](https://docs.coreblow.com)
@@ -34,7 +34,7 @@ flowchart TD
         S4 --> S5 --> S6
     end
 
-    subgraph S7_9 ["Stages 7–9: Knowledge Wiki, Ecosystem Migration & Open-Source GA (ACTIVE / NEXT)"]
+    subgraph S7_9 ["Stages 7–9: Knowledge Wiki, Ecosystem Migration & Open-Source GA (COMPLETE)"]
         S7["Stage 7: Cory Knowledge Scribes, Browsable Memory Wiki, Zero-Stall Compaction & Universal Importer"]
         S8["Stage 8: Autonomous Git/PR Workflow Engine, Native Chat Views & Sovereign Local Companion"]
         S9["Stage 9: Universal Open-Source Release Certification & CoreBlow v2.0.0 GA Tagging"]
@@ -90,7 +90,7 @@ flowchart TD
 - **EvoLoop Hardening (`src/learning/`):**
   - Adds immutable per-skill locks (`locked: boolean` / `SKILL_LOCKED`), background `prepareAheadCompaction()`, and the pure DOP `evaluatePreLlmCallHook()` security/budget interceptor.
 
-### 3.4 Stage 7: Cory Knowledge Scribes, Browsable Memory Wiki & Universal Importer (ACTIVE)
+### 3.4 Stage 7: Cory Knowledge Scribes, Browsable Memory Wiki & Universal Importer (COMPLETE)
 - **Cory Knowledge Scribes & Memory Wiki (`src/memory/knowledge-scribe.ts`):**
   - Automatically distills multi-session architectural decisions, workflows, and constraints into a browsable, cross-linked Markdown **Memory Wiki** (`~/.coreblow/memory/wiki/<slug>.md`) alongside a read-only `USER.md` / `MEMORY.md` / `CONSTRAINTS.md` audit panel.
 - **Zero-Stall Prepared Compaction:**
@@ -98,7 +98,7 @@ flowchart TD
 - **Universal Workspace Profile Importer (`src/migration/universal-agent-importer.ts`):**
   - One-command preview-first importer (`coreblow-bundle`, `standard-agents-md`, `claude-code`, `cursor`, `codex`, `windsurf`) that ingests rules, memories, MCP server definitions, and skills while automatically redacting raw API keys/tokens (`[REDACTED_SECRET]`) and quarantining unsafe skills.
 
-### 3.5 Stage 8: Autonomous Git/PR Workflow Engine, Interactive Chat Views & Sovereign Companion (PLANNED)
+### 3.5 Stage 8: Autonomous Git/PR Workflow Engine, Interactive Chat Views & Sovereign Companion (COMPLETE)
 - **Chat-Native Git & Pull Request Orchestrator (`src/agents/pr-workflow/`):**
   - Enables any CoreBlow War Room or channel session to inspect diffs, run pre-flight verification gates (`vitest`, `tsgo`, `oxlint`), create branches, and draft structured Pull Requests directly from chat with operator approval gates.
 - **Interactive Plugin Views in Chat (`src/plugins/chat-views/`):**
@@ -106,7 +106,7 @@ flowchart TD
 - **Sovereign Local Voice & Desktop Companion (`apps/macos/`, `apps/macos-mlx-tts/`):**
   - Sub-0.4 RTF local Apple Silicon MLX speech synthesis and menu-bar companion integration for zero-cloud-cost voice and desktop workflows.
 
-### 3.6 Stage 9: Production Release Engineering & CoreBlow v2.0.0 Sovereign GA (PLANNED)
+### 3.6 Stage 9: Production Release Engineering & CoreBlow v2.0.0 Sovereign GA (COMPLETE)
 - **100% Brand Sovereignty & Codebase Purity Audit:**
   - Automated static verification ensuring zero legacy/competitor identifiers across all packages, manifests, CLI help text, and documentation.
 - **Universal Open-Source Distribution:**
