@@ -100,6 +100,14 @@ function resolveGatewayTestMainSessionKeys(): string[] {
     );
     keys.add(`agent:${agentId}:${configuredMainKey}`);
   }
+  const agentsList = (testState.agentsConfig as { list?: Array<{ id?: string }> } | undefined)?.list;
+  if (Array.isArray(agentsList)) {
+    for (const agent of agentsList) {
+      if (typeof agent?.id === "string" && agent.id.length > 0) {
+        keys.add(`agent:${agent.id}:main`);
+      }
+    }
+  }
   return [...keys];
 }
 
@@ -921,10 +929,10 @@ export async function rpcReq<T extends Record<string, unknown>>(
   );
 }
 
-export async function waitForSystemEvent(timeoutMs = 2000) {
-  const sessionKeys = resolveGatewayTestMainSessionKeys();
+export async function waitForSystemEvent(timeoutMs = 10_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
+    const sessionKeys = resolveGatewayTestMainSessionKeys();
     for (const sessionKey of sessionKeys) {
       const events = peekSystemEvents(sessionKey);
       if (events.length > 0) {

@@ -606,7 +606,10 @@ export function attachGatewayWsMessageHandler(params: GatewayWsMessageHandlerPar
             (decision.kind !== "allow" ||
               (!controlUiAuthPolicy.allowBypass &&
                 !preserveInsecureLocalControlUiScopes &&
-                (authMethod === "token" || authMethod === "password" || trustedProxyAuthOk)))
+                (authMethod === "token" ||
+                  authMethod === "password" ||
+                  authMethod === "tailscale" ||
+                  trustedProxyAuthOk)))
           ) {
             clearUnboundScopes();
           }

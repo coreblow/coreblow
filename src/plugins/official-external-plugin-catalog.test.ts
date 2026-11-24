@@ -91,16 +91,26 @@ describe("official external plugin catalog", () => {
 
   describe("verifyOfficialChannelArtifacts", () => {
     it("truthfully returns pending_external_artifact when artifact directory is absent on disk", () => {
-      const result = verifyOfficialChannelArtifacts({
-        artifactsDir: "/path/to/nonexistent/artifacts/dir/that/does/not/exist",
-      });
+      const tempDir = path.join(os.tmpdir(), `coreblow-verify-missing-dir-${Date.now()}`);
+      fs.mkdirSync(tempDir, { recursive: true });
+      try {
+        const catalogPath = path.join(tempDir, "catalog.json");
+        fs.writeFileSync(catalogPath, JSON.stringify([]));
 
-      expect(result.status).toBe("pending_external_artifact");
-      expect(result.totalChannels).toBeGreaterThanOrEqual(15);
-      expect(result.verifiedCount).toBe(0);
-      expect(result.missingCount).toBe(result.totalChannels);
-      expect(result.missingArtifacts.length).toBe(result.totalChannels);
-      expect(result.reason).toContain("Release archive directory");
+        const result = verifyOfficialChannelArtifacts({
+          catalogPath,
+          artifactsDir: "/path/to/nonexistent/artifacts/dir/that/does/not/exist",
+        });
+
+        expect(result.status).toBe("pending_external_artifact");
+        expect(result.totalChannels).toBeGreaterThanOrEqual(15);
+        expect(result.verifiedCount).toBe(0);
+        expect(result.missingCount).toBe(result.totalChannels);
+        expect(result.missingArtifacts.length).toBe(result.totalChannels);
+        expect(result.reason).toContain("Release archive directory");
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
     });
 
     it("cryptographically certifies artifacts when actual SHA-256 matches catalog expected checksum", () => {
