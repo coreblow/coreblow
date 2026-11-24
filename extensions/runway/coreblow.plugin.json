@@ -1,0 +1,7 @@
+{
+  "id": "runway",
+  "name": "Runway Video Generation",
+  "description": "Runway Gen-2 / Gen-3 video generation provider extension.",
+  "enabledByDefault": false,
+  "status": "preview"
+}

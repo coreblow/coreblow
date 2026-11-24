@@ -1,0 +1,7 @@
+{
+  "id": "gradium",
+  "name": "Gradium Audio",
+  "description": "Gradium audio synthesis and speech processing provider extension.",
+  "enabledByDefault": false,
+  "status": "preview"
+}

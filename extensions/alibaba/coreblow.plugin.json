@@ -1,0 +1,7 @@
+{
+  "id": "alibaba",
+  "name": "Alibaba Cloud Video Generation",
+  "description": "Alibaba Cloud video generation provider extension.",
+  "enabledByDefault": false,
+  "status": "preview"
+}

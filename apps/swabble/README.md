@@ -1,5 +1,7 @@
 # 🔊 swabble — Speech.framework wake-word hook daemon (macOS 26)
 
+> **Status: Experimental / Quarantined**
+
 A lightweight daemon that listens for a wake word using Apple's Speech.framework
 SpeechAnalyzer/SpeechTranscriber pipeline, then fires a configurable hook command.
 

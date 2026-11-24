@@ -1,0 +1,8 @@
+{
+  "id": "test-support",
+  "name": "Internal Test Support",
+  "description": "Internal test utilities and fixtures for extension testing.",
+  "enabledByDefault": false,
+  "internal": true,
+  "status": "quarantined"
+}

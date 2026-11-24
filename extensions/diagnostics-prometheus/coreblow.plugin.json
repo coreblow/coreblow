@@ -1,0 +1,7 @@
+{
+  "id": "diagnostics-prometheus",
+  "name": "Prometheus Diagnostics",
+  "description": "Prometheus metrics exporter and diagnostics telemetry extension.",
+  "enabledByDefault": false,
+  "status": "preview"
+}

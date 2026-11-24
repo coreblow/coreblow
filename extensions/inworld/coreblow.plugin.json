@@ -1,0 +1,7 @@
+{
+  "id": "inworld",
+  "name": "Inworld Speech",
+  "description": "Inworld AI character speech and TTS provider extension.",
+  "enabledByDefault": false,
+  "status": "preview"
+}

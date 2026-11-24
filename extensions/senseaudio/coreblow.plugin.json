@@ -1,0 +1,7 @@
+{
+  "id": "senseaudio",
+  "name": "SenseAudio Understanding",
+  "description": "Audio intelligence and acoustic perception understanding provider extension.",
+  "enabledByDefault": false,
+  "status": "preview"
+}
