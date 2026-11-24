@@ -158,7 +158,7 @@ Exit gate: tests prove real git workspace inspection, gate validation, out-of-ba
 | TF.3 | Single catalog source | official-external-channel-catalog.json | 3 OpenClaw entries removed, exactly 18 CoreBlow plugins | ✅ DONE |
 | TF.4 | Fix install surfaces | `homebrew-tap/Formula/coreblow.rb` | pointed to published release tarball with verified sha256 (0 404s) | ✅ DONE |
 | TF.5 | Correct the Ed25519 claim | `docs/COREBLOW_ECOSYSTEM_26_REPOS.md` | states OIDC RSA-SHA256 & artifact integrity SHA-256 | ✅ DONE |
-| TF.6 | Push unpushed commits | 6 satellites ahead by 1–3 | staged locally; ready for push when operator remote token is active | Staged |
+| TF.6 | Push unpushed commits | 6 satellites ahead by 1–3 | all 6 satellites pushed to origin/main with active coreblow org auth | ✅ DONE |
 | TF.7 | Public docs for v2 features | `coreblow-split/docs` | Cory 4-Layer Memory & EvoLoop fully documented | ✅ DONE |
 
 ---
