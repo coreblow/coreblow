@@ -64,7 +64,7 @@ jobs:
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e8b # v5.5.1
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -73,7 +73,7 @@ jobs:
             type=sha
 
       - name: Build and push main image
-        uses: docker/build-push-action@4f58ea7960e23872490385574226095d7322373e # v6.9.0
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
         with:
           context: .
           push: true
@@ -84,7 +84,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
 
       - name: Build and push sandbox-common
-        uses: docker/build-push-action@4f58ea7960e23872490385574226095d7322373e # v6.9.0
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
         with:
           context: .
           file: Dockerfile.sandbox-common
@@ -94,7 +94,7 @@ jobs:
           cache-to: type=gha,scope=sandbox-common,mode=max
 
       - name: Build and push sandbox
-        uses: docker/build-push-action@4f58ea7960e23872490385574226095d7322373e # v6.9.0
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
         with:
           context: .
           file: Dockerfile.sandbox
@@ -104,7 +104,7 @@ jobs:
           cache-to: type=gha,scope=sandbox,mode=max
 
       - name: Build and push sandbox-browser
-        uses: docker/build-push-action@4f58ea7960e23872490385574226095d7322373e # v6.9.0
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
         with:
           context: .
           file: Dockerfile.sandbox-browser

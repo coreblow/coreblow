@@ -28,7 +28,7 @@ jobs:
           distribution: "temurin"
 
       - name: Cache Gradle
-        uses: actions/cache@1bd1e3241304d78e68535fe91d22e5217e30761d # v4.2.0
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         with:
           path: |
             ~/.gradle/caches
