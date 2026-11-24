@@ -67,6 +67,8 @@
     "!extensions/msteams/**",
     "dist",
     "!dist/**/*.map",
+    "!dist/**/*.test.d.ts",
+    "!dist/**/*.spec.d.ts",
     "coreblow.mjs",
     "SECURITY.md",
     "CONTRIBUTING.md",

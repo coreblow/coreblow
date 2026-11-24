@@ -15,5 +15,15 @@
     "src/types/**/*.d.ts",
     "packages/memory-host-sdk/src/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "packages/**/*.test.ts",
+    "packages/**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.test-support.ts"
+  ]
 }
