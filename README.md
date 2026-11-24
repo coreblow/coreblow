@@ -51,6 +51,10 @@ coreblow
 
 Running `coreblow` for the first time launches an interactive setup wizard inside your terminal to pick your provider, model, and theme in under 30 seconds.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/coreblow/coreblow/main/.github/assets/coreblow-demo.svg" alt="CoreBlow Terminal &amp; Desktop Workflow Demo" width="800" />
+</p>
+
 Other install options:
 
 ```bash

@@ -1,0 +1,215 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 460" width="100%" height="100%" style="background:#090d13;border-radius:12px;font-family:'JetBrains Mono','SF Pro Display',-apple-system,BlinkMacSystemFont,monospace;">
+  <defs>
+    <!-- Styling & Animations -->
+    <style>
+      .window-bg { fill: #0d1117; stroke: #30363d; stroke-width: 1; }
+      .titlebar { fill: #161b22; }
+      .title-text { fill: #8b949e; font-size: 13px; font-weight: 500; font-family: -apple-system, BlinkMacSystemFont, sans-serif; text-anchor: middle; }
+      .prompt-symbol { fill: #E95420; font-weight: 700; }
+      .cmd-text { fill: #f0f6fc; font-size: 14px; }
+      .comment-text { fill: #8b949e; font-size: 12px; }
+      .accent-orange { fill: #E95420; }
+      .accent-cyan { fill: #60D9CC; }
+      .accent-green { fill: #10B981; }
+      .accent-dim { fill: #6e7681; }
+      .gate-tag { font-size: 11px; font-weight: 600; }
+      .diff-add { fill: #7ee787; }
+      .diff-del { fill: #ffa198; }
+
+      /* Animation Scenes: 15s Total Loop */
+      /* Scene 1 (0s - 5s): Terminal command & Triage */
+      @keyframes scene1 {
+        0%, 30% { opacity: 1; transform: translateY(0); }
+        33.3%, 100% { opacity: 0; transform: translateY(-8px); }
+      }
+
+      /* Scene 2 (5s - 10s): Diff & 5-Gate Scorecard */
+      @keyframes scene2 {
+        0%, 33.2% { opacity: 0; transform: translateY(8px); }
+        33.3%, 63% { opacity: 1; transform: translateY(0); }
+        66.6%, 100% { opacity: 0; transform: translateY(-8px); }
+      }
+
+      /* Scene 3 (10s - 15s): Studio Desktop Handoff */
+      @keyframes scene3 {
+        0%, 66.5% { opacity: 0; transform: translateY(8px); }
+        66.6%, 97% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-8px); }
+      }
+
+      /* Typing Cursor */
+      @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+      }
+
+      .scene-1 { animation: scene1 15s infinite ease-in-out; }
+      .scene-2 { animation: scene2 15s infinite ease-in-out; }
+      .scene-3 { animation: scene3 15s infinite ease-in-out; }
+      .cursor { animation: blink 0.8s infinite; fill: #E95420; }
+    </style>
+
+    <!-- Linear Gradients -->
+    <linearGradient id="headerGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#E95420" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#FF7A45" stop-opacity="0.85" />
+    </linearGradient>
+    <linearGradient id="studioCardGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#161b22" />
+      <stop offset="100%" stop-color="#0d1117" />
+    </linearGradient>
+  </defs>
+
+  <!-- Window Container -->
+  <rect x="1" y="1" width="838" height="458" rx="10" class="window-bg" />
+
+  <!-- macOS Window Titlebar -->
+  <path d="M 1 10 C 1 5, 5 1, 10 1 L 830 1 C 835 1, 839 5, 839 10 L 839 38 L 1 38 Z" class="titlebar" />
+  <line x1="1" y1="38" x2="839" y2="38" stroke="#30363d" stroke-width="1" />
+
+  <!-- macOS Window Traffic Light Controls -->
+  <circle cx="20" cy="19" r="6" fill="#ff5f56" />
+  <circle cx="40" cy="19" r="6" fill="#ffbd2e" />
+  <circle cx="60" cy="19" r="6" fill="#27c93f" />
+
+  <text x="420" y="24" class="title-text">CoreBlow v2.1.3 — Sovereign Agent-OS &amp; Unified Gateway</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- SCENE 1: Interactive TUI Terminal Execution (0s - 5s)           -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <g class="scene-1">
+    <!-- Header banner in TUI -->
+    <rect x="36" y="58" width="768" height="34" rx="6" fill="#1c2128" stroke="#30363d" stroke-width="1" />
+    <circle cx="54" cy="75" r="4" fill="#10B981" />
+    <text x="68" y="79" fill="#10B981" font-size="12" font-weight="600">SOVEREIGN GATEWAY READY</text>
+    <text x="250" y="79" fill="#8b949e" font-size="12">Port 18789</text>
+    <text x="360" y="79" fill="#8b949e" font-size="12">Memory: SQLite WAL+FTS5</text>
+    <text x="590" y="79" fill="#E95420" font-size="12" font-weight="600">6-Tier Router: Active</text>
+
+    <!-- Prompt 1 -->
+    <text x="36" y="125" class="prompt-symbol" font-size="14">coreblow$</text>
+    <text x="120" y="125" class="cmd-text">coreblow chat --dev</text>
+
+    <!-- Agent session status -->
+    <text x="36" y="160" class="accent-cyan" font-size="13">● Connected to local microkernel session (id: ses-98a7c)</text>
+    <text x="36" y="185" class="comment-text">Cory Memory L1-L3 loaded in 0.8ms · 0 security alerts · sandbox: Seatbelt</text>
+
+    <!-- User command -->
+    <text x="36" y="228" fill="#58a6ff" font-size="14" font-weight="600">&gt; User:</text>
+    <text x="96" y="228" fill="#f0f6fc" font-size="14">Analyze provider RTT latency and repair auth rate limiter</text>
+
+    <!-- Agent Triage & Execution Stream -->
+    <rect x="36" y="255" width="768" height="155" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1" />
+    <text x="56" y="285" fill="#E95420" font-size="13" font-weight="600">⚡ CoreBlow Microkernel Triage &lt;12ms&gt;:</text>
+    <text x="56" y="312" fill="#c9d1d9" font-size="13">1. Probing upstream provider endpoints via HTTP/2 handshake...</text>
+    <text x="56" y="337" fill="#c9d1d9" font-size="13">2. Resolved RTT: Anthropic (42ms), OpenAI (38ms), Local Ollama (4ms)</text>
+    <text x="56" y="362" fill="#10B981" font-size="13">3. Patching TokenBucket sliding-window concurrency in `src/infra/limiter.ts`</text>
+    <text x="56" y="388" fill="#8b949e" font-size="12">Synthesizing verified solution...</text>
+    <rect x="300" y="376" width="8" height="14" class="cursor" />
+  </g>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- SCENE 2: Autonomous Diff & 5-Gate Scorecard (5s - 10s)         -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <g class="scene-2">
+    <!-- Diff Header -->
+    <text x="36" y="72" fill="#58a6ff" font-size="15" font-weight="700">Autonomous Code Synthesis &amp; 5-Gate Scorecard</text>
+    <text x="36" y="94" class="comment-text">Target: src/infra/rate-limiter.ts (+38 / -6 lines)</text>
+
+    <!-- Diff Code Box -->
+    <rect x="36" y="108" width="460" height="300" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1" />
+    <text x="52" y="136" fill="#8b949e" font-size="12">@@ -42,6 +42,12 @@ export class TokenBucketLimiter {</text>
+    <text x="52" y="162" class="diff-del" font-size="13">-   const currentTokens = this.tokens;</text>
+    <text x="52" y="186" class="diff-del" font-size="13">-   if (currentTokens &lt; cost) return false;</text>
+    <text x="52" y="210" class="diff-add" font-size="13">+   // Sub-millisecond atomic monotonic refill</text>
+    <text x="52" y="234" class="diff-add" font-size="13">+   const now = performance.now();</text>
+    <text x="52" y="258" class="diff-add" font-size="13">+   const delta = now - this.lastRefillTime;</text>
+    <text x="52" y="282" class="diff-add" font-size="13">+   this.tokens = Math.min(this.capacity, this.tokens + delta * this.refillRate);</text>
+    <text x="52" y="306" class="diff-add" font-size="13">+   if (this.tokens &lt; cost) return false;</text>
+    <text x="52" y="330" class="diff-add" font-size="13">+   this.tokens -= cost;</text>
+    <text x="52" y="356" fill="#c9d1d9" font-size="13">    return true;</text>
+    <text x="52" y="380" fill="#8b949e" font-size="12">}</text>
+
+    <!-- 5-Gate PR Pre-Flight Verification Scorecard -->
+    <rect x="516" y="108" width="288" height="300" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1" />
+    <text x="536" y="136" fill="#E95420" font-size="13" font-weight="700">5-GATE PRE-FLIGHT AUDIT</text>
+    <line x1="536" y1="148" x2="784" y2="148" stroke="#30363d" stroke-width="1" />
+
+    <!-- Gate 1 -->
+    <text x="536" y="176" fill="#c9d1d9" font-size="13">1. TypeScript Check</text>
+    <text x="740" y="176" fill="#10B981" font-size="13" font-weight="600">0 err ✓</text>
+
+    <!-- Gate 2 -->
+    <text x="536" y="210" fill="#c9d1d9" font-size="13">2. Oxlint Engine</text>
+    <text x="740" y="210" fill="#10B981" font-size="13" font-weight="600">PASS ✓</text>
+
+    <!-- Gate 3 -->
+    <text x="536" y="244" fill="#c9d1d9" font-size="13">3. Unit Test Suite</text>
+    <text x="725" y="244" fill="#10B981" font-size="13" font-weight="600">100% ✓</text>
+
+    <!-- Gate 4 -->
+    <text x="536" y="278" fill="#c9d1d9" font-size="13">4. Secret Leak Scan</text>
+    <text x="735" y="278" fill="#10B981" font-size="13" font-weight="600">CLEAN ✓</text>
+
+    <!-- Gate 5 -->
+    <text x="536" y="312" fill="#c9d1d9" font-size="13">5. Brand Sovereignty</text>
+    <text x="735" y="312" fill="#10B981" font-size="13" font-weight="600">100% ✓</text>
+
+    <rect x="536" y="342" width="248" height="46" rx="6" fill="rgba(16, 185, 129, 0.12)" stroke="#10B981" stroke-width="1" />
+    <text x="556" y="370" fill="#10B981" font-size="13" font-weight="700">VERIFICATION PASSED (5/5)</text>
+  </g>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- SCENE 3: CoreBlow Studio Companion Bar Handoff (10s - 15s)      -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <g class="scene-3">
+    <!-- Header -->
+    <text x="36" y="70" fill="#60D9CC" font-size="15" font-weight="700">Zero-Friction Desktop Companion Handoff</text>
+    <text x="36" y="92" class="comment-text">Global shortcut (⌥ + Space) · Instant IPC session transfer · Native macOS Studio</text>
+
+    <!-- Desktop Companion Card -->
+    <rect x="36" y="108" width="768" height="300" rx="8" fill="url(#studioCardGrad)" stroke="#30363d" stroke-width="1" />
+
+    <!-- 3-Pane Mini Layout Representation -->
+    <!-- Left: Swarms & Worktrees -->
+    <rect x="52" y="126" width="180" height="264" rx="6" fill="#161b22" stroke="#21262d" stroke-width="1" />
+    <text x="64" y="148" fill="#8b949e" font-size="11" font-weight="700">WAR ROOM SWARMS</text>
+    <text x="64" y="174" fill="#E95420" font-size="12">● Lead Coordinator</text>
+    <text x="64" y="198" fill="#c9d1d9" font-size="12">● Autonomous Coder</text>
+    <text x="64" y="222" fill="#c9d1d9" font-size="12">● Gate Verifier</text>
+    <text x="64" y="246" fill="#c9d1d9" font-size="12">● Cory Memory Scribe</text>
+
+    <text x="64" y="286" fill="#8b949e" font-size="11" font-weight="700">KNOWLEDGE WIKI</text>
+    <text x="64" y="310" fill="#58a6ff" font-size="12">📄 USER.md</text>
+    <text x="64" y="332" fill="#58a6ff" font-size="12">📄 MEMORY.md</text>
+    <text x="64" y="354" fill="#58a6ff" font-size="12">📄 CONSTRAINTS.md</text>
+
+    <!-- Center: Interactive Studio Workspace -->
+    <rect x="246" y="126" width="350" height="264" rx="6" fill="#161b22" stroke="#21262d" stroke-width="1" />
+    <text x="264" y="152" fill="#f0f6fc" font-size="14" font-weight="700">CoreBlow Studio Active</text>
+    <text x="264" y="176" fill="#8b949e" font-size="12">Session: ses-98a7c (Continued from CLI)</text>
+
+    <rect x="264" y="196" width="314" height="60" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1" />
+    <text x="276" y="220" fill="#10B981" font-size="12" font-weight="600">✓ Changes Committed to Branch `fix/rate-limiter`</text>
+    <text x="276" y="242" fill="#8b949e" font-size="11">Clean build · All 268 tests passed · 0 memory leaks</text>
+
+    <!-- Composer Bar -->
+    <rect x="264" y="272" width="314" height="100" rx="6" fill="#0d1117" stroke="#E95420" stroke-width="1" />
+    <text x="276" y="296" fill="#8b949e" font-size="12">Press ⌥ + Space to toggle Studio bar</text>
+    <rect x="276" y="318" width="140" height="28" rx="4" fill="#E95420" />
+    <text x="296" y="337" fill="#ffffff" font-size="12" font-weight="700">Merge PR &amp; Tag</text>
+
+    <!-- Right: Telemetry & Status -->
+    <rect x="610" y="126" width="178" height="264" rx="6" fill="#161b22" stroke="#21262d" stroke-width="1" />
+    <text x="622" y="148" fill="#8b949e" font-size="11" font-weight="700">COCKPIT TELEMETRY</text>
+    <text x="622" y="174" fill="#c9d1d9" font-size="12">Gateway: <tspan fill="#10B981">18789</tspan></text>
+    <text x="622" y="198" fill="#c9d1d9" font-size="12">WebSocket: <tspan fill="#10B981">100% UP</tspan></text>
+    <text x="622" y="222" fill="#c9d1d9" font-size="12">RTT Latency: <tspan fill="#60D9CC">18ms</tspan></text>
+    <text x="622" y="246" fill="#c9d1d9" font-size="12">Sandbox: <tspan fill="#10B981">ACTIVE</tspan></text>
+
+    <text x="622" y="286" fill="#8b949e" font-size="11" font-weight="700">EXTENSIONS</text>
+    <text x="622" y="310" fill="#c9d1d9" font-size="12">Manifests: <tspan fill="#10B981">142/142</tspan></text>
+    <text x="622" y="334" fill="#c9d1d9" font-size="12">EvoLoop: <tspan fill="#E95420">LOCKED</tspan></text>
+    <text x="622" y="358" fill="#c9d1d9" font-size="12">MLX Voice: <tspan fill="#10B981">RTF 0.35</tspan></text>
+  </g>
+</svg>
