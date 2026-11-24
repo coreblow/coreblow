@@ -10,6 +10,7 @@ export interface LaunchDesktopOptions {
   platform?: string;
   spawnFn?: typeof spawn;
   sessionId?: string;
+  existsFn?: (path: string) => boolean;
 }
 
 export interface LaunchDesktopResult {
@@ -21,6 +22,7 @@ export interface LaunchDesktopResult {
 export function launchDesktopApp(options: LaunchDesktopOptions = {}): LaunchDesktopResult {
   const platform = options.platform ?? process.platform;
   const spawnFn = options.spawnFn ?? spawn;
+  const existsFn = options.existsFn ?? fs.existsSync;
   const repoRoot =
     options.repoRoot ??
     resolveCoreBlowPackageRootSync({ cwd: process.cwd() }) ??
@@ -39,7 +41,7 @@ export function launchDesktopApp(options: LaunchDesktopOptions = {}): LaunchDesk
     ];
 
     for (const appPath of candidatePaths) {
-      if (fs.existsSync(appPath)) {
+      if (existsFn(appPath)) {
         const openArgs = ["-a", appPath];
         if (options.sessionId) {
           openArgs.push("--args", "--session", options.sessionId);
@@ -55,7 +57,7 @@ export function launchDesktopApp(options: LaunchDesktopOptions = {}): LaunchDesk
     }
 
     const desktopPkg = path.join(repoRoot, "apps", "desktop", "package.json");
-    if (fs.existsSync(desktopPkg)) {
+    if (existsFn(desktopPkg)) {
       const child = spawnFn("pnpm", ["--filter", "@coreblow/desktop", "dev"], {
         detached: true,
         stdio: "ignore",
@@ -83,7 +85,7 @@ export function launchDesktopApp(options: LaunchDesktopOptions = {}): LaunchDesk
         ];
 
   for (const binPath of candidateBinaries) {
-    if (binPath && fs.existsSync(binPath)) {
+    if (binPath && existsFn(binPath)) {
       const args = options.sessionId ? ["--session", options.sessionId] : [];
       const child = spawnFn(binPath, args, {
         detached: true,

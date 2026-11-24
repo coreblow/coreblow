@@ -135,35 +135,30 @@ describe("desktop subcommand", () => {
     expect(desktopDescriptor?.description).toContain("CoreBlow Studio desktop");
   });
 
-  it("launches desktop app with detached process and session handoff", async () => {
-    const fs = await import("node:fs");
-    const existsSpy = vi.spyOn(fs, "existsSync").mockReturnValue(true);
+  it("launches desktop app with detached process and session handoff", () => {
     const unref = vi.fn();
     const spawnFn = vi.fn().mockReturnValue({ unref });
 
-    try {
-      const result = launchDesktopApp({
-        platform: "darwin",
-        spawnFn: spawnFn as unknown as typeof import("node:child_process").spawn,
-        repoRoot: "/test/repo",
-        sessionId: "session-handoff-123",
-      });
+    const result = launchDesktopApp({
+      platform: "darwin",
+      spawnFn: spawnFn as unknown as typeof import("node:child_process").spawn,
+      existsFn: () => true,
+      repoRoot: "/test/repo",
+      sessionId: "session-handoff-123",
+    });
 
-      expect(result).toBeDefined();
-      expect(typeof result.launched).toBe("boolean");
-      expect(typeof result.strategy).toBe("string");
-      expect(spawnFn).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(Array),
-        expect.objectContaining({
-          env: expect.objectContaining({
-            COREBLOW_SESSION_ID: "session-handoff-123",
-          }),
+    expect(result).toBeDefined();
+    expect(typeof result.launched).toBe("boolean");
+    expect(typeof result.strategy).toBe("string");
+    expect(spawnFn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(Array),
+      expect.objectContaining({
+        env: expect.objectContaining({
+          COREBLOW_SESSION_ID: "session-handoff-123",
         }),
-      );
-    } finally {
-      existsSpy.mockRestore();
-    }
+      }),
+    );
   });
 });
 
