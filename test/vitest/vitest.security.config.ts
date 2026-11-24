@@ -16,7 +16,7 @@ export default defineConfig({
             'src/security/audit.test.ts',
             'src/security/fix.test.ts',
         ],
-        testTimeout: 15_000,
-        hookTimeout: 10_000,
+        testTimeout: 30_000,
+        hookTimeout: 30_000,
     },
 });

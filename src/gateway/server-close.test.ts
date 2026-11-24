@@ -28,12 +28,23 @@ vi.mock("../hooks/internal-hooks.js", async () => {
   };
 });
 
-vi.mock("../logging/subsystem.js", () => ({
-  createSubsystemLogger: vi.fn(() => ({
+vi.mock("../logging/subsystem.js", () => {
+  const makeLogger = () => ({
+    subsystem: "gateway/server-close",
+    isEnabled: vi.fn(() => true),
+    trace: vi.fn(),
+    debug: vi.fn(),
     info: mocks.logInfo,
     warn: mocks.logWarn,
-  })),
-}));
+    error: vi.fn(),
+    fatal: vi.fn(),
+    raw: vi.fn(),
+    child: vi.fn(() => makeLogger()),
+  });
+  return {
+    createSubsystemLogger: vi.fn(() => makeLogger()),
+  };
+});
 
 type GatewayCloseHandlerParams = Parameters<typeof createGatewayCloseHandler>[0];
 type DrainActiveSessionsForShutdown = NonNullable<
