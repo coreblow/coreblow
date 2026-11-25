@@ -36,7 +36,6 @@
     "CHANGELOG.md",
     "LICENSE",
     "README.md",
-    "assets/",
     "skills/",
     "extensions",
     "!extensions/**/*.test.*",

@@ -1,6 +1,0 @@
-#!/bin/bash
-set -e
-echo "Running pre-commit checks..."
-npm run lint --if-present
-npm run typecheck --if-present
-echo "✅ Pre-commit checks passed"

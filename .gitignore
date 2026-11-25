@@ -32,6 +32,7 @@ test-fixtures/
 changelog/
 
 # Audit artifacts
+.agents/teamwork/
 audit-parity-full.json
 audit-parity-results.json
 seam-inventory.json
