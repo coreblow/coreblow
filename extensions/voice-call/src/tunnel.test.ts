@@ -26,9 +26,13 @@ const mocks = vi.hoisted(() => ({
   getTailscaleDnsName: vi.fn(),
 }));
 
-vi.mock("node:child_process", () => ({
-  spawn: mocks.spawn,
-}));
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return {
+    ...actual,
+    spawn: mocks.spawn,
+  };
+});
 
 vi.mock("./webhook/tailscale.js", () => ({
   getTailscaleDnsName: mocks.getTailscaleDnsName,

@@ -7,8 +7,14 @@ import { attachGatewayUpgradeHandler, createGatewayHttpServer } from "./server-h
 import { createPreauthConnectionBudget } from "./server/preauth-connection-budget.js";
 import type { GatewayWsClient } from "./server/ws-types.js";
 import { testState } from "./test-helpers.mocks.js";
-import { createGatewaySuiteHarness, readConnectChallengeNonce } from "./test-helpers.server.js";
+import {
+  createGatewaySuiteHarness,
+  installGatewayTestHooks,
+  readConnectChallengeNonce,
+} from "./test-helpers.server.js";
 import { withTempConfig } from "./test-temp-config.js";
+
+installGatewayTestHooks({ scope: "test" });
 
 let cleanupEnv: Array<() => void> = [];
 
@@ -94,6 +100,16 @@ describe("gateway pre-auth hardening", () => {
   });
 
   it("closes idle unauthenticated sockets after the handshake timeout", async () => {
+    const previousTimeout = process.env.COREBLOW_TEST_HANDSHAKE_TIMEOUT_MS;
+    process.env.COREBLOW_TEST_HANDSHAKE_TIMEOUT_MS = "100";
+    cleanupEnv.push(() => {
+      if (previousTimeout === undefined) {
+        delete process.env.COREBLOW_TEST_HANDSHAKE_TIMEOUT_MS;
+      } else {
+        process.env.COREBLOW_TEST_HANDSHAKE_TIMEOUT_MS = previousTimeout;
+      }
+    });
+
     const harness = await createGatewaySuiteHarness({
       serverOptions: { auth: { mode: "none" } },
     });
@@ -108,14 +124,14 @@ describe("gateway pre-auth hardening", () => {
         const timer = setTimeout(() => {
           ws.off("close", onClose);
           resolve(null);
-        }, 35_000);
+        }, 5_000);
         ws.once("close", onClose);
       });
       expect(close).toEqual({ code: 1000 });
     } finally {
       await harness.close();
     }
-  }, 40_000);
+  });
 
   it("rejects oversized pre-auth connect frames before application-level auth responses", async () => {
     const harness = await createGatewaySuiteHarness();

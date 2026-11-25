@@ -62,7 +62,7 @@ describe("detectChangedScope", () => {
   });
 
   it("keeps node lane off for native-only changes", () => {
-    expect(detectChangedScope(["apps/macos/Sources/Foo.swift"])).toEqual({
+    expect(detectChangedScope(["apps/ios/Sources/Foo.swift"])).toEqual({
       runNode: false,
       runMacos: true,
       runAndroid: false,
@@ -78,19 +78,27 @@ describe("detectChangedScope", () => {
       runSkillsPython: false,
       runChangedSmoke: false,
     });
+    expect(detectChangedScope(["apps/android/app/src/Main.kt"])).toEqual({
+      runNode: false,
+      runMacos: false,
+      runAndroid: true,
+      runWindows: false,
+      runSkillsPython: false,
+      runChangedSmoke: false,
+    });
   });
 
   it("does not force macOS for generated protocol model-only changes", () => {
-    expect(detectChangedScope(["apps/macos/Sources/CoreBlowProtocol/GatewayModels.swift"])).toEqual(
-      {
-        runNode: false,
-        runMacos: false,
-        runAndroid: false,
-        runWindows: false,
-        runSkillsPython: false,
-        runChangedSmoke: false,
-      },
-    );
+    expect(
+      detectChangedScope(["apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayModels.swift"]),
+    ).toEqual({
+      runNode: false,
+      runMacos: false,
+      runAndroid: true,
+      runWindows: false,
+      runSkillsPython: false,
+      runChangedSmoke: false,
+    });
   });
 
   it("enables node lane for non-native non-doc files by fallback", () => {

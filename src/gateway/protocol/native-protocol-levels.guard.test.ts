@@ -63,7 +63,6 @@ describe("native Gateway protocol levels", () => {
 
     const swiftGeneratedPaths = [
       "apps/shared/CoreBlowKit/Sources/CoreBlowProtocol/GatewayModels.swift",
-      "apps/macos/Sources/CoreBlowProtocol/GatewayModels.swift",
     ];
     for (const relativePath of swiftGeneratedPaths) {
       const swiftGenerated = await readRepoFile(relativePath);
@@ -124,11 +123,6 @@ describe("native Gateway protocol levels", () => {
         "apps/shared/CoreBlowKit/Sources/CoreBlowKit/GatewayChannel.swift",
         /"minProtocol": \.int\(COREBLOW_MIN_PROTOCOL_VERSION\)/,
         /"maxProtocol": \.int\(COREBLOW_PROTOCOL_VERSION\)/,
-      ],
-      [
-        "apps/macos/Sources/CoreBlowMacCLI/WizardCommand.swift",
-        /"minProtocol": ProtoAnyCodable\(GATEWAY_MIN_PROTOCOL_VERSION\)/,
-        /"maxProtocol": ProtoAnyCodable\(GATEWAY_PROTOCOL_VERSION\)/,
       ],
     ];
     for (const [relativePath, minPattern, maxPattern] of swiftConnectFiles) {

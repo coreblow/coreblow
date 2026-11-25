@@ -51,11 +51,15 @@ function readMessageText(params: Record<string, unknown>): string | undefined {
   return readStringParam(params, "text") ?? readStringParam(params, "message");
 }
 
-/** Supported action names for BlueBubbles */
-const SUPPORTED_ACTIONS = new Set<ChannelMessageActionName>([
-  ...BLUEBUBBLES_ACTION_NAMES,
-  "upload-file",
-]);
+/** Supported action names for BlueBubbles (lazy to break circular ESM init with plugin-sdk) */
+let supportedActionsCache: Set<ChannelMessageActionName> | null = null;
+function getSupportedActions(): Set<ChannelMessageActionName> {
+  supportedActionsCache ??= new Set<ChannelMessageActionName>([
+    ...BLUEBUBBLES_ACTION_NAMES,
+    "upload-file",
+  ]);
+  return supportedActionsCache;
+}
 const PRIVATE_API_ACTIONS = new Set<ChannelMessageActionName>([
   "react",
   "edit",
@@ -115,7 +119,7 @@ export const bluebubblesMessageActions: ChannelMessageActionAdapter = {
     }
     return { actions: Array.from(actions) };
   },
-  supportsAction: ({ action }) => SUPPORTED_ACTIONS.has(action),
+  supportsAction: ({ action }) => getSupportedActions().has(action),
   extractToolSend: ({ args }) => extractToolSend(args, "sendMessage"),
   handleAction: async ({ action, params, cfg, accountId, toolContext }) => {
     const runtime = await loadBlueBubblesActionsRuntime();
