@@ -1,1 +1,10 @@
-{}
+{
+  "extensions": {
+    "isolated": [
+      {
+        "file": "extensions/browser/src/browser/server.agent-contract-form-layout-act-commands.test.ts",
+        "reason": "Starts live Express browser control server with harness mocks that conflict with sibling --isolate=false browser tests"
+      }
+    ]
+  }
+}
