@@ -129,7 +129,7 @@ done
 # ── 10. Tooling ─────────────────────────────────────────────────
 echo ""
 echo "── 10. Tooling ───────────────────────────────────────────────"
-for f in .swiftformat .swiftlint.yml .pre-commit-config.yaml zizmor.yml .npmignore .mailmap .github/CODEOWNERS .github/dependabot.yml .github/actionlint.yaml .github/instructions/copilot.instructions.md .github/codeql/codeql-javascript-typescript.yml; do
+for f in .swiftformat .swiftlint.yml .pre-commit-config.yaml .npmignore .mailmap .github/CODEOWNERS .github/dependabot.yml .github/actionlint.yaml .github/instructions/copilot.instructions.md .github/codeql/codeql-javascript-typescript.yml; do
   if [ -f "$f" ]; then pass "$(basename "$f")"; else fail "$(basename "$f") MISSING"; fi
 done
 

@@ -95,7 +95,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/ui.js dev",
     "build": "pnpm build:runtime && pnpm ui:build",
     "ui:build": "node scripts/ui.js build",
     "ui:dev": "node scripts/ui.js dev",
@@ -110,7 +110,7 @@
     "dev:gateway": "npx tsx watch src/entry.ts -- gateway",
     "gateway:watch": "node scripts/gateway-watch-tmux.mjs gateway --force",
     "gateway:watch:raw": "node scripts/watch-node.mjs gateway --force",
-    "preview": "vite preview",
+    "preview": "node scripts/ui.js preview",
     "start:gateway": "node coreblow.mjs gateway",
     "corebar:build": "node scripts/fleet-exec.mjs corebar:build",
     "corebar:dev": "node scripts/fleet-exec.mjs corebar:dev",
