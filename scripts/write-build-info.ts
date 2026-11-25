@@ -1,1 +1,0 @@
-import fs from 'node:fs'; const info = { version: '0.1.0', buildTime: new Date().toISOString(), nodeVersion: process.version, platform: process.platform }; fs.writeFileSync('dist/build-info.json', JSON.stringify(info, null, 2));

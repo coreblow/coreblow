@@ -1,1 +1,0 @@
-export function forceTest(pattern: string) { console.log(`Force testing: ${pattern}`); }
