@@ -1,10 +1,4 @@
 import type { Command } from "commander";
-import {
-  migrateApplyCommand,
-  migrateDefaultCommand,
-  migrateListCommand,
-  migratePlanCommand,
-} from "../../commands/migrate.js";
 import { defaultRuntime } from "../../runtime.js";
 import { theme } from "../../terminal/theme.js";
 import { runCommandWithRuntime } from "../cli-utils.js";
@@ -135,6 +129,7 @@ export function registerMigrateCommand(program: Command) {
     )
     .action(async (provider: string | undefined, opts) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
+        const { migrateDefaultCommand } = await import("../../commands/migrate.js");
         await migrateDefaultCommand(
           defaultRuntime,
           {
@@ -162,6 +157,7 @@ export function registerMigrateCommand(program: Command) {
     .option("--json", "Output JSON", false)
     .action(async (opts) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
+        const { migrateListCommand } = await import("../../commands/migrate.js");
         await migrateListCommand(defaultRuntime, { json: Boolean(opts.json) });
       });
     });
@@ -172,6 +168,7 @@ export function registerMigrateCommand(program: Command) {
       .description("Inspect migration dry-run plan without writing changes"),
   ).action(async (provider: string, opts) => {
     await runCommandWithRuntime(defaultRuntime, async () => {
+      const { migratePlanCommand } = await import("../../commands/migrate.js");
       await migratePlanCommand(
         defaultRuntime,
         {
@@ -198,6 +195,7 @@ export function registerMigrateCommand(program: Command) {
       .option("--force", "Allow dangerous options such as --no-backup", false),
   ).action(async (provider: string, opts) => {
     await runCommandWithRuntime(defaultRuntime, async () => {
+      const { migrateApplyCommand } = await import("../../commands/migrate.js");
       await migrateApplyCommand(
         defaultRuntime,
         {

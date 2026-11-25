@@ -1,6 +1,4 @@
 import type { Command } from "commander";
-import { backupVerifyCommand } from "../../commands/backup-verify.js";
-import { backupCreateCommand } from "../../commands/backup.js";
 import { defaultRuntime } from "../../runtime.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
@@ -52,6 +50,7 @@ export function registerBackupCommand(program: Command) {
     )
     .action(async (opts) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
+        const { backupCreateCommand } = await import("../../commands/backup.js");
         await backupCreateCommand(defaultRuntime, {
           output: opts.output as string | undefined,
           json: Boolean(opts.json),
@@ -83,6 +82,7 @@ export function registerBackupCommand(program: Command) {
     )
     .action(async (archive, opts) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
+        const { backupVerifyCommand } = await import("../../commands/backup-verify.js");
         await backupVerifyCommand(defaultRuntime, {
           archive: archive as string,
           json: Boolean(opts.json),

@@ -1,12 +1,4 @@
 import { Command } from "commander";
-import { readSecretFromFile } from "../acp/secret-file.js";
-import { parseConfigValue } from "../auto-reply/reply/config-value.js";
-import {
-  listConfiguredMcpServers,
-  setConfiguredMcpServer,
-  unsetConfiguredMcpServer,
-} from "../config/mcp-config.js";
-import { serveCoreBlowChannelMcp } from "../mcp/channel-server.js";
 import { defaultRuntime } from "../runtime.js";
 
 function fail(message: string): never {
@@ -19,7 +11,7 @@ function printJson(value: unknown): void {
   defaultRuntime.writeJson(value);
 }
 
-function resolveSecretOption(params: {
+async function resolveSecretOption(params: {
   direct?: string;
   file?: string;
   directFlag: string;
@@ -32,6 +24,7 @@ function resolveSecretOption(params: {
     throw new Error(`Use either ${params.directFlag} or ${params.fileFlag} for ${params.label}.`);
   }
   if (file) {
+    const { readSecretFromFile } = await import("../acp/secret-file.js");
     return readSecretFromFile(file, params.label);
   }
   return direct || undefined;
@@ -74,14 +67,14 @@ export function registerMcpCli(program: Command) {
           await serveSovereignNativeMcp();
           return;
         }
-        const gatewayToken = resolveSecretOption({
+        const gatewayToken = await resolveSecretOption({
           direct: opts.token as string | undefined,
           file: opts.tokenFile as string | undefined,
           directFlag: "--token",
           fileFlag: "--token-file",
           label: "Gateway token",
         });
-        const gatewayPassword = resolveSecretOption({
+        const gatewayPassword = await resolveSecretOption({
           direct: opts.password as string | undefined,
           file: opts.passwordFile as string | undefined,
           directFlag: "--password",
@@ -103,6 +96,7 @@ export function registerMcpCli(program: Command) {
           (opts.url as string | undefined) ||
           process.env.COREBLOW_GATEWAY_URL?.trim() ||
           "ws://127.0.0.1:18789";
+        const { serveCoreBlowChannelMcp } = await import("../mcp/channel-server.js");
         await serveCoreBlowChannelMcp({
           gatewayUrl: resolvedUrl,
           gatewayToken,
@@ -121,6 +115,7 @@ export function registerMcpCli(program: Command) {
     .description("List configured MCP servers")
     .option("--json", "Print JSON")
     .action(async (opts: { json?: boolean }) => {
+      const { listConfiguredMcpServers } = await import("../config/mcp-config.js");
       const loaded = await listConfiguredMcpServers();
       if (!loaded.ok) {
         fail(loaded.error);
@@ -146,6 +141,7 @@ export function registerMcpCli(program: Command) {
     .argument("[name]", "MCP server name")
     .option("--json", "Print JSON")
     .action(async (name: string | undefined, opts: { json?: boolean }) => {
+      const { listConfiguredMcpServers } = await import("../config/mcp-config.js");
       const loaded = await listConfiguredMcpServers();
       if (!loaded.ok) {
         fail(loaded.error);
@@ -172,6 +168,10 @@ export function registerMcpCli(program: Command) {
     .argument("<name>", "MCP server name")
     .argument("<value>", 'JSON object, for example {"command":"uvx","args":["context7-mcp"]}')
     .action(async (name: string, rawValue: string) => {
+      const [{ parseConfigValue }, { setConfiguredMcpServer }] = await Promise.all([
+        import("../auto-reply/reply/config-value.js"),
+        import("../config/mcp-config.js"),
+      ]);
       const parsed = parseConfigValue(rawValue);
       if (parsed.error) {
         fail(parsed.error);
@@ -188,6 +188,7 @@ export function registerMcpCli(program: Command) {
     .description("Remove one configured MCP server")
     .argument("<name>", "MCP server name")
     .action(async (name: string) => {
+      const { unsetConfiguredMcpServer } = await import("../config/mcp-config.js");
       const result = await unsetConfiguredMcpServer({ name });
       if (!result.ok) {
         fail(result.error);

@@ -1,14 +1,8 @@
 import type { Command } from "commander";
-import { loadConfig } from "../config/config.js";
 import { defaultRuntime } from "../runtime.js";
-import { runSecurityAudit } from "../security/audit.js";
-import { fixSecurityFootguns } from "../security/fix.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { isRich, theme } from "../terminal/theme.js";
-import { shortenHomeInString, shortenHomePath } from "../utils.js";
 import { formatCliCommand } from "./command-format.js";
-import { resolveCommandSecretRefsViaGateway } from "./command-secret-gateway.js";
-import { getSecurityAuditCommandSecretTargetIds } from "./command-secret-targets.js";
 import { formatHelpExamples } from "./help-format.js";
 
 type SecurityAuditOptions = {
@@ -60,7 +54,24 @@ export function registerSecurityCli(program: Command) {
     .option("--fix", "Apply safe fixes (tighten defaults + chmod state/config)", false)
     .option("--json", "Print JSON", false)
     .action(async (opts: SecurityAuditOptions) => {
-      const fixResult = opts.fix ? await fixSecurityFootguns().catch((_err) => null) : null;
+      const [
+        { loadConfig },
+        { runSecurityAudit },
+        { resolveCommandSecretRefsViaGateway },
+        { getSecurityAuditCommandSecretTargetIds },
+        { shortenHomeInString, shortenHomePath },
+      ] = await Promise.all([
+        import("../config/config.js"),
+        import("../security/audit.js"),
+        import("./command-secret-gateway.js"),
+        import("./command-secret-targets.js"),
+        import("../utils.js"),
+      ]);
+      const fixResult = opts.fix
+        ? await import("../security/fix.js")
+            .then(({ fixSecurityFootguns }) => fixSecurityFootguns())
+            .catch((_err) => null)
+        : null;
 
       const sourceConfig = loadConfig();
       const { resolvedConfig: cfg, diagnostics: secretDiagnostics } =

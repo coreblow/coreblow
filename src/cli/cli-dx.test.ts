@@ -7,6 +7,7 @@ import { Command } from "commander";
 import {
   buildChildEnv,
   forwardSignalsToChild,
+  resolveDistEntry,
   resolveTsxBin,
   resolveTsxEsmUrl,
 } from "../../coreblow.mjs";
@@ -121,6 +122,20 @@ describe("coreblow.mjs environment", () => {
 
       const resolved = resolveTsxBin(subPkgDir);
       expect(resolved).toBe(hoistedTsx);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("resolves dist/entry.js when present and returns null when absent", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "coreblow-dist-entry-test-"));
+    try {
+      expect(resolveDistEntry(tempDir)).toBeNull();
+      const distDir = path.join(tempDir, "dist");
+      fs.mkdirSync(distDir, { recursive: true });
+      const entryPath = path.join(distDir, "entry.js");
+      fs.writeFileSync(entryPath, "export {};\n");
+      expect(resolveDistEntry(tempDir)).toBe(entryPath);
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }

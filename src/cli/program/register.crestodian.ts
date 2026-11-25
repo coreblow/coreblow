@@ -1,5 +1,4 @@
 import type { Command } from "commander";
-import { runCrestodian } from "../../crestodian/crestodian.js";
 import { defaultRuntime } from "../../runtime.js";
 import { theme } from "../../terminal/theme.js";
 import { runCommandWithRuntime } from "../cli-utils.js";
@@ -27,6 +26,7 @@ export function registerCrestodianCommand(program: Command) {
     )
     .action(async (opts) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
+        const { runCrestodian } = await import("../../crestodian/crestodian.js");
         await runCrestodian({
           message: opts.message as string | undefined,
           yes: Boolean(opts.yes),

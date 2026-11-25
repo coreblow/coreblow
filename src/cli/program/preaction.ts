@@ -8,10 +8,6 @@ import { defaultRuntime } from "../../runtime.js";
 import { getCommandPathWithRootOptions, getVerboseFlag, hasFlag, hasHelpOrVersion } from "../argv.js";
 import { emitCliBanner } from "../banner.js";
 import { resolveCliName } from "../cli-name.js";
-import {
-  resolvePluginInstallInvalidConfigPolicy,
-  resolvePluginInstallPreactionRequest,
-} from "../plugin-install-config-policy.js";
 import { isCommandJsonOutputMode } from "./json-mode.js";
 
 function setProcessTitleForCommand(actionCommand: Command) {
@@ -89,7 +85,15 @@ function shouldLoadPluginsForCommand(commandPath: string[], jsonOutputMode: bool
   }
   return true;
 }
-function shouldAllowInvalidConfigForAction(actionCommand: Command, commandPath: string[]): boolean {
+async function shouldAllowInvalidConfigForAction(
+  actionCommand: Command,
+  commandPath: string[],
+): Promise<boolean> {
+  if (commandPath[0] !== "plugins" || commandPath[1] !== "install") {
+    return false;
+  }
+  const { resolvePluginInstallInvalidConfigPolicy, resolvePluginInstallPreactionRequest } =
+    await import("../plugin-install-config-policy.js");
   return (
     resolvePluginInstallInvalidConfigPolicy(
       resolvePluginInstallPreactionRequest({
@@ -153,7 +157,7 @@ export function registerPreActionHooks(program: Command, programVersion: string)
     if (shouldBypassConfigGuard(commandPath)) {
       return;
     }
-    const allowInvalid = shouldAllowInvalidConfigForAction(actionCommand, commandPath);
+    const allowInvalid = await shouldAllowInvalidConfigForAction(actionCommand, commandPath);
     const { ensureConfigReady } = await loadConfigGuardModule();
     await ensureConfigReady({
       runtime: defaultRuntime,

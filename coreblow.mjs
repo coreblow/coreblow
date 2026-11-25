@@ -3,13 +3,10 @@
 /**
  * CoreBlow — CLI Launcher
  *
- * Spawns tsx to run the TypeScript entry point directly from src/.
- * CoreBlow ships source .ts files and runs them via tsx at runtime.
- * No build step / dist/ directory is required.
- *
- * 1. Check Node.js version (22.12+ required)
- * 2. Enable compile cache (Node.js 22.1+)
- * 3. Spawn tsx with src/entry.ts, forwarding all arguments
+ * Production installs execute pre-built dist/entry.js directly in-process
+ * (zero tsx JIT transpilation overhead).
+ * Development checkouts with COREBLOW_DEV=1 (or when dist/entry.js is absent)
+ * fall back to tsx with src/entry.ts.
  *
  * This file is the published CLI binary (`bin.coreblow` in package.json).
  * It must remain a plain .mjs file — no TypeScript, no build step.
@@ -19,7 +16,7 @@ import { spawn } from "node:child_process";
 import { existsSync, realpathSync } from "node:fs";
 import module from "node:module";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -28,7 +25,12 @@ const MIN_NODE_MAJOR = 22;
 const MIN_NODE_MINOR = 12;
 const MIN_NODE_VERSION = `${MIN_NODE_MAJOR}.${MIN_NODE_MINOR}`;
 
-// ─── Child Environment Builder ─────────────────────────────────────
+// ─── Entrypoint & Child Environment Resolvers ───────────────────────
+
+export const resolveDistEntry = (baseDir = __dirname) => {
+    const candidate = resolve(baseDir, "dist", "entry.js");
+    return existsSync(candidate) ? candidate : null;
+};
 
 export const resolveTsxBin = (baseDir = __dirname) => {
     const localBin = join(baseDir, "node_modules", ".bin", "tsx");
@@ -132,11 +134,16 @@ const ensureSupportedNodeVersion = () => {
 
 // ─── Launcher Main ────────────────────────────────────────────────
 
-function run() {
+async function run() {
     ensureSupportedNodeVersion();
 
-    // Enable Compile Cache (Node.js 22.1+)
-    if (module.enableCompileCache && !process.env.NODE_DISABLE_COMPILE_CACHE) {
+    const useDevSource = process.env.COREBLOW_DEV === "1";
+    const distEntry = useDevSource ? null : resolveDistEntry(__dirname);
+    const isSourceCheckout =
+        existsSync(resolve(__dirname, ".git")) || existsSync(resolve(__dirname, "src", "entry.ts"));
+
+    // Enable V8 compile cache in packaged installs before loading dist/entry.js.
+    if (!isSourceCheckout && module.enableCompileCache && !process.env.NODE_DISABLE_COMPILE_CACHE) {
         try {
             module.enableCompileCache();
         } catch {
@@ -144,13 +151,30 @@ function run() {
         }
     }
 
+    if (distEntry) {
+        // In-process warning filter inside dist/entry.js suppresses SQLite/DEP warnings
+        // cleanly without spawning a redundant child process.
+        if (!process.env.COREBLOW_NODE_OPTIONS_READY) {
+            process.env.COREBLOW_NODE_OPTIONS_READY = "1";
+        }
+        try {
+            await import(pathToFileURL(distEntry).href);
+        } catch (err) {
+            process.stderr.write(
+                `coreblow: failed to run ${distEntry}: ${err instanceof Error ? err.message : String(err)}\n`,
+            );
+            process.exit(1);
+        }
+        return;
+    }
+
     const entryFile = resolve(__dirname, "src", "entry.ts");
 
     if (!existsSync(entryFile)) {
         process.stderr.write(
-            "coreblow: src/entry.ts not found.\n" +
+            "coreblow: dist/entry.js and src/entry.ts not found.\n" +
             "This install appears to be incomplete.\n" +
-            "Reinstall with: pnpm install\n",
+            "Reinstall with: npm install -g coreblow\n",
         );
         process.exit(1);
     }
@@ -226,5 +250,5 @@ function run() {
 }
 
 if (isDirectRun()) {
-    run();
+    void run();
 }

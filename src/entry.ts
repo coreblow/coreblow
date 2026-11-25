@@ -58,9 +58,6 @@ if (
   if (waitingForCompileCacheRespawn) {
     // Parent must not continue running the CLI.
   } else {
-    const { installGaxiosFetchCompat } = await import("./infra/gaxios-fetch-compat.js");
-
-    await installGaxiosFetchCompat();
     process.title = "coreblow";
     ensureCoreBlowExecMarkerOnProcess();
     installProcessWarningFilter();
@@ -137,7 +134,9 @@ if (
         process.argv = parsed.argv;
       }
 
-      if (!tryHandleRootVersionFastPath(process.argv)) {
+      if (!tryHandleRootVersionFastPath(process.argv) && !tryHandleRootHelpFastPath(process.argv)) {
+        const { installGaxiosFetchCompat } = await import("./infra/gaxios-fetch-compat.js");
+        await installGaxiosFetchCompat();
         runMainOrRootHelp(process.argv);
       }
     }

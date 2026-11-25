@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, dialog, shell, clipboard, safeStorage, des
 import * as path from "node:path";
 import * as http from "node:http";
 import * as https from "node:https";
-import { spawn, exec, type ChildProcess } from "node:child_process";
+import { spawn, exec, execFileSync, type ChildProcess } from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import { createTrayController, type TrayController } from "./tray";
@@ -117,6 +117,34 @@ function findProjectRoot(): string {
   return app.getAppPath();
 }
 
+function resolveSupportedNodeBinary(env: Record<string, string>): string | null {
+  const exeName = process.platform === "win32" ? "node.exe" : "node";
+  const pathDirs = (env.PATH || "").split(path.delimiter).filter(Boolean);
+  const candidates = new Set<string>(pathDirs.map((dir) => path.join(dir, exeName)));
+  if (process.platform === "win32") {
+    candidates.add("C:\\Program Files\\nodejs\\node.exe");
+  }
+
+  for (const candidate of candidates) {
+    try {
+      if (!fs.existsSync(candidate)) continue;
+      const versionOut = execFileSync(candidate, ["-p", "process.versions.node"], {
+        encoding: "utf8",
+        timeout: 2000,
+      }).trim();
+      const [maj = "0", min = "0"] = versionOut.split(".");
+      const major = Number.parseInt(maj, 10);
+      const minor = Number.parseInt(min, 10);
+      if (major > 22 || (major === 22 && minor >= 12)) {
+        return candidate;
+      }
+    } catch {
+      // Ignore unusable node candidate
+    }
+  }
+  return null;
+}
+
 /**
  * Ensure the local CoreBlow Gateway daemon is running on 127.0.0.1:18789.
  * If not running, start it as a background process.
@@ -130,20 +158,34 @@ async function ensureGatewayDaemon(): Promise<boolean> {
   const projectRoot = findProjectRoot();
   const coreblowMjs = path.join(projectRoot, "coreblow.mjs");
   const spawnArgs = ["gateway", "run", "--port", String(GATEWAY_PORT), "--allow-unconfigured"];
+  const augmentedEnv = getAugmentedEnv();
 
   let spawned: ChildProcess | null = null;
   if (fs.existsSync(coreblowMjs)) {
+    const nodeBin = resolveSupportedNodeBinary(augmentedEnv);
     try {
-      spawned = spawn(process.execPath, [coreblowMjs, ...spawnArgs], {
-        cwd: projectRoot,
-        detached: false,
-        stdio: "ignore",
-        env: {
-          ...process.env,
-          ELECTRON_RUN_AS_NODE: "1",
-          PORT: String(GATEWAY_PORT),
-        },
-      });
+      if (nodeBin) {
+        spawned = spawn(nodeBin, [coreblowMjs, ...spawnArgs], {
+          cwd: projectRoot,
+          detached: false,
+          stdio: "ignore",
+          env: {
+            ...augmentedEnv,
+            PORT: String(GATEWAY_PORT),
+          },
+        });
+      } else {
+        spawned = spawn(process.execPath, [coreblowMjs, ...spawnArgs], {
+          cwd: projectRoot,
+          detached: false,
+          stdio: "ignore",
+          env: {
+            ...augmentedEnv,
+            ELECTRON_RUN_AS_NODE: "1",
+            PORT: String(GATEWAY_PORT),
+          },
+        });
+      }
     } catch {
       spawned = null;
     }
@@ -156,7 +198,7 @@ async function ensureGatewayDaemon(): Promise<boolean> {
         stdio: "ignore",
         shell: process.platform === "win32",
         env: {
-          ...getAugmentedEnv(),
+          ...augmentedEnv,
           PORT: String(GATEWAY_PORT),
         },
       });
@@ -180,9 +222,9 @@ async function ensureGatewayDaemon(): Promise<boolean> {
         isGatewayManagedByDesktop = false;
       });
 
-      // Poll until listening or timeout with backoff (up to 15 seconds)
+      // Poll until listening or timeout with backoff (up to 30 seconds for cold plugin compilation)
       let delayMs = 300;
-      const deadline = Date.now() + 15_000;
+      const deadline = Date.now() + 30_000;
       while (Date.now() < deadline) {
         await new Promise((r) => setTimeout(r, delayMs));
         if (await probeGatewayHealth()) {

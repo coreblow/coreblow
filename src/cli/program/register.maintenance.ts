@@ -1,8 +1,4 @@
 import type { Command } from "commander";
-import { dashboardCommand } from "../../commands/dashboard.js";
-import { doctorCommand } from "../../commands/doctor.js";
-import { resetCommand } from "../../commands/reset.js";
-import { uninstallCommand } from "../../commands/uninstall.js";
 import { t } from "../../infra/i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import { formatDocsLink } from "../../terminal/links.js";
@@ -32,6 +28,7 @@ export function registerMaintenanceCommands(program: Command) {
     .option("--json", "Output diagnostics in JSON format", false)
     .action(async (opts) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
+        const { doctorCommand } = await import("../../commands/doctor.js");
         await doctorCommand(defaultRuntime, {
           workspaceSuggestions: opts.workspaceSuggestions,
           yes: Boolean(opts.yes),
@@ -60,6 +57,7 @@ export function registerMaintenanceCommands(program: Command) {
     .option("--no-open", "Print URL but do not launch a browser")
     .action(async (opts) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
+        const { dashboardCommand } = await import("../../commands/dashboard.js");
         await dashboardCommand(defaultRuntime, {
           noOpen: opts.open === false,
         });
@@ -80,6 +78,7 @@ export function registerMaintenanceCommands(program: Command) {
     .option("--dry-run", "Print actions without removing files", false)
     .action(async (opts) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
+        const { resetCommand } = await import("../../commands/reset.js");
         await resetCommand(defaultRuntime, {
           scope: opts.scope,
           yes: Boolean(opts.yes),
@@ -107,6 +106,7 @@ export function registerMaintenanceCommands(program: Command) {
     .option("--dry-run", "Print actions without removing files", false)
     .action(async (opts) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
+        const { uninstallCommand } = await import("../../commands/uninstall.js");
         await uninstallCommand(defaultRuntime, {
           service: Boolean(opts.service),
           state: Boolean(opts.state),

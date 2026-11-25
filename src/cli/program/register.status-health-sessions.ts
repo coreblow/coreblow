@@ -1,8 +1,4 @@
 import type { Command } from "commander";
-import { healthCommand } from "../../commands/health.js";
-import { sessionsCleanupCommand } from "../../commands/sessions-cleanup.js";
-import { sessionsCommand } from "../../commands/sessions.js";
-import { statusCommand } from "../../commands/status.js";
 import { setVerbose } from "../../globals.js";
 import { t } from "../../infra/i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
@@ -74,6 +70,7 @@ export function registerStatusHealthSessionsCommands(program: Command) {
     )
     .action(async (opts) => {
       await runWithVerboseAndTimeout(opts, async ({ verbose, timeoutMs }) => {
+        const { statusCommand } = await import("../../commands/status.js");
         await statusCommand(
           {
             json: Boolean(opts.json),
@@ -102,6 +99,7 @@ export function registerStatusHealthSessionsCommands(program: Command) {
     )
     .action(async (opts) => {
       await runWithVerboseAndTimeout(opts, async ({ verbose, timeoutMs }) => {
+        const { healthCommand } = await import("../../commands/health.js");
         await healthCommand(
           {
             json: Boolean(opts.json),
@@ -143,6 +141,7 @@ export function registerStatusHealthSessionsCommands(program: Command) {
     )
     .action(async (opts) => {
       setVerbose(Boolean(opts.verbose));
+      const { sessionsCommand } = await import("../../commands/sessions.js");
       await sessionsCommand(
         {
           json: Boolean(opts.json),
@@ -199,6 +198,7 @@ export function registerStatusHealthSessionsCommands(program: Command) {
           }
         | undefined;
       await runCommandWithRuntime(defaultRuntime, async () => {
+        const { sessionsCleanupCommand } = await import("../../commands/sessions-cleanup.js");
         await sessionsCleanupCommand(
           {
             store: (opts.store as string | undefined) ?? parentOpts?.store,
