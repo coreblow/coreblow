@@ -28,7 +28,6 @@ COPY ui/package.json ./ui/package.json
 COPY packages ./packages
 COPY extensions ./extensions
 COPY apps ./apps
-COPY patches ./patches
 
 RUN --mount=type=cache,id=coreblow-pnpm-store,target=/root/.local/share/pnpm/store,sharing=locked \
     NODE_OPTIONS=--max-old-space-size=2048 pnpm install --frozen-lockfile
