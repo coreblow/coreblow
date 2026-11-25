@@ -4,4 +4,4 @@ export {
   getRuntimeConfigSourceSnapshot,
   setRuntimeConfigSnapshot,
 } from "../../config/config.js";
-export type { OpenClawConfig } from "../../config/types.openclaw.js";
+export type { CoreBlowConfig } from "../../config/types.coreblow.js";

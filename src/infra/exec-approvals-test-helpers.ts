@@ -64,47 +64,47 @@ export function makeMockCommandResolution(params: {
   });
 }
 
-export type ShellParserParityFixtureCase = {
+export type ShellParserContractFixtureCase = {
   id: string;
   command: string;
   ok: boolean;
   executables: string[];
 };
 
-type ShellParserParityFixture = {
-  cases: ShellParserParityFixtureCase[];
+type ShellParserContractFixture = {
+  cases: ShellParserContractFixtureCase[];
 };
 
-export type WrapperResolutionParityFixtureCase = {
+export type WrapperResolutionContractFixtureCase = {
   id: string;
   argv: string[];
   expectedRawExecutable: string | null;
 };
 
-type WrapperResolutionParityFixture = {
-  cases: WrapperResolutionParityFixtureCase[];
+type WrapperResolutionContractFixture = {
+  cases: WrapperResolutionContractFixtureCase[];
 };
 
-export function loadShellParserParityFixtureCases(): ShellParserParityFixtureCase[] {
+export function loadShellParserContractFixtureCases(): ShellParserContractFixtureCase[] {
   const fixturePath = path.join(
     process.cwd(),
     "test",
     "fixtures",
-    "exec-allowlist-shell-parser-parity.json",
+    "exec-allowlist-shell-parser.fixtures.json",
   );
-  const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8")) as ShellParserParityFixture;
+  const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8")) as ShellParserContractFixture;
   return fixture.cases;
 }
 
-export function loadWrapperResolutionParityFixtureCases(): WrapperResolutionParityFixtureCase[] {
+export function loadWrapperResolutionContractFixtureCases(): WrapperResolutionContractFixtureCase[] {
   const fixturePath = path.join(
     process.cwd(),
     "test",
     "fixtures",
-    "exec-wrapper-resolution-parity.json",
+    "exec-wrapper-resolution.fixtures.json",
   );
   const fixture = JSON.parse(
     fs.readFileSync(fixturePath, "utf8"),
-  ) as WrapperResolutionParityFixture;
+  ) as WrapperResolutionContractFixture;
   return fixture.cases;
 }

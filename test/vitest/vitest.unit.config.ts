@@ -95,7 +95,6 @@ export function createUnitVitestConfig(env: Record<string, string | undefined> =
           'src/config/validation.channel-metadata.test.ts',
 
           // ── infra ──
-          'src/infra/host-env-security.policy-parity.test.ts',
           'src/infra/matrix-legacy-crypto.test.ts',
           'src/infra/matrix-plugin-helper.test.ts',
           'src/infra/run-node.test.ts',

@@ -2,13 +2,13 @@ import fs from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { clearRuntimeAuthProfileStoreSnapshots } from "../agents/auth-profiles/store.js";
 import {
-  createOpenClawTestState,
-  type OpenClawTestState,
-} from "../test-utils/openclaw-test-state.js";
+  createCoreBlowTestState,
+  type CoreBlowTestState,
+} from "../test-utils/coreblow-test-state.js";
 import { maybeRepairLegacyFlatAuthProfileStores } from "./doctor-auth-flat-profiles.js";
 import type { DoctorPrompter } from "./doctor-prompter.js";
 
-const states: OpenClawTestState[] = [];
+const states: CoreBlowTestState[] = [];
 
 function makePrompter(shouldRepair: boolean): DoctorPrompter {
   return {
@@ -29,8 +29,8 @@ function makePrompter(shouldRepair: boolean): DoctorPrompter {
   };
 }
 
-async function makeTestState(): Promise<OpenClawTestState> {
-  const state = await createOpenClawTestState({
+async function makeTestState(): Promise<CoreBlowTestState> {
+  const state = await createCoreBlowTestState({
     layout: "state-only",
     prefix: "coreblow-doctor-flat-auth-",
     env: {

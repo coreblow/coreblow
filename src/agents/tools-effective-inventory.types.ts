@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { CoreBlowConfig } from "../config/types.coreblow.js";
 
 export type EffectiveToolSource = "core" | "plugin" | "channel";
 
@@ -35,7 +35,7 @@ export type EffectiveToolInventoryResult = {
 };
 
 export type ResolveEffectiveToolInventoryParams = {
-  cfg: OpenClawConfig;
+  cfg: CoreBlowConfig;
   agentId?: string;
   sessionKey?: string;
   workspaceDir?: string;

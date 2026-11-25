@@ -1,13 +1,13 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-  loadShellParserParityFixtureCases,
-  loadWrapperResolutionParityFixtureCases,
+  loadShellParserContractFixtureCases,
+  loadWrapperResolutionContractFixtureCases,
 } from "./exec-approvals-test-helpers.js";
 import { analyzeShellCommand, resolveCommandResolutionFromArgv } from "./exec-approvals.js";
 
-describe("exec approvals shell parser parity fixture", () => {
-  const fixtures = loadShellParserParityFixtureCases();
+describe("exec approvals shell parser contract fixture", () => {
+  const fixtures = loadShellParserContractFixtureCases();
 
   it.each(fixtures)("matches fixture: $id", (fixture) => {
     const res = analyzeShellCommand({ command: fixture.command });
@@ -23,8 +23,8 @@ describe("exec approvals shell parser parity fixture", () => {
   });
 });
 
-describe("exec approvals wrapper resolution parity fixture", () => {
-  const fixtures = loadWrapperResolutionParityFixtureCases();
+describe("exec approvals wrapper resolution contract fixture", () => {
+  const fixtures = loadWrapperResolutionContractFixtureCases();
 
   it.each(fixtures)("matches wrapper fixture: $id", (fixture) => {
     const resolution = resolveCommandResolutionFromArgv(fixture.argv);

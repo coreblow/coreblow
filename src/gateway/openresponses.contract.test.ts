@@ -1,5 +1,5 @@
 /**
- * OpenResponses Feature Parity E2E Tests
+ * OpenResponses Feature Contract E2E Tests
  *
  * Tests for input_image, input_file, and client-side tools (Hosted Tools)
  * support in the OpenResponses `/v1/responses` endpoint.
@@ -14,7 +14,7 @@ let CreateResponseBodySchema: typeof import("./open-responses.schema.js").Create
 let OutputItemSchema: typeof import("./open-responses.schema.js").OutputItemSchema;
 let buildAgentPrompt: typeof import("./openresponses-prompt.js").buildAgentPrompt;
 
-describe("OpenResponses Feature Parity", () => {
+describe("OpenResponses Feature Contract", () => {
   beforeAll(async () => {
     ({
       InputImageContentPartSchema,

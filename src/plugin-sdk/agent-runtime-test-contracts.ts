@@ -1,5 +1,5 @@
 // Focused public test contracts for native agent-runtime adapters.
-// ponytail: missing auth-profile-runtime-contract, openclaw-owned-tool-runtime-contract,
+// ponytail: missing auth-profile-runtime-contract, coreblow-owned-tool-runtime-contract,
 // prompt-overlay-runtime-contract, transcript-repair-runtime-contract in CoreBlow.
 // Add when those test-helpers/agents files are ported.
 

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { CoreBlowConfig } from "../config/types.coreblow.js";
 import { findNormalizedProviderValue, normalizeProviderId } from "./provider-id.js";
 
 function dedupeCatalogScopeRefs(values: Array<string | undefined>): string[] {
@@ -26,7 +26,7 @@ function providerFromModelRef(value: string | undefined): string | undefined {
 }
 
 export function resolveModelCatalogScope(params: {
-  cfg?: OpenClawConfig;
+  cfg?: CoreBlowConfig;
   provider: string;
   model: string;
 }): { providerRefs: string[]; modelRefs: string[] } {

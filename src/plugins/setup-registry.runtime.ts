@@ -1,7 +1,6 @@
 import { createRequire } from "node:module";
 import { normalizeProviderId } from "../agents/provider-id.js";
 import type { CoreBlowConfig } from "../config/types.coreblow.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { getCurrentPluginMetadataSnapshot } from "./current-plugin-metadata-snapshot.js";
 import { isInstalledPluginEnabled } from "./installed-plugin-index.js";
 import {
@@ -24,7 +23,7 @@ type SetupCliBackendRuntimeEntry = {
 
 type SetupCliBackendRuntimeLookupParams = {
   backend: string;
-  config?: CoreBlowConfig | OpenClawConfig;
+  config?: CoreBlowConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 };

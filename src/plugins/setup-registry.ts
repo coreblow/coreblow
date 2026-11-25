@@ -3,7 +3,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { normalizeProviderId } from "../agents/provider-id.js";
 import type { CoreBlowConfig } from "../config/types.coreblow.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { buildPluginApi } from "./api-builder.js";
 import { collectPluginConfigContractMatches } from "./config-contracts.js";
 import type { PluginManifestRecord, PluginManifestRegistry } from "./manifest-registry.js";
@@ -415,7 +414,7 @@ function pushSetupDescriptorDriftDiagnostics(params: {
 }
 
 export function resolvePluginSetupRegistry(params?: {
-  config?: CoreBlowConfig | OpenClawConfig;
+  config?: CoreBlowConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   pluginIds?: readonly string[];
@@ -542,7 +541,7 @@ export function resolvePluginSetupRegistry(params?: {
 
 export function resolvePluginSetupProvider(params: {
   provider: string;
-  config?: CoreBlowConfig | OpenClawConfig;
+  config?: CoreBlowConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   pluginIds?: readonly string[];
@@ -604,7 +603,7 @@ export function resolvePluginSetupProvider(params: {
 
 export function resolvePluginSetupCliBackend(params: {
   backend: string;
-  config?: CoreBlowConfig | OpenClawConfig;
+  config?: CoreBlowConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): SetupCliBackendEntry | undefined {
@@ -696,7 +695,7 @@ export function runPluginSetupConfigMigrations(params: {
 }
 
 export function resolvePluginSetupAutoEnableReasons(params: {
-  config: CoreBlowConfig | OpenClawConfig;
+  config: CoreBlowConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   pluginIds?: readonly string[];

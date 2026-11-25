@@ -21,7 +21,6 @@ const typeModules = [
   "types.messages.ts",
   "types.node-host.ts",
   "types.coreblow.ts",
-  "types.openclaw.ts",
   "types.queue.ts",
   "types.sandbox.ts",
   "types.tts.ts",

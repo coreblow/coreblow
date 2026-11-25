@@ -12,7 +12,7 @@ import { isValidExecSecretRefId } from "./ref-contract.js";
 import { materializePathTokens, parsePathPattern } from "./target-registry-pattern.js";
 import { listSecretTargetRegistryEntries } from "./target-registry.js";
 
-describe("exec SecretRef id parity", () => {
+describe("exec SecretRef id contract", () => {
   const Ajv = AjvPkg as unknown as new (opts?: object) => import("ajv").default;
   const ajv = new Ajv({ allErrors: true, strict: false });
   const validateGatewaySecretRef = ajv.compile(GatewaySecretRefSchema);
@@ -51,7 +51,7 @@ describe("exec SecretRef id parity", () => {
   }
 
   for (const id of [...VALID_EXEC_SECRET_REF_IDS, ...INVALID_EXEC_SECRET_REF_IDS]) {
-    it(`keeps config/plan/gateway/plugin parity for exec id "${id}"`, () => {
+    it(`keeps config/plan/gateway/plugin contract for exec id "${id}"`, () => {
       const expected = isValidExecSecretRefId(id);
       expect(configAcceptsExecRef(id)).toBe(expected);
       expect(planAcceptsExecRef(id)).toBe(expected);

@@ -1,5 +1,4 @@
 import type { CoreBlowConfig } from "../config/types.coreblow.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { resolveConfiguredChannelPresencePolicy } from "./channel-plugin-ids.js";
 import {
   getOfficialExternalPluginCatalogEntry,
@@ -52,8 +51,8 @@ export function resolveOfficialExternalPluginRepairHint(
 }
 
 export function resolveMissingOfficialExternalChannelPluginRepairHint(params: {
-  config: CoreBlowConfig | OpenClawConfig;
-  activationSourceConfig?: CoreBlowConfig | OpenClawConfig;
+  config: CoreBlowConfig;
+  activationSourceConfig?: CoreBlowConfig;
   channelId: string;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;

@@ -162,3 +162,13 @@ export type ConfigFileSnapshot = {
   warnings: ConfigValidationIssue[];
   legacyIssues: LegacyConfigIssue[];
 };
+
+declare const coreBlowConfigStateBrand: unique symbol;
+
+type BrandedConfigState<TState extends string> = CoreBlowConfig & {
+  readonly [coreBlowConfigStateBrand]?: TState;
+};
+
+export type SourceConfig = BrandedConfigState<"source">;
+export type ResolvedSourceConfig = BrandedConfigState<"resolved-source">;
+export type RuntimeConfig = BrandedConfigState<"runtime">;

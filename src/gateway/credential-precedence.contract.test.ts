@@ -5,7 +5,7 @@ import { resolveGatewayAuth } from "./auth.js";
 import { resolveGatewayCredentialsFromConfig } from "./credentials.js";
 import { resolveGatewayProbeAuth } from "./probe-auth.js";
 
-describe("credential-precedence parity", () => {
+describe("credential-precedence contract", () => {
   type ExpectedCredentialSet = {
     call: { token?: string; password?: string };
     probe: { token?: string; password?: string };

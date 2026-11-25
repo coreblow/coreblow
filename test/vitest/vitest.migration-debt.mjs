@@ -188,7 +188,6 @@ export const miscDebtExcludes = [
   'src/config/load-channel-config-surface.test.ts',
   'src/config/validation.allowed-values.test.ts',
   'src/config/validation.channel-metadata.test.ts',
-  'src/infra/host-env-security.policy-parity.test.ts',
   'src/infra/matrix-legacy-crypto.test.ts',
   'src/infra/matrix-plugin-helper.test.ts',
   'src/infra/run-node.test.ts',
