@@ -29,9 +29,11 @@ describe("test-node-mocks public facade", () => {
   });
 
   it("re-exports working platform-mocking helpers", () => {
-    const value = withMockedPlatform("linux", () => process.platform);
-    expect(value).toBe("linux");
-    expect(process.platform).not.toBe("linux");
+    const originalPlatform = process.platform;
+    const targetPlatform: NodeJS.Platform = originalPlatform === "linux" ? "darwin" : "linux";
+    const value = withMockedPlatform(targetPlatform, () => process.platform);
+    expect(value).toBe(targetPlatform);
+    expect(process.platform).toBe(originalPlatform);
   });
 
   it("re-exports a working windows-platform helper", () => {
