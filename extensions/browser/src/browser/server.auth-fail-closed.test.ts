@@ -1,60 +1,24 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getFreePort } from "./test-port.js";
 
-const mocks = vi.hoisted(() => ({
+const mocks = {
   controlPort: 0,
   ensureBrowserControlAuth: vi.fn(async () => {
     throw new Error("read-only config");
   }),
   resolveBrowserControlAuth: vi.fn(() => ({})),
   ensureExtensionRelayForProfiles: vi.fn(async () => {}),
-}));
+};
 
-vi.mock("../config/config.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../config/config.js")>();
-  const browserConfig = {
-    enabled: true,
-  };
-  return {
-    ...actual,
-    loadConfig: () => ({
-      browser: browserConfig,
-    }),
-  };
-});
-
-vi.mock("./config.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./config.js")>();
-  return {
-    ...actual,
-    resolveBrowserConfig: vi.fn(() => ({
-      enabled: true,
-      controlPort: mocks.controlPort,
-    })),
-  };
-});
-
-vi.mock("./control-auth.js", () => ({
-  ensureBrowserControlAuth: mocks.ensureBrowserControlAuth,
-  resolveBrowserControlAuth: mocks.resolveBrowserControlAuth,
-}));
-
-vi.mock("./routes/index.js", () => ({
-  registerBrowserRoutes: vi.fn(() => {}),
-}));
-
-vi.mock("./server-context.js", () => ({
-  createBrowserRouteContext: vi.fn(() => ({})),
-}));
-
-vi.mock("./server-lifecycle.js", () => ({
-  ensureExtensionRelayForProfiles: mocks.ensureExtensionRelayForProfiles,
-  stopKnownBrowserProfiles: vi.fn(async () => {}),
-}));
-
-vi.mock("./pw-ai-state.js", () => ({
-  isPwAiLoaded: vi.fn(() => false),
-}));
+const MOCKED_MODULES = [
+  "../config/config.js",
+  "./config.js",
+  "./control-auth.js",
+  "./routes/index.js",
+  "./server-context.js",
+  "./server-lifecycle.js",
+  "./pw-ai-state.js",
+] as const;
 
 let startBrowserControlServerFromConfig: typeof import("./server.js").startBrowserControlServerFromConfig;
 let stopBrowserControlServer: typeof import("./server.js").stopBrowserControlServer;
@@ -66,12 +30,62 @@ describe("browser control auth bootstrap failures", () => {
     mocks.resolveBrowserControlAuth.mockClear();
     mocks.ensureExtensionRelayForProfiles.mockClear();
     vi.resetModules();
+
+    vi.doMock("../config/config.js", async (importOriginal) => {
+      const actual = await importOriginal<typeof import("../config/config.js")>();
+      const browserConfig = {
+        enabled: true,
+      };
+      return {
+        ...actual,
+        loadConfig: () => ({
+          browser: browserConfig,
+        }),
+      };
+    });
+
+    vi.doMock("./config.js", async (importOriginal) => {
+      const actual = await importOriginal<typeof import("./config.js")>();
+      return {
+        ...actual,
+        resolveBrowserConfig: vi.fn(() => ({
+          enabled: true,
+          controlPort: mocks.controlPort,
+        })),
+      };
+    });
+
+    vi.doMock("./control-auth.js", () => ({
+      ensureBrowserControlAuth: mocks.ensureBrowserControlAuth,
+      resolveBrowserControlAuth: mocks.resolveBrowserControlAuth,
+    }));
+
+    vi.doMock("./routes/index.js", () => ({
+      registerBrowserRoutes: vi.fn(() => {}),
+    }));
+
+    vi.doMock("./server-context.js", () => ({
+      createBrowserRouteContext: vi.fn(() => ({})),
+    }));
+
+    vi.doMock("./server-lifecycle.js", () => ({
+      ensureExtensionRelayForProfiles: mocks.ensureExtensionRelayForProfiles,
+      stopKnownBrowserProfiles: vi.fn(async () => {}),
+    }));
+
+    vi.doMock("./pw-ai-state.js", () => ({
+      isPwAiLoaded: vi.fn(() => false),
+    }));
+
     ({ startBrowserControlServerFromConfig, stopBrowserControlServer } =
       await import("./server.js"));
   });
 
   afterEach(async () => {
     await stopBrowserControlServer();
+    for (const mod of MOCKED_MODULES) {
+      vi.doUnmock(mod);
+    }
     vi.resetModules();
   });
 
