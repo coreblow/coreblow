@@ -1,13 +1,17 @@
 import { EventEmitter } from "node:events";
-import { beforeEach, describe, expect, it, vi , Mock } from "vitest";
+import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
 
 const { spawnMock } = vi.hoisted(() => ({
   spawnMock: vi.fn(),
 }));
 
-vi.mock("node:child_process", () => ({
-  spawn: spawnMock,
-}));
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return {
+    ...actual,
+    spawn: spawnMock,
+  };
+});
 
 import {
   cleanupTailscaleExposure,

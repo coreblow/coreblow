@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { resolveAgentModelPrimaryValue } from "../../src/config/model-input.js";
 import { resolveProviderPluginChoice } from "../../src/plugins/provider-wizard.js";
-import { registerSingleProviderPlugin } from "../../src/test-utils/plugin-registration.js";
+import { registerSingleProviderPlugin } from "../../test/helpers/extensions/plugin-registration.js";
 import qianfanPlugin from "./index.js";
 import {
   applyQianfanConfig,

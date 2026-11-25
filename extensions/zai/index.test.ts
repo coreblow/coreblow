@@ -1,7 +1,7 @@
 import type { StreamFn } from "@mariozechner/pi-agent-core";
-import { resolveTranscriptPolicy } from "../../src/agents/transcript-policy.js";
-import { registerSingleProviderPlugin } from "../../src/test-utils/plugin-registration.js";
 import { describe, expect, it } from "vitest";
+import { resolveTranscriptPolicy } from "../../src/agents/transcript-policy.js";
+import { registerSingleProviderPlugin } from "../../test/helpers/extensions/plugin-registration.js";
 import plugin from "./index.js";
 
 function createGlm47Template() {

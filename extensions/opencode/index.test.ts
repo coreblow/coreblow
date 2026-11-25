@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createCapturedPluginRegistration } from "../../src/plugins/captured-registration.js";
-import { registerSingleProviderPlugin } from "../../src/test-utils/plugin-registration.js";
+import {
+  createCapturedPluginRegistration,
+  registerSingleProviderPlugin,
+} from "../../test/helpers/extensions/plugin-registration.js";
 import plugin from "./index.js";
 
 describe("opencode provider plugin", () => {
@@ -8,7 +10,9 @@ describe("opencode provider plugin", () => {
     const captured = createCapturedPluginRegistration();
     plugin.register(captured.api);
 
-    const mediaProvider = captured.mediaUnderstandingProviders.find((provider) => provider.id === "opencode");
+    const mediaProvider = captured.mediaUnderstandingProviders.find(
+      (provider) => provider.id === "opencode",
+    );
     if (!mediaProvider) {
       throw new Error("Expected opencode media provider");
     }
@@ -21,16 +25,28 @@ describe("opencode provider plugin", () => {
   it("exposes Claude thinking defaults and xhigh support for proxied Claude models", () => {
     const provider = registerSingleProviderPlugin(plugin);
     expect(
-      provider.resolveDefaultThinkingLevel?.({ provider: "opencode", modelId: "claude-opus-4-7" } as never),
+      provider.resolveDefaultThinkingLevel?.({
+        provider: "opencode",
+        modelId: "claude-opus-4-7",
+      } as never),
     ).toBe("off");
     expect(
-      provider.supportsXHighThinking?.({ provider: "opencode", modelId: "claude-opus-4-7" } as never),
+      provider.supportsXHighThinking?.({
+        provider: "opencode",
+        modelId: "claude-opus-4-7",
+      } as never),
     ).toBe(true);
     expect(
-      provider.resolveDefaultThinkingLevel?.({ provider: "opencode", modelId: "claude-opus-4.6" } as never),
+      provider.resolveDefaultThinkingLevel?.({
+        provider: "opencode",
+        modelId: "claude-opus-4.6",
+      } as never),
     ).toBe("adaptive");
     expect(
-      provider.supportsXHighThinking?.({ provider: "opencode", modelId: "claude-opus-4.6" } as never),
+      provider.supportsXHighThinking?.({
+        provider: "opencode",
+        modelId: "claude-opus-4.6",
+      } as never),
     ).toBeUndefined();
   });
 });

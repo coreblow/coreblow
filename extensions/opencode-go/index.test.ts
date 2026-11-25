@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createCapturedPluginRegistration } from "../../src/plugins/captured-registration.js";
-import { registerSingleProviderPlugin } from "../../src/test-utils/plugin-registration.js";
+import {
+  createCapturedPluginRegistration,
+  registerSingleProviderPlugin,
+} from "../../test/helpers/extensions/plugin-registration.js";
 import plugin from "./index.js";
 
 describe("opencode-go provider plugin", () => {
@@ -8,7 +10,9 @@ describe("opencode-go provider plugin", () => {
     const captured = createCapturedPluginRegistration();
     plugin.register(captured.api);
 
-    const mediaProvider = captured.mediaUnderstandingProviders.find((provider) => provider.id === "opencode-go");
+    const mediaProvider = captured.mediaUnderstandingProviders.find(
+      (provider) => provider.id === "opencode-go",
+    );
     if (!mediaProvider) {
       throw new Error("Expected opencode-go media provider");
     }
@@ -21,7 +25,10 @@ describe("opencode-go provider plugin", () => {
   it("keeps OpenCode Go supplemental catalog coverage aligned", async () => {
     const provider = registerSingleProviderPlugin(plugin);
     const supplemental = await provider.augmentModelCatalog?.({ entries: [] } as never);
-    expect(supplemental?.map((entry) => entry.id)).toEqual(["deepseek-v4-pro", "deepseek-v4-flash"]);
+    expect(supplemental?.map((entry) => entry.id)).toEqual([
+      "deepseek-v4-pro",
+      "deepseek-v4-flash",
+    ]);
     const dynamicModel = provider.resolveDynamicModel?.({ modelId: "deepseek-v4-pro" } as never);
     expect(dynamicModel?.id).toBe("deepseek-v4-pro");
     expect(dynamicModel?.baseUrl).toBe("https://opencode.ai/zen/go/v1");
@@ -47,7 +54,11 @@ describe("opencode-go provider plugin", () => {
       modelId: "kimi-k2.6",
       thinkingLevel: "high",
     } as never);
-    await kimiWrapped?.({ provider: "opencode-go", id: "kimi-k2.6", api: "openai-completions" } as never, {} as never, {});
+    await kimiWrapped?.(
+      { provider: "opencode-go", id: "kimi-k2.6", api: "openai-completions" } as never,
+      {} as never,
+      {},
+    );
     expect(capturedPayloads[0]).toEqual({ model: "kimi-k2.6" });
 
     const deepseekPayloads: Record<string, unknown>[] = [];
@@ -63,7 +74,11 @@ describe("opencode-go provider plugin", () => {
       modelId: "deepseek-v4-flash",
       thinkingLevel: "off",
     } as never);
-    await deepseekWrapped?.({ provider: "opencode-go", id: "deepseek-v4-flash", api: "openai-completions" } as never, {} as never, {});
+    await deepseekWrapped?.(
+      { provider: "opencode-go", id: "deepseek-v4-flash", api: "openai-completions" } as never,
+      {} as never,
+      {},
+    );
     expect(deepseekPayloads[0]).toEqual({
       model: "deepseek-v4-flash",
       thinking: { type: "disabled" },

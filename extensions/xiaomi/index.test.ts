@@ -1,6 +1,6 @@
-import { resolveTranscriptPolicy } from "../../src/agents/transcript-policy.js";
-import { registerSingleProviderPlugin } from "../../src/test-utils/plugin-registration.js";
 import { describe, expect, it } from "vitest";
+import { resolveTranscriptPolicy } from "../../src/agents/transcript-policy.js";
+import { registerSingleProviderPlugin } from "../../test/helpers/extensions/plugin-registration.js";
 import xiaomiPlugin from "./index.js";
 
 describe("xiaomi provider plugin", () => {
@@ -66,7 +66,9 @@ describe("xiaomi provider plugin", () => {
       modelApi: "openai-completions",
       model: { id: "mimo-v2.5", compat: {} },
     } as never);
-    expect((normalized?.compat as { omitEmptyArrayItems?: unknown } | undefined)?.omitEmptyArrayItems).toBe(true);
+    expect(
+      (normalized?.compat as { omitEmptyArrayItems?: unknown } | undefined)?.omitEmptyArrayItems,
+    ).toBe(true);
 
     expect(
       provider.supportsXHighThinking?.({ provider: "xiaomi", modelId: "mimo-v2.5-pro" } as never),

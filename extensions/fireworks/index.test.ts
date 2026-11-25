@@ -1,6 +1,6 @@
 import type { ProviderRuntimeModel } from "coreblow/plugin-sdk/plugin-entry";
-import { registerSingleProviderPlugin } from "../../src/test-utils/plugin-registration.js";
 import { describe, expect, it } from "vitest";
+import { registerSingleProviderPlugin } from "../../test/helpers/extensions/plugin-registration.js";
 import fireworksPlugin from "./index.js";
 import {
   FIREWORKS_BASE_URL,
@@ -28,10 +28,7 @@ function createFireworksDefaultRuntimeModel(params: { reasoning: boolean }): Pro
   };
 }
 
-function createDynamicModelContext(params: {
-  modelId: string;
-  models: ProviderRuntimeModel[];
-}) {
+function createDynamicModelContext(params: { modelId: string; models: ProviderRuntimeModel[] }) {
   return {
     provider: "fireworks",
     modelId: params.modelId,
@@ -64,7 +61,8 @@ describe("fireworks provider plugin", () => {
       config: {},
       resolveProviderApiKey: () => ({ apiKey: "fw-key", source: "env" }),
     } as never);
-    const catalogProvider = catalogResult && "provider" in catalogResult ? catalogResult.provider : null;
+    const catalogProvider =
+      catalogResult && "provider" in catalogResult ? catalogResult.provider : null;
 
     expect(catalogProvider?.api).toBe("openai-completions");
     expect(catalogProvider?.baseUrl).toBe(FIREWORKS_BASE_URL);
@@ -125,9 +123,9 @@ describe("fireworks provider plugin", () => {
   it("exposes off-only thinking policy for Fireworks Kimi models", () => {
     const provider = registerSingleProviderPlugin(fireworksPlugin);
 
-    expect(provider.resolveDefaultThinkingLevel?.({ modelId: FIREWORKS_K2_6_MODEL_ID } as never)).toBe(
-      "off",
-    );
+    expect(
+      provider.resolveDefaultThinkingLevel?.({ modelId: FIREWORKS_K2_6_MODEL_ID } as never),
+    ).toBe("off");
     expect(provider.isModernModelRef?.({ modelId: FIREWORKS_K2_6_MODEL_ID } as never)).toBe(true);
     expect(
       resolveThinkingProfile({

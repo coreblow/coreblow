@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { registerSingleProviderPlugin } from "../../src/test-utils/plugin-registration.js";
+import { registerSingleProviderPlugin } from "../../test/helpers/extensions/plugin-registration.js";
 import anthropicVertexPlugin from "./index.js";
 
 describe("anthropic-vertex provider plugin", () => {

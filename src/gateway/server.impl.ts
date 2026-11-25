@@ -1,11 +1,4 @@
 import path from "node:path";
-import { clamp } from "../utils.js";
-import { getGatewayRegistry, registerInfraServices } from "./gateway-services.js";
-import {
-  createMicrokernelServiceRegistry,
-  getActiveMicrokernel,
-  setActiveMicrokernel,
-} from "./microkernel-services.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { getActiveEmbeddedRunCount } from "../agents/pi-embedded-runner/runs.js";
 import { registerSkillsChangeListener } from "../agents/skills/refresh.js";
@@ -76,6 +69,7 @@ import {
 } from "../secrets/runtime.js";
 import { onSessionLifecycleEvent } from "../sessions/session-lifecycle-events.js";
 import { onSessionTranscriptUpdate } from "../sessions/transcript-events.js";
+import { clamp } from "../utils.js";
 import { runSetupWizard } from "../wizard/setup.js";
 import { createAuthRateLimiter, type AuthRateLimiter } from "./auth-rate-limit.js";
 import { startChannelHealthMonitor } from "./channel-health-monitor.js";
@@ -86,9 +80,16 @@ import {
   GATEWAY_EVENT_UPDATE_AVAILABLE,
   type GatewayUpdateAvailableEventPayload,
 } from "./events.js";
+import { getGatewayRegistry, registerInfraServices } from "./gateway-services.js";
 import { createAttachedGatewayMethodRegistryRuntime } from "./methods/attached-registry.js";
+import {
+  createMicrokernelServiceRegistry,
+  getActiveMicrokernel,
+  setActiveMicrokernel,
+} from "./microkernel-services.js";
 import { startGatewayModelPricingRefresh } from "./model-pricing-cache.js";
 import { NodeRegistry } from "./node-registry.js";
+import { createGatewayAuxHandlers } from "./server-aux-handlers.js";
 import { createChannelManager } from "./server-channels.js";
 import {
   createAgentEventHandler,
@@ -100,7 +101,6 @@ import { buildGatewayCronService } from "./server-cron.js";
 import { startGatewayDiscovery } from "./server-discovery-runtime.js";
 import { applyGatewayLaneConcurrency } from "./server-lanes.js";
 import { startGatewayMaintenanceTimers } from "./server-maintenance.js";
-import { createGatewayAuxHandlers } from "./server-aux-handlers.js";
 import { GATEWAY_EVENTS, listGatewayMethods } from "./server-methods-list.js";
 import { coreGatewayHandlers } from "./server-methods.js";
 import { safeParseJson } from "./server-methods/nodes.helpers.js";
@@ -108,9 +108,7 @@ import type { GatewayRequestHandlers } from "./server-methods/types.js";
 import { hasConnectedMobileNode } from "./server-mobile-nodes.js";
 import { loadGatewayModelCatalog } from "./server-model-catalog.js";
 import { createNodeSubscriptionManager } from "./server-node-subscriptions.js";
-import {
-  loadGatewayStartupPlugins,
-} from "./server-plugin-bootstrap.js";
+import { loadGatewayStartupPlugins } from "./server-plugin-bootstrap.js";
 import { setFallbackGatewayContextResolver } from "./server-plugins.js";
 import { createGatewayReloadHandlers } from "./server-reload-handlers.js";
 import { resolveGatewayRuntimeConfig } from "./server-runtime-config.js";
@@ -132,8 +130,8 @@ import {
 import { resolveHookClientIpConfig } from "./server/hooks.js";
 import { createReadinessChecker } from "./server/readiness.js";
 import { loadGatewayTlsRuntime } from "./server/tls.js";
-import { resolveSessionKeyForTranscriptFile } from "./session-transcript-key.js";
 import { drainActiveSessionsForShutdown } from "./session-reset-service.js";
+import { resolveSessionKeyForTranscriptFile } from "./session-transcript-key.js";
 import {
   attachCoreBlowTranscriptMeta,
   loadGatewaySessionRow,
@@ -375,8 +373,8 @@ export async function startGatewayServer(
   port = 18789,
   opts: GatewayServerOptions = {},
 ): Promise<GatewayServer> {
-  const minimalTestGateway =
-    process.env.VITEST === "1" && process.env.COREBLOW_TEST_MINIMAL_GATEWAY === "1";
+  const isVitest = Boolean(process.env.VITEST?.trim());
+  const minimalTestGateway = isVitest && process.env.COREBLOW_TEST_MINIMAL_GATEWAY === "1";
 
   // Ensure all default port derivations (browser/canvas) see the actual runtime port.
   process.env.COREBLOW_GATEWAY_PORT = String(port);
@@ -878,7 +876,9 @@ export async function startGatewayServer(
       try {
         const { getBonjourDiscoveryService } = await import("../infra/bonjour-discovery.js");
         if (bonjourStop) getBonjourDiscoveryService().setStopFn(bonjourStop);
-      } catch { /* registry wiring is best-effort */ }
+      } catch {
+        /* registry wiring is best-effort */
+      }
     }
 
     if (!minimalTestGateway) {
@@ -928,54 +928,147 @@ export async function startGatewayServer(
         }));
     }
 
-    agentUnsub = minimalTestGateway
-      ? null
-      : onAgentEvent(
-          createAgentEventHandler({
-            broadcast,
-            broadcastToConnIds,
-            nodeSendToSession,
-            agentRunSeq,
-            chatRunState,
-            resolveSessionKeyForRun,
-            clearAgentRunContext,
-            toolEventRecipients,
-            sessionEventSubscribers,
-          }),
+    agentUnsub = onAgentEvent(
+      createAgentEventHandler({
+        broadcast,
+        broadcastToConnIds,
+        nodeSendToSession,
+        agentRunSeq,
+        chatRunState,
+        resolveSessionKeyForRun,
+        clearAgentRunContext,
+        toolEventRecipients,
+        sessionEventSubscribers,
+      }),
+    );
+
+    heartbeatUnsub = onHeartbeatEvent((evt) => {
+      broadcast("heartbeat", evt, { dropIfSlow: true });
+    });
+
+    transcriptUnsub = onSessionTranscriptUpdate((update) => {
+      const sessionKey =
+        update.sessionKey ?? resolveSessionKeyForTranscriptFile(update.sessionFile);
+      if (!sessionKey || update.message === undefined) {
+        return;
+      }
+      const connIds = new Set<string>();
+      for (const connId of sessionEventSubscribers.getAll()) {
+        connIds.add(connId);
+      }
+      for (const connId of sessionMessageSubscribers.get(sessionKey)) {
+        connIds.add(connId);
+      }
+      if (connIds.size === 0) {
+        return;
+      }
+      const { entry, storePath } = loadSessionEntry(sessionKey);
+      const messageSeq = entry?.sessionId
+        ? readSessionMessages(entry.sessionId, storePath, entry.sessionFile).length
+        : undefined;
+      const sessionRow = loadGatewaySessionRow(sessionKey);
+      const sessionSnapshot = sessionRow
+        ? {
+            session: sessionRow,
+            updatedAt: sessionRow.updatedAt ?? undefined,
+            sessionId: sessionRow.sessionId,
+            kind: sessionRow.kind,
+            channel: sessionRow.channel,
+            subject: sessionRow.subject,
+            groupChannel: sessionRow.groupChannel,
+            space: sessionRow.space,
+            chatType: sessionRow.chatType,
+            origin: sessionRow.origin,
+            spawnedBy: sessionRow.spawnedBy,
+            spawnedWorkspaceDir: sessionRow.spawnedWorkspaceDir,
+            forkedFromParent: sessionRow.forkedFromParent,
+            spawnDepth: sessionRow.spawnDepth,
+            subagentRole: sessionRow.subagentRole,
+            subagentControlScope: sessionRow.subagentControlScope,
+            label: sessionRow.label,
+            displayName: sessionRow.displayName,
+            deliveryContext: sessionRow.deliveryContext,
+            parentSessionKey: sessionRow.parentSessionKey,
+            childSessions: sessionRow.childSessions,
+            thinkingLevel: sessionRow.thinkingLevel,
+            fastMode: sessionRow.fastMode,
+            verboseLevel: sessionRow.verboseLevel,
+            reasoningLevel: sessionRow.reasoningLevel,
+            elevatedLevel: sessionRow.elevatedLevel,
+            sendPolicy: sessionRow.sendPolicy,
+            systemSent: sessionRow.systemSent,
+            abortedLastRun: sessionRow.abortedLastRun,
+            inputTokens: sessionRow.inputTokens,
+            outputTokens: sessionRow.outputTokens,
+            lastChannel: sessionRow.lastChannel,
+            lastTo: sessionRow.lastTo,
+            lastAccountId: sessionRow.lastAccountId,
+            lastThreadId: sessionRow.lastThreadId,
+            totalTokens: sessionRow.totalTokens,
+            totalTokensFresh: sessionRow.totalTokensFresh,
+            contextTokens: sessionRow.contextTokens,
+            estimatedCostUsd: sessionRow.estimatedCostUsd,
+            responseUsage: sessionRow.responseUsage,
+            modelProvider: sessionRow.modelProvider,
+            model: sessionRow.model,
+            status: sessionRow.status,
+            startedAt: sessionRow.startedAt,
+            endedAt: sessionRow.endedAt,
+            runtimeMs: sessionRow.runtimeMs,
+          }
+        : {};
+      const message = attachCoreBlowTranscriptMeta(update.message, {
+        ...(typeof update.messageId === "string" ? { id: update.messageId } : {}),
+        ...(typeof messageSeq === "number" ? { seq: messageSeq } : {}),
+      });
+      broadcastToConnIds(
+        "session.message",
+        {
+          sessionKey,
+          message,
+          ...(typeof update.messageId === "string" ? { messageId: update.messageId } : {}),
+          ...(typeof messageSeq === "number" ? { messageSeq } : {}),
+          ...sessionSnapshot,
+        },
+        connIds,
+        { dropIfSlow: true },
+      );
+
+      const sessionEventConnIds = sessionEventSubscribers.getAll();
+      if (sessionEventConnIds.size > 0) {
+        broadcastToConnIds(
+          "sessions.changed",
+          {
+            sessionKey,
+            phase: "message",
+            ts: Date.now(),
+            ...(typeof update.messageId === "string" ? { messageId: update.messageId } : {}),
+            ...(typeof messageSeq === "number" ? { messageSeq } : {}),
+            ...sessionSnapshot,
+          },
+          sessionEventConnIds,
+          { dropIfSlow: true },
         );
+      }
+    });
 
-    heartbeatUnsub = minimalTestGateway
-      ? null
-      : onHeartbeatEvent((evt) => {
-          broadcast("heartbeat", evt, { dropIfSlow: true });
-        });
-
-    transcriptUnsub = minimalTestGateway
-      ? null
-      : onSessionTranscriptUpdate((update) => {
-          const sessionKey =
-            update.sessionKey ?? resolveSessionKeyForTranscriptFile(update.sessionFile);
-          if (!sessionKey || update.message === undefined) {
-            return;
-          }
-          const connIds = new Set<string>();
-          for (const connId of sessionEventSubscribers.getAll()) {
-            connIds.add(connId);
-          }
-          for (const connId of sessionMessageSubscribers.get(sessionKey)) {
-            connIds.add(connId);
-          }
-          if (connIds.size === 0) {
-            return;
-          }
-          const { entry, storePath } = loadSessionEntry(sessionKey);
-          const messageSeq = entry?.sessionId
-            ? readSessionMessages(entry.sessionId, storePath, entry.sessionFile).length
-            : undefined;
-          const sessionRow = loadGatewaySessionRow(sessionKey);
-          const sessionSnapshot = sessionRow
+    lifecycleUnsub = onSessionLifecycleEvent((event) => {
+      const connIds = sessionEventSubscribers.getAll();
+      if (connIds.size === 0) {
+        return;
+      }
+      const sessionRow = loadGatewaySessionRow(event.sessionKey);
+      broadcastToConnIds(
+        "sessions.changed",
+        {
+          sessionKey: event.sessionKey,
+          reason: event.reason,
+          parentSessionKey: event.parentSessionKey,
+          label: event.label,
+          displayName: event.displayName,
+          ts: Date.now(),
+          ...(sessionRow
             ? {
-                session: sessionRow,
                 updatedAt: sessionRow.updatedAt ?? undefined,
                 sessionId: sessionRow.sessionId,
                 kind: sessionRow.kind,
@@ -991,10 +1084,10 @@ export async function startGatewayServer(
                 spawnDepth: sessionRow.spawnDepth,
                 subagentRole: sessionRow.subagentRole,
                 subagentControlScope: sessionRow.subagentControlScope,
-                label: sessionRow.label,
-                displayName: sessionRow.displayName,
+                label: event.label ?? sessionRow.label,
+                displayName: event.displayName ?? sessionRow.displayName,
                 deliveryContext: sessionRow.deliveryContext,
-                parentSessionKey: sessionRow.parentSessionKey,
+                parentSessionKey: event.parentSessionKey ?? sessionRow.parentSessionKey,
                 childSessions: sessionRow.childSessions,
                 thinkingLevel: sessionRow.thinkingLevel,
                 fastMode: sessionRow.fastMode,
@@ -1022,121 +1115,24 @@ export async function startGatewayServer(
                 endedAt: sessionRow.endedAt,
                 runtimeMs: sessionRow.runtimeMs,
               }
-            : {};
-          const message = attachCoreBlowTranscriptMeta(update.message, {
-            ...(typeof update.messageId === "string" ? { id: update.messageId } : {}),
-            ...(typeof messageSeq === "number" ? { seq: messageSeq } : {}),
-          });
-          broadcastToConnIds(
-            "session.message",
-            {
-              sessionKey,
-              message,
-              ...(typeof update.messageId === "string" ? { messageId: update.messageId } : {}),
-              ...(typeof messageSeq === "number" ? { messageSeq } : {}),
-              ...sessionSnapshot,
-            },
-            connIds,
-            { dropIfSlow: true },
-          );
-
-          const sessionEventConnIds = sessionEventSubscribers.getAll();
-          if (sessionEventConnIds.size > 0) {
-            broadcastToConnIds(
-              "sessions.changed",
-              {
-                sessionKey,
-                phase: "message",
-                ts: Date.now(),
-                ...(typeof update.messageId === "string" ? { messageId: update.messageId } : {}),
-                ...(typeof messageSeq === "number" ? { messageSeq } : {}),
-                ...sessionSnapshot,
-              },
-              sessionEventConnIds,
-              { dropIfSlow: true },
-            );
-          }
-        });
-
-    lifecycleUnsub = minimalTestGateway
-      ? null
-      : onSessionLifecycleEvent((event) => {
-          const connIds = sessionEventSubscribers.getAll();
-          if (connIds.size === 0) {
-            return;
-          }
-          const sessionRow = loadGatewaySessionRow(event.sessionKey);
-          broadcastToConnIds(
-            "sessions.changed",
-            {
-              sessionKey: event.sessionKey,
-              reason: event.reason,
-              parentSessionKey: event.parentSessionKey,
-              label: event.label,
-              displayName: event.displayName,
-              ts: Date.now(),
-              ...(sessionRow
-                ? {
-                    updatedAt: sessionRow.updatedAt ?? undefined,
-                    sessionId: sessionRow.sessionId,
-                    kind: sessionRow.kind,
-                    channel: sessionRow.channel,
-                    subject: sessionRow.subject,
-                    groupChannel: sessionRow.groupChannel,
-                    space: sessionRow.space,
-                    chatType: sessionRow.chatType,
-                    origin: sessionRow.origin,
-                    spawnedBy: sessionRow.spawnedBy,
-                    spawnedWorkspaceDir: sessionRow.spawnedWorkspaceDir,
-                    forkedFromParent: sessionRow.forkedFromParent,
-                    spawnDepth: sessionRow.spawnDepth,
-                    subagentRole: sessionRow.subagentRole,
-                    subagentControlScope: sessionRow.subagentControlScope,
-                    label: event.label ?? sessionRow.label,
-                    displayName: event.displayName ?? sessionRow.displayName,
-                    deliveryContext: sessionRow.deliveryContext,
-                    parentSessionKey: event.parentSessionKey ?? sessionRow.parentSessionKey,
-                    childSessions: sessionRow.childSessions,
-                    thinkingLevel: sessionRow.thinkingLevel,
-                    fastMode: sessionRow.fastMode,
-                    verboseLevel: sessionRow.verboseLevel,
-                    reasoningLevel: sessionRow.reasoningLevel,
-                    elevatedLevel: sessionRow.elevatedLevel,
-                    sendPolicy: sessionRow.sendPolicy,
-                    systemSent: sessionRow.systemSent,
-                    abortedLastRun: sessionRow.abortedLastRun,
-                    inputTokens: sessionRow.inputTokens,
-                    outputTokens: sessionRow.outputTokens,
-                    lastChannel: sessionRow.lastChannel,
-                    lastTo: sessionRow.lastTo,
-                    lastAccountId: sessionRow.lastAccountId,
-                    lastThreadId: sessionRow.lastThreadId,
-                    totalTokens: sessionRow.totalTokens,
-                    totalTokensFresh: sessionRow.totalTokensFresh,
-                    contextTokens: sessionRow.contextTokens,
-                    estimatedCostUsd: sessionRow.estimatedCostUsd,
-                    responseUsage: sessionRow.responseUsage,
-                    modelProvider: sessionRow.modelProvider,
-                    model: sessionRow.model,
-                    status: sessionRow.status,
-                    startedAt: sessionRow.startedAt,
-                    endedAt: sessionRow.endedAt,
-                    runtimeMs: sessionRow.runtimeMs,
-                  }
-                : {}),
-            },
-            connIds,
-            { dropIfSlow: true },
-          );
-        });
+            : {}),
+        },
+        connIds,
+        { dropIfSlow: true },
+      );
+    });
 
     if (!minimalTestGateway) {
       heartbeatRunner = startHeartbeatRunner({ cfg: cfgAtStart });
       // Wire cron handle into Tier-2 service
       try {
         const { getCronSchedulerService } = await import("../infra/cron-scheduler.js");
-        getCronSchedulerService().setHandle(cron as unknown as Parameters<ReturnType<typeof getCronSchedulerService>['setHandle']>[0]);
-      } catch { /* registry wiring is best-effort */ }
+        getCronSchedulerService().setHandle(
+          cron as unknown as Parameters<ReturnType<typeof getCronSchedulerService>["setHandle"]>[0],
+        );
+      } catch {
+        /* registry wiring is best-effort */
+      }
     }
 
     const healthCheckMinutes = cfgAtStart.gateway?.channelHealthCheckMinutes;
@@ -1159,7 +1155,7 @@ export async function startGatewayServer(
     }
 
     stopModelPricingRefresh =
-      !minimalTestGateway && process.env.VITEST !== "1"
+      !minimalTestGateway && !isVitest
         ? startGatewayModelPricingRefresh({ config: cfgAtStart })
         : () => {};
 
@@ -1328,7 +1324,9 @@ export async function startGatewayServer(
       try {
         const { getUpdateRunnerService } = await import("../infra/update-runner.js");
         getUpdateRunnerService().setStopFn(stopGatewayUpdateCheck);
-      } catch { /* registry wiring is best-effort */ }
+      } catch {
+        /* registry wiring is best-effort */
+      }
     }
     tailscaleCleanup = minimalTestGateway
       ? null
@@ -1460,7 +1458,9 @@ export async function startGatewayServer(
     if (!minimalTestGateway) {
       const registryResult = await getGatewayRegistry().startAll();
       if (registryResult.failed.length > 0) {
-        log.warn(`gateway: some Tier-2 services failed to start: ${registryResult.failed.join(', ')}`);
+        log.warn(
+          `gateway: some Tier-2 services failed to start: ${registryResult.failed.join(", ")}`,
+        );
       }
 
       // Cognitive microkernel services boot
@@ -1539,9 +1539,7 @@ export async function startGatewayServer(
       clearSecretsRuntimeSnapshot();
       // Drain background cognitive tasks before stopping microkernel services
       try {
-        const { getCognitiveCoordinator } = await import(
-          "../agents/cognitive/coordinator.js"
-        );
+        const { getCognitiveCoordinator } = await import("../agents/cognitive/coordinator.js");
         await getCognitiveCoordinator().drain({ timeoutMs: 2500 });
       } catch (err) {
         log.warn(`gateway: cognitive coordinator drain failed: ${String(err)}`);
@@ -1560,7 +1558,9 @@ export async function startGatewayServer(
       // Stop all Tier-2 services via the ServiceRegistry (reverse dep order).
       try {
         await getGatewayRegistry().stopAll();
-      } catch { /* registry shutdown is best-effort — close handler continues */ }
+      } catch {
+        /* registry shutdown is best-effort — close handler continues */
+      }
       await close(opts);
     },
   };

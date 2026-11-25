@@ -7,6 +7,23 @@ import type { ChannelPlugin } from "../channels/plugins/types.js";
 import { emitAgentEvent, registerAgentRunContext } from "../infra/agent-events.js";
 import { createChannelTestPluginBase } from "../test-utils/channel-plugins.js";
 import { setRegistry } from "./server.agent.gateway-server-agent.mocks.js";
+
+vi.mock("../plugins/runtime/runtime-discord.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../plugins/runtime/runtime-discord.js")>();
+  return {
+    ...actual,
+    createRuntimeDiscord: () => {
+      const runtime = actual.createRuntimeDiscord();
+      return {
+        ...runtime,
+        threadBindings: {
+          ...runtime.threadBindings,
+          unbindBySessionKey: () => [],
+        },
+      };
+    },
+  };
+});
 import { createRegistry } from "./server.e2e-registry-helpers.js";
 import {
   agentCommand,

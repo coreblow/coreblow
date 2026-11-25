@@ -1,1 +1,6 @@
-export { registerSingleProviderPlugin } from "../../../src/test-utils/plugin-registration.js";
+export {
+  createCapturedPluginRegistration,
+  registerProviderPlugins,
+  registerSingleProviderPlugin,
+  requireRegisteredProvider,
+} from "../../../src/test-utils/plugin-registration.js";

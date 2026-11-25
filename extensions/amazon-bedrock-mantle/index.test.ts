@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { registerSingleProviderPlugin } from "../../src/test-utils/plugin-registration.js";
+import { registerSingleProviderPlugin } from "../../test/helpers/extensions/plugin-registration.js";
 import bedrockMantlePlugin from "./index.js";
 
 describe("amazon-bedrock-mantle provider plugin", () => {

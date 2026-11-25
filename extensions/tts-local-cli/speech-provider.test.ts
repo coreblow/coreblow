@@ -1,8 +1,8 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { CoreBlowConfig } from "coreblow/plugin-sdk";
 import type { SpeechProviderConfig, SpeechSynthesisRequest } from "coreblow/plugin-sdk/speech-core";
+import type { CoreBlowConfig } from "coreblow/plugin-sdk/testing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type SpeechSynthesisTarget = SpeechSynthesisRequest["target"];

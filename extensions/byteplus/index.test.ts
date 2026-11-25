@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { registerSingleProviderPlugin } from "../../src/test-utils/plugin-registration.js";
 import { describe, expect, it } from "vitest";
+import { registerSingleProviderPlugin } from "../../test/helpers/extensions/plugin-registration.js";
 import plugin from "./index.js";
 import { BYTEPLUS_CODING_MODEL_CATALOG, BYTEPLUS_MODEL_CATALOG } from "./models.js";
 
@@ -18,7 +18,9 @@ describe("byteplus plugin", () => {
     );
     expect(standardEntry?.name).toBe(BYTEPLUS_MODEL_CATALOG[0]?.name);
     expect(standardEntry?.reasoning).toBe(BYTEPLUS_MODEL_CATALOG[0]?.reasoning);
-    expect(standardEntry?.input).toEqual([...((BYTEPLUS_MODEL_CATALOG[0]?.input ?? []) as string[])]);
+    expect(standardEntry?.input).toEqual([
+      ...((BYTEPLUS_MODEL_CATALOG[0]?.input ?? []) as string[]),
+    ]);
     expect(standardEntry?.contextWindow).toBe(BYTEPLUS_MODEL_CATALOG[0]?.contextWindow);
 
     const planEntry = entries?.find(
@@ -27,7 +29,9 @@ describe("byteplus plugin", () => {
     );
     expect(planEntry?.name).toBe(BYTEPLUS_CODING_MODEL_CATALOG[0]?.name);
     expect(planEntry?.reasoning).toBe(BYTEPLUS_CODING_MODEL_CATALOG[0]?.reasoning);
-    expect(planEntry?.input).toEqual([...((BYTEPLUS_CODING_MODEL_CATALOG[0]?.input ?? []) as string[])]);
+    expect(planEntry?.input).toEqual([
+      ...((BYTEPLUS_CODING_MODEL_CATALOG[0]?.input ?? []) as string[]),
+    ]);
     expect(planEntry?.contextWindow).toBe(BYTEPLUS_CODING_MODEL_CATALOG[0]?.contextWindow);
   });
 

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { registerSingleProviderPlugin, requireRegisteredProvider } from "../../src/test-utils/plugin-registration.js";
+import {
+  registerSingleProviderPlugin,
+  requireRegisteredProvider,
+} from "../../test/helpers/extensions/plugin-registration.js";
 import plugin from "./index.js";
 
 describe("vercel ai gateway thinking profile", () => {

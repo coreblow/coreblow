@@ -1,5 +1,5 @@
-import { createCapturedPluginRegistration } from "../../src/test-utils/plugin-registration.js";
 import { describe, expect, it } from "vitest";
+import { createCapturedPluginRegistration } from "../../test/helpers/extensions/plugin-registration.js";
 import plugin from "./index.js";
 import {
   buildStepFunPlanProvider,
