@@ -2,4 +2,5 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-exec "${REPO_ROOT}/apps/macos/scripts/package-release.sh" "$@"
+cd "${REPO_ROOT}/apps/desktop"
+exec pnpm run pack "$@"

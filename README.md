@@ -30,7 +30,7 @@ Start a task in your terminal, hand the exact session off to CoreBlow Studio Des
 
 Use any model you want — local Ollama, Anthropic, OpenAI, Google Gemini, OpenRouter, or your own OpenAI-compatible endpoint. Switch models mid-session with `/model`, or let the adaptive router fail over automatically when provider quotas tighten.
 
-- **A real terminal UI, plus Desktop and Web** — Full React + Ink terminal interface (`coreblow`) with multiline editing, inline colored diffs, and approval prompts, seamlessly synchronized with CoreBlow Studio Desktop (`apps/desktop/`), Web Control UI, Go terminal companion (`corechat`), and macOS Menu Bar (`corebar`).
+- **A real terminal UI, plus Desktop and Web** — Full React + Ink terminal interface (`coreblow`) with multiline editing, inline colored diffs, and approval prompts, seamlessly synchronized with CoreBlow Studio Desktop (`apps/desktop/` — the sole cross-platform Desktop application with built-in macOS/Windows/Linux Menu Bar & System Tray), Web Control UI, and Go terminal companion (`corechat`).
 - **One memory that persists and learns** — Four-layer local memory (`USER.md`, `MEMORY.md`, `CONSTRAINTS.md`, daily journals) indexed with SQLite WAL + FTS5/BM25 (`< 2ms` recall). Completed tasks feed EvoLoop skill synthesis so your agent gets more useful without manual prompt rewrites.
 - **Safe execution by default** — Loopback-only local Gateway by default, OS-level bash sandboxing (Apple Seatbelt on macOS, Bubblewrap on Linux), TypeScript AST skill security scanning, `per-channel-peer` DM isolation, and a SHA-256 tamper-evident audit journal.
 - **Any model, automatic failover** — Route across 8 backends and 6 task tiers (`fast`, `deep`, `local`, `coding`, `vision`, `decision`) with Daybreak quota failover to fallback cloud models or local Ollama without dropping active turns.
@@ -147,7 +147,7 @@ flowchart TD
 | `src/security/` | TypeScript AST skill scanner, execution approvals, secret redaction, and OS sandboxes. | Security |
 | `src/tui/ink/` | Production React + Ink terminal UI (diffs, inline approvals, `/model`, `/pool`, `/rewind`, `/sandbox`). | Interface |
 | `src/cli/` | Operator CLI (`onboard`, `doctor --net`, `chat --go`, `cron`, `bots`, `mcp`, `plugins`, `security`). | Interface |
-| `apps/desktop/` | CoreBlow Studio Desktop (Electron + Vite + React with `--session` handoff and `sandbox: true`). | Desktop |
+| `apps/desktop/` | Sole cross-platform CoreBlow Studio Desktop app (macOS, Windows, Linux) with built-in Menu Bar / System Tray, `electron-updater`, `--session` handoff, and `sandbox: true`. | Desktop |
 | `ui/` | Pre-built Web Control UI served directly by the Gateway. | Web |
 | `extensions/` | Controlled workspace plugins managed via CoreHub. | Plugins |
 

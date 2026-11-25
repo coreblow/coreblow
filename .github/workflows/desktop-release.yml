@@ -1,0 +1,178 @@
+# CoreBlow Desktop — Unified Cross-Platform Release Pipeline
+# Builds macOS (.dmg, .zip), Linux (.AppImage, .deb), and Windows (.exe) artifacts
+
+name: Desktop Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to attach Desktop installers to (e.g. v2.2.0)'
+        required: true
+
+concurrency:
+  group: desktop-release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+            artifact_pattern: |
+              apps/desktop/release/*.dmg
+              apps/desktop/release/*.zip
+              apps/desktop/release/*.blockmap
+              apps/desktop/release/latest-mac.yml
+          - os: ubuntu-latest
+            platform: linux
+            artifact_pattern: |
+              apps/desktop/release/*.AppImage
+              apps/desktop/release/*.deb
+              apps/desktop/release/latest-linux.yml
+          - os: windows-latest
+            platform: win
+            artifact_pattern: |
+              apps/desktop/release/*.exe
+              apps/desktop/release/*.blockmap
+              apps/desktop/release/latest.yml
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
+
+      - name: Build & Typecheck Desktop App
+        run: |
+          pnpm --filter @coreblow/desktop run build
+          pnpm --filter @coreblow/desktop run typecheck
+
+      - name: Run Desktop Unit Tests
+        run: pnpm --filter @coreblow/desktop test
+
+      - name: Package macOS Installers (.dmg, .zip)
+        if: matrix.platform == 'mac'
+        run: pnpm --filter @coreblow/desktop exec electron-builder --mac dmg zip --arm64 --x64 --publish never
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_LINK != '' && 'true' || 'false' }}
+
+      - name: Package Linux Installers (.AppImage, .deb)
+        if: matrix.platform == 'linux'
+        run: pnpm --filter @coreblow/desktop exec electron-builder --linux AppImage deb --x64 --arm64 --publish never
+
+      - name: Package Windows Installers (.exe)
+        if: matrix.platform == 'win'
+        run: pnpm --filter @coreblow/desktop exec electron-builder --win nsis portable --x64 --arm64 --publish never
+        env:
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+      - name: Upload Platform Artifacts
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: desktop-${{ matrix.platform }}
+          path: ${{ matrix.artifact_pattern }}
+          if-no-files-found: error
+
+  publish:
+    name: Attest & Publish Desktop Release
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Download All Desktop Artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          pattern: desktop-*
+          merge-multiple: true
+          path: desktop-artifacts
+
+      - name: Generate CycloneDX Desktop SBOM
+        run: |
+          cd apps/desktop
+          npx -y @cyclonedx/cyclonedx-npm --output-file ../../desktop-artifacts/sbom-desktop.cdx.json || node -e '
+            const fs = require("fs");
+            const pkg = require("./package.json");
+            const sbom = {
+              bomFormat: "CycloneDX",
+              specVersion: "1.5",
+              version: 1,
+              metadata: {
+                timestamp: new Date().toISOString(),
+                component: {
+                  name: pkg.name,
+                  version: pkg.version,
+                  type: "application",
+                  description: pkg.description
+                }
+              },
+              components: []
+            };
+            fs.writeFileSync("../../desktop-artifacts/sbom-desktop.cdx.json", JSON.stringify(sbom, null, 2));
+          '
+
+      - name: Generate SHA256 Checksums
+        run: |
+          cd desktop-artifacts
+          rm -f SHA256SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' -exec sha256sum -- {} + > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
+        with:
+          subject-path: |
+            desktop-artifacts/*.dmg
+            desktop-artifacts/*.zip
+            desktop-artifacts/*.AppImage
+            desktop-artifacts/*.deb
+            desktop-artifacts/*.exe
+            desktop-artifacts/latest*.yml
+            desktop-artifacts/SHA256SUMS.txt
+            desktop-artifacts/sbom-desktop.cdx.json
+
+      - name: Upload Desktop Installers to GitHub Release
+        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2.0.8
+        with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
+          files: desktop-artifacts/*
+          draft: false
+          generate_release_notes: false

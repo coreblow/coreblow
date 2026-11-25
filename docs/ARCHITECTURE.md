@@ -16,7 +16,7 @@ CoreBlow is designed as an industrial-grade, deterministic **Enterprise Autonomo
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                   LAYER 1: APPLICATION AND EDGE LAYER                       │
 │  ┌───────────────┐ ┌───────────────┐ ┌───────────────┐ ┌─────────────────┐  │
-│  │  apps/macos   │ │   apps/ios    │ │ apps/android  │ │    Web UI       │  │
+│  │ apps/desktop  │ │   apps/ios    │ │ apps/android  │ │    Web UI       │  │
 │  │ (Desktop App) │ │ (Mobile App)  │ │ (Mobile App)  │ │     (ui/)       │  │
 │  └───────┬───────┘ └───────┬───────┘ └───────┬───────┘ └────────┬────────┘  │
 │          │                 │                 │                  │           │
@@ -80,7 +80,7 @@ CoreBlow is designed as an industrial-grade, deterministic **Enterprise Autonomo
 ### 2.1 Layer 1: Application and Edge Layer
 The Application Layer provides native client surfaces and high-performance local edge acceleration:
 - **Native Companion Apps:**
-  - `apps/macos`: Native macOS SwiftUI application leveraging the modern `Observation` framework (`@Observable`, `@Bindable`) for deterministic state sync.
+  - `apps/desktop`: Sole cross-platform Desktop application across macOS, Windows, and Linux (Electron + Vite + React) featuring a built-in Menu Bar / System Tray, `electron-updater` release checks, and local Gateway supervision.
   - `apps/ios`: iOS mobile companion client providing background push synchronization and secure pairing authorization.
   - `apps/android`: Kotlin-based Jetpack Compose companion application connecting over secure WebSocket gateways.
   - `ui/`: Modern React/Vite web control center for real-time fleet observation, agent status tracking, and configuration management.

@@ -67,6 +67,7 @@ export interface UiPreferences {
   terminalFontFamily?: string;
   terminalFontSize?: number;
   desktopNotifications?: boolean;
+  autoCheckUpdates?: boolean;
 
   // Models & Reasoning
   defaultReasoningEffort?: "Low" | "Medium" | "High" | "Max";
@@ -143,6 +144,7 @@ export const DEFAULT_PREFERENCES: UiPreferences = {
   terminalFontFamily: "JetBrains Mono",
   terminalFontSize: 13,
   desktopNotifications: true,
+  autoCheckUpdates: true,
 
   defaultReasoningEffort: "Medium",
   mainContextWindowOverride: 0,

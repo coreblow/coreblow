@@ -62,4 +62,5 @@ extensions/diffs/assets/viewer-runtime.js
 src/canvas-host/a2ui/*.bundle.js
 src/canvas-host/a2ui/*.map
 apps/*/build/
+!apps/desktop/build/
 apps/shared/*/build/

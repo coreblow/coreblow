@@ -96,7 +96,7 @@ fi
 # ── 7. Distribution ─────────────────────────────────────────────
 echo ""
 echo "── 7. Distribution Infrastructure ────────────────────────────"
-if [ -f "appcast.xml" ]; then pass "appcast.xml (Sparkle)"; else fail "appcast.xml MISSING"; fi
+if [ -f "apps/desktop/build/entitlements.mac.plist" ]; then pass "apps/desktop/build/entitlements.mac.plist (macOS signing entitlements)"; else fail "apps/desktop/build/entitlements.mac.plist MISSING"; fi
 
 FL_COUNT=$(find apps/ios/fastlane -type f 2>/dev/null | wc -l | tr -d ' ')
 if [ "$FL_COUNT" -ge 15 ]; then
@@ -115,7 +115,7 @@ else
   warn "Only $WF_COUNT workflows (expected ≥20)"
 fi
 
-for w in ci.yml macos-release.yml coreblow-npm-release.yml docker-release.yml codeql.yml plugin-npm-release.yml install-smoke.yml sandbox-common-smoke.yml workflow-sanity.yml; do
+for w in ci.yml desktop-release.yml coreblow-npm-release.yml docker-release.yml codeql.yml plugin-npm-release.yml install-smoke.yml sandbox-common-smoke.yml workflow-sanity.yml; do
   if [ -f ".github/workflows/$w" ]; then pass "$w"; else fail "$w MISSING"; fi
 done
 

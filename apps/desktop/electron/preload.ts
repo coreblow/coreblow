@@ -1,4 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
+import type { UpdateStatus } from "./updater";
+
+export type { UpdateStatus };
 
 export interface CoreBlowDesktopApi {
   platform: string;
@@ -50,6 +53,17 @@ export interface CoreBlowDesktopApi {
   diagnostics: {
     openLogs: () => Promise<{ ok: boolean; path?: string; error?: string }>;
   };
+  tray: {
+    onNewChat: (callback: () => void) => () => void;
+  };
+  updater: {
+    getStatus: () => Promise<UpdateStatus>;
+    checkForUpdates: () => Promise<UpdateStatus>;
+    downloadUpdate: () => Promise<UpdateStatus>;
+    quitAndInstall: () => Promise<boolean>;
+    setAutoCheck: (enabled: boolean) => Promise<UpdateStatus>;
+    onStatusChange: (callback: (status: UpdateStatus) => void) => () => void;
+  };
 }
 
 function resolveInitialGatewayUrl(): string {
@@ -73,7 +87,7 @@ const desktopApi: CoreBlowDesktopApi = {
     node: process.versions.node,
     chrome: process.versions.chrome,
     electron: process.versions.electron,
-    coreblow: "2.1.5",
+    coreblow: "2.2.0",
   },
   dialog: {
     selectDirectory: () => ipcRenderer.invoke("coreblow:dialog:selectDirectory"),
@@ -128,6 +142,29 @@ const desktopApi: CoreBlowDesktopApi = {
   },
   diagnostics: {
     openLogs: () => ipcRenderer.invoke("coreblow:diagnostics:openLogs"),
+  },
+  tray: {
+    onNewChat: (callback: () => void) => {
+      const handler = () => callback();
+      ipcRenderer.on("coreblow:tray:new-chat", handler);
+      return () => {
+        ipcRenderer.removeListener("coreblow:tray:new-chat", handler);
+      };
+    },
+  },
+  updater: {
+    getStatus: () => ipcRenderer.invoke("coreblow:updater:getStatus"),
+    checkForUpdates: () => ipcRenderer.invoke("coreblow:updater:check"),
+    downloadUpdate: () => ipcRenderer.invoke("coreblow:updater:download"),
+    quitAndInstall: () => ipcRenderer.invoke("coreblow:updater:install"),
+    setAutoCheck: (enabled: boolean) => ipcRenderer.invoke("coreblow:updater:setAutoCheck", enabled),
+    onStatusChange: (callback: (status: UpdateStatus) => void) => {
+      const handler = (_event: unknown, status: UpdateStatus) => callback(status);
+      ipcRenderer.on("coreblow:updater:status", handler);
+      return () => {
+        ipcRenderer.removeListener("coreblow:updater:status", handler);
+      };
+    },
   },
 };
 

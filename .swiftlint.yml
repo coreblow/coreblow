@@ -1,7 +1,8 @@
 # SwiftLint configuration for CoreBlow (Swift 6 friendly)
 
 included:
-  - apps/macos/Sources
+  - apps/ios/Sources
+  - apps/shared/CoreBlowKit/Sources
 
 excluded:
   - .build

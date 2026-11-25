@@ -16,7 +16,7 @@ const NODE_SCOPE_RE =
 const WINDOWS_SCOPE_RE =
   /^(src\/|test\/|extensions\/|packages\/|scripts\/|ui\/|coreblow\.mjs$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|tsconfig.*\.json$|vitest.*\.ts$|tsdown\.config\.ts$|\.github\/workflows\/ci\.yml$|\.github\/actions\/setup-node-env\/action\.yml$|\.github\/actions\/setup-pnpm-store-cache\/action\.yml$)/;
 const NATIVE_ONLY_RE =
-  /^(apps\/android\/|apps\/ios\/|apps\/macos\/|apps\/shared\/|Swabble\/|appcast\.xml$)/;
+  /^(apps\/android\/|apps\/ios\/|apps\/shared\/|Swabble\/)/;
 const CHANGED_SMOKE_SCOPE_RE =
   /^(Dockerfile$|\.npmrc$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|scripts\/install\.sh$|scripts\/test-install-sh-docker\.sh$|scripts\/docker\/|extensions\/[^/]+\/package\.json$|\.github\/workflows\/install-smoke\.yml$|\.github\/actions\/setup-node-env\/action\.yml$)/;
 

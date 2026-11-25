@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import type { UpdateStatus } from "../../electron/preload";
 import { gatewayClient } from "../services/gateway-client";
 import { storageService, type UiPreferences } from "../services/storage";
 import type {
@@ -60,6 +61,10 @@ export interface SettingsModalProps {
   onUpdatePreferences: (prefs: Partial<UiPreferences>) => void;
   initialSection?: SettingsSection;
   onRunSetupWizard?: () => void;
+  updateStatus?: UpdateStatus | null;
+  onCheckForUpdates?: () => void;
+  onDownloadUpdate?: () => void;
+  onInstallUpdate?: () => void;
 }
 
 const ACCENT_SWATCHES = [
@@ -396,10 +401,37 @@ const SEARCH_INDEX: SearchableSetting[] = [
     id: "about-coreblow",
     section: "about",
     title: "About CoreBlow Studio",
-    description: "Version 2.1.5, Application ID, architecture, docs",
+    description: "Version 2.2.0, Application ID, architecture, docs",
     keywords: ["about", "version", "docs", "coreblow", "license"],
   },
+  {
+    id: "software-updates",
+    section: "general",
+    title: "Software Updates",
+    description: "Check for updates and automatic update notifications",
+    keywords: ["update", "updates", "release", "check", "auto"],
+  },
 ];
+
+function describeUpdateStatus(status?: UpdateStatus | null): string {
+  if (!status) return "Up to date";
+  switch (status.phase) {
+    case "checking":
+      return "Checking...";
+    case "available":
+      return status.availableVersion ? `Update v${status.availableVersion} available` : "Update available";
+    case "downloading":
+      return `Downloading ${Math.round(status.progressPercent ?? 0)}%`;
+    case "downloaded":
+      return status.availableVersion ? `Ready to restart (v${status.availableVersion})` : "Ready to restart";
+    case "error":
+      return status.error ? `Offline (${status.error})` : "Offline";
+    case "not-available":
+    case "idle":
+    default:
+      return "Up to date";
+  }
+}
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   open,
@@ -408,6 +440,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onUpdatePreferences,
   initialSection = "general",
   onRunSetupWizard,
+  updateStatus,
+  onCheckForUpdates,
+  onDownloadUpdate,
+  onInstallUpdate,
 }) => {
   const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
   const [modelsExpanded, setModelsExpanded] = useState<boolean>(true);
@@ -1665,13 +1701,99 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 <SettingRow
                   label="Desktop Notifications"
-                  description="Show macOS native notifications when long-running tool tasks finish."
+                  description="Show native OS notifications when long-running tool tasks finish."
                 >
                   <ToggleSwitch
                     checked={preferences.desktopNotifications ?? true}
                     onChange={(checked) => onUpdatePreferences({ desktopNotifications: checked })}
                     ariaLabel="Toggle desktop notifications"
                   />
+                </SettingRow>
+              </SettingGroup>
+
+              <SettingGroup title="SOFTWARE UPDATES">
+                <SettingRow
+                  label="Automatically Check for Updates"
+                  description="Check GitHub Releases in the background on launch."
+                >
+                  <ToggleSwitch
+                    checked={preferences.autoCheckUpdates ?? true}
+                    onChange={(checked) => {
+                      onUpdatePreferences({ autoCheckUpdates: checked });
+                      window.coreblowDesktop?.updater?.setAutoCheck(checked).catch(() => {});
+                    }}
+                    ariaLabel="Toggle automatic update checks"
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label="Release Channel Check"
+                  description={describeUpdateStatus(updateStatus)}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    {updateStatus?.phase === "available" && (
+                      <button
+                        type="button"
+                        onClick={() => onDownloadUpdate?.()}
+                        style={{
+                          padding: "5px 12px",
+                          borderRadius: "6px",
+                          border: "none",
+                          background: "#E95420",
+                          color: "#FFFFFF",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Download v{updateStatus.availableVersion}
+                      </button>
+                    )}
+                    {updateStatus?.phase === "downloaded" && (
+                      <button
+                        type="button"
+                        onClick={() => onInstallUpdate?.()}
+                        style={{
+                          padding: "5px 12px",
+                          borderRadius: "6px",
+                          border: "none",
+                          background: "#E95420",
+                          color: "#FFFFFF",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Restart to Install
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onCheckForUpdates) {
+                          onCheckForUpdates();
+                        } else {
+                          window.coreblowDesktop?.updater?.checkForUpdates().catch(() => {});
+                        }
+                      }}
+                      disabled={updateStatus?.phase === "checking" || updateStatus?.phase === "downloading"}
+                      style={{
+                        padding: "5px 12px",
+                        borderRadius: "6px",
+                        background: "var(--bg-input)",
+                        border: "1px solid var(--border-medium)",
+                        color: "var(--ink-primary)",
+                        fontSize: "12px",
+                        fontWeight: 500,
+                        cursor:
+                          updateStatus?.phase === "checking" || updateStatus?.phase === "downloading"
+                            ? "wait"
+                            : "pointer",
+                      }}
+                    >
+                      {updateStatus?.phase === "checking" ? "Checking..." : "Check for Updates"}
+                    </button>
+                  </div>
                 </SettingRow>
               </SettingGroup>
 
@@ -4344,10 +4466,38 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       CoreBlow Studio
                     </div>
                     <div style={{ fontSize: "12px", color: "var(--ink-muted)" }}>
-                      Version 2.1.5 (Release) • macOS Universal
+                      Version 2.2.0 (Release) • Cross-Platform Desktop
                     </div>
                   </div>
                 </div>
+
+                <SettingRow
+                  label="Updates"
+                  description={describeUpdateStatus(updateStatus)}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onCheckForUpdates) {
+                        onCheckForUpdates();
+                      } else {
+                        window.coreblowDesktop?.updater?.checkForUpdates().catch(() => {});
+                      }
+                    }}
+                    disabled={updateStatus?.phase === "checking"}
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: "6px",
+                      background: "var(--bg-input)",
+                      border: "1px solid var(--border-medium)",
+                      color: "var(--ink-primary)",
+                      fontSize: "12px",
+                      cursor: updateStatus?.phase === "checking" ? "wait" : "pointer",
+                    }}
+                  >
+                    {updateStatus?.phase === "checking" ? "Checking..." : "Check for Updates"}
+                  </button>
+                </SettingRow>
 
                 <SettingRow label="Application ID">
                   <span

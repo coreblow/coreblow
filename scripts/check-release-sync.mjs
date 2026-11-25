@@ -115,50 +115,6 @@ if (targetVersion) {
     recordError("VERSION", `Failed to read scripts/install.sh: ${err.message}`);
   }
 
-  // apps/macos/scripts/package-release.sh
-  const macosPkgShPath = path.join(repoRoot, "apps/macos/scripts/package-release.sh");
-  try {
-    const macosShContent = fs.readFileSync(macosPkgShPath, "utf-8");
-    const verMatch = macosShContent.match(/^VERSION="([^"]+)"/m);
-    if (!verMatch) {
-      recordError("VERSION", "apps/macos/scripts/package-release.sh missing VERSION assignment");
-    } else if (verMatch[1] !== targetVersion) {
-      recordError(
-        "VERSION",
-        `apps/macos/scripts/package-release.sh VERSION (${verMatch[1]}) does not match root (${targetVersion})`
-      );
-    }
-
-    const shortVerMatch = macosShContent.match(/<key>CFBundleShortVersionString<\/key>\s*<string>([^<]+)<\/string>/);
-    if (!shortVerMatch) {
-      recordError("VERSION", "apps/macos/scripts/package-release.sh missing CFBundleShortVersionString plist tag");
-    } else if (shortVerMatch[1] !== targetVersion) {
-      recordError(
-        "VERSION",
-        `apps/macos/scripts/package-release.sh CFBundleShortVersionString (${shortVerMatch[1]}) does not match root (${targetVersion})`
-      );
-    }
-  } catch (err) {
-    recordError("VERSION", `Failed to read apps/macos/scripts/package-release.sh: ${err.message}`);
-  }
-
-  // appcast.xml
-  const appcastPath = path.join(repoRoot, "appcast.xml");
-  try {
-    const appcastContent = fs.readFileSync(appcastPath, "utf-8");
-    const appcastMatch = appcastContent.match(/<sparkle:shortVersionString>([^<]+)<\/sparkle:shortVersionString>/);
-    if (!appcastMatch) {
-      recordError("VERSION", "appcast.xml missing sparkle:shortVersionString tag");
-    } else if (appcastMatch[1] !== targetVersion) {
-      recordError(
-        "VERSION",
-        `appcast.xml sparkle:shortVersionString (${appcastMatch[1]}) does not match root (${targetVersion})`
-      );
-    }
-  } catch (err) {
-    recordError("VERSION", `Failed to read appcast.xml: ${err.message}`);
-  }
-
   // CHANGELOG.md
   const changelogPath = path.join(repoRoot, "CHANGELOG.md");
   try {
@@ -213,10 +169,10 @@ function scanDirForPersonalPaths(dirPath) {
   }
 }
 
-// Scan package.json, scripts/, apps/macos/scripts/
+// Scan package.json, scripts/, apps/desktop/build/
 checkFileForPersonalPaths(rootPkgPath);
 scanDirForPersonalPaths(path.join(repoRoot, "scripts"));
-scanDirForPersonalPaths(path.join(repoRoot, "apps/macos/scripts"));
+scanDirForPersonalPaths(path.join(repoRoot, "apps/desktop/build"));
 
 // ─── 3. Forbidden Third-Party Brand Strings ──────────────────────────
 
@@ -234,7 +190,7 @@ const brandCheckFiles = [
   "package.json",
   "README.md",
   "docs/ARCHITECTURE.md",
-  "appcast.xml",
+  "apps/desktop/electron-builder.json",
 ];
 
 for (const relFile of brandCheckFiles) {
@@ -261,7 +217,7 @@ for (const relFile of brandCheckFiles) {
 // ─── 4. Required Release Assets ──────────────────────────────────────
 
 const requiredAssets = [
-  "apps/macos/CoreBlow.entitlements",
+  "apps/desktop/build/entitlements.mac.plist",
   "coreblow.mjs",
 ];
 

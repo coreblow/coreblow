@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 Entries are listed newest-first within each version block.
 Changelog covers user-facing changes only; internal/meta notes are omitted.
 
+## [2.2.0] (2026-11-25)
+
+### Highlights
+
+- **Unified Cross-Platform CoreBlow Desktop (`apps/desktop/`):** Consolidated macOS, Linux, and Windows into a single Electron desktop shell (`apps/desktop/`) and retired the legacy `apps/macos/` Swift target, `appcast.xml`, and `macos-release.yml`.
+- **Built-In Menu Bar & System Tray:** Added an integrated native Menu Bar icon (macOS template icon) and System Tray (Windows/Linux) directly inside CoreBlow Desktop with live Gateway Online/Offline status, Open CoreBlow, New Chat (`coreblow:tray:new-chat`), Restart Gateway, Check for Updates, and Quit CoreBlow actions plus graceful hide-to-tray window closing.
+- **Automatic Update Notifications (`electron-updater`):** Added GitHub Releases update detection (`electron/updater.ts`), a dismissible update banner in the desktop window, manual **Check for Updates** controls in General & About Settings, an **Automatically Check for Updates** toggle, and offline-resilient error handling.
+- **Cross-Platform Desktop Build & Release Matrix:** Replaced POSIX build commands in `@coreblow/desktop` with Node-native scripts, restored native window frames on Windows and Linux with OS-aware PATH separators and default shells, configured macOS entitlements in `apps/desktop/build/entitlements.mac.plist`, and added `.github/workflows/desktop-release.yml` for multi-OS `.dmg`, `.zip`, `.AppImage`, `.deb`, `.exe`, `latest*.yml`, `SHA256SUMS.txt`, and provenance attestations.
+
 ## [2.1.5] (2026-11-25)
 
 ### Fixes

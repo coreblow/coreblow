@@ -1,14 +1,21 @@
 import { app, BrowserWindow, ipcMain, dialog, shell, clipboard, safeStorage, desktopCapturer } from "electron";
 import * as path from "node:path";
 import * as http from "node:http";
+import * as https from "node:https";
 import { spawn, exec, type ChildProcess } from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
+import { createTrayController, type TrayController } from "./tray";
+import { formatUpdateStatusLabel, initUpdater, type UpdaterController } from "./updater";
 
 let mainWindow: BrowserWindow | null = null;
 let gatewayProcess: ChildProcess | null = null;
 let isGatewayManagedByDesktop = false;
 let isHudMode = false;
+let isQuitting = false;
+let trayController: TrayController | null = null;
+let updaterController: UpdaterController | null = null;
+let gatewayHealthTimer: ReturnType<typeof setInterval> | null = null;
 let savedBounds: { x: number; y: number; width: number; height: number } | null = null;
 
 function extractSessionIdFromArgv(argv: string[]): string | null {
@@ -45,8 +52,6 @@ if (!gotSingleInstanceLock) {
     }
   });
 }
-
-import * as https from "node:https";
 
 const DEFAULT_GATEWAY_PORT = 18789;
 
@@ -124,25 +129,51 @@ async function ensureGatewayDaemon(): Promise<boolean> {
 
   const projectRoot = findProjectRoot();
   const coreblowMjs = path.join(projectRoot, "coreblow.mjs");
+  const spawnArgs = ["gateway", "run", "--port", String(GATEWAY_PORT), "--allow-unconfigured"];
 
+  let spawned: ChildProcess | null = null;
   if (fs.existsSync(coreblowMjs)) {
     try {
-      gatewayProcess = spawn(
-        process.execPath,
-        [coreblowMjs, "gateway", "run", "--port", String(GATEWAY_PORT), "--allow-unconfigured"],
-        {
-          cwd: projectRoot,
-          detached: false,
-          stdio: "ignore",
-          env: {
-            ...process.env,
-            ELECTRON_RUN_AS_NODE: "1",
-            PORT: String(GATEWAY_PORT),
-          },
+      spawned = spawn(process.execPath, [coreblowMjs, ...spawnArgs], {
+        cwd: projectRoot,
+        detached: false,
+        stdio: "ignore",
+        env: {
+          ...process.env,
+          ELECTRON_RUN_AS_NODE: "1",
+          PORT: String(GATEWAY_PORT),
         },
-      );
+      });
+    } catch {
+      spawned = null;
+    }
+  } else {
+    try {
+      const cliBin = process.platform === "win32" ? "coreblow.cmd" : "coreblow";
+      spawned = spawn(cliBin, spawnArgs, {
+        cwd: os.homedir(),
+        detached: false,
+        stdio: "ignore",
+        shell: process.platform === "win32",
+        env: {
+          ...getAugmentedEnv(),
+          PORT: String(GATEWAY_PORT),
+        },
+      });
+    } catch {
+      spawned = null;
+    }
+  }
 
+  if (spawned) {
+    try {
+      gatewayProcess = spawned;
       isGatewayManagedByDesktop = true;
+
+      gatewayProcess.on("error", () => {
+        gatewayProcess = null;
+        isGatewayManagedByDesktop = false;
+      });
 
       gatewayProcess.on("exit", () => {
         gatewayProcess = null;
@@ -167,6 +198,36 @@ async function ensureGatewayDaemon(): Promise<boolean> {
   return await probeGatewayHealth();
 }
 
+function showAndFocusMainWindow(): void {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createWindow();
+    return;
+  }
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+  if (!mainWindow.isVisible()) {
+    mainWindow.show();
+  }
+  mainWindow.focus();
+}
+
+async function restartGatewayDaemon(): Promise<boolean> {
+  if (isGatewayManagedByDesktop && gatewayProcess) {
+    try {
+      gatewayProcess.kill();
+    } catch {
+      // Ignore stop errors before restart
+    }
+    gatewayProcess = null;
+    isGatewayManagedByDesktop = false;
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+  const ok = await ensureGatewayDaemon();
+  trayController?.setGatewayOnline(ok);
+  return ok;
+}
+
 function createWindow(): void {
   const isMac = process.platform === "darwin";
 
@@ -187,14 +248,7 @@ function createWindow(): void {
           vibrancy: "sidebar",
           visualEffectState: "active",
         }
-      : {
-          titleBarStyle: "hidden",
-          titleBarOverlay: {
-            color: "#08110F",
-            symbolColor: "#819B93",
-            height: 48,
-          },
-        }),
+      : {}),
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
@@ -237,6 +291,13 @@ function createWindow(): void {
 
   mainWindow.once("ready-to-show", () => {
     mainWindow?.show();
+  });
+
+  mainWindow.on("close", (event) => {
+    if (!isQuitting && trayController) {
+      event.preventDefault();
+      mainWindow?.hide();
+    }
   });
 
   mainWindow.on("closed", () => {
@@ -294,25 +355,42 @@ ipcMain.handle("coreblow:gateway:ensure", async () => {
 
 // ─── Local Terminal Integration ────────────────────────────────────────────
 
+function getDefaultShell(): string {
+  if (process.env.SHELL) {
+    return process.env.SHELL;
+  }
+  if (process.platform === "win32") {
+    return "powershell.exe";
+  }
+  return process.platform === "darwin" ? "/bin/zsh" : "/bin/bash";
+}
+
 function getAugmentedEnv(): Record<string, string> {
   const home = os.homedir();
-  const extraPaths = [
-    path.join(home, "Library", "pnpm"),
-    path.join(home, ".local", "bin"),
-    path.join(home, ".cargo", "bin"),
-    path.join(home, ".bun", "bin"),
-    "/opt/homebrew/bin",
-    "/opt/homebrew/sbin",
-    "/usr/local/bin",
-    "/usr/bin",
-    "/bin",
-    "/usr/sbin",
-    "/sbin",
-  ];
+  const extraPaths =
+    process.platform === "win32"
+      ? [
+          path.join(process.env.APPDATA || path.join(home, "AppData", "Roaming"), "npm"),
+          path.join(home, ".local", "bin"),
+          path.join(home, ".cargo", "bin"),
+          path.join(home, ".bun", "bin"),
+        ]
+      : [
+          path.join(home, "Library", "pnpm"),
+          path.join(home, ".local", "share", "pnpm"),
+          path.join(home, ".local", "bin"),
+          path.join(home, ".cargo", "bin"),
+          path.join(home, ".bun", "bin"),
+          ...(process.platform === "darwin" ? ["/opt/homebrew/bin", "/opt/homebrew/sbin"] : []),
+          "/usr/local/bin",
+          "/usr/bin",
+          "/bin",
+          "/usr/sbin",
+          "/sbin",
+        ];
+  const sep = path.delimiter;
   const existingPath = process.env.PATH || "";
-  const combined = existingPath
-    ? `${existingPath}:${extraPaths.join(":")}`
-    : extraPaths.join(":");
+  const combined = existingPath ? `${existingPath}${sep}${extraPaths.join(sep)}` : extraPaths.join(sep);
 
   return {
     ...process.env,
@@ -324,7 +402,7 @@ function getAugmentedEnv(): Record<string, string> {
 
 ipcMain.handle("coreblow:terminal:exec", async (_event, { command, cwd }: { command: string; cwd?: string }) => {
   const targetCwd = cwd && fs.existsSync(cwd) ? cwd : findProjectRoot();
-  const shellPath = process.env.SHELL || (process.platform === "win32" ? "powershell.exe" : "/bin/zsh");
+  const shellPath = getDefaultShell();
 
   return new Promise((resolve) => {
     exec(
@@ -377,7 +455,7 @@ ipcMain.handle("coreblow:terminal:getInfo", async (_event, { cwd }: { cwd?: stri
     hostname = os.hostname().split(".")[0];
   } catch {}
   return {
-    shell: process.env.SHELL || (process.platform === "win32" ? "powershell.exe" : "/bin/zsh"),
+    shell: getDefaultShell(),
     cwd: targetCwd,
     username,
     hostname,
@@ -527,23 +605,85 @@ ipcMain.handle("coreblow:diagnostics:openLogs", async () => {
 // ─── App Lifecycle ─────────────────────────────────────────────────────────
 
 app.whenReady().then(async () => {
-  await ensureGatewayDaemon();
+  updaterController = initUpdater({
+    getMainWindow: () => mainWindow,
+    beforeQuitInstall: () => {
+      isQuitting = true;
+    },
+  });
+
+  const gatewayReady = await ensureGatewayDaemon();
   createWindow();
 
+  trayController = createTrayController(
+    { gatewayOnline: gatewayReady },
+    {
+      onOpenWindow: () => showAndFocusMainWindow(),
+      onNewChat: () => {
+        showAndFocusMainWindow();
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("coreblow:tray:new-chat");
+        }
+      },
+      onRestartGateway: () => {
+        void restartGatewayDaemon();
+      },
+      onCheckForUpdates: () => {
+        showAndFocusMainWindow();
+        if (updaterController) {
+          void updaterController.checkForUpdates({ manual: true }).then((nextStatus) => {
+            if (!mainWindow || mainWindow.isDestroyed()) return;
+            if (nextStatus.phase === "not-available" || nextStatus.phase === "error") {
+              void dialog.showMessageBox(mainWindow, {
+                type: nextStatus.phase === "error" ? "warning" : "info",
+                title: "CoreBlow Updates",
+                message: formatUpdateStatusLabel(nextStatus),
+                detail:
+                  nextStatus.phase === "not-available"
+                    ? `You are running CoreBlow v${nextStatus.currentVersion}.`
+                    : "Unable to reach the update feed right now. Your offline workspace continues normally.",
+              });
+            }
+          });
+        }
+      },
+      onQuit: () => {
+        isQuitting = true;
+        app.quit();
+      },
+    },
+  );
+
+  gatewayHealthTimer = setInterval(() => {
+    void probeGatewayHealth().then((online) => {
+      trayController?.setGatewayOnline(online);
+    });
+  }, 8_000);
+
   app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
+    showAndFocusMainWindow();
   });
 });
 
+app.on("before-quit", () => {
+  isQuitting = true;
+  if (gatewayHealthTimer) {
+    clearInterval(gatewayHealthTimer);
+    gatewayHealthTimer = null;
+  }
+  updaterController?.dispose();
+  trayController?.destroy();
+  trayController = null;
+});
+
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
+  if (isQuitting || (!trayController && process.platform !== "darwin")) {
     app.quit();
   }
 });
 
 app.on("will-quit", () => {
+  isQuitting = true;
   if (isGatewayManagedByDesktop && gatewayProcess) {
     try {
       gatewayProcess.kill();

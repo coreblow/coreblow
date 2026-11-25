@@ -188,7 +188,7 @@ function checkFileHygiene(filePath, checkBrand = true) {
 const publicSurfaces = [
   path.join(repoRoot, "package.json"),
   path.join(repoRoot, "README.md"),
-  path.join(repoRoot, "appcast.xml"),
+  path.join(repoRoot, "apps/desktop/electron-builder.json"),
 ];
 
 for (const p of publicSurfaces) {

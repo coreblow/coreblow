@@ -6,7 +6,9 @@ import { ConversationArea } from "./components/ConversationArea";
 import { InspectorDrawer } from "./components/InspectorDrawer";
 import { SettingsModal } from "./components/SettingsModal";
 import { StatusBar } from "./components/StatusBar";
+import { UpdateBanner } from "./components/UpdateBanner";
 import { FirstRunSetup } from "./components/FirstRunSetup";
+import type { UpdateStatus } from "../electron/preload";
 import { CommandPalette } from "./components/CommandPalette";
 import { storageService } from "./services/storage";
 import { gatewayClient, GATEWAY_BASE_URL } from "./services/gateway-client";
@@ -130,6 +132,8 @@ export const App: React.FC = () => {
     }
   });
   const [isSyncingSessions, setIsSyncingSessions] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
+  const [dismissedUpdateVersion, setDismissedUpdateVersion] = useState<string | null>(null);
 
   // Live Voice Mode state
   const [autoSpeak, setAutoSpeak] = useState<boolean>(() => {
@@ -695,6 +699,44 @@ export const App: React.FC = () => {
     setActiveThreadId(id);
   };
 
+  const newThreadRef = useRef<() => void>(() => {});
+  newThreadRef.current = () => {
+    setSidebarMode("sessions");
+    handleNewThread();
+  };
+
+  useEffect(() => {
+    const desktop = window.coreblowDesktop;
+    if (!desktop) return;
+
+    const unsubTray = desktop.tray?.onNewChat?.(() => {
+      newThreadRef.current();
+    });
+
+    if (desktop.updater) {
+      desktop.updater
+        .getStatus()
+        .then((initial) => setUpdateStatus(initial))
+        .catch(() => {});
+      const unsubUpdater = desktop.updater.onStatusChange((next) => {
+        setUpdateStatus(next);
+      });
+      return () => {
+        unsubTray?.();
+        unsubUpdater?.();
+      };
+    }
+
+    return () => {
+      unsubTray?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    const enabled = preferences.autoCheckUpdates ?? true;
+    window.coreblowDesktop?.updater?.setAutoCheck(enabled).catch(() => {});
+  }, [preferences.autoCheckUpdates]);
+
   const handleInstantScreenCapture = async () => {
     if (window.coreblowDesktop?.screen?.captureActive) {
       try {
@@ -1012,13 +1054,30 @@ export const App: React.FC = () => {
           />
         }
         topbar={
-          <Topbar
-            sidebarCollapsed={preferences.sidebarCollapsed}
-            inspectorOpen={preferences.inspectorOpen}
-            onToggleInspector={() =>
-              setPreferences((p) => ({ ...p, inspectorOpen: !p.inspectorOpen }))
-            }
-          />
+          <>
+            <Topbar
+              sidebarCollapsed={preferences.sidebarCollapsed}
+              inspectorOpen={preferences.inspectorOpen}
+              onToggleInspector={() =>
+                setPreferences((p) => ({ ...p, inspectorOpen: !p.inspectorOpen }))
+              }
+            />
+            <UpdateBanner
+              status={updateStatus}
+              dismissedVersion={dismissedUpdateVersion}
+              onDownloadAndRestart={() => {
+                window.coreblowDesktop?.updater?.downloadUpdate().catch(() => {});
+              }}
+              onInstallNow={() => {
+                window.coreblowDesktop?.updater?.quitAndInstall().catch(() => {});
+              }}
+              onDismiss={() => {
+                const versionTag =
+                  updateStatus?.availableVersion ?? updateStatus?.currentVersion ?? null;
+                setDismissedUpdateVersion(versionTag);
+              }}
+            />
+          </>
         }
         content={
           <ConversationArea
@@ -1104,6 +1163,17 @@ export const App: React.FC = () => {
         onRunSetupWizard={() => {
           setSettingsOpen(false);
           setShowSetupWizard(true);
+        }}
+        updateStatus={updateStatus}
+        onCheckForUpdates={() => {
+          setDismissedUpdateVersion(null);
+          window.coreblowDesktop?.updater?.checkForUpdates().catch(() => {});
+        }}
+        onDownloadUpdate={() => {
+          window.coreblowDesktop?.updater?.downloadUpdate().catch(() => {});
+        }}
+        onInstallUpdate={() => {
+          window.coreblowDesktop?.updater?.quitAndInstall().catch(() => {});
         }}
       />
 

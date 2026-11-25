@@ -244,7 +244,7 @@ export class GatewayBrowserClient {
             this.request<GatewayHelloOk>("connect", {
                minProtocol: 3,
                maxProtocol: 3,
-               client: { id: "coreblow-control-ui", version: "2.1.5", platform: "web", mode: "ui" },
+               client: { id: "coreblow-control-ui", version: "2.2.0", platform: "web", mode: "ui" },
                role,
                scopes,
                ...(device ? { device } : {}),

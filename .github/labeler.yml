@@ -60,7 +60,7 @@
 "platform: macos":
   - changed-files:
       - any-glob-to-any-file:
-          - apps/macos/**
+          - apps/desktop/**
           - apps/shared/**
 
 "channel: discord":

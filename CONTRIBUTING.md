@@ -115,7 +115,7 @@ Please allow a few weeks for a response.
 We take security reports seriously. Report vulnerabilities directly to the repository where the issue lives:
 
 - **Core CLI and gateway** — [coreblow/coreblow](https://github.com/coreblow/coreblow)
-- **macOS desktop app** — [coreblow/coreblow](https://github.com/coreblow/coreblow) (apps/macos)
+- **Cross-platform desktop app (macOS, Windows, Linux)** — [coreblow/coreblow](https://github.com/coreblow/coreblow) (`apps/desktop/`)
 - **iOS app** — [coreblow/coreblow](https://github.com/coreblow/coreblow) (apps/ios)
 - **Android app** — [coreblow/coreblow](https://github.com/coreblow/coreblow) (apps/android)
 
