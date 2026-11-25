@@ -17,11 +17,28 @@ export class OverviewView extends LitElement {
   @state() private estopPaused = false;
   @state() private estopLoading = false;
   @state() private estopReason = "";
+  @state() private gatewayUrlInput = "";
+  @state() private gatewayTokenInput = "";
 
   createRenderRoot() { return this; }
 
   connectedCallback() {
     super.connectedCallback();
+    this.gatewayUrlInput = this.app?.settings?.gatewayUrl ?? "";
+    this.gatewayTokenInput = this.app?.settings?.token ?? "";
+    void this.loadEstopStatus();
+  }
+
+  private handleGatewayConnect(e: Event) {
+    e.preventDefault();
+    const url = this.gatewayUrlInput.trim() || this.app.settings.gatewayUrl;
+    const token = this.gatewayTokenInput.trim();
+    this.app.applySettings({
+      ...this.app.settings,
+      gatewayUrl: url,
+      token,
+    });
+    this.app.gateway.reconnect();
     void this.loadEstopStatus();
   }
 
@@ -121,7 +138,7 @@ export class OverviewView extends LitElement {
               <div style="flex: 1; min-width: 200px;">
                  <div style="display: flex; align-items: center; gap: 8px;">
                     <div style="font-weight: 700; font-size: 16px;">${connected ? t("overview.status.coreblowOnline") : t("overview.status.notConnected")}</div>
-                    <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: var(--accent-subtle); color: var(--accent); font-weight: 700; font-family: var(--mono);">v2.1.4</span>
+                    <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: var(--accent-subtle); color: var(--accent); font-weight: 700; font-family: var(--mono);">v2.1.5</span>
                  </div>
                  <div style="font-size: 12px; color: var(--muted); margin-top: 2px;">${connected ? `${t("overview.status.connected")} ${this.app.settings.gatewayUrl}` : t("chat.connectToChat")}</div>
               </div>
@@ -141,6 +158,32 @@ export class OverviewView extends LitElement {
                  <div style="background: var(--warning, #f59e0b); color: #000; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">${approvalCount} pending approval</div>
               ` : ""}
            </div>
+
+           ${!connected ? html`
+             <form @submit=${(e: Event) => this.handleGatewayConnect(e)}
+                   style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-hairline); display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                <input
+                  type="text"
+                  aria-label="Gateway WebSocket URL"
+                  placeholder="ws://127.0.0.1:18789"
+                  .value=${this.gatewayUrlInput || this.app.settings.gatewayUrl}
+                  @input=${(e: Event) => { this.gatewayUrlInput = (e.target as HTMLInputElement).value; }}
+                  style="flex: 2; min-width: 220px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 7px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
+                />
+                <input
+                  type="password"
+                  aria-label="Gateway Token (optional)"
+                  placeholder="Gateway token (optional)"
+                  .value=${this.gatewayTokenInput}
+                  @input=${(e: Event) => { this.gatewayTokenInput = (e.target as HTMLInputElement).value; }}
+                  style="flex: 1; min-width: 160px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 7px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
+                />
+                <button type="submit" class="btn"
+                        style="background: var(--accent); color: #04100d; border: none; padding: 7px 14px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 700; cursor: pointer;">
+                   Connect Gateway
+                </button>
+             </form>
+           ` : ""}
 
            <!-- Runtime Posture Chips -->
            <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-hairline); display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">

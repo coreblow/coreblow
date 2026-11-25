@@ -24,8 +24,48 @@ export interface UiSettings {
   sshTunnelIdentityFile?: string;
 }
 
+function normalizeGatewayUrl(raw?: string | null): string | null {
+  const trimmed = raw?.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol === "http:") parsed.protocol = "ws:";
+    if (parsed.protocol === "https:") parsed.protocol = "wss:";
+    if (parsed.protocol !== "ws:" && parsed.protocol !== "wss:") return null;
+    return parsed.toString().replace(/\/$/, "");
+  } catch {
+    return null;
+  }
+}
+
+export function resolveQueryGatewayUrl(): string | null {
+  try {
+    const search = globalThis.location?.search;
+    if (!search) return null;
+    const params = new URLSearchParams(search);
+    return normalizeGatewayUrl(params.get("gatewayUrl"));
+  } catch {
+    return null;
+  }
+}
+
+export function resolveDefaultGatewayUrl(): string {
+  const queryUrl = resolveQueryGatewayUrl();
+  if (queryUrl) return queryUrl;
+  try {
+    const loc = globalThis.location;
+    if (loc?.host && (loc.protocol === "http:" || loc.protocol === "https:")) {
+      const wsProtocol = loc.protocol === "https:" ? "wss:" : "ws:";
+      return `${wsProtocol}//${loc.host}`;
+    }
+  } catch {
+    // Fallback below when running outside a browser HTTP origin
+  }
+  return "ws://127.0.0.1:18789";
+}
+
 const DEFAULT_SETTINGS: UiSettings = {
-  gatewayUrl: "ws://127.0.0.1:18789",
+  gatewayUrl: resolveDefaultGatewayUrl(),
   token: "",
   sessionKey: "",
   theme: "core",
@@ -44,25 +84,28 @@ const DEFAULT_SETTINGS: UiSettings = {
 };
 
 export function loadSettings(): UiSettings {
+  const defaultGatewayUrl = resolveDefaultGatewayUrl();
+  const queryGatewayUrl = resolveQueryGatewayUrl();
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_SETTINGS;
+    const raw = globalThis.localStorage?.getItem(STORAGE_KEY);
+    if (!raw) return { ...DEFAULT_SETTINGS, gatewayUrl: defaultGatewayUrl };
     const parsed = JSON.parse(raw);
     const normalizedTheme = parsed?.theme === "knot" ? "obsidian" : parsed?.theme;
     return {
       ...DEFAULT_SETTINGS,
       ...parsed,
+      gatewayUrl: queryGatewayUrl ?? normalizeGatewayUrl(parsed?.gatewayUrl) ?? defaultGatewayUrl,
       ...(normalizedTheme ? { theme: normalizedTheme } : {}),
       locale: isSupportedLocale(parsed?.locale) ? parsed.locale : undefined,
     };
   } catch {
-    return DEFAULT_SETTINGS;
+    return { ...DEFAULT_SETTINGS, gatewayUrl: defaultGatewayUrl };
   }
 }
 
 export function saveSettings(settings: UiSettings): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch {
     // ignore
   }

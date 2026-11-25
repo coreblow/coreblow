@@ -51,7 +51,7 @@ export class CommandPalette extends LitElement {
   }
 
   private _handleKeydown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
          e.preventDefault();
          this.toggle();
          return;
@@ -124,7 +124,7 @@ export class CommandPalette extends LitElement {
     let globalIndex = 0;
 
     return html`
-      <div class="approval-overlay" @click=${(e: Event) => { if (e.target === e.currentTarget) this.close(); }}
+      <div role="dialog" aria-modal="true" aria-label="Command Palette" class="approval-overlay" @click=${(e: Event) => { if (e.target === e.currentTarget) this.close(); }}
            style="z-index: 10000; align-items: flex-start; padding-top: 15vh;">
          <div style="background: var(--bg-surface, #1e1e2e); border: 1px solid var(--border); border-radius: var(--radius-lg, 12px); width: 90%; max-width: 540px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: modalSlideIn 0.15s ease; overflow: hidden;">
 

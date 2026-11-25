@@ -1,6 +1,6 @@
 {
   "name": "coreblow",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "CoreBlow — enterprise AI gateway and personal assistant runtime",
   "keywords": [
     "ai",
@@ -106,10 +106,10 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build && pnpm build:runtime",
+    "build": "pnpm build:runtime && pnpm ui:build",
     "ui:build": "node scripts/ui.js build",
     "ui:dev": "node scripts/ui.js dev",
-    "build:all": "pnpm typecheck && pnpm build",
+    "build:all": "pnpm typecheck && pnpm build && pnpm --filter @coreblow/desktop build",
     "build:runtime": "node scripts/tsdown-build.mjs && node scripts/runtime-postbuild.mjs && node scripts/build-stamp.mjs && pnpm build:plugin-sdk:dts && pnpm sdk:entry-dts",
     "build:gateway": "tsc -p tsconfig.build.json",
     "build:docker": "tsc -p tsconfig.build.json",

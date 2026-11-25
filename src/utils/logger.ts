@@ -4,6 +4,7 @@
  * Upgraded from 26 LOC to full CoreBlow-pattern pipeline.
  */
 
+import { createRequire } from 'node:module';
 import { pino } from 'pino';
 import type { Logger as PinoLogger, TransportSingleOptions } from 'pino';
 
@@ -36,6 +37,15 @@ const REDACTION_PATHS = [
 
 // ─── Transport Configuration ──────────────────────────────────────
 
+function isPinoPrettyAvailable(): boolean {
+    try {
+        createRequire(import.meta.url).resolve('pino-pretty');
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 function buildTransports(): Record<string, unknown> | undefined {
     if (LOG_LEVEL === 'silent' && !LOG_FILE) {
         return undefined;
@@ -43,7 +53,7 @@ function buildTransports(): Record<string, unknown> | undefined {
 
     const targets: Array<Record<string, unknown>> = [];
 
-    if (LOG_FORMAT === 'pretty' || isDev) {
+    if ((LOG_FORMAT === 'pretty' || isDev) && isPinoPrettyAvailable()) {
         targets.push({
             target: 'pino-pretty',
             options: {
@@ -54,8 +64,7 @@ function buildTransports(): Record<string, unknown> | undefined {
             },
             level: LOG_LEVEL,
         });
-    } else {
-        // JSON stdout for production (12-factor compatible)
+    } else if (LOG_FILE) {
         targets.push({
             target: 'pino/file',
             options: { destination: 1 }, // stdout
@@ -73,6 +82,10 @@ function buildTransports(): Record<string, unknown> | undefined {
             },
             level: LOG_LEVEL,
         });
+    }
+
+    if (targets.length === 0) {
+        return undefined;
     }
 
     if (targets.length === 1) {

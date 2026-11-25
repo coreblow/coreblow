@@ -36,9 +36,16 @@ export function renderApp(app: CoreBlowApp) {
           <div class="topnav-shell__actions" style="display: flex; align-items: center; gap: 8px;">
             <!-- Command Palette Trigger -->
             <div class="topbar-status">
-               <button class="pill" style="cursor: pointer; height: 30px; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px; background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--muted); font-size: 11px; white-space: nowrap;"
+               <button type="button" class="pill" style="cursor: pointer; height: 30px; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px; background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--muted); font-size: 11px; white-space: nowrap;"
                        title="Command Palette (⌘K)"
-                       @click=${() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}>
+                       @click=${() => {
+                         const palette = document.querySelector("coreblow-command-palette") as { toggle?: () => void } | null;
+                         if (palette?.toggle) {
+                           palette.toggle();
+                         } else {
+                           document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }));
+                         }
+                       }}>
                   ${renderIcon("search", "12px")}
                   <span style="font-family: var(--mono); opacity: 0.85;">⌘K</span>
                </button>
@@ -92,12 +99,13 @@ export function renderApp(app: CoreBlowApp) {
              <div class="sidebar-shell__body">
                 <div class="sidebar-nav" style="display: flex; flex-direction: column; gap: 4px;">
                   ${TAB_GROUPS.flatMap(group => group.tabs).map((tab: any) => html`
-                    <a href="javascript:void(0)"
+                    <button type="button"
                        class="nav-item ${app.tab === tab ? "nav-item--active active" : ""}"
+                       style="width: 100%; text-align: left; font: inherit;"
                        @click=${() => app.setTab(tab)}>
                       <div class="nav-item__icon">${icons[iconForTab(tab) as keyof typeof icons]}</div>
                       <div class="nav-item__text">${titleForTab(tab)}</div>
-                    </a>
+                    </button>
                   `)}
                 </div>
              </div>
@@ -153,7 +161,7 @@ export function renderApp(app: CoreBlowApp) {
                 <!-- Bottom utility row: version badge + Docs link -->
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 0; font-size: 11px;">
                    <span style="font-family: var(--mono); font-weight: 600; color: var(--muted); font-size: 10px; letter-spacing: 0.02em;">
-                      v2.1.4
+                      v2.1.5
                    </span>
                    <a
                       href="https://docs.coreblow.com"

@@ -1199,18 +1199,34 @@ export class CoreHubView extends LitElement {
         ${this.renderCatalogBrowser()}
 
         <div class="card">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-            <div style="flex: 1;">
-              <div class="card-title">Embedded Admin</div>
-              <div class="card-sub">The CoreHub admin portal is framed here so operators stay inside CoreBlow.</div>
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 240px;">
+              <div class="card-title">Gateway-Backed CoreHub Portal</div>
+              <div class="card-sub">All storefront entries, publisher moderation queues, and audit feeds are served directly over the authenticated local Gateway proxy (CSP-safe, zero cross-origin framing).</div>
+            </div>
+            <a
+              href=${coreHubAdminUrl(this.registryUrl)}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn"
+              style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px; text-decoration: none;">
+              Open External Registry Admin ↗
+            </a>
+          </div>
+          <div style="margin-top: 12px; display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+            <div style="padding: 10px 12px; background: var(--bg-elevated); border-radius: var(--radius-sm); border: 1px solid var(--border-hairline);">
+              <div style="font-size: 11px; color: var(--muted);">Gateway Proxy Base</div>
+              <div style="font-family: var(--mono); font-size: 12px; margin-top: 4px;">${coreBlowGatewayHttpBaseUrl(this.app.settings.gatewayUrl)}</div>
+            </div>
+            <div style="padding: 10px 12px; background: var(--bg-elevated); border-radius: var(--radius-sm); border: 1px solid var(--border-hairline);">
+              <div style="font-size: 11px; color: var(--muted);">Catalog Entries</div>
+              <div style="font-family: var(--mono); font-size: 12px; margin-top: 4px;">${this.catalogEntries.length} loaded</div>
+            </div>
+            <div style="padding: 10px 12px; background: var(--bg-elevated); border-radius: var(--radius-sm); border: 1px solid var(--border-hairline);">
+              <div style="font-size: 11px; color: var(--muted);">Registry Status</div>
+              <div style="font-family: var(--mono); font-size: 12px; margin-top: 4px;">${this.status?.status ?? "ready"}</div>
             </div>
           </div>
-          <iframe
-            title="CoreHub Admin"
-            src=${coreHubAdminUrl(this.registryUrl)}
-            sandbox="allow-forms allow-popups allow-same-origin allow-scripts"
-            style="width: 100%; height: 520px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-elevated);">
-          </iframe>
         </div>
       </div>
     `;

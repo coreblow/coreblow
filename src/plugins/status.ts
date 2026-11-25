@@ -14,6 +14,7 @@ import {
 import { normalizePluginsConfig } from "./config-state.js";
 import { loadCoreBlowPlugins } from "./loader.js";
 import { createPluginLoaderLogger } from "./logger.js";
+import { loadPluginManifestRegistry } from "./manifest-registry.js";
 import { resolveBundledProviderCompatPluginIds } from "./providers.js";
 import type { PluginRegistry } from "./registry.js";
 import type { PluginDiagnostic, PluginHookName } from "./types.js";
@@ -157,6 +158,7 @@ export function buildPluginStatusReport(params?: {
   workspaceDir?: string;
   /** Use an explicit env when plugin roots should resolve independently from process.env. */
   env?: NodeJS.ProcessEnv;
+  onlyPluginIds?: string[];
 }): PluginStatusReport {
   const rawConfig = params?.config ?? loadConfig();
   const config = resolveStatusConfig(rawConfig, params?.env);
@@ -190,6 +192,7 @@ export function buildPluginStatusReport(params?: {
     workspaceDir,
     env: params?.env,
     logger: createPluginLoaderLogger(log),
+    ...(params?.onlyPluginIds ? { onlyPluginIds: params.onlyPluginIds } : {}),
   });
 
   return {
@@ -423,7 +426,55 @@ export function buildPluginCompatibilityNotices(params?: {
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   report?: PluginStatusReport;
+  skipUnconfiguredBundled?: boolean;
 }): PluginCompatibilityNotice[] {
+  if (params?.skipUnconfiguredBundled === true && !params?.report) {
+    const rawConfig = params.config ?? loadConfig();
+    const config = resolveStatusConfig(rawConfig, params.env);
+    const workspaceDir = params.workspaceDir
+      ? params.workspaceDir
+      : (resolveAgentWorkspaceDir(config, resolveDefaultAgentId(config)) ??
+        resolveDefaultAgentWorkspaceDir());
+    const normalized = normalizePluginsConfig(config.plugins);
+    const explicitMemorySlot =
+      typeof config.plugins?.slots?.memory === "string" ? config.plugins.slots.memory.trim() : "";
+    const explicitContextSlot =
+      typeof config.plugins?.slots?.contextEngine === "string"
+        ? config.plugins.slots.contextEngine.trim()
+        : "";
+    const configuredIds = new Set<string>([
+      ...normalized.allow,
+      ...Object.entries(normalized.entries)
+        .filter(([, entry]) => entry.enabled !== false)
+        .map(([id]) => id),
+      ...Object.keys(config.plugins?.installs ?? {}),
+      ...(explicitMemorySlot && explicitMemorySlot !== "none" ? [explicitMemorySlot] : []),
+      ...(explicitContextSlot && explicitContextSlot !== "none" ? [explicitContextSlot] : []),
+    ]);
+    const manifestRegistry = loadPluginManifestRegistry({
+      config,
+      workspaceDir,
+      env: params.env,
+    });
+    const targetPluginIds = manifestRegistry.plugins
+      .filter((plugin) => plugin.origin !== "bundled" || configuredIds.has(plugin.id))
+      .map((plugin) => plugin.id);
+    if (targetPluginIds.length === 0) {
+      return [];
+    }
+    const report = buildPluginStatusReport({
+      config,
+      workspaceDir,
+      env: params.env,
+      onlyPluginIds: targetPluginIds,
+    });
+    return buildAllPluginInspectReports({
+      config,
+      workspaceDir,
+      env: params.env,
+      report,
+    }).flatMap((inspect) => inspect.compatibility);
+  }
   return buildAllPluginInspectReports(params).flatMap((inspect) => inspect.compatibility);
 }
 

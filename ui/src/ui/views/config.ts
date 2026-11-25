@@ -310,7 +310,7 @@ export class ConfigView extends LitElement {
   private async loadRemoteNodes() {
     this.loadingNodes = true;
     try {
-      const res = await fetch(`${this.getGatewayHttpUrl()}/api/nodes`);
+      const res = await fetch(`${this.getGatewayHttpUrl()}/api/corehub/nodes`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.nodes)) {
@@ -357,7 +357,7 @@ export class ConfigView extends LitElement {
     this.nodeSyncStatus = { ...this.nodeSyncStatus, [nodeId]: { status: "syncing" } };
     try {
       const res = await fetch(
-        `${this.getGatewayHttpUrl()}/api/corehub/nodes/${encodeURIComponent(nodeId)}/sync`,
+        `${this.getGatewayHttpUrl()}/api/corehub/nodes/${encodeURIComponent(nodeId)}/sync-sessions`,
         { method: "POST" },
       );
       if (res.ok) {

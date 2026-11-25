@@ -17,8 +17,10 @@ export interface CoreBlowDesktopApi {
     writeText: (text: string) => Promise<boolean>;
   };
   gateway: {
+    url?: string;
     health: () => Promise<boolean>;
     ensure: () => Promise<boolean>;
+    getUrl?: () => Promise<string>;
   };
   vault: {
     isAvailable: () => Promise<boolean>;
@@ -50,13 +52,28 @@ export interface CoreBlowDesktopApi {
   };
 }
 
+function resolveInitialGatewayUrl(): string {
+  const raw = process.env.COREBLOW_GATEWAY_URL?.trim();
+  if (raw) {
+    try {
+      const parsed = new URL(raw);
+      if (parsed.protocol === "ws:") parsed.protocol = "http:";
+      if (parsed.protocol === "wss:") parsed.protocol = "https:";
+      return `${parsed.protocol}//${parsed.host}`;
+    } catch {}
+  }
+  const envPort = Number.parseInt(process.env.COREBLOW_GATEWAY_PORT ?? "", 10);
+  const port = Number.isFinite(envPort) && envPort > 0 ? envPort : 18789;
+  return `http://127.0.0.1:${port}`;
+}
+
 const desktopApi: CoreBlowDesktopApi = {
   platform: process.platform,
   versions: {
     node: process.versions.node,
     chrome: process.versions.chrome,
     electron: process.versions.electron,
-    coreblow: "2.1.4",
+    coreblow: "2.1.5",
   },
   dialog: {
     selectDirectory: () => ipcRenderer.invoke("coreblow:dialog:selectDirectory"),
@@ -67,8 +84,10 @@ const desktopApi: CoreBlowDesktopApi = {
     writeText: (text) => ipcRenderer.invoke("coreblow:clipboard:writeText", text),
   },
   gateway: {
+    url: resolveInitialGatewayUrl(),
     health: () => ipcRenderer.invoke("coreblow:gateway:health"),
     ensure: () => ipcRenderer.invoke("coreblow:gateway:ensure"),
+    getUrl: () => ipcRenderer.invoke("coreblow:gateway:getUrl"),
   },
   vault: {
     isAvailable: () => ipcRenderer.invoke("coreblow:vault:isAvailable"),

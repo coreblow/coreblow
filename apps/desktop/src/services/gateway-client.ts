@@ -22,7 +22,24 @@ import type {
   WarRoomState,
 } from "../types/gateway";
 
-export const GATEWAY_BASE_URL = "http://127.0.0.1:18789";
+export function resolveDefaultGatewayBaseUrl(): string {
+  if (typeof window !== "undefined") {
+    try {
+      const q = new URLSearchParams(window.location.search).get("gatewayUrl")?.trim();
+      if (q) {
+        const parsed = new URL(q);
+        if (parsed.protocol === "ws:") parsed.protocol = "http:";
+        if (parsed.protocol === "wss:") parsed.protocol = "https:";
+        return `${parsed.protocol}//${parsed.host}`;
+      }
+    } catch {}
+    const desktopUrl = window.coreblowDesktop?.gateway?.url?.trim();
+    if (desktopUrl) return desktopUrl.replace(/\/$/, "");
+  }
+  return "http://127.0.0.1:18789";
+}
+
+export const GATEWAY_BASE_URL = resolveDefaultGatewayBaseUrl();
 
 export interface StreamCallbacks {
   onDelta?: (delta: string) => void;

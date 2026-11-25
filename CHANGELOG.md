@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 Entries are listed newest-first within each version block.
 Changelog covers user-facing changes only; internal/meta notes are omitted.
 
+## [2.1.5] (2026-11-25)
+
+### Fixes
+
+- **Web Control UI & Build Pipeline:** Fixed `pnpm build` ordering so `dist/control-ui/` is preserved after runtime bundling; implemented WebCrypto Ed25519 challenge-response Gateway WS authentication (`coreblow-control-ui`) and an interactive Gateway URL/token connect form in Overview; replaced `javascript:void(0)` links, inline `onmouseover`/`onmouseout` handlers, and CSP-blocked external frames in CoreHub; aligned `/api/corehub/nodes` and `/api/nodes` + `/sync-sessions` + `/api/corehub/v2/*` Gateway routes; and fixed Command Palette (`⌘K`) toggle semantics.
+- **CoreBlow Studio Desktop:** Propagated `COREBLOW_GATEWAY_URL`/`COREBLOW_GATEWAY_PORT` into Electron preload/renderer, removed `'unsafe-eval'` from Desktop CSP while allowing local Gateway sockets, and ensured spawned local Gateway processes set `ELECTRON_RUN_AS_NODE=1`.
+- **Plugin Loading, MCP & Diagnostics:** Fixed the circular `jiti` import crash blocking `memory-core` in `src/auto-reply/reply/queue/cleanup.ts` and `src/auto-reply/reply/abort.ts`, aligned `google-meet` and `qqbot` host compatibility bounds, updated `coreblow mcp serve` to expose all 75 sovereign native tools standalone over stdio (with `--url` / `--channel-bridge` for channel bridging), and added fast compatibility checking in `coreblow status --all` to complete in under 5 seconds.
+- **CoreChat Go Client:** Added Gateway v3 `connect` WebSocket handshake in `ConnectWebSocket`.
+
 ## [2.1.4] (2026-11-25)
 
 ### Fixes

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# CoreBlow v2.1.4 — Official macOS / Linux / WSL2 Installer
+# CoreBlow v2.1.5 — Official macOS / Linux / WSL2 Installer
 # Usage:
 #   curl -fsSL https://coreblow.com/install.sh | bash
 #   bash scripts/install.sh [--from-source] [--non-interactive]
 
-COREBLOW_VERSION="${COREBLOW_VERSION:-2.1.4}"
+COREBLOW_VERSION="${COREBLOW_VERSION:-2.1.5}"
 COREBLOW_REPO_URL="${COREBLOW_REPO_URL:-https://github.com/coreblow/coreblow.git}"
 COREBLOW_INSTALL_DIR="${COREBLOW_INSTALL_DIR:-$HOME/.coreblow/src}"
 FROM_SOURCE="${COREBLOW_INSTALL_SOURCE:-0}"

@@ -48,8 +48,14 @@ export function registerMcpCli(program: Command) {
 
   mcp
     .command("serve")
-    .description("Expose CoreBlow channels over MCP stdio")
-    .option("--url <url>", "Gateway WebSocket URL (defaults to gateway.remote.url when configured)")
+    .description(
+      "Expose CoreBlow's 75 native tools (or Gateway channel bridge with --url/--channel-bridge) over MCP stdio",
+    )
+    .option(
+      "--url <url>",
+      "Connect Gateway channel bridge to WebSocket URL instead of standalone native tools",
+    )
+    .option("--channel-bridge", "Run the Gateway channel notification bridge over MCP stdio", false)
     .option("--token <token>", "Gateway token (if required)")
     .option("--token-file <path>", "Read gateway token from file")
     .option("--password <password>", "Gateway password (if required)")
@@ -62,6 +68,12 @@ export function registerMcpCli(program: Command) {
     .option("-v, --verbose", "Verbose logging to stderr", false)
     .action(async (opts) => {
       try {
+        const useChannelBridge = Boolean(opts.url) || Boolean(opts.channelBridge);
+        if (!useChannelBridge) {
+          const { serveSovereignNativeMcp } = await import("../mcp/coreblow-tools-serve.js");
+          await serveSovereignNativeMcp();
+          return;
+        }
         const gatewayToken = resolveSecretOption({
           direct: opts.token as string | undefined,
           file: opts.tokenFile as string | undefined,
@@ -84,18 +96,18 @@ export function registerMcpCli(program: Command) {
         }
         const rawChannelMode = opts.channelMode ?? "auto";
         const channelMode = String(rawChannelMode).trim().toLowerCase();
-        if (
-          channelMode !== "auto" &&
-          channelMode !== "on" &&
-          channelMode !== "off"
-        ) {
+        if (channelMode !== "auto" && channelMode !== "on" && channelMode !== "off") {
           throw new Error("Invalid --channel-mode value. Use auto, on, or off.");
         }
+        const resolvedUrl =
+          (opts.url as string | undefined) ||
+          process.env.COREBLOW_GATEWAY_URL?.trim() ||
+          "ws://127.0.0.1:18789";
         await serveCoreBlowChannelMcp({
-          gatewayUrl: opts.url as string | undefined,
+          gatewayUrl: resolvedUrl,
           gatewayToken,
           gatewayPassword,
-          channelMode: channelMode as any,
+          channelMode: channelMode as "auto" | "on" | "off",
           verbose: Boolean(opts.verbose),
         });
       } catch (err) {

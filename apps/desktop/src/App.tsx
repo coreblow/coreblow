@@ -9,7 +9,7 @@ import { StatusBar } from "./components/StatusBar";
 import { FirstRunSetup } from "./components/FirstRunSetup";
 import { CommandPalette } from "./components/CommandPalette";
 import { storageService } from "./services/storage";
-import { gatewayClient } from "./services/gateway-client";
+import { gatewayClient, GATEWAY_BASE_URL } from "./services/gateway-client";
 import {
   AgentEditorModal,
   NewSectionModal,
@@ -115,7 +115,7 @@ export const App: React.FC = () => {
     {
       id: "local",
       name: "Local Gateway",
-      url: "http://127.0.0.1:18789",
+      url: GATEWAY_BASE_URL,
       kind: "local",
       enabled: true,
       healthy: true,

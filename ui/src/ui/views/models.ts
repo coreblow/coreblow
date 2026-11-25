@@ -783,8 +783,12 @@ export class ModelsView extends LitElement {
                     return html`
                       <tr
                         style="border-bottom: 1px solid var(--border-subtle); transition: background 0.15s ease;"
-                        onmouseover="this.style.background='var(--surface-flat-hover)'"
-                        onmouseout="this.style.background='transparent'"
+                        @mouseenter=${(e: Event) => {
+                          (e.currentTarget as HTMLElement).style.background = "var(--surface-flat-hover)";
+                        }}
+                        @mouseleave=${(e: Event) => {
+                          (e.currentTarget as HTMLElement).style.background = "transparent";
+                        }}
                       >
                         <td style="padding: 10px 14px;">
                           <div style="display: flex; align-items: center; gap: 8px;">

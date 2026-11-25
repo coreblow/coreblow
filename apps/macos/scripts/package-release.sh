@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # CoreBlow macOS Standalone App & DMG Packaging Pipeline
-# Sovereign Autonomous Agent-OS v2.1.4 GA
+# Sovereign Autonomous Agent-OS v2.1.5 GA
 # ==============================================================================
 set -euo pipefail
 
@@ -11,7 +11,7 @@ REPO_ROOT="$(cd "${MACOS_DIR}/../.." && pwd)"
 DIST_DIR="${MACOS_DIR}/dist"
 APP_NAME="CoreBlow"
 BUNDLE_ID="ai.coreblow.studio"
-VERSION="2.1.4"
+VERSION="2.1.5"
 DMG_NAME="CoreBlow-${VERSION}-arm64.dmg"
 DMG_PATH="${DIST_DIR}/${DMG_NAME}"
 APP_BUNDLE="${DIST_DIR}/${APP_NAME}.app"
@@ -119,7 +119,7 @@ cat << 'EOF' > "${APP_BUNDLE}/Contents/Info.plist"
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.1.4</string>
+    <string>2.1.5</string>
     <key>CFBundleVersion</key>
     <string>214</string>
     <key>LSMinimumSystemVersion</key>
@@ -194,7 +194,7 @@ echo "${SHA256_SUM}  ${DMG_NAME}" > "${DIST_DIR}/${DMG_NAME}.sha256"
 
 echo ""
 echo "=============================================================================="
-echo "CoreBlow v2.1.4 macOS Packaging Complete!"
+echo "CoreBlow v2.1.5 macOS Packaging Complete!"
 echo "  - Application: ${APP_BUNDLE}"
 echo "  - Disk Image:  ${DMG_PATH}"
 echo "  - SHA-256:     ${SHA256_SUM}"

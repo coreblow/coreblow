@@ -722,7 +722,11 @@ export async function handleCoreHubRoute(
   const pathname = normalizedPath;
   const method = (req.method ?? "GET").toUpperCase();
 
-  if (!pathname.startsWith("/api/corehub/") && !pathname.startsWith("/api/cory/")) {
+  if (
+    !pathname.startsWith("/api/corehub/") &&
+    !pathname.startsWith("/api/cory/") &&
+    pathname !== "/api/nodes"
+  ) {
     return false;
   }
 
@@ -826,6 +830,118 @@ export async function handleCoreHubRoute(
       activatedApps: services.appStore.getActivatedAppIds(),
     });
     return true;
+  }
+
+  // GET /api/corehub/v2/* (Gateway-backed CoreHub Control UI routes unless operator token or custom registry is configured)
+  const registryHeader = getHeader(req, "x-corehub-registry-url")?.trim();
+  const corehubTokenHeader = getHeader(req, "x-corehub-token")?.trim();
+  const hasExplicitRemoteCoreHub =
+    Boolean(corehubTokenHeader) ||
+    (Boolean(registryHeader) && !/^https:\/\/coreblow\.com\/corehub\/?$/i.test(registryHeader!));
+  if (method === "GET" && rawPathname.startsWith("/api/corehub/v2/") && !hasExplicitRemoteCoreHub) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    const subPath = rawPathname.slice("/api/corehub/v2".length);
+    const installedCount = services.appStore.getInstalledAppIds().length;
+    if (subPath === "/admin/status") {
+      sendJson(res, 200, {
+        ok: true,
+        status: "healthy",
+        runtime: {
+          stateStore: { kind: "sqlite-wal" },
+          objectStore: { kind: "local" },
+          publicBaseUrl: "http://127.0.0.1",
+        },
+        readiness: {
+          status: "ready",
+          checks: [
+            { id: "gateway-proxy", status: "ok", detail: "CoreHub Gateway proxy active" },
+            { id: "app-store", status: "ok", detail: `${installedCount} installed apps` },
+          ],
+        },
+        queues: {
+          submissions: { pending_review: 0 },
+          reviews: { open: 0 },
+          ownershipTransfers: { requested: 0 },
+        },
+        analytics: {
+          installs: installedCount,
+          downloads: 0,
+          uniqueClients: 1,
+        },
+      });
+      return true;
+    }
+    if (subPath === "/publishers/me") {
+      const actor = getHeader(req, "x-corehub-user") || "github:coreblow-admin";
+      sendJson(res, 200, {
+        ok: true,
+        data: {
+          actor,
+          memberships: [],
+          defaultPublisher: null,
+        },
+      });
+      return true;
+    }
+    if (subPath === "/publishers") {
+      sendJson(res, 200, { ok: true, data: [] });
+      return true;
+    }
+    if (subPath === "/admin/support-bundle") {
+      sendJson(res, 200, {
+        ok: true,
+        data: {
+          generatedAt: new Date().toISOString(),
+          recentEvents: [],
+          diagnostics: [],
+        },
+      });
+      return true;
+    }
+    if (subPath === "/submissions") {
+      sendJson(res, 200, { ok: true, submissions: [] });
+      return true;
+    }
+    if (subPath === "/reviews") {
+      sendJson(res, 200, { ok: true, reviews: [] });
+      return true;
+    }
+    if (subPath === "/transfers") {
+      sendJson(res, 200, { ok: true, transfers: [] });
+      return true;
+    }
+    if (subPath === "/audit/events") {
+      sendJson(res, 200, { ok: true, events: [], count: 0 });
+      return true;
+    }
+    if (subPath === "/audit/retention") {
+      sendJson(res, 200, { ok: true, retentionDays: 90, totalEvents: 0 });
+      return true;
+    }
+    if (subPath === "/analytics") {
+      sendJson(res, 200, {
+        ok: true,
+        installs: installedCount,
+        downloads: 0,
+        uniqueClients: 1,
+      });
+      return true;
+    }
+    if (subPath === "/catalog/entries" || subPath === "/catalog/search") {
+      const searchQuery = url.searchParams.get("q") ?? undefined;
+      const catalogEntries =
+        options.catalogEntries ?? loadStorefrontCatalogEntries(options.catalogPath);
+      const cards = buildStorefrontCatalogView({
+        catalogEntries,
+        consentLedger: services.appStore.getConsentLedger(),
+        tierPolicy: services.tierPolicy,
+        searchQuery,
+        tierFilter: "all",
+      });
+      sendJson(res, 200, { ok: true, data: cards, entries: cards, items: cards });
+      return true;
+    }
   }
 
   // GET /api/corehub/desktop/state
@@ -1797,8 +1913,8 @@ export async function handleCoreHubRoute(
     return true;
   }
 
-  // GET /api/corehub/nodes (List local + remote nodes with health & latency probes)
-  if (method === "GET" && pathname === "/api/corehub/nodes") {
+  // GET /api/corehub/nodes or /api/nodes (List local + remote nodes with health & latency probes)
+  if (method === "GET" && (pathname === "/api/corehub/nodes" || pathname === "/api/nodes")) {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     const reg = getGlobalRemoteNodeRegistry();
@@ -3095,9 +3211,14 @@ export async function handleCoreHubRoute(
       return true;
     }
 
-    // POST /api/corehub/nodes/:id/sync-sessions (Bidirectional session merge)
-    if (method === "POST" && pathname.startsWith("/api/corehub/nodes/") && pathname.endsWith("/sync-sessions")) {
-      const id = pathname.slice("/api/corehub/nodes/".length, -"/sync-sessions".length).trim();
+    // POST /api/corehub/nodes/:id/sync-sessions (or /sync) (Bidirectional session merge)
+    if (
+      method === "POST" &&
+      pathname.startsWith("/api/corehub/nodes/") &&
+      (pathname.endsWith("/sync-sessions") || pathname.endsWith("/sync"))
+    ) {
+      const suffix = pathname.endsWith("/sync-sessions") ? "/sync-sessions" : "/sync";
+      const id = pathname.slice("/api/corehub/nodes/".length, -suffix.length).trim();
       const reg = getGlobalRemoteNodeRegistry();
       const localSessions = listUnifiedSessions();
       const syncRes = await reg.syncSessionsWithNode(id, localSessions);

@@ -5,7 +5,7 @@ import { routeLogsToStderr } from "../../logging/console.js";
 import type { LogLevel } from "../../logging/levels.js";
 import { loggingState } from "../../logging/state.js";
 import { defaultRuntime } from "../../runtime.js";
-import { getCommandPathWithRootOptions, getVerboseFlag, hasHelpOrVersion } from "../argv.js";
+import { getCommandPathWithRootOptions, getVerboseFlag, hasFlag, hasHelpOrVersion } from "../argv.js";
 import { emitCliBanner } from "../banner.js";
 import { resolveCliName } from "../cli-name.js";
 import {
@@ -65,7 +65,13 @@ function loadPluginRegistryModule() {
   return pluginRegistryModulePromise;
 }
 
-function resolvePluginRegistryScope(commandPath: string[]): "channels" | "all" {
+function resolvePluginRegistryScope(
+  commandPath: string[],
+  argv: string[] = process.argv,
+): "configured-channels" | "channels" | "all" {
+  if (commandPath[0] === "status" && hasFlag(argv, "--all")) {
+    return "configured-channels";
+  }
   return commandPath[0] === "status" || commandPath[0] === "health" ? "channels" : "all";
 }
 
@@ -165,7 +171,7 @@ export function registerPreActionHooks(program: Command, programVersion: string)
         loggingState.forceConsoleToStderr = true;
       }
       try {
-        ensurePluginRegistryLoaded({ scope: resolvePluginRegistryScope(commandPath) });
+        ensurePluginRegistryLoaded({ scope: resolvePluginRegistryScope(commandPath, argv) });
       } finally {
         loggingState.forceConsoleToStderr = prev;
       }

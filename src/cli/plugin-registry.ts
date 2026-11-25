@@ -7,7 +7,7 @@ import {
   resolveConfiguredChannelPluginIds,
 } from "../plugins/channel-plugin-ids.js";
 import { loadCoreBlowPlugins } from "../plugins/loader.js";
-import { getActivePluginRegistry } from "../plugins/runtime.js";
+import { getActivePluginRegistry, requireActivePluginRegistry } from "../plugins/runtime.js";
 import type { PluginLogger } from "../plugins/types.js";
 
 const log = createSubsystemLogger("plugins");
@@ -81,6 +81,14 @@ export function ensurePluginRegistryLoaded(options?: { scope?: PluginRegistrySco
     pluginRegistryLoaded === "none" &&
     activeRegistrySatisfiesScope(scope, active, expectedChannelPluginIds)
   ) {
+    pluginRegistryLoaded = scope;
+    return;
+  }
+  if (
+    (scope === "configured-channels" || scope === "channels") &&
+    expectedChannelPluginIds.length === 0
+  ) {
+    requireActivePluginRegistry();
     pluginRegistryLoaded = scope;
     return;
   }

@@ -101,7 +101,7 @@ export async function statusAllCommand(
     });
     const update = await checkUpdateStatus({
       root,
-      timeoutMs: 6500,
+      timeoutMs: Math.min(2000, opts?.timeoutMs ?? 2000),
       fetchGit: true,
       includeRegistry: true,
     });
@@ -134,7 +134,7 @@ export async function statusAllCommand(
     const gatewayProbe = await probeGateway({
       url: connection.url,
       auth: probeAuth,
-      timeoutMs: Math.min(5000, opts?.timeoutMs ?? 10_000),
+      timeoutMs: Math.min(2500, opts?.timeoutMs ?? 2500),
     }).catch(() => null);
     const gatewayReachable = gatewayProbe?.ok === true;
     const gatewaySelf = pickGatewaySelfPresence(gatewayProbe?.presence ?? null);
@@ -240,7 +240,10 @@ export async function statusAllCommand(
             }
           })()
         : null;
-    const pluginCompatibility = buildPluginCompatibilityNotices({ config: cfg });
+    const pluginCompatibility = buildPluginCompatibilityNotices({
+      config: cfg,
+      skipUnconfiguredBundled: true,
+    });
 
     const controlUiEnabled = cfg.gateway?.controlUi?.enabled ?? true;
     const dashboard = controlUiEnabled

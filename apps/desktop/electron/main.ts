@@ -46,15 +46,46 @@ if (!gotSingleInstanceLock) {
   });
 }
 
-const GATEWAY_PORT = 18789;
-const GATEWAY_HEALTH_URL = `http://127.0.0.1:${GATEWAY_PORT}/health`;
+import * as https from "node:https";
+
+const DEFAULT_GATEWAY_PORT = 18789;
+
+function resolveGatewayTarget(): { baseUrl: string; healthUrl: string; port: number } {
+  const raw = process.env.COREBLOW_GATEWAY_URL?.trim();
+  if (raw) {
+    try {
+      const parsed = new URL(raw);
+      if (parsed.protocol === "ws:") parsed.protocol = "http:";
+      if (parsed.protocol === "wss:") parsed.protocol = "https:";
+      const baseUrl = `${parsed.protocol}//${parsed.host}`;
+      const port = parsed.port ? Number.parseInt(parsed.port, 10) || DEFAULT_GATEWAY_PORT : DEFAULT_GATEWAY_PORT;
+      return {
+        baseUrl,
+        healthUrl: `${baseUrl}/health`,
+        port,
+      };
+    } catch {
+      // Fall through to default port below
+    }
+  }
+  const envPort = Number.parseInt(process.env.COREBLOW_GATEWAY_PORT ?? "", 10);
+  const port = Number.isFinite(envPort) && envPort > 0 ? envPort : DEFAULT_GATEWAY_PORT;
+  const baseUrl = `http://127.0.0.1:${port}`;
+  return { baseUrl, healthUrl: `${baseUrl}/health`, port };
+}
+
+const GATEWAY_TARGET = resolveGatewayTarget();
+const GATEWAY_PORT = GATEWAY_TARGET.port;
+const GATEWAY_BASE_URL = GATEWAY_TARGET.baseUrl;
+const GATEWAY_HEALTH_URL = GATEWAY_TARGET.healthUrl;
 
 /**
- * Probe whether the CoreBlow Gateway is responding on 127.0.0.1:18789.
+ * Probe whether the CoreBlow Gateway is responding on the configured gateway URL.
  */
 function probeGatewayHealth(): Promise<boolean> {
   return new Promise((resolve) => {
-    const req = http.get(GATEWAY_HEALTH_URL, { timeout: 1500 }, (res: http.IncomingMessage) => {
+    const client = GATEWAY_HEALTH_URL.startsWith("https:") ? https : http;
+    const req = client.get(GATEWAY_HEALTH_URL, { timeout: 1500 }, (res: http.IncomingMessage) => {
       resolve(res.statusCode === 200 || res.statusCode === 401);
     });
     req.on("error", () => resolve(false));
@@ -105,6 +136,7 @@ async function ensureGatewayDaemon(): Promise<boolean> {
           stdio: "ignore",
           env: {
             ...process.env,
+            ELECTRON_RUN_AS_NODE: "1",
             PORT: String(GATEWAY_PORT),
           },
         },
@@ -250,6 +282,10 @@ ipcMain.handle("coreblow:clipboard:writeText", (_event, text: string) => {
 
 ipcMain.handle("coreblow:gateway:health", async () => {
   return await probeGatewayHealth();
+});
+
+ipcMain.handle("coreblow:gateway:getUrl", () => {
+  return GATEWAY_BASE_URL;
 });
 
 ipcMain.handle("coreblow:gateway:ensure", async () => {

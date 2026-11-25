@@ -112,7 +112,10 @@ async function resolveStatusAllLocalDiagnosis(params: {
           }
         })()
       : null;
-  const pluginCompatibility = buildPluginCompatibilityNotices({ config: overview.cfg });
+  const pluginCompatibility = buildPluginCompatibilityNotices({
+    config: overview.cfg,
+    skipUnconfiguredBundled: true,
+  });
 
   return {
     configPath,

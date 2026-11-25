@@ -260,7 +260,7 @@ export async function scanStatus(
                 ),
               )
               .catch(() => null);
-      const updateTimeoutMs = opts.all ? 6500 : 2500;
+      const updateTimeoutMs = opts.all ? 2500 : 2000;
       const updatePromise = deferResult(
         skipColdStartNetworkChecks
           ? Promise.resolve(buildColdStartUpdateResult())
@@ -348,7 +348,10 @@ export async function scanStatus(
       progress.tick();
 
       progress.setLabel("Checking plugins…");
-      const pluginCompatibility = buildPluginCompatibilityNotices({ config: cfg });
+      const pluginCompatibility = buildPluginCompatibilityNotices({
+        config: cfg,
+        skipUnconfiguredBundled: true,
+      });
       progress.tick();
 
       progress.setLabel("Reading sessions…");

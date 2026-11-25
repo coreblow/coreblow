@@ -51,7 +51,8 @@ export {
 
 const defaultAbortDeps = {
   getAcpSessionManager,
-  abortEmbeddedPiRun,
+  // Defer dereferencing pi-embedded until runtime so jiti circular module loads do not trip.
+  abortEmbeddedPiRun: (sessionId: string) => abortEmbeddedPiRun(sessionId),
   getLatestSubagentRunByChildSessionKey,
   listSubagentRunsForController,
   markSubagentRunTerminated,

@@ -3,17 +3,18 @@
     <channel>
         <title>CoreBlow</title>
         <item>
-            <title>2.1.4</title>
+            <title>2.1.5</title>
             <pubDate>Wed, 25 Nov 2026 00:00:00 +0000</pubDate>
             <link>https://raw.githubusercontent.com/coreblow/coreblow/main/appcast.xml</link>
-            <sparkle:version>214</sparkle:version>
-            <sparkle:shortVersionString>2.1.4</sparkle:shortVersionString>
+            <sparkle:version>215</sparkle:version>
+            <sparkle:shortVersionString>2.1.5</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h2>CoreBlow 2.1.4</h2>
+            <description><![CDATA[<h2>CoreBlow 2.1.5</h2>
 <h3>Fixes</h3>
 <ul>
-<li>Packaging Resolution: Decoupled core session normalization, Matrix storage helpers, generated bundled channel/plugin loaders, and plugin-sdk facades from npm-excluded extension directories so standalone npm installs execute doctor, security audit, and mcp cleanly.</li>
-<li>Regression Gate: Added an automated excluded-extension import boundary check in scripts/check-release-sync.mjs.</li>
+<li>Web Control UI &amp; Build Order: Reordered root build so compiled Control UI assets remain intact, aligned Control UI Ed25519 WebSocket handshake and URL connect form, replaced javascript:void(0) and inline hover handlers, fixed Command Palette trigger, and eliminated CSP frame violations in CoreHub/Nodes.</li>
+<li>Studio Desktop: Forwarded resolved Gateway URL via IPC/preload, cleaned CSP without unsafe-eval, and fixed Electron Node worker spawning.</li>
+<li>Plugins, MCP &amp; Diagnostics: Resolved circular jiti import crash in memory-core, aligned extension host bounds, exposed all 75 sovereign native tools in standalone coreblow mcp serve, and accelerated coreblow status --all under 5 seconds.</li>
 </ul>
 ]]></description>
         </item>

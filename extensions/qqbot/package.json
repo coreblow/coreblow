@@ -21,7 +21,7 @@
     "coreblow": "workspace:*"
   },
   "peerDependencies": {
-    "coreblow": ">=2026.5.17"
+    "coreblow": ">=2.0.0"
   },
   "peerDependenciesMeta": {
     "coreblow": {
@@ -47,10 +47,10 @@
       "npmSpec": "@coreblow/qqbot",
       "localPath": "extensions/qqbot",
       "defaultChoice": "npm",
-      "minHostVersion": ">=2026.4.10"
+      "minHostVersion": ">=2.0.0"
     },
     "compat": {
-      "pluginApi": ">=2026.5.17"
+      "pluginApi": ">=2.0.0"
     },
     "build": {
       "coreblowVersion": "2026.5.17"
