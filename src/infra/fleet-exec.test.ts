@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import path from "node:path";
+import { describe, expect, it } from "vitest";
 import {
   findBinaryOnPath,
   resolveFleetTool,
@@ -81,7 +81,21 @@ describe("fleet-exec resolution", () => {
       expect(cmd?.args).toContain("build");
       expect(cmd?.args).toContain("--verbose");
     } else {
-      expect(() => config.resolveCommand(dummyResolution, [])).toThrow(/macOS.*darwin.*required/i);
+      expect(() => config.resolveCommand(dummyResolution, [])).toThrow(
+        /requires macOS \(darwin\)/i,
+      );
+    }
+
+    const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform");
+    Object.defineProperty(process, "platform", { value: "linux", configurable: true });
+    try {
+      expect(() => config.resolveCommand(dummyResolution, [])).toThrow(
+        /requires macOS \(darwin\)/i,
+      );
+    } finally {
+      if (originalPlatform) {
+        Object.defineProperty(process, "platform", originalPlatform);
+      }
     }
   });
 
