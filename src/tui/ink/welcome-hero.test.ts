@@ -1,77 +1,89 @@
 import { describe, expect, it } from "vitest";
+import os from "node:os";
+import path from "node:path";
 import React from "react";
 import { renderToString } from "ink";
-import { WelcomeHero } from "./WelcomeHero.js";
+import { VERSION } from "../../version.js";
+import { abbreviateHomePath, WelcomeHero } from "./WelcomeHero.js";
+
+function stripAnsi(text: string): string {
+  // Strip CSI escape sequences cleanly for layout content assertions.
+  const esc = String.fromCharCode(27);
+  const ansiRegex = new RegExp(`${esc}\\[[0-9;]*m`, "g");
+  return text.replace(ansiRegex, "");
+}
 
 describe("WelcomeHero component", () => {
-  it("renders wide layout with rounded tags when columns >= 84", () => {
-    const output = renderToString(
+  const sampleWorkspace = path.join(os.homedir(), "coreblow");
+
+  it("abbreviates paths inside the home directory cleanly", () => {
+    expect(abbreviateHomePath(sampleWorkspace)).toBe("~/coreblow");
+    expect(abbreviateHomePath(os.homedir())).toBe("~");
+  });
+
+  it("renders wide left-aligned layout with 8-row mascot when columns = 100", () => {
+    const raw = renderToString(
       React.createElement(WelcomeHero, {
         model: "anthropic/claude-3-7-sonnet",
         uiMode: "pro",
         backendBadge: "Local",
-        columns: 90,
+        columns: 100,
+        cwd: sampleWorkspace,
       }),
     );
+    const plain = stripAnsi(raw);
+    const lines = plain.split("\n").filter((l) => l.trim().length > 0);
 
-    expect(output).toContain("CORE");
-    expect(output).toContain("BLOW");
-    expect(output).toContain("AI Development CLI");
-    expect(output).toContain("claude-3-7-sonnet");
-    expect(output).toContain("pro");
-    expect(output).toContain("stable");
-    expect(output).toContain("/model");
-    expect(output).toContain("Switch model");
-    expect(output).toContain("/sessions");
-    expect(output).toContain("Resume session");
-    expect(output).toContain("/pool");
-    expect(output).toContain("Keys & agents");
-    expect(output).toContain("/help");
-    expect(output).toContain("Commands & tips");
+    expect(plain).toContain(`CoreBlow v${VERSION}`);
+    expect(plain).toContain("claude-3-7-sonnet");
+    expect(plain).toContain("Local");
+    expect(plain).toContain("pro");
+    expect(plain).toContain("●");
+    expect(plain).toContain("~/coreblow");
+    expect(plain).toContain("/model · /sessions · /desktop · /pool · /help");
+    expect(lines.length).toBe(8);
+    expect(plain).not.toContain("╭");
+    expect(plain).not.toContain("╰");
   });
 
-  it("renders medium layout with inline [ /cmd ] tags when columns between 68 and 83", () => {
-    const output = renderToString(
+  it("renders standard layout with Gateway backend status when columns = 74", () => {
+    const raw = renderToString(
       React.createElement(WelcomeHero, {
         model: "anthropic/claude-3-7-sonnet",
         uiMode: "basic",
         backendBadge: "Gateway :18789",
-        columns: 75,
+        columns: 74,
+        cwd: sampleWorkspace,
       }),
     );
+    const plain = stripAnsi(raw);
+    const lines = plain.split("\n").filter((l) => l.trim().length > 0);
 
-    expect(output).toContain("CORE");
-    expect(output).toContain("BLOW");
-    expect(output).toContain("AI Development CLI");
-    expect(output).toContain("claude-3-7-sonnet");
-    expect(output).toContain("basic");
-    expect(output).toContain("stable");
-    expect(output).toContain("[ /model ]");
-    expect(output).toContain("Switch model");
-    expect(output).toContain("[ /sessions ]");
-    expect(output).toContain("[ /pool ]");
-    expect(output).toContain("[ /help ]");
+    expect(plain).toContain(`CoreBlow v${VERSION}`);
+    expect(plain).toContain("claude-3-7-sonnet · Gateway :18789 · basic ●");
+    expect(plain).toContain("~/coreblow");
+    expect(plain).toContain("/model · /sessions · /desktop · /pool · /help");
+    expect(lines.length).toBe(8);
   });
 
-  it("renders narrow layout with compact header and 2x2 grid when columns < 64", () => {
-    const output = renderToString(
+  it("renders compact 5-row mascot and wraps inline commands cleanly when columns = 58", () => {
+    const raw = renderToString(
       React.createElement(WelcomeHero, {
         model: "openai/gpt-4o",
         uiMode: "pro",
         backendBadge: "Local",
-        columns: 60,
+        columns: 58,
+        cwd: sampleWorkspace,
       }),
     );
+    const plain = stripAnsi(raw);
+    const lines = plain.split("\n").filter((l) => l.trim().length > 0);
 
-    expect(output).toContain("◆ COREBLOW");
-    expect(output).toContain("AI Development CLI");
-    expect(output).toContain("gpt-4o");
-    expect(output).toContain("pro");
-    expect(output).toContain("stable");
-    expect(output).toContain("[ /model ]");
-    expect(output).toContain("Switch model");
-    expect(output).toContain("[ /sessions ]");
-    expect(output).toContain("[ /pool ]");
-    expect(output).toContain("[ /help ]");
+    expect(plain).toContain(`CoreBlow v${VERSION}`);
+    expect(plain).toContain("gpt-4o · Local · pro ●");
+    expect(plain).toContain("~/coreblow");
+    expect(plain).toContain("/model · /sessions · /desktop");
+    expect(plain).toContain("/pool · /help");
+    expect(lines.length).toBe(5);
   });
 });
