@@ -8,12 +8,17 @@ import {
   OCTOPUS_COMPACT_GRID,
   OCTOPUS_STANDARD_GRID,
   renderPixelGridRows,
+  renderWordmarkRows,
+  WORDMARK_WIDTH,
   type OctopusVariant,
+  type PixelSegment,
 } from "./pixel-octopus.js";
 import { inkPalette } from "./theme.js";
 
 const CORE_ORANGE = "#E95420";
 const SLASH_COMMANDS = ["model", "sessions", "desktop", "pool", "help"] as const;
+const MASCOT_WIDTH = 14;
+const WORDMARK_MIN_COLUMNS = MASCOT_WIDTH + 3 + WORDMARK_WIDTH + 4; // 68 cols
 
 export interface WelcomeHeroProps {
   model: string;
@@ -67,23 +72,24 @@ export function truncateDisplayPath(displayPath: string, maxWidth: number): stri
   return `${lead}…${body.slice(-available)}`;
 }
 
-export const PixelOctopus: React.FC<PixelOctopusProps> = ({
-  variant = "standard",
-  monochrome,
-}) => {
-  const grid = variant === "standard" ? OCTOPUS_STANDARD_GRID : OCTOPUS_COMPACT_GRID;
-  const rows = renderPixelGridRows(grid, monochrome === undefined ? {} : { monochrome });
-
+function PixelRowBlock({
+  rows,
+  keyPrefix,
+}: {
+  rows: readonly PixelSegment[][];
+  keyPrefix: string;
+}) {
   return (
     <Box flexDirection="column" flexShrink={0}>
       {rows.map((segments, rowIndex) => (
-        <Box key={`octo-row-${rowIndex}`} flexDirection="row">
+        <Box key={`${keyPrefix}-row-${rowIndex}`} flexDirection="row">
           <Text>
             {segments.map((seg, segIndex) => (
               <Text
-                key={`octo-seg-${rowIndex}-${segIndex}`}
+                key={`${keyPrefix}-seg-${rowIndex}-${segIndex}`}
                 {...(seg.color ? { color: seg.color } : {})}
                 {...(seg.backgroundColor ? { backgroundColor: seg.backgroundColor } : {})}
+                {...(seg.inverse ? { inverse: true } : {})}
               >
                 {seg.char}
               </Text>
@@ -93,6 +99,20 @@ export const PixelOctopus: React.FC<PixelOctopusProps> = ({
       ))}
     </Box>
   );
+}
+
+export const PixelOctopus: React.FC<PixelOctopusProps> = ({
+  variant = "standard",
+  monochrome,
+}) => {
+  const grid = variant === "standard" ? OCTOPUS_STANDARD_GRID : OCTOPUS_COMPACT_GRID;
+  const rows = renderPixelGridRows(grid, monochrome === undefined ? {} : { monochrome });
+  return <PixelRowBlock rows={rows} keyPrefix="octo" />;
+};
+
+export const CoreBlowWordmark: React.FC<{ monochrome?: boolean }> = ({ monochrome }) => {
+  const rows = renderWordmarkRows(monochrome === undefined ? {} : { monochrome });
+  return <PixelRowBlock rows={rows} keyPrefix="wordmark" />;
 };
 
 function SlashCommandInlineList({ commands }: { commands: readonly string[] }) {
@@ -123,10 +143,54 @@ export const WelcomeHero: React.FC<WelcomeHeroProps> = ({
   const modelShortName = model.split("/").pop() || model;
   const isHealthy = backendBadge === "Local" || backendBadge.includes("18789");
   const variant: OctopusVariant = columns >= 72 ? "standard" : "compact";
-  const mascotWidth = variant === "standard" ? 16 : 12;
-  const rightColBudget = Math.max(20, columns - mascotWidth - 5);
-  const displayCwd = truncateDisplayPath(abbreviateHomePath(cwd), rightColBudget);
+  const showWordmark = columns >= WORDMARK_MIN_COLUMNS;
   const isNarrow = columns < 64;
+
+  if (showWordmark) {
+    const pathBudget = Math.max(20, columns - 6);
+    const displayCwd = truncateDisplayPath(abbreviateHomePath(cwd), pathBudget);
+
+    return (
+      <Box flexDirection="column" paddingX={1} paddingY={1}>
+        <Box flexDirection="row" alignItems="center">
+          <Box marginRight={3} flexShrink={0}>
+            <PixelOctopus variant={variant} />
+          </Box>
+          <CoreBlowWordmark />
+        </Box>
+
+        <Box flexDirection="column" marginTop={1}>
+          <Box>
+            <Text color={inkPalette.dim}>{">"} </Text>
+            <Text bold color={inkPalette.text}>
+              CoreBlow
+            </Text>
+            <Text color={inkPalette.dim}> v{normalizedVersion} · </Text>
+            <Text color={inkPalette.text}>{modelShortName}</Text>
+            <Text color={inkPalette.dim}>
+              {" "}
+              · {backendBadge} · {uiMode}{" "}
+            </Text>
+            <Text color={isHealthy ? inkPalette.success : inkPalette.error}>●</Text>
+          </Box>
+
+          <Box>
+            <Text color={inkPalette.dim}>
+              {">"} {displayCwd}
+            </Text>
+          </Box>
+
+          <Box>
+            <Text color={inkPalette.dim}>{">"} </Text>
+            <SlashCommandInlineList commands={SLASH_COMMANDS} />
+          </Box>
+        </Box>
+      </Box>
+    );
+  }
+
+  const rightColBudget = Math.max(20, columns - MASCOT_WIDTH - 5);
+  const displayCwd = truncateDisplayPath(abbreviateHomePath(cwd), rightColBudget);
 
   return (
     <Box flexDirection="row" alignItems="center" paddingX={1} paddingY={1}>

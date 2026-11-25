@@ -21,7 +21,7 @@ describe("WelcomeHero component", () => {
     expect(abbreviateHomePath(os.homedir())).toBe("~");
   });
 
-  it("renders wide left-aligned layout with 8-row mascot when columns = 100", () => {
+  it("renders wide left-aligned layout with Micro 8-bit mascot + COREBLOW block wordmark when columns = 100", () => {
     const raw = renderToString(
       React.createElement(WelcomeHero, {
         model: "anthropic/claude-3-7-sonnet",
@@ -32,21 +32,17 @@ describe("WelcomeHero component", () => {
       }),
     );
     const plain = stripAnsi(raw);
-    const lines = plain.split("\n").filter((l) => l.trim().length > 0);
 
     expect(plain).toContain(`CoreBlow v${VERSION}`);
-    expect(plain).toContain("claude-3-7-sonnet");
-    expect(plain).toContain("Local");
-    expect(plain).toContain("pro");
-    expect(plain).toContain("●");
+    expect(plain).toContain("claude-3-7-sonnet · Local · pro ●");
     expect(plain).toContain("~/coreblow");
     expect(plain).toContain("/model · /sessions · /desktop · /pool · /help");
-    expect(lines.length).toBe(8);
+    expect(plain.split("\n").filter((l) => l.trim().length > 0).length).toBe(8);
     expect(plain).not.toContain("╭");
     expect(plain).not.toContain("╰");
   });
 
-  it("renders standard layout with Gateway backend status when columns = 74", () => {
+  it("renders standard wordmark layout with Gateway backend status when columns = 74", () => {
     const raw = renderToString(
       React.createElement(WelcomeHero, {
         model: "anthropic/claude-3-7-sonnet",
@@ -57,16 +53,15 @@ describe("WelcomeHero component", () => {
       }),
     );
     const plain = stripAnsi(raw);
-    const lines = plain.split("\n").filter((l) => l.trim().length > 0);
 
     expect(plain).toContain(`CoreBlow v${VERSION}`);
     expect(plain).toContain("claude-3-7-sonnet · Gateway :18789 · basic ●");
     expect(plain).toContain("~/coreblow");
     expect(plain).toContain("/model · /sessions · /desktop · /pool · /help");
-    expect(lines.length).toBe(8);
+    expect(plain.split("\n").filter((l) => l.trim().length > 0).length).toBe(8);
   });
 
-  it("renders compact 5-row mascot and wraps inline commands cleanly when columns = 58", () => {
+  it("falls back to compact 5-row mascot layout without wordmark when columns = 58", () => {
     const raw = renderToString(
       React.createElement(WelcomeHero, {
         model: "openai/gpt-4o",

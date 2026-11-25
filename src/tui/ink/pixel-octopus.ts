@@ -3,12 +3,15 @@ import process from "node:process";
 export const OCTOPUS_PALETTE = {
   ".": null,
   O: "#3A140A",
-  B: "#F25C3B",
-  S: "#D13B1E",
-  H: "#FFA88A",
-  E: "#260D08",
+  B: "#FF4B2B",
+  S: "#C82D16",
+  H: "#FFE1D7",
+  E: "#160A0A",
   W: "#FFFFFF",
 } as const satisfies Record<string, string | null>;
+
+export const WORDMARK_ORANGE = "#FF6A00";
+export const WORDMARK_WIDTH = 47; // 8 letters * 5 cols + 7 single-space gaps
 
 export type OctopusPaletteKey = keyof typeof OCTOPUS_PALETTE;
 export type OctopusVariant = "standard" | "compact";
@@ -17,6 +20,7 @@ export interface PixelSegment {
   char: string;
   color?: string;
   backgroundColor?: string;
+  inverse?: boolean;
 }
 
 export interface RenderPixelGridOptions {
@@ -24,42 +28,38 @@ export interface RenderPixelGridOptions {
 }
 
 /**
- * 16x16 CoreBlow pixel octopus (renders as 8 terminal half-block rows).
+ * 14x10 Micro 8-bit CoreBlow pixel octopus (renders as 5 seamless terminal half-block rows).
+ * Uses vibrant coral fill + deep coral shading with rounded dome and flowing tentacles,
+ * free of heavy dark outer borders so it stays crisp on both Light and Dark terminals.
  */
-export const OCTOPUS_STANDARD_GRID: readonly string[] = [
-  ".....OOOOOO.....",
-  "...OOHBBBBBOO...",
-  "..OHHBBBBBBSSO..",
-  ".OHBBBBBBBBBBBO.",
-  ".OBBBBBBBSSBBBO.",
-  "OOBBBBBBBBSBBBOO",
-  "OBBBBWEBBWEBBBBO",
-  "OBBBBEEBBEEBBBBO",
-  "OBBBBBBBBBBBBBBO",
-  ".OBBBSSSSSSBBBO.",
-  ".OOBBBBBBBBBBOO.",
-  "OBBO.OBBBBO.OBBO",
-  "OBO.OBO..OBO.OBO",
-  ".OO.OBS..SBO.OO.",
-  "....OBO..OBO....",
-  ".....OO..OO.....",
+export const OCTOPUS_MICRO_GRID: readonly string[] = [
+  "....BBBBBB....",
+  "...BHHBBBBB...",
+  "..BHBBBBBBBS..",
+  "..BBBBBBBBBB..",
+  "..BBWEBBWEBB..",
+  "..BBEEBBEEBB..",
+  "..BBBBBBBBSS..",
+  ".BB.BBBBBB.BB.",
+  "BB..BS..SB..BB",
+  "B..B.B..B.B..B",
 ];
 
-/**
- * 12x10 compact CoreBlow pixel octopus (renders as 5 terminal half-block rows).
- */
-export const OCTOPUS_COMPACT_GRID: readonly string[] = [
-  "...OOOOOO...",
-  ".OOHBBBBBOO.",
-  ".OHBBBBSSBO.",
-  ".OBBBBBBBBO.",
-  "OBBWEBBWEBBO",
-  "OBBEEBBEEBBO",
-  ".OBSSSSSSBO.",
-  ".OOBBBBBBOO.",
-  "OBO.OBBO.OBO",
-  ".OO..OO..OO.",
-];
+export const OCTOPUS_STANDARD_GRID: readonly string[] = OCTOPUS_MICRO_GRID;
+export const OCTOPUS_COMPACT_GRID: readonly string[] = OCTOPUS_MICRO_GRID;
+
+const WORDMARK_FONT: Record<string, readonly string[]> = {
+  C: ["#####", "#    ", "#    ", "#    ", "#####"],
+  O: ["#####", "#   #", "#   #", "#   #", "#####"],
+  R: ["#### ", "#   #", "#### ", "#  # ", "#   #"],
+  E: ["#####", "#    ", "#### ", "#    ", "#####"],
+  B: ["#### ", "#   #", "#### ", "#   #", "#### "],
+  L: ["#    ", "#    ", "#    ", "#    ", "#####"],
+  W: ["#   #", "#   #", "# # #", "## ##", "#   #"],
+};
+
+const WORDMARK_TEXT = "COREBLOW";
+const WORDMARK_ORANGE_START = 4; // "CORE" adaptive foreground, "BLOW" CoreBlow Orange
 
 export function selectOctopusGrid(columns: number): {
   variant: OctopusVariant;
@@ -67,9 +67,9 @@ export function selectOctopusGrid(columns: number): {
   width: number;
 } {
   if (columns >= 72) {
-    return { variant: "standard", grid: OCTOPUS_STANDARD_GRID, width: 16 };
+    return { variant: "standard", grid: OCTOPUS_STANDARD_GRID, width: 14 };
   }
-  return { variant: "compact", grid: OCTOPUS_COMPACT_GRID, width: 12 };
+  return { variant: "compact", grid: OCTOPUS_COMPACT_GRID, width: 14 };
 }
 
 export function isMonochromeMode(env: NodeJS.ProcessEnv = process.env): boolean {
@@ -106,14 +106,31 @@ function pairToSegment(
   if (top === null && bottom !== null) {
     return { char: "▄", color: bottom };
   }
+  // Use backgroundColor fill (space) when top === bottom so terminal line-height
+  // padding never produces horizontal white stripes between rows.
   if (top === bottom) {
-    return { char: "█", color: top! };
+    return { char: " ", backgroundColor: top! };
   }
-  return { char: "▀", color: top!, backgroundColor: bottom! };
+  // Use lower half-block (▄) with top as backgroundColor so font top-leading
+  // never bleeds the bottom color above the top pixel on macOS terminals.
+  return { char: "▄", color: bottom!, backgroundColor: top! };
 }
 
 function hasSameSegmentStyle(a: PixelSegment, b: PixelSegment): boolean {
-  return a.color === b.color && a.backgroundColor === b.backgroundColor;
+  return (
+    a.color === b.color &&
+    a.backgroundColor === b.backgroundColor &&
+    Boolean(a.inverse) === Boolean(b.inverse)
+  );
+}
+
+function appendMergedSegment(segments: PixelSegment[], nextSeg: PixelSegment): void {
+  const prevSeg = segments.at(-1);
+  if (prevSeg && hasSameSegmentStyle(prevSeg, nextSeg)) {
+    prevSeg.char += nextSeg.char;
+  } else {
+    segments.push(nextSeg);
+  }
 }
 
 /**
@@ -136,13 +153,46 @@ export function renderPixelGridRows(
     for (let col = 0; col < width; col += 1) {
       const top = resolvePaletteColor(topRow[col]);
       const bottom = resolvePaletteColor(bottomRow[col]);
-      const nextSeg = pairToSegment(top, bottom, monochrome);
+      appendMergedSegment(mergedSegments, pairToSegment(top, bottom, monochrome));
+    }
 
-      const prevSeg = mergedSegments.at(-1);
-      if (prevSeg && hasSameSegmentStyle(prevSeg, nextSeg)) {
-        prevSeg.char += nextSeg.char;
-      } else {
-        mergedSegments.push(nextSeg);
+    rows.push(mergedSegments);
+  }
+
+  return rows;
+}
+
+/**
+ * Renders the 5-row "COREBLOW" pixel block wordmark without horizontal line-height gaps.
+ * "CORE" uses terminal-adaptive inverse cells (dark on Light terminals, light on Dark terminals);
+ * "BLOW" uses solid CoreBlow Orange background cells.
+ */
+export function renderWordmarkRows(options: RenderPixelGridOptions = {}): PixelSegment[][] {
+  const monochrome = options.monochrome ?? isMonochromeMode();
+  const rows: PixelSegment[][] = [];
+
+  for (let row = 0; row < 5; row += 1) {
+    const mergedSegments: PixelSegment[] = [];
+
+    for (let letterIndex = 0; letterIndex < WORDMARK_TEXT.length; letterIndex += 1) {
+      if (letterIndex > 0) {
+        appendMergedSegment(mergedSegments, { char: " " });
+      }
+      const ch = WORDMARK_TEXT[letterIndex]!;
+      const glyphRow = WORDMARK_FONT[ch]?.[row] ?? "     ";
+      const isOrange = letterIndex >= WORDMARK_ORANGE_START;
+
+      for (let col = 0; col < glyphRow.length; col += 1) {
+        const filled = glyphRow[col] === "#";
+        if (!filled) {
+          appendMergedSegment(mergedSegments, { char: " " });
+        } else if (monochrome) {
+          appendMergedSegment(mergedSegments, { char: "█" });
+        } else if (isOrange) {
+          appendMergedSegment(mergedSegments, { char: " ", backgroundColor: WORDMARK_ORANGE });
+        } else {
+          appendMergedSegment(mergedSegments, { char: " ", inverse: true });
+        }
       }
     }
 
