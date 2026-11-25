@@ -298,7 +298,7 @@
     "discord-api-types": "^0.38.47",
     "jscpd": "4.0.8",
     "jsdom": "^29.0.1",
-    "matrix-js-sdk": "^41.3.0",
+    "matrix-js-sdk": "^45.1.0",
     "nostr-tools": "^2.23.3",
     "ollama": "^0.6.3",
     "oxfmt": "0.43.0",

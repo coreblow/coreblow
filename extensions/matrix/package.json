@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@matrix-org/matrix-sdk-crypto-nodejs": "^0.5.1",
-    "matrix-js-sdk": "^41.3.0"
+    "matrix-js-sdk": "^45.1.0"
   },
   "devDependencies": {
     "typescript": "^5.4.0",
