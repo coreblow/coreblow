@@ -1,14 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("typebox", () => ({
-  Type: {
-    Object: (schema: unknown) => schema,
-    String: (schema?: unknown) => schema,
-    Optional: (schema: unknown) => schema,
-    Unknown: (schema?: unknown) => schema,
-    Number: (schema?: unknown) => schema,
-  },
-}));
+vi.mock("typebox", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("typebox")>();
+  return {
+    ...actual,
+    Type: {
+      ...actual.Type,
+      Object: (schema: unknown) => schema,
+      String: (schema?: unknown) => schema,
+      Optional: (schema: unknown) => schema,
+      Unknown: (schema?: unknown) => schema,
+      Number: (schema?: unknown) => schema,
+    },
+  };
+});
 
 vi.mock("ajv", () => ({
   default: class MockAjv {

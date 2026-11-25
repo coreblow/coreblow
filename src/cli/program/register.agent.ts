@@ -1,14 +1,4 @@
 import type { Command } from "commander";
-import { agentCliCommand } from "../../commands/agent-via-gateway.js";
-import {
-  agentsAddCommand,
-  agentsBindingsCommand,
-  agentsBindCommand,
-  agentsDeleteCommand,
-  agentsListCommand,
-  agentsSetIdentityCommand,
-  agentsUnbindCommand,
-} from "../../commands/agents.js";
 import { setVerbose } from "../../globals.js";
 import { t } from "../../infra/i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
@@ -16,7 +6,6 @@ import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
 import { runCommandWithRuntime } from "../cli-utils.js";
 import { hasExplicitOptions } from "../command-options.js";
-import { createDefaultDeps } from "../deps.js";
 import { formatHelpExamples } from "../help-format.js";
 import { collectOption } from "./helpers.js";
 
@@ -54,8 +43,14 @@ export function registerAgentCommands(program: Command, args: { agentChannelOpti
         `
 ${theme.heading("Examples:")}
 ${formatHelpExamples([
-  ['coreblow agent --to +15555550123 --message "status update"', t("cli_help.agent.examples.start_session")],
-  ['coreblow agent --agent ops --message "Summarize logs"', t("cli_help.agent.examples.specific_agent")],
+  [
+    'coreblow agent --to +15555550123 --message "status update"',
+    t("cli_help.agent.examples.start_session"),
+  ],
+  [
+    'coreblow agent --agent ops --message "Summarize logs"',
+    t("cli_help.agent.examples.specific_agent"),
+  ],
   [
     'coreblow agent --session-id 1234 --message "Summarize inbox" --thinking medium',
     t("cli_help.agent.examples.session_thinking"),
@@ -64,7 +59,10 @@ ${formatHelpExamples([
     'coreblow agent --to +15555550123 --message "Trace logs" --verbose on --json',
     t("cli_help.agent.examples.verbose_json"),
   ],
-  ['coreblow agent --to +15555550123 --message "Summon reply" --deliver', t("cli_help.agent.examples.deliver")],
+  [
+    'coreblow agent --to +15555550123 --message "Summon reply" --deliver',
+    t("cli_help.agent.examples.deliver"),
+  ],
   [
     'coreblow agent --agent ops --message "Generate report" --deliver --reply-channel slack --reply-to "#reports"',
     t("cli_help.agent.examples.reply_override"),
@@ -76,6 +74,10 @@ ${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/agent", "docs.c
     .action(async (opts) => {
       const verboseLevel = typeof opts.verbose === "string" ? opts.verbose.toLowerCase() : "";
       setVerbose(verboseLevel === "on");
+      const [{ agentCliCommand }, { createDefaultDeps }] = await Promise.all([
+        import("../../commands/agent-via-gateway.js"),
+        import("../deps.js"),
+      ]);
       // Build default deps (keeps parity with other commands; future-proofing).
       const deps = createDefaultDeps();
       await runCommandWithRuntime(defaultRuntime, async () => {
@@ -98,6 +100,7 @@ ${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/agent", "docs.c
     .option("--json", "Output JSON instead of text", false)
     .option("--bindings", "Include routing bindings", false)
     .action(async (opts) => {
+      const { agentsListCommand } = await import("../../commands/agents.js");
       await runCommandWithRuntime(defaultRuntime, async () => {
         await agentsListCommand(
           { json: Boolean(opts.json), bindings: Boolean(opts.bindings) },
@@ -112,6 +115,7 @@ ${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/agent", "docs.c
     .option("--agent <id>", "Filter by agent id")
     .option("--json", "Output JSON instead of text", false)
     .action(async (opts) => {
+      const { agentsBindingsCommand } = await import("../../commands/agents.js");
       await runCommandWithRuntime(defaultRuntime, async () => {
         await agentsBindingsCommand(
           {
@@ -135,6 +139,7 @@ ${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/agent", "docs.c
     )
     .option("--json", "Output JSON summary", false)
     .action(async (opts) => {
+      const { agentsBindCommand } = await import("../../commands/agents.js");
       await runCommandWithRuntime(defaultRuntime, async () => {
         await agentsBindCommand(
           {
@@ -155,6 +160,7 @@ ${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/agent", "docs.c
     .option("--all", "Remove all bindings for this agent", false)
     .option("--json", "Output JSON summary", false)
     .action(async (opts) => {
+      const { agentsUnbindCommand } = await import("../../commands/agents.js");
       await runCommandWithRuntime(defaultRuntime, async () => {
         await agentsUnbindCommand(
           {
@@ -178,6 +184,7 @@ ${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/agent", "docs.c
     .option("--non-interactive", "Disable prompts; requires --workspace", false)
     .option("--json", "Output JSON summary", false)
     .action(async (name, opts, command) => {
+      const { agentsAddCommand } = await import("../../commands/agents.js");
       await runCommandWithRuntime(defaultRuntime, async () => {
         const hasFlags = hasExplicitOptions(command, [
           "workspace",
@@ -220,8 +227,14 @@ ${theme.muted(t("cli_help.labels.docs"))} ${formatDocsLink("/cli/agent", "docs.c
         `
 ${theme.heading("Examples:")}
 ${formatHelpExamples([
-  ['coreblow agents set-identity --agent main --name "CoreBlow" --emoji "*"', t("cli_help.agents.set_identity_examples.name_emoji")],
-  ["coreblow agents set-identity --agent main --avatar avatars/coreblow.png", t("cli_help.agents.set_identity_examples.avatar_path")],
+  [
+    'coreblow agents set-identity --agent main --name "CoreBlow" --emoji "*"',
+    t("cli_help.agents.set_identity_examples.name_emoji"),
+  ],
+  [
+    "coreblow agents set-identity --agent main --avatar avatars/coreblow.png",
+    t("cli_help.agents.set_identity_examples.avatar_path"),
+  ],
   [
     "coreblow agents set-identity --workspace ~/.coreblow/workspace --from-identity",
     t("cli_help.agents.set_identity_examples.from_identity"),
@@ -234,6 +247,7 @@ ${formatHelpExamples([
 `,
     )
     .action(async (opts) => {
+      const { agentsSetIdentityCommand } = await import("../../commands/agents.js");
       await runCommandWithRuntime(defaultRuntime, async () => {
         await agentsSetIdentityCommand(
           {
@@ -258,6 +272,7 @@ ${formatHelpExamples([
     .option("--force", "Skip confirmation", false)
     .option("--json", "Output JSON summary", false)
     .action(async (id, opts) => {
+      const { agentsDeleteCommand } = await import("../../commands/agents.js");
       await runCommandWithRuntime(defaultRuntime, async () => {
         await agentsDeleteCommand(
           {
@@ -271,6 +286,7 @@ ${formatHelpExamples([
     });
 
   agents.action(async () => {
+    const { agentsListCommand } = await import("../../commands/agents.js");
     await runCommandWithRuntime(defaultRuntime, async () => {
       await agentsListCommand({}, defaultRuntime);
     });

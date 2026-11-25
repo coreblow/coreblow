@@ -1,19 +1,20 @@
 import type { AuthProfileCredential, OAuthCredential } from "../agents/auth-profiles/types.js";
+import type { CoreBlowConfig } from "../config/config.js";
+import type { ModelProviderConfig } from "../config/types.js";
+import { normalizeProviderId } from "../types/provider-id.js";
+import { loadPluginManifestRegistry } from "./manifest-registry.js";
 import type {
   ProviderExternalAuthProfile,
   ProviderResolveExternalAuthProfilesContext,
   ProviderResolveExternalOAuthProfilesContext,
 } from "./provider-external-auth.types.js";
-import { normalizeProviderId } from "../types/provider-id.js";
-import type { CoreBlowConfig } from "../config/config.js";
-import type { ModelProviderConfig } from "../config/types.js";
 import {
   resolveCatalogHookProviderPluginIds,
   resolveOwningPluginIdsForProvider,
 } from "./providers.js";
-import { loadPluginManifestRegistry } from "./manifest-registry.js";
 import { resolvePluginProviders } from "./providers.runtime.js";
 import { resolvePluginCacheInputs } from "./roots.js";
+import { getActivePluginRegistry } from "./runtime.js";
 import type {
   ProviderAuthDoctorHintContext,
   ProviderAugmentModelCatalogContext,
@@ -179,6 +180,14 @@ export function resolveProviderRuntimePlugin(params: {
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): ProviderPlugin | undefined {
+  if (!params.config && !params.workspaceDir && !params.env) {
+    const activeProvider = getActivePluginRegistry()?.providers.find((entry) =>
+      matchesProviderId(entry.provider, params.provider),
+    )?.provider;
+    if (activeProvider) {
+      return activeProvider;
+    }
+  }
   const owningPluginIds = resolveOwningPluginIdsForProvider({
     provider: params.provider,
     config: params.config,

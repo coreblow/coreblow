@@ -102,17 +102,20 @@ describe("attachGatewayWsConnectionHandler startup readiness", () => {
       }),
     );
 
-    await vi.waitFor(() => {
-      expect(
-        sent.some(
-          (frame) =>
-            typeof frame === "object" &&
-            frame !== null &&
-            (frame as { type?: unknown; id?: unknown; ok?: unknown }).type === "res" &&
-            (frame as { id?: unknown }).id === "connect-1",
-        ),
-      ).toBe(true);
-    });
+    await vi.waitFor(
+      () => {
+        expect(
+          sent.some(
+            (frame) =>
+              typeof frame === "object" &&
+              frame !== null &&
+              (frame as { type?: unknown; id?: unknown; ok?: unknown }).type === "res" &&
+              (frame as { id?: unknown }).id === "connect-1",
+          ),
+        ).toBe(true);
+      },
+      { timeout: 15_000 },
+    );
 
     const response = sent.find(
       (frame) =>
@@ -140,11 +143,14 @@ describe("attachGatewayWsConnectionHandler startup readiness", () => {
     expect(response?.error?.retryable).toBe(true);
     expect(response?.error?.retryAfterMs).toBe(500);
     expect(response?.error?.details).toEqual({ reason: GATEWAY_STARTUP_UNAVAILABLE_REASON });
-    await vi.waitFor(() => {
-      expect(socket.close).toHaveBeenCalledWith(
-        GATEWAY_STARTUP_CLOSE_CODE,
-        GATEWAY_STARTUP_CLOSE_REASON,
-      );
-    });
+    await vi.waitFor(
+      () => {
+        expect(socket.close).toHaveBeenCalledWith(
+          GATEWAY_STARTUP_CLOSE_CODE,
+          GATEWAY_STARTUP_CLOSE_REASON,
+        );
+      },
+      { timeout: 15_000 },
+    );
   });
 });

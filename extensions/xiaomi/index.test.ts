@@ -42,8 +42,9 @@ describe("xiaomi provider plugin", () => {
   });
 
   it("uses OpenAI-compatible transcript validation for Xiaomi models", () => {
+    const provider = registerSingleProviderPlugin(xiaomiPlugin);
     const policy = resolveTranscriptPolicy({
-      provider: "xiaomi",
+      provider: provider.id,
       modelApi: "openai-completions",
       modelId: "mimo-v2.5-pro",
     });
