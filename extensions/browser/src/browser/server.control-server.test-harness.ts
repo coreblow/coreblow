@@ -188,9 +188,23 @@ installChromeUserDataDirHooks(chromeUserDataDir);
 type BrowserServerModule = typeof import("./server.js");
 let browserServerModule: BrowserServerModule | null = null;
 
+const UNMOCKED_SERVER_MODULES = [
+  "./routes/index.js",
+  "./server-context.js",
+  "./config.js",
+  "./control-auth.js",
+  "./runtime-lifecycle.js",
+  "./server-lifecycle.js",
+  "./pw-ai-state.js",
+  "./pw-ai-module.js",
+] as const;
+
 async function loadBrowserServerModule(): Promise<BrowserServerModule> {
   if (browserServerModule) {
     return browserServerModule;
+  }
+  for (const mod of UNMOCKED_SERVER_MODULES) {
+    vi.doUnmock(mod);
   }
   vi.resetModules();
   browserServerModule = await import("./server.js");
