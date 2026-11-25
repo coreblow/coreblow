@@ -11,7 +11,7 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@buape/carbon": "^0.15.0",
+    "@buape/carbon": "^0.17.0",
     "@discordjs/voice": "^0.19.2",
     "discord-api-types": "^0.38.47"
   },

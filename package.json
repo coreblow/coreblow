@@ -274,7 +274,7 @@
     "@anthropic-ai/sdk": "^0.94.0",
     "@anthropic-ai/vertex-sdk": "^0.16.0",
     "@aws-sdk/client-bedrock": "^3.1047.0",
-    "@buape/carbon": "^0.15.0",
+    "@buape/carbon": "^0.17.0",
     "@discordjs/voice": "^0.19.2",
     "@lancedb/lancedb": "^0.27.2",
     "@larksuiteoapi/node-sdk": "^1.64.0",
