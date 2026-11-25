@@ -3,11 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { UnifiedSessionRecord } from "../sessions/unified-session-store.js";
-import {
-  maskBearerToken,
-  RemoteNodeRegistry,
-  BUILTIN_LOCAL_NODE,
-} from "./remote-nodes.js";
+import { maskBearerToken, RemoteNodeRegistry, BUILTIN_LOCAL_NODE } from "./remote-nodes.js";
 
 describe("RemoteNodeRegistry", () => {
   let tmpDir: string;
@@ -20,6 +16,7 @@ describe("RemoteNodeRegistry", () => {
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     try {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     } catch {}
@@ -108,11 +105,14 @@ describe("RemoteNodeRegistry", () => {
     });
 
     // Mock successful fetch
-    (global as any).fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ ok: true }),
-    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ ok: true }),
+      }),
+    );
 
     const result = await reg.probeNodeHealth(node.id);
     expect(result.healthy).toBe(true);
@@ -190,28 +190,33 @@ describe("RemoteNodeRegistry", () => {
         createdAt: 1000,
         updatedAt: 4000,
         surface: "desktop",
-        messages: [{ id: "m4", role: "user", content: "Created on 24/7 cloud node", createdAt: 4000 }],
+        messages: [
+          { id: "m4", role: "user", content: "Created on 24/7 cloud node", createdAt: 4000 },
+        ],
       },
     ];
 
     // Mock GET /api/corehub/sessions and POST /api/corehub/sessions
-    (global as any).fetch = vi.fn().mockImplementation((url: string, opts: any) => {
-      if (opts?.method === "GET") {
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          json: async () => ({ ok: true, sessions: remoteSessions }),
-        });
-      }
-      if (opts?.method === "POST") {
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          json: async () => ({ ok: true }),
-        });
-      }
-      return Promise.reject(new Error("Unexpected request"));
-    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url: string, opts: any) => {
+        if (opts?.method === "GET") {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ ok: true, sessions: remoteSessions }),
+          });
+        }
+        if (opts?.method === "POST") {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ ok: true }),
+          });
+        }
+        return Promise.reject(new Error("Unexpected request"));
+      }),
+    );
 
     const customStorePath = path.join(tmpDir, "sessions.json");
     const syncRes = await reg.syncSessionsWithNode(node.id, localSessions, {

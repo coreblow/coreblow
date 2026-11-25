@@ -1,5 +1,5 @@
 import path from "node:path";
-import { describe, expect, it, vi, beforeEach , Mock } from "vitest";
+import { describe, expect, it, vi, beforeEach, Mock } from "vitest";
 import { SafeOpenError } from "../../infra/fs-safe.js";
 
 /* ------------------------------------------------------------------ */
@@ -75,9 +75,13 @@ vi.mock("../../browser/trash.js", () => ({
   movePathToTrash: mocks.movePathToTrash,
 }));
 
-vi.mock("../../utils.js", () => ({
-  resolveUserPath: (p: string) => `/resolved${p.startsWith("/") ? "" : "/"}${p}`,
-}));
+vi.mock("../../utils.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../utils.js")>();
+  return {
+    ...actual,
+    resolveUserPath: (p: string) => `/resolved${p.startsWith("/") ? "" : "/"}${p}`,
+  };
+});
 
 vi.mock("../session-utils.js", () => ({
   listAgentsForGateway: mocks.listAgentsForGateway,

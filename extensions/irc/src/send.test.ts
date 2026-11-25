@@ -20,9 +20,13 @@ const hoisted = vi.hoisted(() => {
   };
 });
 
-vi.mock("./normalize.js", () => ({
-  normalizeIrcMessagingTarget: hoisted.normalizeIrcMessagingTarget,
-}));
+vi.mock("./normalize.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./normalize.js")>();
+  return {
+    ...actual,
+    normalizeIrcMessagingTarget: hoisted.normalizeIrcMessagingTarget,
+  };
+});
 
 vi.mock("./client.js", () => ({
   connectIrcClient: hoisted.connectIrcClient,

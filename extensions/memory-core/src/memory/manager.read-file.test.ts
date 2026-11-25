@@ -78,7 +78,14 @@ describe("MemoryIndexManager.readFile", () => {
     await fs.writeFile(absPath, ["line 1", "line 2", "line 3"].join("\n"), "utf-8");
 
     const result = await manager!.readFile({ relPath, from: 2, lines: 1 });
-    expect(result).toEqual({ text: "line 2", path: relPath });
+    expect(result).toEqual({
+      text: "line 2\n\n[More content available. Use from=3 to continue.]",
+      path: relPath,
+      from: 2,
+      lines: 1,
+      nextFrom: 3,
+      truncated: true,
+    });
   });
 
   it("returns empty text when the requested slice is past EOF", async () => {
@@ -88,7 +95,12 @@ describe("MemoryIndexManager.readFile", () => {
     await fs.writeFile(absPath, ["alpha", "beta"].join("\n"), "utf-8");
 
     const result = await manager!.readFile({ relPath, from: 10, lines: 5 });
-    expect(result).toEqual({ text: "", path: relPath });
+    expect(result).toEqual({
+      text: "",
+      path: relPath,
+      from: 10,
+      lines: 0,
+    });
   });
 
   it("returns empty text when the file disappears after stat", async () => {

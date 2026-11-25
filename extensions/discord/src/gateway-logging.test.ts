@@ -1,9 +1,13 @@
 import { EventEmitter } from "node:events";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("coreblow/plugin-sdk/runtime-env", () => ({
-  logVerbose: vi.fn(),
-}));
+vi.mock("coreblow/plugin-sdk/runtime-env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/runtime-env")>();
+  return {
+    ...actual,
+    logVerbose: vi.fn(),
+  };
+});
 
 let logVerbose: typeof import("coreblow/plugin-sdk/runtime-env").logVerbose;
 let attachDiscordGatewayLogging: typeof import("./gateway-logging.js").attachDiscordGatewayLogging;

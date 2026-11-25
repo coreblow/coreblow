@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { setDefaultChannelPluginRegistryForTests } from "../../../src/commands/channel-test-helpers.js";
 import type { CoreBlowConfig } from "../../../src/config/config.js";
 import {
   __testing as sessionBindingTesting,
   registerSessionBindingAdapter,
 } from "../../../src/infra/outbound/session-binding-service.js";
+import { createEmptyPluginRegistry } from "../../../src/plugins/registry.js";
+import { setActivePluginRegistry } from "../../../src/plugins/runtime.js";
 import { resolveBlueBubblesConversationRoute } from "./conversation-route.js";
 
 const baseCfg = {
@@ -17,7 +18,7 @@ const baseCfg = {
 describe("resolveBlueBubblesConversationRoute", () => {
   beforeEach(() => {
     sessionBindingTesting.resetSessionBindingAdaptersForTests();
-    setDefaultChannelPluginRegistryForTests();
+    setActivePluginRegistry(createEmptyPluginRegistry());
   });
 
   it("lets runtime BlueBubbles conversation bindings override default routing", () => {

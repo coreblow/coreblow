@@ -1218,7 +1218,7 @@ describe("BlueBubbles webhook monitor", () => {
       expect(mockEnqueueSystemEvent).toHaveBeenCalledWith(
         'Assistant sent "replying now" [message_id:2]',
         expect.objectContaining({
-          sessionKey: "agent:main:main",
+          sessionKey: "agent:main:bluebubbles:direct:+15551234567",
         }),
       );
     });
@@ -1258,7 +1258,7 @@ describe("BlueBubbles webhook monitor", () => {
       expect(mockEnqueueSystemEvent).toHaveBeenCalledWith(
         'Assistant sent "replying now" [message_id:2]',
         expect.objectContaining({
-          sessionKey: "agent:main:main",
+          sessionKey: "agent:main:bluebubbles:direct:+15551234567",
         }),
       );
     });
@@ -1297,7 +1297,7 @@ describe("BlueBubbles webhook monitor", () => {
       expect(mockEnqueueSystemEvent).toHaveBeenCalledWith(
         'Assistant sent "replying now" [message_id:2]',
         expect.objectContaining({
-          sessionKey: "agent:main:main",
+          sessionKey: "agent:main:bluebubbles:direct:+15551234567",
         }),
       );
     });

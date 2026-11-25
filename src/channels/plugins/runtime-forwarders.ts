@@ -3,12 +3,7 @@ import type { ChannelDirectoryAdapter, ChannelOutboundAdapter } from "./types.ad
 type MaybePromise<T> = T | Promise<T>;
 
 type DirectoryListMethod = "listPeersLive" | "listGroupsLive" | "listGroupMembers" | "self";
-type OutboundMethod =
-  | "renderPresentation"
-  | "sendPayload"
-  | "sendText"
-  | "sendMedia"
-  | "sendPoll";
+type OutboundMethod = "renderPresentation" | "sendPayload" | "sendText" | "sendMedia" | "sendPoll";
 
 type DirectorySelfParams = Parameters<NonNullable<ChannelDirectoryAdapter["self"]>>[0];
 type DirectoryListParams = Parameters<NonNullable<ChannelDirectoryAdapter["listPeersLive"]>>[0];
@@ -48,42 +43,50 @@ export function createRuntimeDirectoryLiveAdapter<Runtime>(params: {
   ) => ChannelDirectoryAdapter["listGroupMembers"] | null | undefined;
 }): Pick<ChannelDirectoryAdapter, DirectoryListMethod> {
   return {
-    self: params.self
-      ? async (ctx: DirectorySelfParams) =>
-          await (
-            await resolveForwardedMethod({
-              getRuntime: params.getRuntime,
-              resolve: params.self!,
-            })
-          )(ctx)
-      : undefined,
-    listPeersLive: params.listPeersLive
-      ? async (ctx: DirectoryListParams) =>
-          await (
-            await resolveForwardedMethod({
-              getRuntime: params.getRuntime,
-              resolve: params.listPeersLive!,
-            })
-          )(ctx)
-      : undefined,
-    listGroupsLive: params.listGroupsLive
-      ? async (ctx: DirectoryListParams) =>
-          await (
-            await resolveForwardedMethod({
-              getRuntime: params.getRuntime,
-              resolve: params.listGroupsLive!,
-            })
-          )(ctx)
-      : undefined,
-    listGroupMembers: params.listGroupMembers
-      ? async (ctx: DirectoryGroupMembersParams) =>
-          await (
-            await resolveForwardedMethod({
-              getRuntime: params.getRuntime,
-              resolve: params.listGroupMembers!,
-            })
-          )(ctx)
-      : undefined,
+    ...(params.self
+      ? {
+          self: async (ctx: DirectorySelfParams) =>
+            await (
+              await resolveForwardedMethod({
+                getRuntime: params.getRuntime,
+                resolve: params.self!,
+              })
+            )(ctx),
+        }
+      : {}),
+    ...(params.listPeersLive
+      ? {
+          listPeersLive: async (ctx: DirectoryListParams) =>
+            await (
+              await resolveForwardedMethod({
+                getRuntime: params.getRuntime,
+                resolve: params.listPeersLive!,
+              })
+            )(ctx),
+        }
+      : {}),
+    ...(params.listGroupsLive
+      ? {
+          listGroupsLive: async (ctx: DirectoryListParams) =>
+            await (
+              await resolveForwardedMethod({
+                getRuntime: params.getRuntime,
+                resolve: params.listGroupsLive!,
+              })
+            )(ctx),
+        }
+      : {}),
+    ...(params.listGroupMembers
+      ? {
+          listGroupMembers: async (ctx: DirectoryGroupMembersParams) =>
+            await (
+              await resolveForwardedMethod({
+                getRuntime: params.getRuntime,
+                resolve: params.listGroupMembers!,
+              })
+            )(ctx),
+        }
+      : {}),
   };
 }
 

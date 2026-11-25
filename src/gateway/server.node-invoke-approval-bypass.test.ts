@@ -214,6 +214,15 @@ describe("node.invoke approval bypass", () => {
     });
 
     const resolvedDeviceIdentity = deviceIdentity ?? createDeviceIdentity();
+    const { approveNodePairing, requestNodePairing } = await import("../infra/node-pairing.js");
+    const pairing = await requestNodePairing({
+      nodeId: resolvedDeviceIdentity.deviceId,
+      platform: "linux",
+      commands: ["system.run"],
+    });
+    await approveNodePairing(pairing.request.requestId, {
+      callerScopes: ["operator.admin", "operator.pairing"],
+    });
     const client = new GatewayClient({
       url: `ws://127.0.0.1:${port}`,
       // Keep challenge timeout realistic in tests; 0 maps to a 250ms timeout and can

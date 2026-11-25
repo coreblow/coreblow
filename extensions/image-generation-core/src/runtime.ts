@@ -17,7 +17,12 @@ import {
   type CoreBlowConfig,
 } from "../api.js";
 
-const log = createSubsystemLogger("image-generation");
+let cachedLog: ReturnType<typeof createSubsystemLogger> | undefined;
+
+function getLog() {
+  cachedLog ??= createSubsystemLogger("image-generation");
+  return cachedLog;
+}
 
 export type GenerateImageParams = {
   cfg: CoreBlowConfig;
@@ -175,7 +180,7 @@ export async function generateImage(
         status: described?.status,
         code: described?.code,
       });
-      log.debug(`image-generation candidate failed: ${candidate.provider}/${candidate.model}`);
+      getLog().debug(`image-generation candidate failed: ${candidate.provider}/${candidate.model}`);
     }
   }
 

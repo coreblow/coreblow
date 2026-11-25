@@ -65,7 +65,7 @@ describe("resolveMatrixInboundRoute", () => {
     expect(configuredBinding).toBeNull();
     expect(route.agentId).toBe("sender-agent");
     expect(route.matchedBy).toBe("binding.peer");
-    expect(route.sessionKey).toBe("agent:sender-agent:main");
+    expect(route.sessionKey).toBe("agent:sender-agent:matrix:direct:@alice:example.org");
   });
 
   it("uses the DM room as a parent-peer fallback before account-level bindings", () => {
@@ -95,7 +95,7 @@ describe("resolveMatrixInboundRoute", () => {
     expect(configuredBinding).toBeNull();
     expect(route.agentId).toBe("room-agent");
     expect(route.matchedBy).toBe("binding.peer.parent");
-    expect(route.sessionKey).toBe("agent:room-agent:main");
+    expect(route.sessionKey).toBe("agent:room-agent:matrix:direct:@alice:example.org");
   });
 
   it("lets configured ACP room bindings override DM parent-peer routing", () => {

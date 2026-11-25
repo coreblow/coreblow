@@ -5,12 +5,12 @@ import {
   type ListFoundationModelsCommandOutput,
 } from "@aws-sdk/client-bedrock";
 import { createSubsystemLogger } from "coreblow/plugin-sdk/core";
-import { resolveAwsSdkEnvVarName } from "coreblow/plugin-sdk/provider-auth-runtime";
 import type {
   BedrockDiscoveryConfig,
   ModelDefinitionConfig,
   ModelProviderConfig,
 } from "coreblow/plugin-sdk/provider-model-shared";
+export { mergeImplicitBedrockProvider, resolveBedrockConfigApiKey } from "./discovery-shared.js";
 
 const log = createSubsystemLogger("bedrock-discovery");
 
@@ -151,10 +151,6 @@ export function resetBedrockDiscoveryCacheForTest(): void {
   hasLoggedBedrockError = false;
 }
 
-export function resolveBedrockConfigApiKey(env: NodeJS.ProcessEnv = process.env): string {
-  return resolveAwsSdkEnvVarName(env) ?? "AWS_PROFILE";
-}
-
 export async function discoverBedrockModels(params: {
   region: string;
   config?: BedrockDiscoveryConfig;
@@ -266,23 +262,5 @@ export async function resolveImplicitBedrockProvider(params: {
     api: "bedrock-converse-stream",
     auth: "aws-sdk",
     models,
-  };
-}
-
-export function mergeImplicitBedrockProvider(params: {
-  existing: ModelProviderConfig | undefined;
-  implicit: ModelProviderConfig;
-}): ModelProviderConfig {
-  const { existing, implicit } = params;
-  if (!existing) {
-    return implicit;
-  }
-  return {
-    ...implicit,
-    ...existing,
-    models:
-      Array.isArray(existing.models) && existing.models.length > 0
-        ? existing.models
-        : implicit.models,
   };
 }

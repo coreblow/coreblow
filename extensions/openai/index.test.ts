@@ -4,8 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import { getModel } from "@mariozechner/pi-ai";
 import { AuthStorage, ModelRegistry } from "@mariozechner/pi-coding-agent";
-import OpenAI from "openai";
 import * as providerAuth from "coreblow/plugin-sdk/provider-auth-runtime";
+import OpenAI from "openai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CoreBlowConfig } from "../../src/config/config.js";
 import { loadConfig } from "../../src/config/config.js";
@@ -23,9 +23,13 @@ const runtimeMocks = vi.hoisted(() => ({
   refreshOpenAICodexToken: vi.fn(),
 }));
 
-vi.mock("coreblow/plugin-sdk/runtime-env", () => ({
-  ensureGlobalUndiciEnvProxyDispatcher: runtimeMocks.ensureGlobalUndiciEnvProxyDispatcher,
-}));
+vi.mock("coreblow/plugin-sdk/runtime-env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/runtime-env")>();
+  return {
+    ...actual,
+    ensureGlobalUndiciEnvProxyDispatcher: runtimeMocks.ensureGlobalUndiciEnvProxyDispatcher,
+  };
+});
 
 vi.mock("@mariozechner/pi-ai/oauth", () => ({
   getOAuthApiKey: vi.fn(),

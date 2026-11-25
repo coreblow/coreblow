@@ -199,9 +199,12 @@ describe("server-channels auto restart", () => {
   });
 
   it("passes channelRuntime through channel gateway context when provided", async () => {
-    const channelRuntime = { marker: "channel-runtime" } as unknown as PluginRuntime["channel"];
+    const channelRuntime = {
+      marker: "channel-runtime",
+      runtimeContexts: { register: vi.fn(), get: vi.fn(), watch: vi.fn() },
+    } as unknown as PluginRuntime["channel"];
     const startAccount = vi.fn(async (ctx) => {
-      expect(ctx.channelRuntime).toBe(channelRuntime);
+      expect(ctx.channelRuntime).toMatchObject({ marker: "channel-runtime" });
     });
 
     installTestRegistry(createTestPlugin({ startAccount }));
@@ -260,10 +263,11 @@ describe("server-channels auto restart", () => {
   it("does not resolve channelRuntime until a channel starts", async () => {
     const channelRuntime = {
       marker: "lazy-channel-runtime",
+      runtimeContexts: { register: vi.fn(), get: vi.fn(), watch: vi.fn() },
     } as unknown as PluginRuntime["channel"];
     const resolveChannelRuntime = vi.fn(() => channelRuntime);
     const startAccount = vi.fn(async (ctx) => {
-      expect(ctx.channelRuntime).toBe(channelRuntime);
+      expect(ctx.channelRuntime).toMatchObject({ marker: "lazy-channel-runtime" });
     });
 
     installTestRegistry(createTestPlugin({ startAccount }));

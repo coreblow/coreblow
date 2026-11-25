@@ -2,16 +2,28 @@ import { EventEmitter } from "node:events";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Mock http and https modules before importing the client
-vi.mock("node:https", () => {
+vi.mock("node:https", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:https")>();
   const mockRequest = vi.fn();
   const mockGet = vi.fn();
-  return { default: { request: mockRequest, get: mockGet }, request: mockRequest, get: mockGet };
+  return {
+    ...actual,
+    default: { ...actual, request: mockRequest, get: mockGet },
+    request: mockRequest,
+    get: mockGet,
+  };
 });
 
-vi.mock("node:http", () => {
+vi.mock("node:http", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:http")>();
   const mockRequest = vi.fn();
   const mockGet = vi.fn();
-  return { default: { request: mockRequest, get: mockGet }, request: mockRequest, get: mockGet };
+  return {
+    ...actual,
+    default: { ...actual, request: mockRequest, get: mockGet },
+    request: mockRequest,
+    get: mockGet,
+  };
 });
 
 const https = await import("node:https");

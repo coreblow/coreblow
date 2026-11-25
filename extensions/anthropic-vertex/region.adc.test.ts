@@ -41,7 +41,9 @@ async function loadRegionModuleForTest() {
       },
     };
   });
-  return await import("./region.js");
+  const mod = await import("./region.js");
+  existsSyncMock.mockClear();
+  return mod;
 }
 
 describe("anthropic-vertex ADC reads", () => {

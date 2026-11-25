@@ -11,9 +11,13 @@ vi.mock("./http-common.js", () => ({
   sendGatewayAuthFailure: vi.fn(),
 }));
 
-vi.mock("./http-utils.js", () => ({
-  getBearerToken: vi.fn(),
-}));
+vi.mock("./http-utils.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./http-utils.js")>();
+  return {
+    ...actual,
+    getBearerToken: vi.fn(),
+  };
+});
 
 const { authorizeHttpGatewayConnect } = await import("./auth.js");
 const { sendGatewayAuthFailure } = await import("./http-common.js");
@@ -28,7 +32,7 @@ describe("authorizeGatewayBearerRequestOrReply", () => {
   } satisfies ResolvedGatewayAuth;
 
   const makeAuthorizeParams = () => ({
-    req: {} as IncomingMessage,
+    req: { headers: {} } as IncomingMessage,
     res: {} as ServerResponse,
     auth: bearerAuth,
   });

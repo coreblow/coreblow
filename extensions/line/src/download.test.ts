@@ -15,19 +15,23 @@ vi.mock("@line/bot-sdk", () => ({
   },
 }));
 
-vi.mock("coreblow/plugin-sdk/runtime-env", () => ({
-  createSubsystemLogger: () => {
-    const logger = {
-      debug: () => {},
-      info: () => {},
-      warn: () => {},
-      error: () => {},
-      child: () => logger,
-    };
-    return logger;
-  },
-  logVerbose: () => {},
-}));
+vi.mock("coreblow/plugin-sdk/runtime-env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("coreblow/plugin-sdk/runtime-env")>();
+  return {
+    ...actual,
+    createSubsystemLogger: () => {
+      const logger = {
+        debug: () => {},
+        info: () => {},
+        warn: () => {},
+        error: () => {},
+        child: () => logger,
+      };
+      return logger;
+    },
+    logVerbose: () => {},
+  };
+});
 
 let downloadLineMedia: typeof import("./download.js").downloadLineMedia;
 
