@@ -293,7 +293,7 @@
     "@urbit/aura": "^3.0.0",
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/coverage-v8": "^4.1.6",
-    "ai": "^6.0.168",
+    "ai": "^7.0.179",
     "ciao": "^2.0.0",
     "discord-api-types": "^0.38.47",
     "jscpd": "4.0.8",
