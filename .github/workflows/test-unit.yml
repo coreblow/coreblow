@@ -1,5 +1,5 @@
 # CoreBlow — Unit Tests
-# Updated: 2026-04-24 — Single source tree (gateway/ removed)
+# Sharded 4-way parallel CI execution
 
 name: CI — Unit Tests
 
@@ -12,11 +12,22 @@ on:
     branches: [main]
     paths-ignore:
       - "docs/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
+    name: Unit Tests (${{ matrix.shard }}/${{ matrix.shards }})
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shards: [4]
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -37,8 +48,10 @@ jobs:
         env:
           CI: true
           COREBLOW_TEST_PROFILE: serial
+          COREBLOW_TEST_SHARDS: ${{ matrix.shards }}
+          COREBLOW_TEST_SHARD_INDEX: ${{ matrix.shard }}
           NODE_OPTIONS: '--max-old-space-size=4096'
 
       - name: Publish Test Results
         if: always()
-        run: echo "Tests completed"
+        run: echo "Unit tests shard ${{ matrix.shard }}/${{ matrix.shards }} completed"
