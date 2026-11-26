@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PublicArtifactStore } from './public-artifacts.js';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -9,6 +9,7 @@ describe('Public Artifact Store', () => {
     let store: PublicArtifactStore;
 
     beforeEach(() => {
+        vi.useRealTimers();
         tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'artifacts-test-'));
         store = new PublicArtifactStore(tmpDir);
     });
