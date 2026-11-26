@@ -1,1 +1,0 @@
-/** CoreBlow — PI Cost Tracker */ let totalCost = 0; export function addCost(amount: number): void { totalCost += amount; } export function getTotalCost(): number { return totalCost; } export function resetCost(): void { totalCost = 0; }

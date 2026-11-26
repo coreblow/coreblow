@@ -1,1 +1,0 @@
-/** CoreBlow — PI Auto Title */ export function generateTitle(messages: Array<{ content: string }>): string { const first = messages.find((m) => m.content.length > 10); return first ? first.content.slice(0, 50) + (first.content.length > 50 ? "..." : "") : "Untitled"; }
