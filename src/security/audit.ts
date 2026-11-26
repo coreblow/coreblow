@@ -31,6 +31,10 @@ import {
 } from "./audit-fs.js";
 import { collectEnabledInsecureOrDangerousFlags } from "./dangerous-config-flags.js";
 import { DEFAULT_GATEWAY_HTTP_TOOL_DENY } from "./dangerous-tools.js";
+import {
+  evaluateTrustPolicyForAudit,
+  type TrustPolicyEvaluationSummary,
+} from "./trust-policy-bridge.js";
 import type { ExecFn } from "./windows-acl.js";
 
 type ExecDockerRawFn = typeof import("../agents/sandbox/docker.js").execDockerRaw;
@@ -56,6 +60,7 @@ export type SecurityAuditReport = {
   ts: number;
   summary: SecurityAuditSummary;
   findings: SecurityAuditFinding[];
+  trustPolicy?: TrustPolicyEvaluationSummary;
   deep?: {
     gateway?: {
       attempted: boolean;
@@ -75,6 +80,8 @@ export type SecurityAuditOptions = {
   deep?: boolean;
   includeFilesystem?: boolean;
   includeChannelSecurity?: boolean;
+  includeTrustPolicy?: boolean;
+  trustTimeoutMs?: number;
   loadPluginSecurityCollectors?: boolean;
   /** Override where to check state (default: resolveStateDir()). */
   stateDir?: string;
@@ -1502,8 +1509,21 @@ export async function runSecurityAudit(opts: SecurityAuditOptions): Promise<Secu
     });
   }
 
+  let trustPolicy: TrustPolicyEvaluationSummary | undefined;
+  if (opts.includeTrustPolicy !== false) {
+    const trustResult = await evaluateTrustPolicyForAudit({
+      cfg,
+      findings,
+      env,
+      platform,
+      timeoutMs: opts.trustTimeoutMs,
+    });
+    trustPolicy = trustResult.summary;
+    findings.push(...trustResult.findings);
+  }
+
   const summary = countBySeverity(findings);
-  return { ts: Date.now(), summary, findings, deep };
+  return { ts: Date.now(), summary, findings, ...(trustPolicy ? { trustPolicy } : {}), deep };
 }
 
 
