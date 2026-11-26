@@ -52,7 +52,7 @@ describe("applyMistralModelCompat", () => {
   });
 });
 
-describe("Mistral provider parity facades", () => {
+describe("Mistral provider compatibility facades", () => {
   it("contributes compat for Mistral OpenAI-compatible resolved models only", () => {
     expect(
       contributeMistralResolvedModelCompat({

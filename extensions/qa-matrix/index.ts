@@ -1,6 +1,6 @@
 export default {
   id: "qa-matrix",
   name: "Qa Matrix",
-  description: "CoreBlow Qa Matrix parity facade.",
+  description: "CoreBlow Qa Matrix compatibility adapter.",
   register() {},
 };

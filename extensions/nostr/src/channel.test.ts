@@ -50,7 +50,7 @@ function requireNostrResolveDmPolicy() {
 }
 
 describe("nostrPlugin", () => {
-  describe("parity facades", () => {
+  describe("compatibility facades", () => {
     it("exposes channel and setup entry facades", async () => {
       const channelApi = await import("../channel-plugin-api.js");
       const setupApi = await import("../setup-plugin-api.js");

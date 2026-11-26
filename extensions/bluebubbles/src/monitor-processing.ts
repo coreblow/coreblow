@@ -846,7 +846,7 @@ export async function processMessage(
     chatIdentifier,
   });
 
-  // Mention gating for group chats (parity with iMessage/WhatsApp)
+  // Mention gating for group chats (consistent with iMessage/WhatsApp)
   const messageText = text;
   const mentionRegexes = core.channel.mentions.buildMentionRegexes(config, route.agentId);
   const wasMentioned = isGroup
@@ -860,7 +860,7 @@ export async function processMessage(
     accountId: account.accountId,
   });
 
-  // Command gating (parity with iMessage/WhatsApp)
+  // Command gating (consistent with iMessage/WhatsApp)
   const useAccessGroups = config.commands?.useAccessGroups !== false;
   const hasControlCmd = core.channel.text.hasControlCommand(messageText, config);
   const commandDmAllowFrom = isGroup ? configuredAllowFrom : effectiveAllowFrom;
@@ -906,7 +906,7 @@ export async function processMessage(
     return;
   }
 
-  // Allow control commands to bypass mention gating when authorized (parity with iMessage)
+  // Allow control commands to bypass mention gating when authorized (consistent with iMessage)
   const shouldBypassMention =
     isGroup && requireMention && !wasMentioned && commandAuthorized && hasControlCmd;
   const effectiveWasMentioned = wasMentioned || shouldBypassMention;
@@ -1155,7 +1155,7 @@ export async function processMessage(
         )
       : null;
 
-  // Respect sendReadReceipts config (parity with WhatsApp)
+  // Respect sendReadReceipts config (consistent with WhatsApp)
   const sendReadReceipts = account.config.sendReadReceipts !== false;
   if (chatGuidForActions && baseUrl && password && sendReadReceipts) {
     try {

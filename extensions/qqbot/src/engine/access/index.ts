@@ -1,6 +1,6 @@
 export default {
   id: "qqbot",
   name: "Qqbot",
-  description: "CoreBlow Qqbot parity facade.",
+  description: "CoreBlow Qqbot compatibility adapter.",
   register() {},
 };

@@ -1,6 +1,6 @@
 export default {
   id: "deepinfra",
   name: "Deepinfra",
-  description: "CoreBlow Deepinfra parity facade.",
+  description: "CoreBlow Deepinfra compatibility adapter.",
   register() {},
 };

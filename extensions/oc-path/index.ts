@@ -1,6 +1,6 @@
 export default {
   id: "oc-path",
   name: "Oc Path",
-  description: "CoreBlow Oc Path parity facade.",
+  description: "CoreBlow Oc Path compatibility adapter.",
   register() {},
 };

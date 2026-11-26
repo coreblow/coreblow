@@ -1,6 +1,6 @@
 export default {
   id: "qa-lab",
   name: "Qa Lab",
-  description: "CoreBlow Qa Lab parity facade.",
+  description: "CoreBlow Qa Lab compatibility adapter.",
   register() {},
 };
