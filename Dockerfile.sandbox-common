@@ -1,3 +1,35 @@
+# syntax=docker/dockerfile:1.7
+
+# ── CoreBlow Sandbox Common Base Image ──────────────────────────────────────
+# Multi-stage build compiles dist/ inside the builder stage so .dockerignore
+# can keep excluding host dist/ artifacts while producing a slim runtime base.
+
+# ── Stage 1: Dependencies ───────────────────────────────────────────────────
+FROM node:22-bookworm AS deps
+
+RUN corepack enable
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml* .npmrc* ./
+COPY ui/package.json ./ui/package.json
+COPY packages ./packages
+COPY extensions ./extensions
+COPY apps ./apps
+
+RUN --mount=type=cache,id=coreblow-pnpm-store,target=/root/.local/share/pnpm/store,sharing=locked \
+    NODE_OPTIONS=--max-old-space-size=2048 pnpm install --frozen-lockfile
+
+# ── Stage 2: Build ──────────────────────────────────────────────────────────
+FROM deps AS build
+
+COPY . .
+
+RUN pnpm build && \
+    CI=true pnpm prune --prod && \
+    find . -type f \( -name '*.map' -o -name '*.tsbuildinfo' \) -delete 2>/dev/null || true
+
+# ── Stage 3: Runtime Base ───────────────────────────────────────────────────
 FROM node:22-bookworm-slim AS base
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -10,12 +42,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -s /bin/bash sandbox
 
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile --prod
 
-COPY dist/ ./dist/
+COPY --from=build --chown=sandbox:sandbox /app/package.json ./
+COPY --from=build --chown=sandbox:sandbox /app/coreblow.mjs ./
+COPY --from=build --chown=sandbox:sandbox /app/node_modules ./node_modules
+COPY --from=build --chown=sandbox:sandbox /app/dist ./dist
+COPY --from=build --chown=sandbox:sandbox /app/packages ./packages
+COPY --from=build --chown=sandbox:sandbox /app/extensions ./extensions
+COPY --from=build --chown=sandbox:sandbox /app/skills ./skills
 
-RUN chown -R sandbox:sandbox /app
+ENV COREBLOW_BUNDLED_PLUGINS_DIR=/app/extensions \
+    NODE_ENV=production
+
 USER sandbox
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \

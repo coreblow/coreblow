@@ -1,4 +1,7 @@
-FROM coreblow-sandbox-common:latest
+ARG BASE_IMAGE=coreblow-sandbox-common:latest
+FROM ${BASE_IMAGE}
+
 USER sandbox
-WORKDIR /home/sandbox
-CMD ["node", "dist/index.js", "sandbox", "--port", "3100"]
+WORKDIR /app
+
+CMD ["node", "dist/entry.js", "sandbox", "--port", "3100"]

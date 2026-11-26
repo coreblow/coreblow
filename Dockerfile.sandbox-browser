@@ -1,4 +1,7 @@
-FROM coreblow-sandbox-common:latest
+ARG BASE_IMAGE=coreblow-sandbox-common:latest
+FROM ${BASE_IMAGE}
+
+USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
     fonts-liberation \
@@ -6,7 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxss1 \
     libasound2 \
     && rm -rf /var/lib/apt/lists/*
+
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
 USER sandbox
-WORKDIR /home/sandbox
-CMD ["node", "dist/index.js", "sandbox", "--port", "3100", "--browser"]
+WORKDIR /app
+
+CMD ["node", "dist/entry.js", "sandbox", "--port", "3100", "--browser"]

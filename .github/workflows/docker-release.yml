@@ -100,6 +100,8 @@ jobs:
           file: Dockerfile.sandbox
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-sandbox:latest
+          build-args: |
+            BASE_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-sandbox-common:latest
           cache-from: type=gha,scope=sandbox
           cache-to: type=gha,scope=sandbox,mode=max
 
@@ -110,5 +112,7 @@ jobs:
           file: Dockerfile.sandbox-browser
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-sandbox-browser:latest
+          build-args: |
+            BASE_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-sandbox-common:latest
           cache-from: type=gha,scope=sandbox-browser
           cache-to: type=gha,scope=sandbox-browser,mode=max

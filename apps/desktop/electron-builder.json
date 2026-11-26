@@ -70,6 +70,7 @@
         "arch": ["x64", "arm64"]
       }
     ],
-    "category": "Development"
+    "category": "Development",
+    "maintainer": "CoreBlow Team <support@coreblow.com>"
   }
 }

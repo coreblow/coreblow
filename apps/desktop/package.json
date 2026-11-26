@@ -3,7 +3,8 @@
   "version": "2.3.0",
   "private": true,
   "description": "CoreBlow Studio Desktop — Next-Generation Electron Desktop Shell",
-  "author": "CoreBlow Team",
+  "homepage": "https://coreblow.com",
+  "author": "CoreBlow Team <support@coreblow.com>",
   "type": "module",
   "main": "dist-electron/main.cjs",
   "scripts": {
