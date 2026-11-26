@@ -168,8 +168,8 @@ All repositories under `github.com/coreblow` enforce 100% 40-character commit SH
 | [`coreblow/trust`](https://github.com/coreblow/trust) | OWASP Agentic AI threat model and automated policy evaluator |
 | [`coreblow/corebox`](https://github.com/coreblow/corebox) | OS-level process isolation runner (Seatbelt, Bubblewrap, Docker) |
 | [`coreblow/dolphin`](https://github.com/coreblow/dolphin) | Typed resumable workflow runner with atomic disk checkpoints |
-| [`coreblow/corebench`](https://github.com/coreblow/corebench) &amp; [`coreblow-rtt`](https://github.com/coreblow/coreblow-rtt) | Gateway latency, TTFT/RTT network profiling, and benchmark harnesses |
-| [`coreblow/homebrew-tap`](https://github.com/coreblow/homebrew-tap), [`nix-coreblow`](https://github.com/coreblow/nix-coreblow), [`coreblow-ansible`](https://github.com/coreblow/coreblow-ansible) | Native packaging and hardened server provisioning |
+| [`coreblow/corebench`](https://github.com/coreblow/corebench) | Gateway latency, TTFT/RTT network profiling, and benchmark harnesses |
+| [`coreblow/coreblow.com`](https://github.com/coreblow/coreblow.com), [`homebrew-tap`](https://github.com/coreblow/homebrew-tap), [`nix-coreblow`](https://github.com/coreblow/nix-coreblow) | Public website, installers, Homebrew tap, and Nix flake packaging |
 
 </details>
 

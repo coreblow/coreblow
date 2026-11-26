@@ -3,8 +3,8 @@
 /**
  * CoreBlow — Safe Fleet Tool Dispatcher
  *
- * Resolves and invokes federated satellite tools (`corebar`, `corechat`, `trust`,
- * `coreblow-rtt`, `corebench`, `corebox`, `dolphin`) across:
+ * Resolves and invokes federated satellite tools from ./scripts/fleet/fleet-manifest.json
+ * across:
  * 1. Installed binary on $PATH
  * 2. Sibling repository checkout (`../coreblow-split/<repo>`)
  * 3. Graceful fallback with actionable installation guidance
@@ -14,7 +14,6 @@
 
 import { spawn } from "node:child_process";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -22,6 +21,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, "..");
 const DEFAULT_SPLIT_ROOT = path.resolve(REPO_ROOT, "../coreblow-split");
+const MANIFEST_PATH = path.join(__dirname, "fleet/fleet-manifest.json");
 
 /**
  * Check if a binary exists on PATH and is executable.
@@ -55,176 +55,106 @@ export function findBinaryOnPath(name, envPath = process.env.PATH) {
   return null;
 }
 
-export const FLEET_TOOL_CONFIGS = {
-  "corebar:build": {
-    name: "corebar:build",
-    alias: "corebar",
-    binary: "corebar",
-    siblingDir: "corebar",
-    requiresDarwin: true,
-    installHint: "corebar requires macOS and Swift toolchain (https://github.com/coreblow/corebar)",
-    resolveCommand(res, userArgs) {
-      if (process.platform !== "darwin") {
-        throw new Error("corebar build requires macOS (darwin) with Swift/Xcode toolchain.");
-      }
-      if (!res.siblingPath) {
-        throw new Error(
-          `corebar repository not found at ${res.expectedSiblingPath}.\n` +
-          `Clone it with: git clone https://github.com/coreblow/corebar ${res.expectedSiblingPath}`
-        );
-      }
-      return {
-        cmd: "swift",
-        args: ["build", "-c", "release", ...userArgs],
-        cwd: res.siblingPath,
-      };
-    },
-  },
-  "corebar:dev": {
-    name: "corebar:dev",
-    binary: "corebar",
-    siblingDir: "corebar",
-    requiresDarwin: true,
-    installHint: "corebar requires macOS and Swift toolchain (https://github.com/coreblow/corebar)",
-    resolveCommand(res, userArgs) {
-      if (process.platform !== "darwin") {
-        throw new Error("corebar dev requires macOS (darwin) with Swift/Xcode toolchain.");
-      }
-      if (!res.siblingPath) {
-        throw new Error(
-          `corebar repository not found at ${res.expectedSiblingPath}.\n` +
-          `Clone it with: git clone https://github.com/coreblow/corebar ${res.expectedSiblingPath}`
-        );
-      }
-      return {
-        cmd: "swift",
-        args: ["run", ...userArgs],
-        cwd: res.siblingPath,
-      };
-    },
-  },
-  "chat:go": {
-    name: "chat:go",
-    alias: "corechat",
-    binary: "corechat",
-    siblingDir: "corechat",
-    installHint: "Install corechat or build inside ../coreblow-split/corechat (https://github.com/coreblow/corechat)",
-    resolveCommand(res, userArgs) {
-      if (res.onPath) {
-        return { cmd: res.onPath, args: userArgs, cwd: process.cwd() };
-      }
-      if (res.siblingPath) {
-        const builtBin = path.join(res.siblingPath, process.platform === "win32" ? "corechat.exe" : "corechat");
-        if (fs.existsSync(builtBin)) {
-          return { cmd: builtBin, args: userArgs, cwd: res.siblingPath };
+function buildToolConfig(name, def, siblingDir) {
+  const base = {
+    name,
+    ...(def.alias ? { alias: def.alias } : {}),
+    binary: def.binary,
+    ...(def.altBinary ? { altBinary: def.altBinary } : {}),
+    siblingDir,
+    ...(def.requiresDarwin ? { requiresDarwin: true } : {}),
+    installHint: def.installHint,
+  };
+
+  if (def.runner === "swift-build" || def.runner === "swift-run") {
+    const modeLabel = def.runner === "swift-build" ? "build" : "dev";
+    return {
+      ...base,
+      resolveCommand(res, userArgs) {
+        if (process.platform !== "darwin") {
+          throw new Error(
+            `${def.repo} ${modeLabel} requires macOS (darwin) with Swift/Xcode toolchain.`,
+          );
         }
+        if (!res.siblingPath) {
+          throw new Error(
+            `${def.repo} repository not found at ${res.expectedSiblingPath}.\n` +
+              `Clone it with: git clone https://github.com/coreblow/${def.repo} ${res.expectedSiblingPath}`,
+          );
+        }
+        const swiftArgs = def.runner === "swift-build" ? ["build", "-c", "release"] : ["run"];
         return {
-          cmd: "go",
-          args: ["run", "./cmd/corechat", ...userArgs],
+          cmd: "swift",
+          args: [...swiftArgs, ...userArgs],
           cwd: res.siblingPath,
         };
-      }
-      return null;
-    },
-  },
-  "trust:eval": {
-    name: "trust:eval",
-    alias: "trust",
-    binary: "coreblow-trust",
-    altBinary: "trust",
-    siblingDir: "trust",
-    installHint: "Install CoreBlow Trust evaluator or clone https://github.com/coreblow/trust",
+      },
+    };
+  }
+
+  if (def.runner === "go") {
+    return {
+      ...base,
+      resolveCommand(res, userArgs) {
+        if (res.onPath) {
+          return { cmd: res.onPath, args: userArgs, cwd: process.cwd() };
+        }
+        if (res.siblingPath) {
+          const builtBin = path.join(
+            res.siblingPath,
+            process.platform === "win32" ? `${def.binary}.exe` : def.binary,
+          );
+          if (fs.existsSync(builtBin)) {
+            return { cmd: builtBin, args: userArgs, cwd: res.siblingPath };
+          }
+          return {
+            cmd: "go",
+            args: ["run", def.entry, ...userArgs],
+            cwd: res.siblingPath,
+          };
+        }
+        return null;
+      },
+    };
+  }
+
+  const prefixArgs = Array.isArray(def.prefixArgs) ? def.prefixArgs : [];
+  return {
+    ...base,
     resolveCommand(res, userArgs) {
       if (res.onPath) {
         return { cmd: res.onPath, args: userArgs, cwd: process.cwd() };
       }
       if (res.siblingPath) {
-        const binScript = path.join(res.siblingPath, "bin/trust-eval.mjs");
+        const binScript = path.join(res.siblingPath, def.entry);
         if (fs.existsSync(binScript)) {
-          return { cmd: process.execPath, args: [binScript, ...userArgs], cwd: res.siblingPath };
+          return {
+            cmd: process.execPath,
+            args: [binScript, ...prefixArgs, ...userArgs],
+            cwd: res.siblingPath,
+          };
         }
       }
       return null;
     },
-  },
-  "rtt:probe": {
-    name: "rtt:probe",
-    alias: "coreblow-rtt",
-    binary: "coreblow-rtt",
-    altBinary: "rtt",
-    siblingDir: "coreblow-rtt",
-    installHint: "Install coreblow-rtt or clone https://github.com/coreblow/coreblow-rtt",
-    resolveCommand(res, userArgs) {
-      if (res.onPath) {
-        return { cmd: res.onPath, args: userArgs, cwd: process.cwd() };
-      }
-      if (res.siblingPath) {
-        const binScript = path.join(res.siblingPath, "bin/coreblow-rtt.mjs");
-        if (fs.existsSync(binScript)) {
-          return { cmd: process.execPath, args: [binScript, ...userArgs], cwd: res.siblingPath };
-        }
-      }
-      return null;
-    },
-  },
-  "bench:run": {
-    name: "bench:run",
-    alias: "corebench",
-    binary: "corebench",
-    siblingDir: "corebench",
-    installHint: "Install corebench or clone https://github.com/coreblow/corebench",
-    resolveCommand(res, userArgs) {
-      if (res.onPath) {
-        return { cmd: res.onPath, args: userArgs, cwd: process.cwd() };
-      }
-      if (res.siblingPath) {
-        const binScript = path.join(res.siblingPath, "bin/corebench.mjs");
-        if (fs.existsSync(binScript)) {
-          return { cmd: process.execPath, args: [binScript, ...userArgs], cwd: res.siblingPath };
-        }
-      }
-      return null;
-    },
-  },
-  "corebox:run": {
-    name: "corebox:run",
-    alias: "corebox",
-    binary: "corebox",
-    siblingDir: "corebox",
-    installHint: "Install corebox or clone https://github.com/coreblow/corebox",
-    resolveCommand(res, userArgs) {
-      if (res.onPath) {
-        return { cmd: res.onPath, args: userArgs, cwd: process.cwd() };
-      }
-      if (res.siblingPath) {
-        const binScript = path.join(res.siblingPath, "src/cli.mjs");
-        if (fs.existsSync(binScript)) {
-          return { cmd: process.execPath, args: [binScript, ...userArgs], cwd: res.siblingPath };
-        }
-      }
-      return null;
-    },
-  },
-  "dolphin:run": {
-    name: "dolphin:run",
-    alias: "dolphin",
-    binary: "dolphin",
-    siblingDir: "dolphin",
-    installHint: "Install dolphin or clone https://github.com/coreblow/dolphin",
-    resolveCommand(res, userArgs) {
-      if (res.onPath) {
-        return { cmd: res.onPath, args: userArgs, cwd: process.cwd() };
-      }
-      if (res.siblingPath) {
-        const binScript = path.join(res.siblingPath, "src/cli.mjs");
-        if (fs.existsSync(binScript)) {
-          return { cmd: process.execPath, args: [binScript, ...userArgs], cwd: res.siblingPath };
-        }
-      }
-      return null;
-    },
-  },
-};
+  };
+}
+
+function loadFleetToolConfigs() {
+  const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, "utf8"));
+  const repoByName = new Map((manifest.repositories ?? []).map((repo) => [repo.name, repo]));
+  const configs = {};
+
+  for (const [toolKey, def] of Object.entries(manifest.tools ?? {})) {
+    const repo = repoByName.get(def.repo);
+    if (repo && repo.status !== "active") continue;
+    const siblingDir = repo?.siblingDir ?? def.repo;
+    configs[toolKey] = buildToolConfig(toolKey, def, siblingDir);
+  }
+  return configs;
+}
+
+export const FLEET_TOOL_CONFIGS = loadFleetToolConfigs();
 
 /**
  * Resolve a tool by script name or alias.
@@ -233,7 +163,6 @@ export function resolveFleetTool(toolKey, options = {}) {
   const splitRoot = options.splitRoot ?? process.env.COREBLOW_SPLIT_ROOT ?? DEFAULT_SPLIT_ROOT;
   const pathEnv = options.pathEnv ?? process.env.PATH;
 
-  // Search by exact key or alias
   let config = FLEET_TOOL_CONFIGS[toolKey];
   if (!config) {
     for (const item of Object.values(FLEET_TOOL_CONFIGS)) {
@@ -252,15 +181,15 @@ export function resolveFleetTool(toolKey, options = {}) {
     };
   }
 
-  // 1. Check binary on PATH
-  const onPath = findBinaryOnPath(config.binary, pathEnv) || (config.altBinary ? findBinaryOnPath(config.altBinary, pathEnv) : null);
+  const onPath =
+    findBinaryOnPath(config.binary, pathEnv) ||
+    (config.altBinary ? findBinaryOnPath(config.altBinary, pathEnv) : null);
 
-  // 2. Check sibling checkout
   const expectedSiblingPath = path.join(splitRoot, config.siblingDir);
   const siblingExists = fs.existsSync(expectedSiblingPath);
   const siblingPath = siblingExists ? expectedSiblingPath : null;
 
-  const resolution = {
+  return {
     status: onPath ? "path" : siblingPath ? "sibling" : "missing",
     config,
     onPath,
@@ -268,8 +197,6 @@ export function resolveFleetTool(toolKey, options = {}) {
     expectedSiblingPath,
     installHint: config.installHint,
   };
-
-  return resolution;
 }
 
 /**
@@ -279,9 +206,9 @@ export function listFleetTools(options = {}) {
   console.log("=== CoreBlow Fleet Tool Resolution ===");
   console.log(
     "Target".padEnd(16) +
-    "Binary on $PATH".padEnd(20) +
-    "Sibling Checkout".padEnd(22) +
-    "Active Resolution"
+      "Binary on $PATH".padEnd(20) +
+      "Sibling Checkout".padEnd(22) +
+      "Active Resolution",
   );
   console.log("─".repeat(76));
 
@@ -295,12 +222,7 @@ export function listFleetTools(options = {}) {
     } else if (res.status === "sibling") {
       statusStr = `Sibling (../coreblow-split/${config.siblingDir})`;
     }
-    console.log(
-      key.padEnd(16) +
-      pathStr.padEnd(20) +
-      sibStr.padEnd(22) +
-      statusStr
-    );
+    console.log(key.padEnd(16) + pathStr.padEnd(20) + sibStr.padEnd(22) + statusStr);
   }
 }
 
@@ -326,7 +248,7 @@ export async function executeFleetTool(toolKey, userArgs = [], options = {}) {
   if (!command) {
     console.error(
       `Error: Fleet tool '${toolKey}' is not installed on $PATH and sibling checkout was not found at ../coreblow-split/${resolution.config.siblingDir}.\n` +
-      `Hint: ${resolution.installHint}`
+        `Hint: ${resolution.installHint}`,
     );
     return 1;
   }

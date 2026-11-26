@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
@@ -96,6 +98,33 @@ describe("fleet-exec resolution", () => {
       if (originalPlatform) {
         Object.defineProperty(process, "platform", originalPlatform);
       }
+    }
+  });
+
+  it("routes rtt:probe to consolidated corebench rtt subcommand", () => {
+    const config = FLEET_TOOL_CONFIGS["rtt:probe"];
+    expect(config.siblingDir).toBe("corebench");
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "corebench-test-"));
+    try {
+      const binDir = path.join(tmpDir, "bin");
+      fs.mkdirSync(binDir, { recursive: true });
+      fs.writeFileSync(path.join(binDir, "corebench.mjs"), "");
+      const cmd = config.resolveCommand(
+        {
+          status: "sibling",
+          onPath: null,
+          siblingPath: tmpDir,
+          expectedSiblingPath: tmpDir,
+          installHint: config.installHint,
+        },
+        ["--samples", "3", "--json"],
+      );
+      expect(cmd).not.toBeNull();
+      expect(cmd?.cmd).toBe(process.execPath);
+      expect(cmd?.args[0]).toBe(path.join(tmpDir, "bin", "corebench.mjs"));
+      expect(cmd?.args.slice(1)).toEqual(["rtt", "--samples", "3", "--json"]);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
     }
   });
 

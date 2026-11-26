@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 1,
+  "canonicalRepo": "coreblow",
+  "splitRootDefault": "../coreblow-split",
+  "repositories": [
+    {
+      "name": "coreblow",
+      "tier": "flagship",
+      "status": "active",
+      "visibility": "public",
+      "toolchain": "node",
+      "binary": "coreblow",
+      "siblingDir": null,
+      "releaseWorkflow": ".github/workflows/release.yml",
+      "syncVersion": true,
+      "testCommand": "CI=true COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm test"
+    },
+    {
+      "name": "docs",
+      "tier": "flagship",
+      "status": "active",
+      "visibility": "public",
+      "toolchain": "node",
+      "binary": null,
+      "siblingDir": "docs",
+      "releaseWorkflow": null,
+      "syncVersion": false,
+      "publicSurfaces": ["README.md"],
+      "testCommand": "CI=true COREPACK_ENABLE_DOWNLOAD_PROMPT=0 npm test"
+    },
+    {
+      "name": "corehub",
+      "tier": "flagship",
+      "status": "active",
+      "visibility": "public",
+      "toolchain": "node",
+      "binary": "corehub",
+      "siblingDir": "corehub",
+      "releaseWorkflow": ".github/workflows/corehub-cli-npm-release.yml",
+      "syncVersion": false,
+      "testCommand": "CI=true COREPACK_ENABLE_DOWNLOAD_PROMPT=0 npm test"
+    },
+    {
+      "name": "corechat",
+      "tier": "flagship",
+      "status": "active",
+      "visibility": "public",
+      "toolchain": "go",
+      "binary": "corechat",
+      "siblingDir": "corechat",
+      "releaseWorkflow": ".github/workflows/release.yml",
+      "syncVersion": false,
+      "publicSurfaces": ["README.md"],
+      "testCommand": "CI=true go test ./..."
+    },
+    {
+      "name": "dolphin",
+      "tier": "flagship",
+      "status": "active",
+      "visibility": "public",
+      "toolchain": "node",
+      "binary": "dolphin",
+      "siblingDir": "dolphin",
+      "releaseWorkflow": ".github/workflows/release.yml",
+      "syncVersion": false,
+      "publicSurfaces": ["README.md"],
+      "testCommand": "CI=true COREPACK_ENABLE_DOWNLOAD_PROMPT=0 npm test"
+    },
+    {
+      "name": "trust",
+      "tier": "flagship",
+      "status": "active",
+      "visibility": "public",
+      "toolchain": "node",
+      "binary": "coreblow-trust",
+      "siblingDir": "trust",
+      "releaseWorkflow": ".github/workflows/release.yml",
+      "syncVersion": false,
+      "publicSurfaces": ["README.md"],
+      "testCommand": "CI=true COREPACK_ENABLE_DOWNLOAD_PROMPT=0 npm test"
+    },
+    {
+      "name": "coreblow.com",
+      "tier": "distribution",
+      "status": "active",
+      "visibility": "public",
+      "toolchain": "node",
+      "binary": null,
+      "siblingDir": "coreblow.com",
+      "releaseWorkflow": null,
+      "syncVersion": true,
+      "syncFiles": ["public/install.sh", "public/install-cli.sh"],
+      "publicSurfaces": ["public/install.sh", "public/install-cli.sh"],
+      "testCommand": "CI=true COREPACK_ENABLE_DOWNLOAD_PROMPT=0 npm test"
+    },
+    {
+      "name": "homebrew-tap",
+      "tier": "distribution",
+      "status": "active",
+      "visibility": "public",
+      "toolchain": "ruby",
+      "binary": null,
+      "siblingDir": "homebrew-tap",
+      "releaseWorkflow": null,
+      "syncVersion": true,
+      "syncFiles": ["Formula/coreblow.rb"],
+      "publicSurfaces": ["Formula/coreblow.rb"],
+      "testCommand": null
+    },
+    {
+      "name": "nix-coreblow",
+      "tier": "distribution",
+      "status": "active",
+      "visibility": "public",
+      "toolchain": "nix",
+      "binary": null,
+      "siblingDir": "nix-coreblow",
+      "releaseWorkflow": null,
+      "syncVersion": true,
+      "syncFiles": ["flake.nix"],
+      "publicSurfaces": ["flake.nix"],
+      "testCommand": "nix flake check"
+    },
+    {
+      "name": "corebox",
+      "tier": "specialist",
+      "status": "active",
+      "visibility": "public",
+      "toolchain": "node",
+      "binary": "corebox",
+      "siblingDir": "corebox",
+      "releaseWorkflow": ".github/workflows/release.yml",
+      "syncVersion": false,
+      "publicSurfaces": ["README.md"],
+      "testCommand": "CI=true COREPACK_ENABLE_DOWNLOAD_PROMPT=0 npm test"
+    },
+    {
+      "name": "corebench",
+      "tier": "specialist",
+      "status": "active",
+      "visibility": "public",
+      "toolchain": "node",
+      "binary": "corebench",
+      "siblingDir": "corebench",
+      "releaseWorkflow": ".github/workflows/release.yml",
+      "syncVersion": false,
+      "publicSurfaces": ["README.md"],
+      "testCommand": "CI=true COREPACK_ENABLE_DOWNLOAD_PROMPT=0 npm test"
+    },
+    {
+      "name": "corebar",
+      "tier": "specialist",
+      "status": "active",
+      "visibility": "public",
+      "toolchain": "swift",
+      "binary": "corebar",
+      "siblingDir": "corebar",
+      "releaseWorkflow": ".github/workflows/release.yml",
+      "syncVersion": false,
+      "publicSurfaces": ["README.md"],
+      "testCommand": "swift test"
+    },
+    {
+      "name": "coreblow-internal",
+      "tier": "internal",
+      "status": "active",
+      "visibility": "private",
+      "toolchain": "markdown",
+      "binary": null,
+      "siblingDir": null,
+      "releaseWorkflow": null,
+      "syncVersion": false,
+      "testCommand": null
+    }
+  ],
+  "tools": {
+    "corebar:build": {
+      "repo": "corebar",
+      "alias": "corebar",
+      "binary": "corebar",
+      "requiresDarwin": true,
+      "installHint": "corebar requires macOS and Swift toolchain (https://github.com/coreblow/corebar)",
+      "runner": "swift-build"
+    },
+    "corebar:dev": {
+      "repo": "corebar",
+      "binary": "corebar",
+      "requiresDarwin": true,
+      "installHint": "corebar requires macOS and Swift toolchain (https://github.com/coreblow/corebar)",
+      "runner": "swift-run"
+    },
+    "chat:go": {
+      "repo": "corechat",
+      "alias": "corechat",
+      "binary": "corechat",
+      "installHint": "Install corechat or build inside ../coreblow-split/corechat (https://github.com/coreblow/corechat)",
+      "runner": "go",
+      "entry": "./cmd/corechat"
+    },
+    "trust:eval": {
+      "repo": "trust",
+      "alias": "trust",
+      "binary": "coreblow-trust",
+      "altBinary": "trust",
+      "installHint": "Install CoreBlow Trust evaluator or clone https://github.com/coreblow/trust",
+      "runner": "node",
+      "entry": "bin/trust-eval.mjs"
+    },
+    "rtt:probe": {
+      "repo": "corebench",
+      "alias": "coreblow-rtt",
+      "binary": "coreblow-rtt",
+      "altBinary": "rtt",
+      "installHint": "Install corebench (rtt subcommand) or clone https://github.com/coreblow/corebench",
+      "runner": "node",
+      "entry": "bin/corebench.mjs",
+      "prefixArgs": ["rtt"]
+    },
+    "bench:run": {
+      "repo": "corebench",
+      "alias": "corebench",
+      "binary": "corebench",
+      "installHint": "Install corebench or clone https://github.com/coreblow/corebench",
+      "runner": "node",
+      "entry": "bin/corebench.mjs"
+    },
+    "corebox:run": {
+      "repo": "corebox",
+      "alias": "corebox",
+      "binary": "corebox",
+      "installHint": "Install corebox or clone https://github.com/coreblow/corebox",
+      "runner": "node",
+      "entry": "src/cli.mjs"
+    },
+    "dolphin:run": {
+      "repo": "dolphin",
+      "alias": "dolphin",
+      "binary": "dolphin",
+      "installHint": "Install dolphin or clone https://github.com/coreblow/dolphin",
+      "runner": "node",
+      "entry": "src/cli.mjs"
+    }
+  }
+}
