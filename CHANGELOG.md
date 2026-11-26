@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 Entries are listed newest-first within each version block.
 Changelog covers user-facing changes only; internal/meta notes are omitted.
 
+## [2.4.0] (2026-11-27)
+
+### Highlights
+
+- **Security Audit Speedup & OWASP Agentic AI Policy Bridge:** Accelerated `coreblow security audit` by 12.7x (`23.2s` -> `1.82s` standalone, `1.96s` with `coreblow-trust`) by skipping eager context-window warmup on `security` CLI invocations and parallelizing filesystem collectors; added optional `coreblow-trust` OWASP Top 10 for Agentic AI evaluation (`$PATH` / `COREBLOW_TRUST_BIN`, 100% standalone-safe when absent).
+- **Sandbox Execution Hardening:** Removed unimplemented cloud backend fake-success stubs (`daytona`, `modal`, `vercel`, `e2b`) in favor of fail-closed `<BACKEND>_NOT_IMPLEMENTED` responses, and enforced `--read-only` + `--tmpfs /tmp:rw,noexec,nosuid,size=64m` on the Docker backend.
+- **Declarative Satellite Fleet Engine:** Added `scripts/fleet/fleet-manifest.json` and `scripts/fleet/fleet-engine.mjs` (`status`, `verify`, `sync`) to deterministically synchronize distribution satellites across the 12-repo active public fleet.
+- **Codebase Diet & Extension Hardening:** Removed 438 verified dead source/legacy files (~27.8k LOC) with zero regressions and hardened preview extension metadata across `./extensions/`.
+- **Release Automation:** Updated `.github/workflows/coreblow-npm-release.yml` for SemVer tags and tokenless npm OIDC Trusted Publishing with SLSA provenance, and cleaned up `.github/workflows/desktop-release.yml`.
+
 ## [2.3.1] (2026-11-26)
 
 ### Fixes

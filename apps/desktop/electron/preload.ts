@@ -99,7 +99,7 @@ const desktopApi: CoreBlowDesktopApi = {
     node: process.versions.node,
     chrome: process.versions.chrome,
     electron: process.versions.electron,
-    coreblow: "2.3.1",
+    coreblow: "2.4.0",
   },
   dialog: {
     selectDirectory: () => ipcRenderer.invoke("coreblow:dialog:selectDirectory"),

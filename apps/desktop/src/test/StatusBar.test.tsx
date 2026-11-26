@@ -34,7 +34,7 @@ describe("StatusBar Component", () => {
           activeModelName="Auto (DecisionRouter)"
           layoutMode="basic"
           onToggleLayoutMode={onToggleLayout}
-          version="v2.3.1"
+          version="v2.4.0"
         />,
       );
     });
@@ -43,7 +43,7 @@ describe("StatusBar Component", () => {
     expect(container.textContent).toContain("Auto (DecisionRouter)");
     expect(container.textContent).toContain("Smart Router");
     expect(container.textContent).toContain("Basic");
-    expect(container.textContent).toContain("v2.3.1");
+    expect(container.textContent).toContain("v2.4.0");
 
     const layoutBtn = Array.from(container.querySelectorAll("button")).find((b) =>
       b.textContent?.includes("Basic"),
