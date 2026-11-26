@@ -72,7 +72,9 @@ jobs:
       - name: Run tests
         run: pnpm test
         env:
-          NODE_OPTIONS: '--max-old-space-size=6144'
+          CI: true
+          COREBLOW_TEST_PROFILE: serial
+          NODE_OPTIONS: '--max-old-space-size=4096'
 
       - name: Validate package metadata
         env:
