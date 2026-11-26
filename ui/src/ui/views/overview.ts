@@ -154,7 +154,7 @@ export class OverviewView extends LitElement {
                 </div>
                 <span
                   style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: var(--accent-subtle); color: var(--accent); font-weight: 700; font-family: var(--mono);"
-                  >v2.3.0</span
+                  >v2.3.1</span
                 >
               </div>
               <div style="font-size: 12px; color: var(--muted); margin-top: 2px;">

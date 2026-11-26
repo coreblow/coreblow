@@ -54,9 +54,7 @@ export interface CoreBlowDesktopApi {
       cwd?: string,
     ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
     openExternal: (cwd?: string) => Promise<boolean>;
-    getInfo: (
-      cwd?: string,
-    ) => Promise<{
+    getInfo: (cwd?: string) => Promise<{
       shell: string;
       cwd: string;
       username: string;
@@ -101,7 +99,7 @@ const desktopApi: CoreBlowDesktopApi = {
     node: process.versions.node,
     chrome: process.versions.chrome,
     electron: process.versions.electron,
-    coreblow: "2.3.0",
+    coreblow: "2.3.1",
   },
   dialog: {
     selectDirectory: () => ipcRenderer.invoke("coreblow:dialog:selectDirectory"),

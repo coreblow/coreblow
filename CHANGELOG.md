@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 Entries are listed newest-first within each version block.
 Changelog covers user-facing changes only; internal/meta notes are omitted.
 
+## [2.3.1] (2026-11-26)
+
+### Fixes
+
+- **Desktop Release CI (`desktop-release.yml`):** Unset empty `CSC_LINK` and `CSC_KEY_PASSWORD` variables on macOS packaging runners and added `homepage`, author email, and Linux `.deb` `maintainer` metadata in `@coreblow/desktop` and `electron-builder.json`.
+- **Docker Release CI (`docker-release.yml`):** Refactored `Dockerfile.sandbox-common` into a self-contained multi-stage build while keeping `dist` excluded in `.dockerignore`, parameterized `BASE_IMAGE` across `Dockerfile.sandbox` and `Dockerfile.sandbox-browser`, restored `USER root` before `apt-get` inside `Dockerfile.sandbox-browser`, and aligned sandbox container `WORKDIR` and `CMD` to `/app` and `dist/entry.js`.
+
 ## [2.3.0] (2026-11-26)
 
 ### Highlights

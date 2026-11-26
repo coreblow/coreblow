@@ -235,7 +235,7 @@ export function renderApp(app: CoreBlowApp) {
                 <span
                   style="font-family: var(--mono); font-weight: 600; color: var(--muted); font-size: 10px; letter-spacing: 0.02em;"
                 >
-                  v2.3.0
+                  v2.3.1
                 </span>
                 <a
                   href="https://docs.coreblow.com"
