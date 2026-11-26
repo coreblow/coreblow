@@ -111,10 +111,15 @@ function execTrustCli(
   timeoutMs: number,
   env: NodeJS.ProcessEnv,
 ): Promise<ExecTrustResult> {
+  const isNodeScript = /\.(mjs|cjs|js)$/i.test(binary);
+  const canDirectExec = isExecutableFile(binary, process.platform);
+  const cmd = isNodeScript && !canDirectExec ? process.execPath : binary;
+  const cmdArgs = isNodeScript && !canDirectExec ? [binary, ...args] : args;
+
   return new Promise((resolve) => {
     execFile(
-      binary,
-      args,
+      cmd,
+      cmdArgs,
       {
         timeout: timeoutMs,
         maxBuffer: 1024 * 1024,

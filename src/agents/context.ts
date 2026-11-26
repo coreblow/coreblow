@@ -138,6 +138,7 @@ const SKIP_EAGER_WARMUP_PRIMARY_COMMANDS = new Set([
   "logs",
   "plugins",
   "secrets",
+  "security",
   "status",
   "update",
   "webhooks",

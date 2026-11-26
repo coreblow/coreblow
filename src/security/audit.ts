@@ -1411,57 +1411,68 @@ export async function runSecurityAudit(opts: SecurityAuditOptions): Promise<Secu
   findings.push(...auditNonDeep.collectLikelyMultiUserSetupFindings(cfg));
 
   if (context.includeFilesystem) {
-    findings.push(
-      ...(await collectFilesystemFindings({
+    const [
+      fsFindings,
+      includePermFindings,
+      stateDeepFindings,
+      symlinkEscapeFindings,
+      browserHashFindings,
+      pluginsTrustFindings,
+      deepCodeSafetyFindings,
+    ] = await Promise.all([
+      collectFilesystemFindings({
         stateDir,
         configPath,
         env,
         platform,
         execIcacls: context.execIcacls,
-      })),
-    );
-    if (context.configSnapshot) {
-      findings.push(
-        ...(await auditNonDeep.collectIncludeFilePermFindings({
-          configSnapshot: context.configSnapshot,
-          env,
-          platform,
-          execIcacls: context.execIcacls,
-        })),
-      );
-    }
-    findings.push(
-      ...(await auditNonDeep.collectStateDeepFilesystemFindings({
+      }),
+      context.configSnapshot
+        ? auditNonDeep.collectIncludeFilePermFindings({
+            configSnapshot: context.configSnapshot,
+            env,
+            platform,
+            execIcacls: context.execIcacls,
+          })
+        : Promise.resolve([]),
+      auditNonDeep.collectStateDeepFilesystemFindings({
         cfg,
         env,
         stateDir,
         platform,
         execIcacls: context.execIcacls,
-      })),
-    );
-    findings.push(...(await auditNonDeep.collectWorkspaceSkillSymlinkEscapeFindings({ cfg })));
-    findings.push(
-      ...(await auditNonDeep.collectSandboxBrowserHashLabelFindings({
+      }),
+      auditNonDeep.collectWorkspaceSkillSymlinkEscapeFindings({ cfg }),
+      auditNonDeep.collectSandboxBrowserHashLabelFindings({
         execDockerRawFn: context.execDockerRawFn,
-      })),
+      }),
+      auditNonDeep.collectPluginsTrustFindings({ cfg, stateDir }),
+      context.deep
+        ? loadAuditDeepModule().then(async (auditDeep) => {
+            const [pluginSafety, skillSafety] = await Promise.all([
+              auditDeep.collectPluginsCodeSafetyFindings({
+                stateDir,
+                summaryCache: context.codeSafetySummaryCache,
+              }),
+              auditDeep.collectInstalledSkillsCodeSafetyFindings({
+                cfg,
+                stateDir,
+                summaryCache: context.codeSafetySummaryCache,
+              }),
+            ]);
+            return [...pluginSafety, ...skillSafety];
+          })
+        : Promise.resolve([]),
+    ]);
+    findings.push(
+      ...fsFindings,
+      ...includePermFindings,
+      ...stateDeepFindings,
+      ...symlinkEscapeFindings,
+      ...browserHashFindings,
+      ...pluginsTrustFindings,
+      ...deepCodeSafetyFindings,
     );
-    findings.push(...(await auditNonDeep.collectPluginsTrustFindings({ cfg, stateDir })));
-    if (context.deep) {
-      const auditDeep = await loadAuditDeepModule();
-      findings.push(
-        ...(await auditDeep.collectPluginsCodeSafetyFindings({
-          stateDir,
-          summaryCache: context.codeSafetySummaryCache,
-        })),
-      );
-      findings.push(
-        ...(await auditDeep.collectInstalledSkillsCodeSafetyFindings({
-          cfg,
-          stateDir,
-          summaryCache: context.codeSafetySummaryCache,
-        })),
-      );
-    }
   }
 
   const shouldAuditChannelSecurity =

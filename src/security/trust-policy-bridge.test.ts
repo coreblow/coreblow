@@ -197,4 +197,31 @@ setTimeout(() => {}, 10000);
     expect(res.findings[0]?.checkId).toBe("trust.policy_bundle.error");
     expect(res.findings[0]?.severity).toBe("info");
   });
+
+  it("executes non-executable .mjs COREBLOW_TRUST_BIN scripts via process.execPath", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "coreblow-trust-mjs-"));
+    tempDirs.push(dir);
+    const scriptPath = path.join(dir, "trust-eval.mjs");
+    fs.writeFileSync(
+      scriptPath,
+      `const args = process.argv.slice(2);
+if (args.includes("--bundle-info")) {
+  console.log(JSON.stringify({ framework: "OWASP Top 10 for Agentic AI", version: "1.0.0", ruleCount: 7 }));
+  process.exit(0);
+}
+console.log(JSON.stringify({ pass: true, highestSeverity: "none", violationCount: 0, findings: [] }));
+`,
+      { mode: 0o644 },
+    );
+
+    const res = await evaluateTrustPolicyForAudit({
+      cfg: {},
+      findings: [],
+      env: { COREBLOW_TRUST_BIN: scriptPath, PATH: "" },
+    });
+
+    expect(res.summary.status).toBe("evaluated");
+    expect(res.summary.ruleCount).toBe(7);
+    expect(res.summary.pass).toBe(true);
+  });
 });
