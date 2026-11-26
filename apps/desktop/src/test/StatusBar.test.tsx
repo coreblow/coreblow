@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { StatusBar } from "../components/StatusBar";
 
 // Enable React act environment in jsdom
@@ -34,7 +34,7 @@ describe("StatusBar Component", () => {
           activeModelName="Auto (DecisionRouter)"
           layoutMode="basic"
           onToggleLayoutMode={onToggleLayout}
-          version="v2.2.0"
+          version="v2.3.0"
         />,
       );
     });
@@ -43,7 +43,7 @@ describe("StatusBar Component", () => {
     expect(container.textContent).toContain("Auto (DecisionRouter)");
     expect(container.textContent).toContain("Smart Router");
     expect(container.textContent).toContain("Basic");
-    expect(container.textContent).toContain("v2.2.0");
+    expect(container.textContent).toContain("v2.3.0");
 
     const layoutBtn = Array.from(container.querySelectorAll("button")).find((b) =>
       b.textContent?.includes("Basic"),

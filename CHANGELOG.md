@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 Entries are listed newest-first within each version block.
 Changelog covers user-facing changes only; internal/meta notes are omitted.
 
+## [2.3.0] (2026-11-26)
+
+### Highlights
+
+- **Fast CLI Cold-Start (`dist/entry.js`):** Switched CLI entrypoint to direct `dist/entry.js` execution with lazy command module loading, achieving 3x-24x faster startup (`--version` 82.5ms, `--help` 100.3ms, `doctor --net --json` 204.5ms, `mcp --help` 126.4ms).
+- **Lean npm Package Distribution:** Reduced unpacked npm tarball size by 28.6% to 74.7 MB by excluding uncompiled `src/**/*.ts` sources while bundling compiled `dist/canvas-host/a2ui/` runtime assets.
+- **Micro 8-Bit CLI WelcomeHero & Adaptive Wordmark:** Redesigned the CLI WelcomeHero banner with a seamless Micro 8-bit CoreBlow Pixel Octopus (`14x10`) and Light/Dark terminal-adaptive `COREBLOW` block wordmark.
+- **Desktop Daemon Spawn Compatibility:** Improved CoreBlow Desktop daemon launching with verified host Node >= 22.12 binary resolution across desktop environments.
+- **Repository Hygiene & CI Stabilization:** Completed brand sovereignty cleanup, repository hygiene updates, and 4-shard parallel CI stabilization.
+
 ## [2.2.0] (2026-11-25)
 
 ### Highlights

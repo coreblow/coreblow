@@ -13,7 +13,10 @@ export interface CoreBlowDesktopApi {
   };
   dialog: {
     selectDirectory: () => Promise<string | null>;
-    selectFiles: (options?: { title?: string; filters?: { name: string; extensions: string[] }[] }) => Promise<string[]>;
+    selectFiles: (options?: {
+      title?: string;
+      filters?: { name: string; extensions: string[] }[];
+    }) => Promise<string[]>;
   };
   clipboard: {
     readText: () => Promise<string>;
@@ -46,9 +49,20 @@ export interface CoreBlowDesktopApi {
     captureActive: () => Promise<string>;
   };
   terminal: {
-    exec: (command: string, cwd?: string) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
+    exec: (
+      command: string,
+      cwd?: string,
+    ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
     openExternal: (cwd?: string) => Promise<boolean>;
-    getInfo: (cwd?: string) => Promise<{ shell: string; cwd: string; username: string; hostname: string; platform: string }>;
+    getInfo: (
+      cwd?: string,
+    ) => Promise<{
+      shell: string;
+      cwd: string;
+      username: string;
+      hostname: string;
+      platform: string;
+    }>;
   };
   diagnostics: {
     openLogs: () => Promise<{ ok: boolean; path?: string; error?: string }>;
@@ -87,7 +101,7 @@ const desktopApi: CoreBlowDesktopApi = {
     node: process.versions.node,
     chrome: process.versions.chrome,
     electron: process.versions.electron,
-    coreblow: "2.2.0",
+    coreblow: "2.3.0",
   },
   dialog: {
     selectDirectory: () => ipcRenderer.invoke("coreblow:dialog:selectDirectory"),
@@ -136,7 +150,8 @@ const desktopApi: CoreBlowDesktopApi = {
     captureActive: () => ipcRenderer.invoke("coreblow:screen:captureActive"),
   },
   terminal: {
-    exec: (command: string, cwd?: string) => ipcRenderer.invoke("coreblow:terminal:exec", { command, cwd }),
+    exec: (command: string, cwd?: string) =>
+      ipcRenderer.invoke("coreblow:terminal:exec", { command, cwd }),
     openExternal: (cwd?: string) => ipcRenderer.invoke("coreblow:terminal:openExternal", { cwd }),
     getInfo: (cwd?: string) => ipcRenderer.invoke("coreblow:terminal:getInfo", { cwd }),
   },
@@ -157,7 +172,8 @@ const desktopApi: CoreBlowDesktopApi = {
     checkForUpdates: () => ipcRenderer.invoke("coreblow:updater:check"),
     downloadUpdate: () => ipcRenderer.invoke("coreblow:updater:download"),
     quitAndInstall: () => ipcRenderer.invoke("coreblow:updater:install"),
-    setAutoCheck: (enabled: boolean) => ipcRenderer.invoke("coreblow:updater:setAutoCheck", enabled),
+    setAutoCheck: (enabled: boolean) =>
+      ipcRenderer.invoke("coreblow:updater:setAutoCheck", enabled),
     onStatusChange: (callback: (status: UpdateStatus) => void) => {
       const handler = (_event: unknown, status: UpdateStatus) => callback(status);
       ipcRenderer.on("coreblow:updater:status", handler);

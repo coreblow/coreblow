@@ -162,7 +162,11 @@ async function buildControlUiConnectDevice(params: {
     "",
   ].join("|");
   const sigBytes = new Uint8Array(
-    await crypto.subtle.sign({ name: "Ed25519" }, key.privateKey, new TextEncoder().encode(payload)),
+    await crypto.subtle.sign(
+      { name: "Ed25519" },
+      key.privateKey,
+      new TextEncoder().encode(payload),
+    ),
   );
   return {
     id: key.deviceId,
@@ -231,32 +235,35 @@ export class GatewayBrowserClient {
 
     if (parsed.type === "event") {
       if (parsed.event === "connect.challenge" && !this.connectSent) {
-         this.connectSent = true;
-         const nonce = typeof parsed.payload?.nonce === "string" ? parsed.payload.nonce : "";
-         const role = "operator";
-         const scopes = ["operator.admin"];
-         void buildControlUiConnectDevice({
-            nonce,
-            token: this.opts.token,
-            role,
-            scopes,
-         }).then((device) =>
+        this.connectSent = true;
+        const nonce = typeof parsed.payload?.nonce === "string" ? parsed.payload.nonce : "";
+        const role = "operator";
+        const scopes = ["operator.admin"];
+        void buildControlUiConnectDevice({
+          nonce,
+          token: this.opts.token,
+          role,
+          scopes,
+        })
+          .then((device) =>
             this.request<GatewayHelloOk>("connect", {
-               minProtocol: 3,
-               maxProtocol: 3,
-               client: { id: "coreblow-control-ui", version: "2.2.0", platform: "web", mode: "ui" },
-               role,
-               scopes,
-               ...(device ? { device } : {}),
-               ...(this.opts.token ? { auth: { token: this.opts.token } } : {}),
-               userAgent: navigator.userAgent
+              minProtocol: 3,
+              maxProtocol: 3,
+              client: { id: "coreblow-control-ui", version: "2.3.0", platform: "web", mode: "ui" },
+              role,
+              scopes,
+              ...(device ? { device } : {}),
+              ...(this.opts.token ? { auth: { token: this.opts.token } } : {}),
+              userAgent: navigator.userAgent,
             }),
-         ).then(hello => {
+          )
+          .then((hello) => {
             this.opts.onHello?.(hello);
-         }).catch(err => {
+          })
+          .catch((err) => {
             console.error("Connect failed", err);
-         });
-         return;
+          });
+        return;
       }
       this.opts.onEvent?.(parsed as GatewayEventFrame);
       return;

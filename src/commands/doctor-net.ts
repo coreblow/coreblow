@@ -8,7 +8,7 @@
  */
 
 import type { RuntimeEnv } from "../runtime.js";
-import { defaultRuntime } from "../runtime.js";
+import { defaultRuntime, writeRuntimeJson } from "../runtime.js";
 
 export interface DoctorNetOptions {
   url?: string;
@@ -76,8 +76,11 @@ export function calculateLatencyStats(latencies: number[]): DoctorNetLatencyStat
   };
 }
 
-export async function probeGatewayLatency(options: DoctorNetOptions = {}): Promise<DoctorNetResult> {
-  const targetUrl = options.url?.trim() || process.env.COREBLOW_GATEWAY_URL || DEFAULT_DOCTOR_NET_URL;
+export async function probeGatewayLatency(
+  options: DoctorNetOptions = {},
+): Promise<DoctorNetResult> {
+  const targetUrl =
+    options.url?.trim() || process.env.COREBLOW_GATEWAY_URL || DEFAULT_DOCTOR_NET_URL;
   const totalSamples = Math.max(1, options.samples ?? DEFAULT_DOCTOR_NET_SAMPLES);
   const timeoutMs = options.timeoutMs ?? DEFAULT_DOCTOR_NET_TIMEOUT_MS;
   const fetchImpl = options.fetchFn ?? globalThis.fetch;
@@ -97,7 +100,7 @@ export async function probeGatewayLatency(options: DoctorNetOptions = {}): Promi
         method: "GET",
         signal: controller.signal,
         headers: {
-          "Accept": "application/json, text/plain, */*",
+          Accept: "application/json, text/plain, */*",
           "User-Agent": "CoreBlow-Doctor-Net/2.1.2",
         },
       });
@@ -153,7 +156,7 @@ export function formatDoctorNetOutput(result: DoctorNetResult): string {
   lines.push("──────────────────────────────────────────");
   lines.push(`Target:     ${result.targetUrl}`);
   lines.push(
-    `Status:     ${result.reachable ? `OK (HTTP ${result.statusCode ?? 200})` : `UNREACHABLE (${result.error ?? "connection refused"})`}`
+    `Status:     ${result.reachable ? `OK (HTTP ${result.statusCode ?? 200})` : `UNREACHABLE (${result.error ?? "connection refused"})`}`,
   );
   lines.push(`Samples:    ${result.successfulSamples}/${result.totalSamples} successful`);
 
@@ -180,12 +183,12 @@ export function formatDoctorNetOutput(result: DoctorNetResult): string {
 
 export async function runDoctorNetProbe(
   runtime: RuntimeEnv = defaultRuntime,
-  options: DoctorNetOptions = {}
+  options: DoctorNetOptions = {},
 ): Promise<DoctorNetResult> {
   const result = await probeGatewayLatency(options);
 
   if (options.json) {
-    runtime.log(JSON.stringify(result, null, 2));
+    writeRuntimeJson(runtime, result);
   } else {
     runtime.log(formatDoctorNetOutput(result));
   }

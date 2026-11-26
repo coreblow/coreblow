@@ -18,7 +18,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   activeModelName = "Auto",
   layoutMode,
   onToggleLayoutMode,
-  version = "v2.2.0",
+  version = "v2.3.0",
   estopPaused = false,
   onToggleEstop,
 }) => {
@@ -62,7 +62,14 @@ export const StatusBar: React.FC<StatusBarProps> = ({
 
         <span style={{ opacity: 0.3 }}>|</span>
 
-        <span style={{ color: "var(--ink-secondary)", display: "flex", alignItems: "center", gap: "4px" }}>
+        <span
+          style={{
+            color: "var(--ink-secondary)",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+          }}
+        >
           <SparklesIcon size={10} color="var(--accent-teal)" />
           {activeModelName}
         </span>
@@ -155,7 +162,9 @@ export const StatusBar: React.FC<StatusBarProps> = ({
           </strong>
         </button>
 
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--ink-muted)" }}>
+        <span
+          style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--ink-muted)" }}
+        >
           {version}
         </span>
       </div>

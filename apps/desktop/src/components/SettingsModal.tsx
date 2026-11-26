@@ -401,7 +401,7 @@ const SEARCH_INDEX: SearchableSetting[] = [
     id: "about-coreblow",
     section: "about",
     title: "About CoreBlow Studio",
-    description: "Version 2.2.0, Application ID, architecture, docs",
+    description: "Version 2.3.0, Application ID, architecture, docs",
     keywords: ["about", "version", "docs", "coreblow", "license"],
   },
   {
@@ -419,11 +419,15 @@ function describeUpdateStatus(status?: UpdateStatus | null): string {
     case "checking":
       return "Checking...";
     case "available":
-      return status.availableVersion ? `Update v${status.availableVersion} available` : "Update available";
+      return status.availableVersion
+        ? `Update v${status.availableVersion} available`
+        : "Update available";
     case "downloading":
       return `Downloading ${Math.round(status.progressPercent ?? 0)}%`;
     case "downloaded":
-      return status.availableVersion ? `Ready to restart (v${status.availableVersion})` : "Ready to restart";
+      return status.availableVersion
+        ? `Ready to restart (v${status.availableVersion})`
+        : "Ready to restart";
     case "error":
       return status.error ? `Offline (${status.error})` : "Offline";
     case "not-available":
@@ -526,8 +530,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     if (preferences.sshTunnelHost !== undefined) setSshHost(preferences.sshTunnelHost);
     if (preferences.sshTunnelUser !== undefined) setSshUser(preferences.sshTunnelUser);
     if (preferences.sshTunnelPort !== undefined) setSshPort(preferences.sshTunnelPort);
-    if (preferences.sshTunnelRemotePort !== undefined) setSshRemotePort(preferences.sshTunnelRemotePort);
-    if (preferences.sshTunnelIdentityFile !== undefined) setSshKeyPath(preferences.sshTunnelIdentityFile);
+    if (preferences.sshTunnelRemotePort !== undefined)
+      setSshRemotePort(preferences.sshTunnelRemotePort);
+    if (preferences.sshTunnelIdentityFile !== undefined)
+      setSshKeyPath(preferences.sshTunnelIdentityFile);
   }, [preferences]);
 
   // MCP Servers state
@@ -611,12 +617,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     memory: false,
     constraints: false,
   });
-  const [resettingMemoryFiles, setResettingMemoryFiles] = useState<Record<CuratedMemoryFileId, boolean>>({
+  const [resettingMemoryFiles, setResettingMemoryFiles] = useState<
+    Record<CuratedMemoryFileId, boolean>
+  >({
     user: false,
     memory: false,
     constraints: false,
   });
-  const [memoryStatusMap, setMemoryStatusMap] = useState<Record<CuratedMemoryFileId, { text: string; ok: boolean } | null>>({
+  const [memoryStatusMap, setMemoryStatusMap] = useState<
+    Record<CuratedMemoryFileId, { text: string; ok: boolean } | null>
+  >({
     user: null,
     memory: null,
     constraints: null,
@@ -648,12 +658,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     try {
       const res = await gatewayClient.saveMemoryFile(fileId, content);
       if (res.ok && res.file) {
-        setMemoryFiles((prev) =>
-          prev.map((f) => (f.id === fileId ? res.file! : f)),
-        );
+        setMemoryFiles((prev) => prev.map((f) => (f.id === fileId ? res.file! : f)));
         setMemoryStatusMap((prev) => ({ ...prev, [fileId]: { text: "Saved", ok: true } }));
       } else {
-        setMemoryStatusMap((prev) => ({ ...prev, [fileId]: { text: res.error || "Failed to save file", ok: false } }));
+        setMemoryStatusMap((prev) => ({
+          ...prev,
+          [fileId]: { text: res.error || "Failed to save file", ok: false },
+        }));
       }
     } finally {
       setSavingMemoryFiles((prev) => ({ ...prev, [fileId]: false }));
@@ -669,16 +680,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     try {
       const res = await gatewayClient.resetMemoryFile(fileId);
       if (res.ok && res.file) {
-        setMemoryFiles((prev) =>
-          prev.map((f) => (f.id === fileId ? res.file! : f)),
-        );
+        setMemoryFiles((prev) => prev.map((f) => (f.id === fileId ? res.file! : f)));
         setMemoryDrafts((prev) => ({
           ...prev,
           [fileId]: res.file!.content,
         }));
-        setMemoryStatusMap((prev) => ({ ...prev, [fileId]: { text: "Reset to default", ok: true } }));
+        setMemoryStatusMap((prev) => ({
+          ...prev,
+          [fileId]: { text: "Reset to default", ok: true },
+        }));
       } else {
-        setMemoryStatusMap((prev) => ({ ...prev, [fileId]: { text: res.error || "Failed to reset file", ok: false } }));
+        setMemoryStatusMap((prev) => ({
+          ...prev,
+          [fileId]: { text: res.error || "Failed to reset file", ok: false },
+        }));
       }
     } finally {
       setResettingMemoryFiles((prev) => ({ ...prev, [fileId]: false }));
@@ -1057,11 +1072,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <>
                 <span style={{ color: "var(--ink-muted)" }}>Gateways</span>
                 <ChevronRightIcon size={12} color="var(--ink-muted)" />
-                <span>
-                  {activeSection === "remotes:saved"
-                    ? "Saved nodes"
-                    : "Primary gateway"}
-                </span>
+                <span>{activeSection === "remotes:saved" ? "Saved nodes" : "Primary gateway"}</span>
               </>
             ) : (
               <span>{getBreadcrumbTitle()}</span>
@@ -1776,7 +1787,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           window.coreblowDesktop?.updater?.checkForUpdates().catch(() => {});
                         }
                       }}
-                      disabled={updateStatus?.phase === "checking" || updateStatus?.phase === "downloading"}
+                      disabled={
+                        updateStatus?.phase === "checking" || updateStatus?.phase === "downloading"
+                      }
                       style={{
                         padding: "5px 12px",
                         borderRadius: "6px",
@@ -1786,7 +1799,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         fontSize: "12px",
                         fontWeight: 500,
                         cursor:
-                          updateStatus?.phase === "checking" || updateStatus?.phase === "downloading"
+                          updateStatus?.phase === "checking" ||
+                          updateStatus?.phase === "downloading"
                             ? "wait"
                             : "pointer",
                       }}
@@ -2564,7 +2578,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   }}
                 >
                   <div style={{ fontSize: "11px", color: "var(--ink-muted)", lineHeight: 1.4 }}>
-                    Injected as a frozen snapshot at session start. Saved edits apply immediately to new sessions.
+                    Injected as a frozen snapshot at session start. Saved edits apply immediately to
+                    new sessions.
                   </div>
 
                   {[
@@ -2604,7 +2619,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     const charLimit = activeFile.charLimit || cfg.charLimit;
                     const usageRatio = charLimit > 0 ? charCount / charLimit : 0;
                     const progressColor =
-                      usageRatio > 1.0 ? "#EF4444" : usageRatio > 0.85 ? "#F59E0B" : "var(--accent-teal)";
+                      usageRatio > 1.0
+                        ? "#EF4444"
+                        : usageRatio > 0.85
+                          ? "#F59E0B"
+                          : "var(--accent-teal)";
                     const progressWidth = Math.min(100, Math.round(usageRatio * 100));
                     const isUnchanged = draftContent === activeFile.content;
                     const isSaving = savingMemoryFiles[cfg.id] ?? false;
@@ -3402,7 +3421,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                     {learnedSkills.length > 0 && (
                       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                        <div style={{ fontSize: "10.5px", fontWeight: 700, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+                        <div
+                          style={{
+                            fontSize: "10.5px",
+                            fontWeight: 700,
+                            color: "var(--ink-muted)",
+                            textTransform: "uppercase",
+                          }}
+                        >
                           Learned Skills ({learnedSkills.length})
                         </div>
                         {learnedSkills.map((sk) => (
@@ -3420,10 +3446,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             }}
                           >
                             <div>
-                              <div style={{ fontSize: "12.5px", fontWeight: 600, color: "var(--accent-teal)" }}>
+                              <div
+                                style={{
+                                  fontSize: "12.5px",
+                                  fontWeight: 600,
+                                  color: "var(--accent-teal)",
+                                }}
+                              >
                                 {sk.name}
                               </div>
-                              <div style={{ fontSize: "11px", color: "var(--ink-muted)", marginTop: "2px" }}>
+                              <div
+                                style={{
+                                  fontSize: "11px",
+                                  color: "var(--ink-muted)",
+                                  marginTop: "2px",
+                                }}
+                              >
                                 {sk.description}
                               </div>
                             </div>
@@ -3441,8 +3479,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                               style={{
                                 padding: "4px 10px",
                                 borderRadius: "5px",
-                                border: sk.installed ? "1px solid var(--border-medium)" : "1px solid var(--accent-teal)",
-                                background: sk.installed ? "var(--bg-card)" : "var(--accent-teal-subtle)",
+                                border: sk.installed
+                                  ? "1px solid var(--border-medium)"
+                                  : "1px solid var(--accent-teal)",
+                                background: sk.installed
+                                  ? "var(--bg-card)"
+                                  : "var(--accent-teal-subtle)",
                                 color: sk.installed ? "var(--ink-secondary)" : "var(--accent-teal)",
                                 fontSize: "11px",
                                 fontWeight: 600,
@@ -3474,17 +3516,42 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             }}
                           >
                             <div>
-                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}>
-                                <span style={{ fontSize: "12.5px", fontWeight: 600, color: "var(--ink-primary)" }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  gap: "6px",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: "12.5px",
+                                    fontWeight: 600,
+                                    color: "var(--ink-primary)",
+                                  }}
+                                >
                                   {sk.name}
                                 </span>
                                 {sk.version && (
-                                  <span style={{ fontSize: "10px", color: "var(--ink-muted)", fontFamily: "var(--font-mono)" }}>
+                                  <span
+                                    style={{
+                                      fontSize: "10px",
+                                      color: "var(--ink-muted)",
+                                      fontFamily: "var(--font-mono)",
+                                    }}
+                                  >
                                     v{sk.version}
                                   </span>
                                 )}
                               </div>
-                              <div style={{ fontSize: "11px", color: "var(--ink-muted)", marginTop: "4px" }}>
+                              <div
+                                style={{
+                                  fontSize: "11px",
+                                  color: "var(--ink-muted)",
+                                  marginTop: "4px",
+                                }}
+                              >
                                 {sk.description}
                               </div>
                             </div>
@@ -3521,7 +3588,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         ))}
                       </div>
                     ) : (
-                      <div style={{ fontSize: "12px", color: "var(--ink-muted)", padding: "8px 0" }}>
+                      <div
+                        style={{ fontSize: "12px", color: "var(--ink-muted)", padding: "8px 0" }}
+                      >
                         Connected to Gateway skill registry.
                       </div>
                     )}
@@ -3547,7 +3616,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           }}
                         >
                           <div>
-                            <div style={{ fontSize: "12.5px", fontWeight: 600, color: "var(--ink-primary)" }}>
+                            <div
+                              style={{
+                                fontSize: "12.5px",
+                                fontWeight: 600,
+                                color: "var(--ink-primary)",
+                              }}
+                            >
                               {s.name}
                             </div>
                             <div style={{ fontSize: "11px", color: "var(--ink-muted)" }}>
@@ -3590,7 +3665,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                   {mcpCatalog.length > 0 && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                      <div style={{ fontSize: "10.5px", fontWeight: 700, color: "var(--accent-teal)", textTransform: "uppercase" }}>
+                      <div
+                        style={{
+                          fontSize: "10.5px",
+                          fontWeight: 700,
+                          color: "var(--accent-teal)",
+                          textTransform: "uppercase",
+                        }}
+                      >
                         Curated CoreBlow MCP Catalog
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
@@ -3611,10 +3693,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                               }}
                             >
                               <div>
-                                <div style={{ fontWeight: 600, fontSize: "12px", color: "var(--ink-primary)" }}>
+                                <div
+                                  style={{
+                                    fontWeight: 600,
+                                    fontSize: "12px",
+                                    color: "var(--ink-primary)",
+                                  }}
+                                >
                                   {item.name}
                                 </div>
-                                <div style={{ fontSize: "11px", color: "var(--ink-muted)", marginTop: "3px" }}>
+                                <div
+                                  style={{
+                                    fontSize: "11px",
+                                    color: "var(--ink-muted)",
+                                    marginTop: "3px",
+                                  }}
+                                >
                                   {item.description}
                                 </div>
                               </div>
@@ -3654,7 +3748,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <p
                   style={{ fontSize: "12px", color: "var(--ink-secondary)", marginBottom: "14px" }}
                 >
-                  Configure where CoreBlow Studio directs its reasoning sessions, tools, and storage operations.
+                  Configure where CoreBlow Studio directs its reasoning sessions, tools, and storage
+                  operations.
                 </p>
 
                 {/* 3-card Connection Mode grid */}
@@ -3830,9 +3925,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       gap: "10px",
                     }}
                   >
-                    <div
-                      style={{ fontSize: "12px", fontWeight: 600, color: "var(--ink-primary)" }}
-                    >
+                    <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--ink-primary)" }}>
                       SSH Tunnel Parameters
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
@@ -4466,15 +4559,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       CoreBlow Studio
                     </div>
                     <div style={{ fontSize: "12px", color: "var(--ink-muted)" }}>
-                      Version 2.2.0 (Release) • Cross-Platform Desktop
+                      Version 2.3.0 (Release) • Cross-Platform Desktop
                     </div>
                   </div>
                 </div>
 
-                <SettingRow
-                  label="Updates"
-                  description={describeUpdateStatus(updateStatus)}
-                >
+                <SettingRow label="Updates" description={describeUpdateStatus(updateStatus)}>
                   <button
                     type="button"
                     onClick={() => {

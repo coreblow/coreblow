@@ -1,11 +1,11 @@
 {
   "name": "@coreblow/desktop",
-  "version": "2.2.0",
+  "version": "2.3.0",
+  "private": true,
   "description": "CoreBlow Studio Desktop — Next-Generation Electron Desktop Shell",
   "author": "CoreBlow Team",
-  "private": true,
-  "main": "dist-electron/main.cjs",
   "type": "module",
+  "main": "dist-electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build:renderer": "vite build",
