@@ -1,4 +1,0 @@
-/**
- * infra/env-file.ts
- */
-import fs from 'node:fs'; export function readEnvFile(path: string): Record<string, string> { const vars: Record<string, string> = {}; try { for (const line of fs.readFileSync(path, 'utf-8').split('\n')) { const t = line.trim(); if (!t || t.startsWith('#')) continue; const eq = t.indexOf('='); if (eq > 0) vars[t.slice(0, eq).trim()] = t.slice(eq + 1).trim().replace(/^["']|["']$/g, ''); } } catch { /* intentionally ignored */ } return vars; } export function writeEnvFile(path: string, vars: Record<string, string>): void { const lines = Object.entries(vars).map(([k, v]) => `${k}=${v}`); fs.writeFileSync(path, lines.join('\n') + '\n'); }
