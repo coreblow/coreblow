@@ -35,7 +35,16 @@ afterEach(() => {
 });
 
 describe("multi-backend-executor", () => {
-  it("reports honest availability for all 8 backends even when cloud env vars are set", async () => {
+  it("reports availability for daytona/e2b only when API keys are set and keeps modal/vercel fail-closed", async () => {
+    savedEnv.DAYTONA_API_KEY = process.env.DAYTONA_API_KEY;
+    savedEnv.E2B_API_KEY = process.env.E2B_API_KEY;
+    delete process.env.DAYTONA_API_KEY;
+    delete process.env.E2B_API_KEY;
+
+    const withoutKeys = new Map((await listAvailableBackends()).map((b) => [b.id, b]));
+    expect(withoutKeys.get("daytona")?.available).toBe(false);
+    expect(withoutKeys.get("e2b")?.available).toBe(false);
+
     setCloudEnvVars();
     const backends = await listAvailableBackends();
     expect(backends).toHaveLength(8);
@@ -43,17 +52,52 @@ describe("multi-backend-executor", () => {
     const byId = new Map(backends.map((b) => [b.id, b]));
     expect(byId.get("local")?.available).toBe(true);
     expect(byId.get("vm_isolate")?.available).toBe(true);
+    expect(byId.get("daytona")?.available).toBe(true);
+    expect(byId.get("e2b")?.available).toBe(true);
 
-    for (const cloudId of ["daytona", "modal", "vercel", "e2b"] as const) {
+    for (const cloudId of ["modal", "vercel"] as const) {
       const entry = byId.get(cloudId);
       expect(entry?.available).toBe(false);
       expect(entry?.detail).toContain("not yet implemented");
     }
   });
 
-  it("fails closed for unimplemented cloud backends even when API tokens are set", async () => {
+  it("executes daytona and e2b via REST lifecycle when API keys and fetchImpl are provided", async () => {
     setCloudEnvVars();
-    for (const cloudId of ["daytona", "modal", "vercel", "e2b"] as const) {
+    const destroyed: string[] = [];
+    const mockFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = init?.method ?? "GET";
+      if (method === "POST" && url.endsWith("/sandboxes")) {
+        return new Response(JSON.stringify({ id: "sb-exec-1", sandboxID: "sb-exec-1" }), { status: 200 });
+      }
+      if (method === "POST" && (url.endsWith("/exec") || url.endsWith("/commands"))) {
+        return new Response(JSON.stringify({ exitCode: 0, stdout: "cloud-ok" }), { status: 200 });
+      }
+      if (method === "DELETE") {
+        destroyed.push(url);
+        return new Response(null, { status: 204 });
+      }
+      return new Response("Not Found", { status: 404 });
+    }) as typeof fetch;
+
+    for (const cloudId of ["daytona", "e2b"] as const) {
+      const res = await executeOnBackend({
+        backend: cloudId,
+        command: "echo cloud-ok",
+        fetchImpl: mockFetch,
+      });
+      expect(res.success).toBe(true);
+      expect(res.exitCode).toBe(0);
+      expect(res.backend).toBe(cloudId);
+      expect(res.output).toBe("cloud-ok");
+    }
+    expect(destroyed).toHaveLength(2);
+  });
+
+  it("fails closed for modal and vercel even when API tokens are set", async () => {
+    setCloudEnvVars();
+    for (const cloudId of ["modal", "vercel"] as const) {
       const res = await executeOnBackend({
         backend: cloudId,
         command: "echo hello",

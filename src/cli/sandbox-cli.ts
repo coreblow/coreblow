@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { sandboxCloudCommand } from "../commands/sandbox-cloud.js";
 import { sandboxExplainCommand } from "../commands/sandbox-explain.js";
 import { sandboxListCommand, sandboxRecreateCommand } from "../commands/sandbox.js";
 import { t } from "../infra/i18n/index.js";
@@ -193,6 +194,113 @@ export function registerSandboxCli(program: Command) {
           {
             session: opts.session as string | undefined,
             agent: opts.agent as string | undefined,
+            json: Boolean(opts.json),
+          },
+          defaultRuntime,
+        ),
+      ),
+    );
+
+  // --- Cloud MicroVM Session Lifecycle Commands (Daytona / E2B) ---
+
+  sandbox
+    .command("create")
+    .description("Create a persistent cloud MicroVM sandbox session (daytona or e2b)")
+    .requiredOption("--backend <provider>", "Cloud sandbox backend (daytona | e2b)")
+    .option("--template <name>", "Sandbox template or image identifier")
+    .option("--json", t("cli_help.options.json_text"), false)
+    .action(
+      createRunner((opts) =>
+        sandboxCloudCommand(
+          "create",
+          {
+            backend: opts.backend as string | undefined,
+            template: opts.template as string | undefined,
+            json: Boolean(opts.json),
+          },
+          defaultRuntime,
+        ),
+      ),
+    );
+
+  sandbox
+    .command("exec")
+    .description("Execute a command inside an active cloud MicroVM sandbox session")
+    .requiredOption("--backend <provider>", "Cloud sandbox backend (daytona | e2b)")
+    .requiredOption("--session <id>", "Persistent sandbox session id")
+    .option("--json", t("cli_help.options.json_text"), false)
+    .argument("[cmd...]", "Command to execute inside the sandbox")
+    .action(async (cmdParts: string[], opts: CommandOptions) => {
+      try {
+        await sandboxCloudCommand(
+          "exec",
+          {
+            backend: opts.backend as string | undefined,
+            session: opts.session as string | undefined,
+            command: Array.isArray(cmdParts) ? cmdParts.join(" ") : "",
+            json: Boolean(opts.json),
+          },
+          defaultRuntime,
+        );
+      } catch (err) {
+        defaultRuntime.error(String(err));
+        defaultRuntime.exit(1);
+      }
+    });
+
+  sandbox
+    .command("pause")
+    .description("Pause / hibernate a persistent cloud MicroVM sandbox session")
+    .requiredOption("--backend <provider>", "Cloud sandbox backend (daytona | e2b)")
+    .requiredOption("--session <id>", "Persistent sandbox session id")
+    .option("--json", t("cli_help.options.json_text"), false)
+    .action(
+      createRunner((opts) =>
+        sandboxCloudCommand(
+          "pause",
+          {
+            backend: opts.backend as string | undefined,
+            session: opts.session as string | undefined,
+            json: Boolean(opts.json),
+          },
+          defaultRuntime,
+        ),
+      ),
+    );
+
+  sandbox
+    .command("resume")
+    .description("Resume a paused cloud MicroVM sandbox session")
+    .requiredOption("--backend <provider>", "Cloud sandbox backend (daytona | e2b)")
+    .requiredOption("--session <id>", "Persistent sandbox session id")
+    .option("--json", t("cli_help.options.json_text"), false)
+    .action(
+      createRunner((opts) =>
+        sandboxCloudCommand(
+          "resume",
+          {
+            backend: opts.backend as string | undefined,
+            session: opts.session as string | undefined,
+            json: Boolean(opts.json),
+          },
+          defaultRuntime,
+        ),
+      ),
+    );
+
+  sandbox
+    .command("destroy")
+    .description("Destroy a persistent cloud MicroVM sandbox session")
+    .requiredOption("--backend <provider>", "Cloud sandbox backend (daytona | e2b)")
+    .requiredOption("--session <id>", "Persistent sandbox session id")
+    .option("--json", t("cli_help.options.json_text"), false)
+    .action(
+      createRunner((opts) =>
+        sandboxCloudCommand(
+          "destroy",
+          {
+            backend: opts.backend as string | undefined,
+            session: opts.session as string | undefined,
             json: Boolean(opts.json),
           },
           defaultRuntime,

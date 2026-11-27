@@ -6,18 +6,21 @@
  * 2. vm_isolate — In-process Node.js VM isolate (<5ms cold start)
  * 3. docker — Hardened container execution (--network=none, --read-only, --tmpfs, --memory=256m)
  * 4. ssh — Remote host execution over SSH/Tailscale
+ * 5. daytona — Daytona persistent cloud MicroVM adapter (REST API via DAYTONA_API_KEY)
+ * 6. e2b — E2B persistent cloud MicroVM adapter (REST API via E2B_API_KEY)
  *
  * Planned cloud MicroVM adapters (fail-closed until implemented):
- * 5. daytona — Daytona workspace MicroVM adapter (planned)
- * 6. modal — Modal serverless MicroVM adapter (planned)
- * 7. vercel — Vercel Sandbox MicroVM adapter (planned)
- * 8. e2b — E2B Cloud MicroVM adapter (planned)
+ * 7. modal — Modal serverless MicroVM adapter (planned)
+ * 8. vercel — Vercel Sandbox MicroVM adapter (planned)
  */
 
 import * as childProcess from "node:child_process";
 import * as os from "node:os";
 import { SandboxExecutor } from "./sandbox.js";
 import { DockerRuntime } from "./docker-runtime.js";
+import { DaytonaSandboxProvider } from "./providers/daytona.js";
+import { E2BSandboxProvider } from "./providers/e2b.js";
+import type { PersistentSandboxProvider } from "./persistent-session.js";
 
 export type ExecutionBackendId =
   | "local"
@@ -39,6 +42,9 @@ export interface BackendExecuteOptions {
   timeoutMs?: number;
   remoteHost?: string;
   dockerImage?: string;
+  sessionId?: string;
+  template?: string;
+  fetchImpl?: typeof fetch;
 }
 
 export interface BackendExecuteResult {
@@ -77,6 +83,8 @@ function isBinaryAvailable(binary: string): boolean {
 export async function listAvailableBackends(): Promise<BackendStatus[]> {
   const dockerAvail = await DockerRuntime.isAvailable().catch(() => false);
   const sshAvail = isBinaryAvailable("ssh");
+  const daytonaAvail = new DaytonaSandboxProvider().isConfigured();
+  const e2bAvail = new E2BSandboxProvider().isConfigured();
 
   return [
     {
@@ -110,8 +118,10 @@ export async function listAvailableBackends(): Promise<BackendStatus[]> {
     {
       id: "daytona",
       name: "Daytona Workspace",
-      available: false,
-      detail: "Planned cloud MicroVM adapter (not yet implemented; use local, vm_isolate, docker, or ssh)",
+      available: daytonaAvail,
+      detail: daytonaAvail
+        ? "Daytona REST MicroVM adapter configured (DAYTONA_API_KEY set)"
+        : "DAYTONA_API_KEY not set (set DAYTONA_API_KEY to enable Daytona MicroVM execution)",
     },
     {
       id: "modal",
@@ -128,8 +138,10 @@ export async function listAvailableBackends(): Promise<BackendStatus[]> {
     {
       id: "e2b",
       name: "E2B Cloud Sandbox",
-      available: false,
-      detail: "Planned cloud MicroVM adapter (not yet implemented; use local, vm_isolate, docker, or ssh)",
+      available: e2bAvail,
+      detail: e2bAvail
+        ? "E2B REST MicroVM adapter configured (E2B_API_KEY set)"
+        : "E2B_API_KEY not set (set E2B_API_KEY to enable E2B MicroVM execution)",
     },
   ];
 }
@@ -152,7 +164,7 @@ export function buildDockerRunArgs(image: string, cmd: string): string[] {
 }
 
 function unimplementedCloudBackendResult(
-  backend: "daytona" | "modal" | "vercel" | "e2b",
+  backend: "modal" | "vercel",
   startMs: number,
 ): BackendExecuteResult {
   return {
@@ -163,6 +175,73 @@ function unimplementedCloudBackendResult(
     durationMs: Date.now() - startMs,
     error: `${backend.toUpperCase()}_NOT_IMPLEMENTED`,
   };
+}
+
+async function executeCloudProviderBackend(
+  backend: "daytona" | "e2b",
+  options: BackendExecuteOptions,
+  startMs: number,
+  timeoutMs: number,
+): Promise<BackendExecuteResult> {
+  const provider: PersistentSandboxProvider =
+    backend === "daytona"
+      ? new DaytonaSandboxProvider({ fetchImpl: options.fetchImpl, defaultTimeoutMs: timeoutMs })
+      : new E2BSandboxProvider({ fetchImpl: options.fetchImpl, defaultTimeoutMs: timeoutMs });
+
+  if (!provider.isConfigured()) {
+    const keyName = backend === "daytona" ? "DAYTONA_API_KEY" : "E2B_API_KEY";
+    return {
+      success: false,
+      output: `${backend} backend requested, but ${keyName} is not set.`,
+      exitCode: 1,
+      backend,
+      durationMs: Date.now() - startMs,
+      error: `${keyName}_MISSING`,
+    };
+  }
+
+  const cmd = options.command || (options.code ? `node -e ${JSON.stringify(options.code)}` : "echo ok");
+  const reusableId = options.sessionId?.trim();
+
+  try {
+    const session = reusableId
+      ? await provider.connect(reusableId)
+      : await provider.create({
+          template: options.template,
+          timeoutMs,
+          env: options.env,
+        });
+
+    try {
+      const execRes = await session.exec(cmd, {
+        timeoutMs,
+        cwd: options.cwd,
+        env: options.env,
+      });
+      return {
+        success: execRes.success,
+        output: execRes.output,
+        exitCode: execRes.exitCode,
+        backend,
+        durationMs: Date.now() - startMs,
+        error: execRes.error,
+      };
+    } finally {
+      if (!reusableId) {
+        await session.destroy().catch(() => {});
+      }
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return {
+      success: false,
+      output: message,
+      exitCode: 1,
+      backend,
+      durationMs: Date.now() - startMs,
+      error: message,
+    };
+  }
 }
 
 /**
@@ -300,9 +379,11 @@ export async function executeOnBackend(options: BackendExecuteOptions): Promise<
     }
 
     case "daytona":
+    case "e2b":
+      return executeCloudProviderBackend(backend, options, start, timeoutMs);
+
     case "modal":
     case "vercel":
-    case "e2b":
       return unimplementedCloudBackendResult(backend, start);
 
     case "local":

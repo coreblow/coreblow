@@ -7,6 +7,7 @@ import {
   type SandboxBrowserInfo,
   type SandboxContainerInfo,
 } from "../agents/sandbox.js";
+import { listAvailableBackends } from "../sandbox/multi-backend-executor.js";
 import { type RuntimeEnv, writeRuntimeJson } from "../runtime.js";
 import {
   displayBrowsers,
@@ -48,7 +49,8 @@ export async function sandboxListCommand(
   const browsers = opts.browser ? await listSandboxBrowsers().catch(() => []) : [];
 
   if (opts.json) {
-    writeRuntimeJson(runtime, { containers, browsers });
+    const backends = await listAvailableBackends().catch(() => []);
+    writeRuntimeJson(runtime, { containers, browsers, backends });
     return;
   }
 
