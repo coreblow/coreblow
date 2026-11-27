@@ -158,7 +158,35 @@ export function wrapNoteMessage(
     .join("\n");
 }
 
+export type CapturedNote = {
+  title?: string;
+  message: string;
+};
+
+let activeNoteCollector: CapturedNote[] | null = null;
+
+export async function withCapturedNotes<T>(
+  fn: () => Promise<T>,
+): Promise<{ result: T; notes: CapturedNote[] }> {
+  const collected: CapturedNote[] = [];
+  const previousCollector = activeNoteCollector;
+  activeNoteCollector = collected;
+  try {
+    const result = await fn();
+    return { result, notes: collected };
+  } finally {
+    activeNoteCollector = previousCollector;
+  }
+}
+
 export function note(message: string, title?: string) {
+  if (activeNoteCollector) {
+    activeNoteCollector.push({
+      ...(title ? { title } : {}),
+      message,
+    });
+    return;
+  }
   if (isSuppressedByEnv(process.env.COREBLOW_SUPPRESS_NOTES)) {
     return;
   }
