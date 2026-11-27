@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/coreblow/coreblow/main/.github/assets/coreblow-banner.png" width="640" alt="CoreBlow" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/coreblow/coreblow/main/.github/assets/coreblow-banner-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/coreblow/coreblow/main/.github/assets/coreblow-banner-light.png" />
+    <img src="https://raw.githubusercontent.com/coreblow/coreblow/main/.github/assets/coreblow-banner-light.png" width="640" alt="CoreBlow" />
+  </picture>
 </p>
 
 <p align="center">
@@ -11,9 +15,9 @@
   <a href="https://github.com/coreblow/coreblow/actions/workflows/build.yml"><img src="https://github.com/coreblow/coreblow/actions/workflows/build.yml/badge.svg" alt="CI" /></a>
   <a href="https://github.com/coreblow/coreblow/actions/workflows/security.yml"><img src="https://github.com/coreblow/coreblow/actions/workflows/security.yml/badge.svg" alt="Security" /></a>
   <a href="https://github.com/coreblow/coreblow/actions/workflows/ecosystem-contracts.yml"><img src="https://github.com/coreblow/coreblow/actions/workflows/ecosystem-contracts.yml/badge.svg" alt="Ecosystem Contracts" /></a>
-  <a href="https://www.npmjs.com/package/coreblow"><img src="https://img.shields.io/npm/v/coreblow?color=E95420&label=coreblow" alt="npm version" /></a>
-  <a href="https://github.com/coreblow/coreblow/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-E95420" alt="MIT License" /></a>
-  <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D22.12-171C1F" alt="Node >= 22.12" /></a>
+  <a href="https://www.npmjs.com/package/coreblow"><img src="https://img.shields.io/npm/v/coreblow.svg?color=E95420&amp;label=npm" alt="npm version" /></a>
+  <a href="https://github.com/coreblow/coreblow/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-E95420.svg" alt="MIT License" /></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D22.12-171C1F.svg" alt="Node >= 22.12" /></a>
 </p>
 
 <p align="center">
@@ -240,4 +244,4 @@ Further reading:
 ## License
 
 CoreBlow is open-source software licensed under the [MIT License](https://github.com/coreblow/coreblow/blob/main/LICENSE).
-Copyright © 2026 Febrinanda and CoreBlow contributors.
+Copyright © 2026 CoreBlow.
