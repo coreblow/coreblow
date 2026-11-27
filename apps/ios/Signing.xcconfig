@@ -1,2 +1,0 @@
-#include "Config/Signing.xcconfig"
-#include? "LocalSigning.xcconfig"

@@ -1,2 +1,0 @@
-app_identifier("ai.coreblow.app")
-team_id(ENV["COREBLOW_TEAM_ID"] || "")

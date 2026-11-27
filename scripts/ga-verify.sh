@@ -98,13 +98,6 @@ echo ""
 echo "── 7. Distribution Infrastructure ────────────────────────────"
 if [ -f "apps/desktop/build/entitlements.mac.plist" ]; then pass "apps/desktop/build/entitlements.mac.plist (macOS signing entitlements)"; else fail "apps/desktop/build/entitlements.mac.plist MISSING"; fi
 
-FL_COUNT=$(find apps/ios/fastlane -type f 2>/dev/null | wc -l | tr -d ' ')
-if [ "$FL_COUNT" -ge 15 ]; then
-  pass "iOS fastlane: $FL_COUNT files"
-else
-  fail "iOS fastlane: only $FL_COUNT files (expected ≥15)"
-fi
-
 # ── 8. CI/CD Workflows ──────────────────────────────────────────
 echo ""
 echo "── 8. CI/CD Workflows ────────────────────────────────────────"
