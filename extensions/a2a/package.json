@@ -1,0 +1,26 @@
+{
+  "name": "@coreblow/ext-a2a",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "External Agent-to-Agent (A2A) protocol extension with Agent Card discovery and JSON-RPC 2.0 task lifecycle",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "lint": "eslint src/"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.4"
+  },
+  "coreblow": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "install": {
+      "minHostVersion": ">=1.0.0"
+    }
+  }
+}

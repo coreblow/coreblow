@@ -122,6 +122,7 @@ export default defineConfig({
             'extensions/openrouter/**/*.test.ts',
             'extensions/chutes/**/*.test.ts',
             'extensions/bluesky/**/*.test.ts',
+            'extensions/a2a/**/*.test.ts',
             'extensions/mqtt/**/*.test.ts',
             // Wave 4 Batch 4E: additional extensions
             'extensions/minimax/**/*.test.ts',

@@ -1,0 +1,34 @@
+{
+  "id": "a2a",
+  "name": "A2A Protocol",
+  "description": "External Agent-to-Agent (A2A) protocol extension supporting /.well-known/agent.json discovery, JSON-RPC 2.0 task lifecycle, and SSRF-guarded outbound client.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean"
+      },
+      "agentName": {
+        "type": "string",
+        "minLength": 1
+      },
+      "agentVersion": {
+        "type": "string",
+        "minLength": 1
+      },
+      "baseUrl": {
+        "type": "string",
+        "minLength": 1
+      },
+      "requestTimeoutMs": {
+        "type": "number",
+        "minimum": 100
+      },
+      "maxTasks": {
+        "type": "number",
+        "minimum": 1
+      }
+    }
+  }
+}
