@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 Entries are listed newest-first within each version block.
 Changelog covers user-facing changes only; internal/meta notes are omitted.
 
+## [2.5.0] (2026-11-27)
+
+### Highlights
+
+- **Persistent Cloud MicroVM Backends:** Added unified `PersistentSandboxSession` contract, real Daytona & E2B REST API adapters (`create`, `exec`, `syncFilesToSandbox`/`syncFilesFromSandbox`, `pause`, `resume`, `destroy`), and lazy-loaded `coreblow sandbox` CLI.
+- **CoreFlow Deterministic PR 5-Gate & 3-Tier Auto-Bypass:** Added zero-token Gates 1–4 (`typecheck`, `lint`, `unit_tests`, `security`), hard 2-retry circuit breaker, single-pass diff-only Gate 5 auditor (Tier 2), 3-tier auto-bypass router in `CognitiveCoordinator`, and CoreFlow branding with backward-compatible `/api/corehub/war-room/*` route aliases.
+- **Security & Supply-Chain Hardening:** Added SHA-pinned OSV-Scanner (`v2.7.1`) and blocking `pnpm audit --prod --audit-level=critical` in `.github/workflows/security.yml`, plus explicit third-party plugin consent checks and sync/async fault containment in `src/plugins/loader.ts`.
+- **Zero-Friction Cross-Platform Distribution:** Wired native Windows `install.ps1` and auto-Node 22 Unix installers into `fleet-engine.mjs sync` (6/6 targets) and `check-ecosystem-contracts.mjs`, plus Light/Dark transparent `README.md` banner and `.svg` badges.
+
 ## [2.4.0] (2026-11-27)
 
 ### Highlights

@@ -401,7 +401,7 @@ const SEARCH_INDEX: SearchableSetting[] = [
     id: "about-coreblow",
     section: "about",
     title: "About CoreBlow Studio",
-    description: "Version 2.4.0, Application ID, architecture, docs",
+    description: "Version 2.5.0, Application ID, architecture, docs",
     keywords: ["about", "version", "docs", "coreblow", "license"],
   },
   {
@@ -4559,7 +4559,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       CoreBlow Studio
                     </div>
                     <div style={{ fontSize: "12px", color: "var(--ink-muted)" }}>
-                      Version 2.4.0 (Release) • Cross-Platform Desktop
+                      Version 2.5.0 (Release) • Cross-Platform Desktop
                     </div>
                   </div>
                 </div>
