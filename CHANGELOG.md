@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 Entries are listed newest-first within each version block.
 Changelog covers user-facing changes only; internal/meta notes are omitted.
 
+## [2.6.0] - 2026-11-27
+
+### Highlights
+
+- **Production Rewiring & Diagnostics:** Wired codex route warnings, device pairing checks, and plugin registry diagnostics into `coreblow doctor`; enforced dependency denylist checks during plugin installation (`src/plugins/install.ts`); wired staged `package-update-steps` with backup and rollback into `coreblow update`; retired duplicate `src/utils/log-redaction.ts`.
+- **Monorepo Root & Workspace Hygiene:** Removed 14 dead root dotfiles/configs and obsolete `docker-setup.sh` / `changelog/v0.1.0.md`, relocated PaaS templates (`fly.toml`, `fly.private.toml`, `render.yaml`) to `deploy/examples/`, and removed inactive companion apps (`apps/ios`, `apps/macos-mlx-tts`, `apps/swabble`) plus superseded legacy packages (`packages/gateway-sdk`, `packages/plugin-package-contract`, `packages/sdk`) while preserving `apps/shared/`, `packages/plugin-sdk/`, and `packages/memory-host-sdk/`.
+
 ## [2.5.0] (2026-11-27)
 
 ### Highlights

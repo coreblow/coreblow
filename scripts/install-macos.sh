@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# CoreBlow v2.5.0 — macOS Installer Wrapper
+# CoreBlow v2.6.0 — macOS Installer Wrapper
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 exec bash "${SCRIPT_DIR}/install.sh" "$@"
