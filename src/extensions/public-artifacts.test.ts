@@ -15,6 +15,7 @@ describe('Public Artifact Store', () => {
     });
 
     afterEach(() => {
+        vi.useRealTimers();
         fs.rmSync(tmpDir, { recursive: true, force: true });
     });
 
@@ -46,9 +47,11 @@ describe('Public Artifact Store', () => {
         expect(store.list()).toHaveLength(2);
     });
 
-    it('prunes expired', async () => {
+    it('prunes expired', () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2026-11-27T00:00:00.000Z'));
         store.store({ filename: 'exp.txt', content: Buffer.from('x'), mimeType: 'text/plain', ttlMs: 50 });
-        await new Promise((r) => setTimeout(r, 100));
+        vi.advanceTimersByTime(100);
         expect(store.pruneExpired()).toBe(1);
         expect(store.list()).toHaveLength(0);
     });
