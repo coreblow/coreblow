@@ -528,8 +528,22 @@ describe("runGatewayUpdate", () => {
       if (key === "pnpm root -g") {
         return { stdout: "", stderr: "", code: 1 };
       }
-      if (key === params.installCommand) {
+      const prefixIdx = argv.indexOf("--prefix");
+      const stagePrefix = prefixIdx >= 0 ? argv[prefixIdx + 1] : undefined;
+      const normalizedKey =
+        prefixIdx >= 0
+          ? [...argv.slice(0, prefixIdx), ...argv.slice(prefixIdx + 2)].join(" ")
+          : key;
+      if (normalizedKey === params.installCommand) {
         await params.onInstall?.(options);
+        if (stagePrefix) {
+          const stagedPkgRoot =
+            process.platform === "win32"
+              ? path.join(stagePrefix, "node_modules", "coreblow")
+              : path.join(stagePrefix, "lib", "node_modules", "coreblow");
+          await fs.mkdir(path.dirname(stagedPkgRoot), { recursive: true });
+          await fs.cp(params.pkgRoot, stagedPkgRoot, { recursive: true, force: true });
+        }
         return { stdout: "ok", stderr: "", code: 0 };
       }
       return { stdout: "", stderr: "", code: 0 };
@@ -727,12 +741,14 @@ describe("runGatewayUpdate", () => {
       },
     });
 
-    await withEnvAsync({ LOCALAPPDATA: localAppData }, async () => {
-      const result = await runWithCommand(runCommand, { cwd: pkgRoot });
-      expect(result.status).toBe("ok");
-    });
-
-    platformSpy.mockRestore();
+    try {
+      await withEnvAsync({ LOCALAPPDATA: localAppData }, async () => {
+        const result = await runWithCommand(runCommand, { cwd: pkgRoot });
+        expect(result.status).toBe("ok");
+      });
+    } finally {
+      platformSpy.mockRestore();
+    }
 
     const mergedPath = installEnv?.Path ?? installEnv?.PATH ?? "";
     expect(mergedPath.split(path.delimiter).slice(0, 2)).toEqual([

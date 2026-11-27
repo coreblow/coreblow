@@ -96,9 +96,10 @@ function isUnambiguousNpmPrefixGlobalRoot(globalRoot: string | null): boolean {
 function resolveStagedNpmTargetLayout(
   installTarget: ResolvedGlobalInstallTarget,
 ): NpmGlobalPrefixLayout | null {
-  const targetLayout = resolveNpmGlobalPrefixLayoutFromGlobalRoot(installTarget.globalRoot, {
-    allowDirectNodeModulesRoot: installTarget.directNodeModulesRoot === true,
-  });
+  if (installTarget.directNodeModulesRoot) {
+    return null;
+  }
+  const targetLayout = resolveNpmGlobalPrefixLayoutFromGlobalRoot(installTarget.globalRoot);
   if (!targetLayout) {
     return null;
   }

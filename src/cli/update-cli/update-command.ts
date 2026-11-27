@@ -26,16 +26,20 @@ import {
   checkUpdateStatus,
 } from "../../infra/update-check.js";
 import {
-  collectInstalledGlobalPackageErrors,
   canResolveRegistryVersionForPackageTarget,
   createGlobalInstallEnv,
   cleanupGlobalRenameDirs,
   globalInstallArgs,
-  resolveExpectedInstalledVersionFromSpec,
   resolveGlobalInstallSpec,
+  resolveGlobalInstallTarget,
   resolveGlobalPackageRoot,
 } from "../../infra/update-global.js";
-import { runGatewayUpdate, type UpdateRunResult } from "../../infra/update-runner.js";
+import { runGlobalPackageUpdateSteps } from "../../infra/package-update-steps.js";
+import {
+  runGatewayUpdate,
+  type UpdateRunResult,
+  type UpdateStepResult,
+} from "../../infra/update-runner.js";
 import { syncPluginsForUpdateChannel, updateNpmInstalledPlugins } from "../../plugins/update.js";
 import { runCommandWithTimeout } from "../../process/exec.js";
 import { defaultRuntime } from "../../runtime.js";
@@ -367,37 +371,33 @@ async function runPackageInstallUpdate(params: {
     });
   }
 
-  const updateStep = await runUpdateStep({
-    name: "global update",
-    argv: globalInstallArgs(manager, installSpec),
-    env: installEnv,
+  const installTarget = await resolveGlobalInstallTarget({
+    manager,
+    packageRoot: pkgRoot,
+    runCommand,
     timeoutMs: params.timeoutMs,
-    progress: params.progress,
+  });
+  const stagedResult = await runGlobalPackageUpdateSteps({
+    installTarget,
+    installSpec,
+    packageName,
+    packageRoot: pkgRoot,
+    runCommand,
+    runStep: (stepParams) =>
+      runUpdateStep({
+        ...stepParams,
+        progress: params.progress,
+      }),
+    timeoutMs: params.timeoutMs,
+    env: installEnv,
   });
 
-  const steps = [updateStep];
-  let afterVersion = beforeVersion;
+  const steps: UpdateStepResult[] = stagedResult.steps;
+  const verifiedPackageRoot = stagedResult.verifiedPackageRoot ?? pkgRoot;
+  let afterVersion = stagedResult.afterVersion ?? beforeVersion;
 
-  const verifiedPackageRoot =
-    (await resolveGlobalPackageRoot(manager, runCommand, params.timeoutMs)) ?? pkgRoot;
   if (verifiedPackageRoot) {
-    afterVersion = await readPackageVersion(verifiedPackageRoot);
-    const expectedVersion = resolveExpectedInstalledVersionFromSpec(packageName, installSpec);
-    const verificationErrors = await collectInstalledGlobalPackageErrors({
-      packageRoot: verifiedPackageRoot,
-      expectedVersion,
-    });
-    if (verificationErrors.length > 0) {
-      steps.push({
-        name: "global install verify",
-        command: `verify ${verifiedPackageRoot}`,
-        cwd: verifiedPackageRoot,
-        durationMs: 0,
-        exitCode: 1,
-        stderrTail: verificationErrors.join("\n"),
-        stdoutTail: null,
-      });
-    }
+    afterVersion ??= await readPackageVersion(verifiedPackageRoot);
     const entryPath = path.join(verifiedPackageRoot, "dist", "entry.js");
     if (await pathExists(entryPath)) {
       const doctorStep = await runUpdateStep({
