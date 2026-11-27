@@ -8,6 +8,7 @@ import {
 } from "../infra/install-safe-path.js";
 import { type NpmIntegrityDrift, type NpmSpecResolution } from "../infra/install-source-utils.js";
 import { CONFIG_DIR, resolveUserPath } from "../utils.js";
+import { findBlockedManifestDependencies } from "./dependency-denylist.js";
 import {
   resolvePackageExtensionEntries,
   type PackageManifest as PluginPackageManifest,
@@ -51,6 +52,7 @@ export const PLUGIN_INSTALL_ERROR_CODE = {
   PLUGIN_ID_MISMATCH: "plugin_id_mismatch",
   MISSING_PLUGIN_MANIFEST: "missing_plugin_manifest",
   MISSING_EXTENSION_ENTRY: "missing_extension_entry",
+  BLOCKED_DEPENDENCY: "blocked_dependency",
 } as const;
 
 export type PluginInstallErrorCode =
@@ -628,6 +630,18 @@ async function installPluginFromPackageDir(
     logger.warn?.(
       `Plugin "${pluginId}" code safety scan failed (${String(err)}). Installation continues; run "coreblow security audit --deep" after install.`,
     );
+  }
+
+  const blockedFindings = findBlockedManifestDependencies(manifest as Record<string, unknown>);
+  if (blockedFindings.length > 0) {
+    const summary = blockedFindings
+      .map((f) => (f.declaredAs ? `${f.dependencyName} (via ${f.declaredAs} in ${f.field})` : `${f.dependencyName} (${f.field})`))
+      .join(", ");
+    return {
+      ok: false,
+      error: `plugin "${pluginId}" blocked due to disallowed dependency: ${summary}`,
+      code: PLUGIN_INSTALL_ERROR_CODE.BLOCKED_DEPENDENCY,
+    };
   }
 
   const deps = manifest.dependencies ?? {};
