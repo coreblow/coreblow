@@ -100,7 +100,56 @@ export type PluginLoadOptions = {
   activate?: boolean;
   loadModules?: boolean;
   throwOnLoadError?: boolean;
+  requireThirdPartyConsent?: boolean;
+  consentedPluginIds?: ReadonlySet<string> | readonly string[];
 };
+
+export function isThirdPartyPluginConsented(params: {
+  pluginId: string;
+  origin: PluginRecord["origin"];
+  requireThirdPartyConsent?: boolean;
+  consentedPluginIds?: ReadonlySet<string> | readonly string[];
+  env?: NodeJS.ProcessEnv;
+}): boolean {
+  if (params.origin === "bundled") {
+    return true;
+  }
+  const enforce =
+    params.requireThirdPartyConsent ??
+    params.env?.COREBLOW_REQUIRE_PLUGIN_CONSENT === "1";
+  if (!enforce) {
+    return true;
+  }
+  if (params.consentedPluginIds instanceof Set) {
+    return params.consentedPluginIds.has(params.pluginId);
+  }
+  if (Array.isArray(params.consentedPluginIds)) {
+    return params.consentedPluginIds.includes(params.pluginId);
+  }
+  const envList = params.env?.COREBLOW_CONSENTED_PLUGINS;
+  if (envList) {
+    const allowed = envList
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+    return allowed.includes(params.pluginId);
+  }
+  return false;
+}
+
+export async function containPluginExecution<T>(params: {
+  pluginId: string;
+  fn: () => T | Promise<T>;
+  onError?: (err: unknown) => void;
+}): Promise<{ ok: true; value: T } | { ok: false; error: unknown }> {
+  try {
+    const value = await params.fn();
+    return { ok: true, value };
+  } catch (err) {
+    params.onError?.(err);
+    return { ok: false, error: err };
+  }
+}
 
 export class PluginLoadFailureError extends Error {
   readonly pluginIds: string[];
@@ -1223,6 +1272,20 @@ export function loadCoreBlowPlugins(options: PluginLoadOptions = {}): PluginRegi
       continue;
     }
 
+    if (
+      !isThirdPartyPluginConsented({
+        pluginId: record.id,
+        origin: candidate.origin,
+        requireThirdPartyConsent: options.requireThirdPartyConsent,
+        consentedPluginIds: options.consentedPluginIds,
+        env,
+      })
+    ) {
+      logger.error(`[plugins] ${record.id} blocked: third-party plugin lacks explicit consent`);
+      pushPluginLoadError("third-party plugin requires explicit operator consent");
+      continue;
+    }
+
     const pluginRoot = safeRealpathOrResolve(candidate.rootDir);
     const loadSource =
       (registrationMode === "setup-only" || registrationMode === "setup-runtime") &&
@@ -1375,12 +1438,24 @@ export function loadCoreBlowPlugins(options: PluginLoadOptions = {}): PluginRegi
 
     try {
       const result = register(api);
-      if (result && typeof result.then === "function") {
+      if (result && typeof (result as PromiseLike<unknown>).then === "function") {
         registry.diagnostics.push({
           level: "warn",
           pluginId: record.id,
           source: record.source,
           message: "plugin register returned a promise; async registration is ignored",
+        });
+        void Promise.resolve(result).catch((asyncErr) => {
+          const errorText = String(asyncErr);
+          logger.error(`[plugins] ${record.id} async register rejection contained: ${errorText}`);
+          record.status = "error";
+          record.error = errorText;
+          registry.diagnostics.push({
+            level: "error",
+            pluginId: record.id,
+            source: record.source,
+            message: `plugin async register failed (contained): ${errorText}`,
+          });
         });
       }
       // Snapshot loads should not replace process-global runtime prompt state.

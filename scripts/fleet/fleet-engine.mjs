@@ -155,6 +155,18 @@ const SYNC_RULES = {
       1,
     ],
   ],
+  "coreblow.com:public/install.ps1": ({ version }) => [
+    [
+      /Sovereign Autonomous Agent-OS · v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)? GA/g,
+      `Sovereign Autonomous Agent-OS · v${version} GA`,
+      1,
+    ],
+    [
+      /\$CoreBlowVersion = if \(\$env:COREBLOW_VERSION\) \{ \$env:COREBLOW_VERSION \} else \{ "[^"]+" \}/g,
+      `$CoreBlowVersion = if ($env:COREBLOW_VERSION) { $env:COREBLOW_VERSION } else { "${version}" }`,
+      1,
+    ],
+  ],
   "coreblow.com:src/index.js": ({ version }) => [
     [/(CoreBlow\s+)v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?/g, `$1v${version}`, 1],
     [/v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?=\s+GA\b)/g, `v${version}`, 1],

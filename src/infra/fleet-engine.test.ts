@@ -22,6 +22,11 @@ function createSatelliteFixtures(rootDir: string) {
   fs.writeFileSync(path.join(comDir, "public/install.sh"), installBanner, "utf8");
   fs.writeFileSync(path.join(comDir, "public/install-cli.sh"), installBanner, "utf8");
   fs.writeFileSync(
+    path.join(comDir, "public/install.ps1"),
+    '$CoreBlowVersion = if ($env:COREBLOW_VERSION) { $env:COREBLOW_VERSION } else { "2.3.0" }\n   Sovereign Autonomous Agent-OS · v2.3.0 GA\n',
+    "utf8",
+  );
+  fs.writeFileSync(
     path.join(comDir, "src/index.js"),
     'const HTML = "<meta content=\\"CoreBlow v2.3.0 Sovereign\\" /><span>v2.3.0 GA</span>";\nconst SH = "CoreBlow v2.3.0 requires Node >= 22.12.0";\n',
     "utf8",
@@ -94,14 +99,15 @@ describe("fleet sync subcommand", () => {
       splitRoot: tmp,
     });
 
-    expect(planned).toHaveLength(5);
+    expect(planned).toHaveLength(6);
     expect(planned.every((entry) => entry.changed)).toBe(true);
     expect(fs.readFileSync(path.join(comDir, "public/install.sh"), "utf8")).toContain("2.3.0");
+    expect(fs.readFileSync(path.join(comDir, "public/install.ps1"), "utf8")).toContain("2.3.0");
     expect(fs.readFileSync(path.join(brewDir, "Formula/coreblow.rb"), "utf8")).toContain("2.3.0");
     expect(fs.readFileSync(path.join(nixDir, "flake.nix"), "utf8")).toContain('version = "2.3.0"');
   });
 
-  it("updates all 5 distribution targets accurately and idempotently on /tmp fixtures", () => {
+  it("updates all 6 distribution targets accurately and idempotently on /tmp fixtures", () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "coreblow-fleet-sync-"));
     tempRoots.push(tmp);
     const { comDir, brewDir, nixDir } = createSatelliteFixtures(tmp);
@@ -113,11 +119,12 @@ describe("fleet sync subcommand", () => {
       dryRun: false,
       splitRoot: tmp,
     });
-    expect(first).toHaveLength(5);
+    expect(first).toHaveLength(6);
     expect(first.every((entry) => entry.changed)).toBe(true);
 
     const installSh = fs.readFileSync(path.join(comDir, "public/install.sh"), "utf8");
     const installCliSh = fs.readFileSync(path.join(comDir, "public/install-cli.sh"), "utf8");
+    const installPs1 = fs.readFileSync(path.join(comDir, "public/install.ps1"), "utf8");
     const indexJs = fs.readFileSync(path.join(comDir, "src/index.js"), "utf8");
     const rb = fs.readFileSync(path.join(brewDir, "Formula/coreblow.rb"), "utf8");
     const flake = fs.readFileSync(path.join(nixDir, "flake.nix"), "utf8");
@@ -126,6 +133,8 @@ describe("fleet sync subcommand", () => {
     expect(installSh).toContain('COREBLOW_VERSION="${COREBLOW_VERSION:-2.3.1}"');
     expect(installCliSh).toContain("Sovereign Autonomous Agent-OS · v2.3.1 GA");
     expect(installCliSh).toContain('COREBLOW_VERSION="${COREBLOW_VERSION:-2.3.1}"');
+    expect(installPs1).toContain("Sovereign Autonomous Agent-OS · v2.3.1 GA");
+    expect(installPs1).toContain('else { "2.3.1" }');
     expect(indexJs).toContain("CoreBlow v2.3.1 Sovereign");
     expect(indexJs).toContain("v2.3.1 GA");
     expect(indexJs).toContain("CoreBlow v2.3.1 requires");

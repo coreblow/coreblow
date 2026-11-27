@@ -89,8 +89,8 @@
       "siblingDir": "coreblow.com",
       "releaseWorkflow": null,
       "syncVersion": true,
-      "syncFiles": ["public/install.sh", "public/install-cli.sh"],
-      "publicSurfaces": ["public/install.sh", "public/install-cli.sh"],
+      "syncFiles": ["public/install.sh", "public/install-cli.sh", "public/install.ps1"],
+      "publicSurfaces": ["public/install.sh", "public/install-cli.sh", "public/install.ps1"],
       "testCommand": "CI=true COREPACK_ENABLE_DOWNLOAD_PROMPT=0 npm test"
     },
     {
