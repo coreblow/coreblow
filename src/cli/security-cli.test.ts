@@ -1,74 +1,192 @@
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
 import { Command } from "commander";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { defaultRuntime } from "../runtime.js";
-import { registerSecurityCli } from "./security-cli.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createCliRuntimeCapture } from "./test-runtime-capture.js";
 
-describe("security rbac CLI --json output", () => {
-  const tempDirs: string[] = [];
+const loadConfig = vi.fn();
+const runSecurityAudit = vi.fn();
+const fixSecurityFootguns = vi.fn();
+const resolveCommandSecretRefsViaGateway = vi.fn();
+const getSecurityAuditCommandSecretTargetIds = vi.fn(
+  () => new Set(["gateway.auth.token", "gateway.auth.password"]),
+);
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-    delete process.env.COREBLOW_STATE_DIR;
-    for (const dir of tempDirs.splice(0)) {
-      fs.rmSync(dir, { recursive: true, force: true });
-    }
+const { defaultRuntime, runtimeLogs, resetRuntimeCapture } = createCliRuntimeCapture();
+
+vi.mock("../config/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config/config.js")>();
+  return {
+    ...actual,
+    loadConfig: () => loadConfig(),
+  };
+});
+
+vi.mock("../runtime.js", () => ({
+  defaultRuntime,
+}));
+
+vi.mock("../security/audit.js", () => ({
+  runSecurityAudit: (opts: unknown) => runSecurityAudit(opts),
+}));
+
+vi.mock("../security/fix.js", () => ({
+  fixSecurityFootguns: () => fixSecurityFootguns(),
+}));
+
+vi.mock("./command-secret-gateway.js", () => ({
+  resolveCommandSecretRefsViaGateway: (opts: unknown) => resolveCommandSecretRefsViaGateway(opts),
+}));
+
+vi.mock("./command-secret-targets.js", () => ({
+  getSecurityAuditCommandSecretTargetIds: () => getSecurityAuditCommandSecretTargetIds(),
+}));
+
+const { registerSecurityCli } = await import("./security-cli.js");
+
+function createProgram() {
+  const program = new Command();
+  program.exitOverride();
+  registerSecurityCli(program);
+  return program;
+}
+
+function primeDeepAuditConfig(sourceConfig = { gateway: { mode: "local" } }) {
+  loadConfig.mockReturnValue(sourceConfig);
+  resolveCommandSecretRefsViaGateway.mockResolvedValue({
+    resolvedConfig: sourceConfig,
+    diagnostics: [],
+    targetStatesByPath: {},
+    hadUnresolvedTargets: false,
+  });
+  runSecurityAudit.mockResolvedValue({
+    ts: 0,
+    summary: { critical: 0, warn: 0, info: 0 },
+    findings: [],
+  });
+  return sourceConfig;
+}
+
+describe("security CLI", () => {
+  beforeEach(() => {
+    resetRuntimeCapture();
+    loadConfig.mockReset();
+    runSecurityAudit.mockReset();
+    fixSecurityFootguns.mockReset();
+    resolveCommandSecretRefsViaGateway.mockReset();
+    getSecurityAuditCommandSecretTargetIds.mockClear();
+    fixSecurityFootguns.mockResolvedValue({
+      changes: [],
+      actions: [],
+      errors: [],
+    });
   });
 
-  it("writes pure JSON via defaultRuntime.writeJson without banner or log pollution", async () => {
-    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "coreblow-rbac-cli-test-"));
-    tempDirs.push(stateDir);
-    process.env.COREBLOW_STATE_DIR = stateDir;
-
-    const writeJsonSpy = vi.spyOn(defaultRuntime, "writeJson").mockImplementation(() => {});
-    const logSpy = vi.spyOn(defaultRuntime, "log").mockImplementation(() => {});
-
-    const program = new Command();
-    registerSecurityCli(program);
-
-    await program.parseAsync(["security", "rbac", "list", "--json"], { from: "user" });
-    expect(logSpy).not.toHaveBeenCalled();
-    expect(writeJsonSpy).toHaveBeenCalledTimes(1);
-    const listPayload = writeJsonSpy.mock.calls[0]?.[0] as Record<string, unknown>;
-    expect(listPayload.bootstrapMode).toBe("single-user-local");
-    expect(Array.isArray(listPayload.roles)).toBe(true);
-    expect(Array.isArray(listPayload.bindings)).toBe(true);
-
-    writeJsonSpy.mockClear();
-    await program.parseAsync(
-      ["security", "rbac", "grant", "--principal", "qc-tester", "--role", "operator", "--json"],
-      { from: "user" },
-    );
-    expect(logSpy).not.toHaveBeenCalled();
-    expect(writeJsonSpy).toHaveBeenCalledTimes(1);
-    const grantPayload = writeJsonSpy.mock.calls[0]?.[0] as {
-      ok: boolean;
-      binding: { principalId: string; roleName: string };
+  it("runs audit with read-only SecretRef resolution and prints JSON diagnostics", async () => {
+    const sourceConfig = {
+      gateway: {
+        auth: {
+          mode: "token",
+          token: { source: "env", provider: "default", id: "COREBLOW_GATEWAY_TOKEN" },
+        },
+      },
+      secrets: {
+        providers: {
+          default: { source: "env" },
+        },
+      },
     };
-    expect(grantPayload.ok).toBe(true);
-    expect(grantPayload.binding.principalId).toBe("qc-tester");
-    expect(grantPayload.binding.roleName).toBe("operator");
-
-    writeJsonSpy.mockClear();
-    await program.parseAsync(
-      ["security", "rbac", "revoke", "--principal", "qc-tester", "--role", "operator", "--json"],
-      { from: "user" },
-    );
-    expect(logSpy).not.toHaveBeenCalled();
-    expect(writeJsonSpy).toHaveBeenCalledTimes(1);
-    const revokePayload = writeJsonSpy.mock.calls[0]?.[0] as {
-      ok: boolean;
-      revoked: boolean;
-      principalId: string;
-      roleName: string;
+    const resolvedConfig = {
+      ...sourceConfig,
+      gateway: {
+        ...sourceConfig.gateway,
+        auth: {
+          ...sourceConfig.gateway.auth,
+          token: "resolved-token",
+        },
+      },
     };
-    expect(revokePayload).toEqual({
-      ok: true,
-      revoked: true,
-      principalId: "qc-tester",
-      roleName: "operator",
+    loadConfig.mockReturnValue(sourceConfig);
+    resolveCommandSecretRefsViaGateway.mockResolvedValue({
+      resolvedConfig,
+      diagnostics: [
+        "security audit: gateway secrets.resolve unavailable (gateway closed); resolved command secrets locally.",
+      ],
+      targetStatesByPath: {},
+      hadUnresolvedTargets: false,
     });
+    runSecurityAudit.mockResolvedValue({
+      ts: 0,
+      summary: { critical: 0, warn: 1, info: 0 },
+      findings: [
+        {
+          checkId: "gateway.probe_failed",
+          severity: "warn",
+          title: "Gateway probe failed (deep)",
+          detail: "connect failed: connect ECONNREFUSED 127.0.0.1:18789",
+        },
+      ],
+    });
+
+    await createProgram().parseAsync(["security", "audit", "--json"], { from: "user" });
+
+    expect(resolveCommandSecretRefsViaGateway).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: sourceConfig,
+        commandName: "security audit",
+        mode: "read_only_status",
+        targetIds: expect.any(Set),
+      }),
+    );
+    expect(runSecurityAudit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: resolvedConfig,
+        sourceConfig,
+        deep: false,
+        includeFilesystem: true,
+        includeChannelSecurity: true,
+      }),
+    );
+    const payload = JSON.parse(String(runtimeLogs.at(-1)));
+    expect(payload.secretDiagnostics).toEqual([
+      "security audit: gateway secrets.resolve unavailable (gateway closed); resolved command secrets locally.",
+    ]);
+  });
+
+  it.each([
+    {
+      title: "forwards --token to deep probe auth without altering command-level resolver mode",
+      argv: ["--token", "explicit-token"],
+      deepProbeAuth: { token: "explicit-token" },
+    },
+    {
+      title: "forwards --password to deep probe auth without altering command-level resolver mode",
+      argv: ["--password", "explicit-password"],
+      deepProbeAuth: { password: "explicit-password" },
+    },
+    {
+      title: "forwards both --token and --password to deep probe auth",
+      argv: ["--token", "explicit-token", "--password", "explicit-password"],
+      deepProbeAuth: {
+        token: "explicit-token",
+        password: "explicit-password",
+      },
+    },
+  ])("$title", async ({ argv, deepProbeAuth }) => {
+    primeDeepAuditConfig();
+
+    await createProgram().parseAsync(["security", "audit", "--deep", ...argv, "--json"], {
+      from: "user",
+    });
+
+    expect(resolveCommandSecretRefsViaGateway).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: "read_only_status",
+      }),
+    );
+    expect(runSecurityAudit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deep: true,
+        deepProbeAuth,
+      }),
+    );
   });
 });
