@@ -225,9 +225,7 @@ export function registerSecurityCli(program: Command) {
         });
         const bootstrapMode = store.getBootstrapMode();
         if (opts.json) {
-          defaultRuntime.log(
-            JSON.stringify({ dbPath: store.dbPath, bootstrapMode, roles, bindings }, null, 2),
-          );
+          defaultRuntime.writeJson({ dbPath: store.dbPath, bootstrapMode, roles, bindings });
           return;
         }
         const lines = [
@@ -271,7 +269,7 @@ export function registerSecurityCli(program: Command) {
           });
           invalidateGatewayRbacCache();
           if (opts.json) {
-            defaultRuntime.log(JSON.stringify({ ok: true, binding }, null, 2));
+            defaultRuntime.writeJson({ ok: true, binding });
             return;
           }
           defaultRuntime.log(
@@ -304,9 +302,12 @@ export function registerSecurityCli(program: Command) {
         });
         invalidateGatewayRbacCache();
         if (opts.json) {
-          defaultRuntime.log(
-            JSON.stringify({ ok: true, revoked, principalId: opts.principal, roleName: opts.role }, null, 2),
-          );
+          defaultRuntime.writeJson({
+            ok: true,
+            revoked,
+            principalId: opts.principal,
+            roleName: opts.role,
+          });
           return;
         }
         defaultRuntime.log(
