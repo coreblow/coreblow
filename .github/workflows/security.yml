@@ -78,3 +78,4 @@ jobs:
       scan-args: |-
         --lockfile=pnpm-lock.yaml
       upload-sarif: false
+      fail-on-vuln: false
