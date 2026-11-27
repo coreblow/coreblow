@@ -1,5 +1,0 @@
-{
-  "name": "@coreblow/gateway-sdk",
-  "version": "2.1.2",
-  "main": "dist/index.js"
-}

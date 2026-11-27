@@ -15,7 +15,6 @@ query-filters:
 
 paths:
   - src/gateway
-  - packages/gateway-sdk/src
   - src/cli/gateway-cli
   - src/commands/gateway-status
 
