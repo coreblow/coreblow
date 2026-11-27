@@ -122,14 +122,14 @@ done
 # ── 9. Deployment ───────────────────────────────────────────────
 echo ""
 echo "── 9. Deployment Configs ─────────────────────────────────────"
-for f in Dockerfile docker-compose.yml fly.toml fly.private.toml render.yaml Dockerfile.sandbox Dockerfile.sandbox-common Dockerfile.sandbox-browser; do
+for f in Dockerfile docker-compose.yml deploy/examples/fly.toml deploy/examples/fly.private.toml deploy/examples/render.yaml Dockerfile.sandbox Dockerfile.sandbox-common Dockerfile.sandbox-browser; do
   if [ -f "$f" ]; then pass "$f"; else fail "$f MISSING"; fi
 done
 
 # ── 10. Tooling ─────────────────────────────────────────────────
 echo ""
 echo "── 10. Tooling ───────────────────────────────────────────────"
-for f in .swiftformat .swiftlint.yml .pre-commit-config.yaml .npmignore .mailmap .github/CODEOWNERS .github/dependabot.yml .github/actionlint.yaml .github/instructions/copilot.instructions.md .github/codeql/codeql-javascript-typescript.yml; do
+for f in .oxlintrc.json .oxfmtrc.jsonc .github/CODEOWNERS .github/dependabot.yml .github/actionlint.yaml .github/instructions/copilot.instructions.md .github/codeql/codeql-javascript-typescript.yml; do
   if [ -f "$f" ]; then pass "$(basename "$f")"; else fail "$(basename "$f") MISSING"; fi
 done
 
