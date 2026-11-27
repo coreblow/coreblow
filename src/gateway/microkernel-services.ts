@@ -740,6 +740,7 @@ export async function handleCoreHubRoute(
     pathname === "/api/corehub/skills/lock" ||
     (pathname.startsWith("/api/corehub/war-room") && method === "POST") ||
     (pathname.startsWith("/api/corehub/warroom") && method === "POST") ||
+    (pathname.startsWith("/api/corehub/coreflow") && method === "POST") ||
     pathname === "/api/corehub/memory-wiki/scribe" ||
     pathname === "/api/corehub/import-agent" ||
     (pathname === "/api/corehub/pr-workflow/drafts" && method === "POST") ||
@@ -1136,8 +1137,13 @@ export async function handleCoreHubRoute(
     return true;
   }
 
-  // GET /api/corehub/war-room/rooms or /api/corehub/warroom/rooms
-  if (method === "GET" && (pathname === "/api/corehub/war-room/rooms" || pathname === "/api/corehub/warroom/rooms")) {
+  // GET /api/corehub/coreflow/rooms, /api/corehub/war-room/rooms, or /api/corehub/warroom/rooms
+  if (
+    method === "GET" &&
+    (pathname === "/api/corehub/war-room/rooms" ||
+      pathname === "/api/corehub/warroom/rooms" ||
+      pathname === "/api/corehub/coreflow/rooms")
+  ) {
     if (!services.warRoom) {
       sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
       return true;
@@ -1180,8 +1186,8 @@ export async function handleCoreHubRoute(
     return true;
   }
 
-  // GET /api/corehub/warroom/:roomId/messages or /api/corehub/war-room/:roomId/messages
-  const warRoomMessagesGetMatch = /^\/api\/corehub\/(?:war-room|warroom)\/([^/]+)\/messages$/.exec(pathname);
+  // GET /api/corehub/coreflow/:roomId/messages, /api/corehub/warroom/:roomId/messages, or /api/corehub/war-room/:roomId/messages
+  const warRoomMessagesGetMatch = /^\/api\/corehub\/(?:war-room|warroom|coreflow)\/([^/]+)\/messages$/.exec(pathname);
   if (method === "GET" && warRoomMessagesGetMatch) {
     const roomId = decodeURIComponent(warRoomMessagesGetMatch[1]);
     if (!services.warRoom) {
@@ -1239,8 +1245,8 @@ export async function handleCoreHubRoute(
     return true;
   }
 
-  // GET /api/corehub/warroom/:roomId/screen/stream or /api/corehub/war-room/:roomId/screen/stream
-  const warRoomScreenStreamMatch = /^\/api\/corehub\/(?:war-room|warroom)\/([^/]+)\/screen\/stream$/.exec(pathname);
+  // GET /api/corehub/coreflow/:roomId/screen/stream, /api/corehub/warroom/:roomId/screen/stream, or /api/corehub/war-room/:roomId/screen/stream
+  const warRoomScreenStreamMatch = /^\/api\/corehub\/(?:war-room|warroom|coreflow)\/([^/]+)\/screen\/stream$/.exec(pathname);
   if (method === "GET" && warRoomScreenStreamMatch) {
     const roomId = decodeURIComponent(warRoomScreenStreamMatch[1]);
     if (!services.warRoom) {
@@ -2050,6 +2056,7 @@ export async function handleCoreHubRoute(
       ? "skills.install"
       : pathname.startsWith("/api/corehub/war-room/") ||
           pathname.startsWith("/api/corehub/warroom/") ||
+          pathname.startsWith("/api/corehub/coreflow/") ||
           pathname.startsWith("/api/corehub/import-agent") ||
           pathname === "/api/corehub/pr-workflow/drafts" ||
           pathname === "/api/corehub/pr-workflow/approve" ||
@@ -2573,8 +2580,12 @@ export async function handleCoreHubRoute(
       }
     }
 
-    // POST /api/corehub/war-room/rooms or /api/corehub/warroom/rooms
-    if (pathname === "/api/corehub/war-room/rooms" || pathname === "/api/corehub/warroom/rooms") {
+    // POST /api/corehub/coreflow/rooms, /api/corehub/war-room/rooms, or /api/corehub/warroom/rooms
+    if (
+      pathname === "/api/corehub/war-room/rooms" ||
+      pathname === "/api/corehub/warroom/rooms" ||
+      pathname === "/api/corehub/coreflow/rooms"
+    ) {
       if (!services.warRoom) {
         sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
         return true;
@@ -2610,8 +2621,8 @@ export async function handleCoreHubRoute(
       }
     }
 
-    // POST /api/corehub/warroom/:roomId/messages or /api/corehub/war-room/:roomId/messages
-    const warRoomMessagesPostMatch = /^\/api\/corehub\/(?:war-room|warroom)\/([^/]+)\/messages$/.exec(pathname);
+    // POST /api/corehub/coreflow/:roomId/messages, /api/corehub/warroom/:roomId/messages, or /api/corehub/war-room/:roomId/messages
+    const warRoomMessagesPostMatch = /^\/api\/corehub\/(?:war-room|warroom|coreflow)\/([^/]+)\/messages$/.exec(pathname);
     if (method === "POST" && warRoomMessagesPostMatch) {
       const roomId = decodeURIComponent(warRoomMessagesPostMatch[1]);
       if (!services.warRoom) {
@@ -2663,8 +2674,8 @@ export async function handleCoreHubRoute(
       }
     }
 
-    // POST /api/corehub/warroom/:roomId/approvals/:approvalId or /api/corehub/war-room/:roomId/approvals/:approvalId
-    const warRoomApprovalPostMatch = /^\/api\/corehub\/(?:war-room|warroom)\/([^/]+)\/approvals\/([^/]+)$/.exec(pathname);
+    // POST /api/corehub/coreflow/:roomId/approvals/:approvalId, /api/corehub/warroom/:roomId/approvals/:approvalId, or /api/corehub/war-room/:roomId/approvals/:approvalId
+    const warRoomApprovalPostMatch = /^\/api\/corehub\/(?:war-room|warroom|coreflow)\/([^/]+)\/approvals\/([^/]+)$/.exec(pathname);
     if (method === "POST" && warRoomApprovalPostMatch) {
       const roomId = decodeURIComponent(warRoomApprovalPostMatch[1]);
       const approvalId = decodeURIComponent(warRoomApprovalPostMatch[2]);
@@ -2691,8 +2702,12 @@ export async function handleCoreHubRoute(
       }
     }
 
-    // POST /api/corehub/war-room/delegate
-    if (pathname === "/api/corehub/war-room/delegate" || pathname === "/api/corehub/warroom/delegate") {
+    // POST /api/corehub/coreflow/delegate or /api/corehub/war-room/delegate
+    if (
+      pathname === "/api/corehub/war-room/delegate" ||
+      pathname === "/api/corehub/warroom/delegate" ||
+      pathname === "/api/corehub/coreflow/delegate"
+    ) {
       if (!services.warRoom) {
         sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
         return true;
@@ -2721,8 +2736,12 @@ export async function handleCoreHubRoute(
       }
     }
 
-    // POST /api/corehub/war-room/fork or /api/corehub/warroom/fork
-    if (pathname === "/api/corehub/war-room/fork" || pathname === "/api/corehub/warroom/fork") {
+    // POST /api/corehub/coreflow/fork, /api/corehub/war-room/fork, or /api/corehub/warroom/fork
+    if (
+      pathname === "/api/corehub/war-room/fork" ||
+      pathname === "/api/corehub/warroom/fork" ||
+      pathname === "/api/corehub/coreflow/fork"
+    ) {
       if (!services.warRoom) {
         sendJson(res, 503, { ok: false, error: "War Room Orchestrator service not available" });
         return true;

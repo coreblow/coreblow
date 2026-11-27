@@ -40,6 +40,23 @@ import {
 import { createChildLogger } from "../../utils/logger.js";
 import { getGlobalAuditLogger } from "../../security/audit-logger.js";
 import { getGlobalWalSessionLedger } from "../../infra/storage/wal-session-ledger.js";
+import {
+  classifyExecutionTier,
+  isSensitiveExecutionPath,
+  type ClassifyExecutionTierParams,
+  type ClassifyExecutionTierResult,
+  type ExecutionTier,
+  type ExecutionTierMode,
+} from "./tier-router.js";
+
+export {
+  classifyExecutionTier,
+  isSensitiveExecutionPath,
+  type ClassifyExecutionTierParams,
+  type ClassifyExecutionTierResult,
+  type ExecutionTier,
+  type ExecutionTierMode,
+};
 
 const log = createChildLogger("cognitive-coordinator");
 
@@ -79,6 +96,10 @@ export interface CognitiveTurnStartParams {
   readonly trustZone?: string;
   readonly workspaceDir?: string;
   readonly executeWarRoom?: boolean;
+  readonly touchedFiles?: readonly string[];
+  readonly totalLocChanged?: number;
+  readonly isQuestionOnly?: boolean;
+  readonly untrustedExecution?: boolean;
 }
 
 export interface CognitiveTurnStartResult {
@@ -87,8 +108,12 @@ export interface CognitiveTurnStartResult {
   readonly tier: SubagentRouteTier;
   readonly daybreakSwitched: boolean;
   readonly reason: string;
+  readonly executionTier?: ExecutionTier;
+  readonly executionMode?: ExecutionTierMode;
   readonly warRoomEscalated?: boolean;
   readonly warRoomId?: string;
+  readonly coreFlowEscalated?: boolean;
+  readonly coreFlowId?: string;
   readonly delegatedAgentId?: string;
 }
 
@@ -214,15 +239,31 @@ export class CognitiveCoordinator {
         );
       } catch {}
 
-      // 1. War Room Escalation Gate (TB2.4)
+      // 1. CoreFlow 3-Tier Auto-Bypass & Escalation Gate
+      const hasExplicitTierInput =
+        params.touchedFiles !== undefined ||
+        params.totalLocChanged !== undefined ||
+        params.isQuestionOnly !== undefined ||
+        params.untrustedExecution !== undefined;
+      const tierDecision = classifyExecutionTier({
+        touchedFiles: params.touchedFiles,
+        totalLocChanged: params.totalLocChanged,
+        isQuestionOnly: params.isQuestionOnly ?? !isComplexMultiAgentTask(params.prompt),
+        untrustedExecution: params.untrustedExecution,
+      });
+
+      const shouldEscalateCoreFlow = hasExplicitTierInput
+        ? !tierDecision.skipCoreFlow
+        : isComplexMultiAgentTask(params.prompt);
+
       let warRoomEscalated = false;
       let warRoomId: string | undefined;
       let delegatedAgentId: string | undefined;
 
-      if (microkernel?.warRoom && isComplexMultiAgentTask(params.prompt)) {
+      if (microkernel?.warRoom && shouldEscalateCoreFlow) {
         try {
           const room = microkernel.warRoom.createWarRoom({
-            title: `War Room for ${params.sessionId.slice(0, 12)}`,
+            title: `CoreFlow for ${params.sessionId.slice(0, 12)}`,
             purpose: `Autonomous specialist escalation: ${params.prompt.slice(0, 100)}`,
           });
           const delegation = await microkernel.warRoom.delegateTask(room.roomId, params.prompt, {
@@ -234,7 +275,7 @@ export class CognitiveCoordinator {
           delegatedAgentId = delegation.delegatedToAgentId;
           this.counters.warroomEscalated += 1;
         } catch (err) {
-          log.warn(`War room escalation skipped: ${String(err)}`);
+          log.warn(`CoreFlow escalation skipped: ${String(err)}`);
         }
       }
 
@@ -252,7 +293,17 @@ export class CognitiveCoordinator {
         tier,
         daybreakSwitched: hasCredentials ? decision.daybreakSwitched : false,
         reason,
-        ...(warRoomEscalated ? { warRoomEscalated, warRoomId, delegatedAgentId } : {}),
+        executionTier: tierDecision.tier,
+        executionMode: tierDecision.mode,
+        ...(warRoomEscalated
+          ? {
+              warRoomEscalated,
+              warRoomId,
+              coreFlowEscalated: true,
+              coreFlowId: warRoomId,
+              delegatedAgentId,
+            }
+          : {}),
       };
     } catch (err) {
       this.counters.degradedErrors += 1;
