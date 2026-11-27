@@ -1,8 +1,8 @@
 # Architecture and Security Blueprint: CoreBlow Agent-OS
 
-**Document Version:** 2.1.4 (Production GA Baseline)<br />
-**Status:** Production GA Certified (CoreBlow v2.1.4 GA Baseline)<br />
-**Related Documents:** [PRD](/PRD)<br />
+**Document Version:** 2.6.0 (Production GA Baseline)<br />
+**Status:** Production GA Certified (CoreBlow v2.6.0)<br />
+**Related Documents:** [Single-Brain Architecture](/SINGLE_BRAIN_ARCHITECTURE) | [Ecosystem Map](/ECOSYSTEM_MAP)<br />
 **Product Canonical URLs:** [https://coreblow.com](https://coreblow.com) | [https://github.com/coreblow](https://github.com/coreblow)<br />
 **Documentation Portal:** [https://docs.coreblow.com](https://docs.coreblow.com)
 
@@ -15,14 +15,13 @@ CoreBlow is designed as an industrial-grade, deterministic **Enterprise Autonomo
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                   LAYER 1: APPLICATION AND EDGE LAYER                       │
-│  ┌───────────────┐ ┌───────────────┐ ┌───────────────┐ ┌─────────────────┐  │
-│  │ apps/desktop  │ │   apps/ios    │ │ apps/android  │ │    Web UI       │  │
-│  │ (Desktop App) │ │ (Mobile App)  │ │ (Mobile App)  │ │     (ui/)       │  │
-│  └───────┬───────┘ └───────┬───────┘ └───────┬───────┘ └────────┬────────┘  │
-│          │                 │                 │                  │           │
-│          └─────────────────┼─────────────────┴──────────────────┘           │
-│                            ▼                                                │
-│                 Apple Silicon MLX TTS (apps/macos-mlx-tts, RTF <= 0.4)      │
+│  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐  │
+│  │   apps/desktop/     │  │   apps/android/     │  │      Web UI         │  │
+│  │ (Sole Desktop App)  │  │ (Jetpack Compose)   │  │       (ui/)         │  │
+│  └──────────┬──────────┘  └──────────┬──────────┘  └──────────┬──────────┘  │
+│             └────────────────────────┼────────────────────────┘             │
+│                                      ▼                                      │
+│           Shared Native Resources (apps/shared/, tool-display.json)         │
 └────────────────────────────┬────────────────────────────────────────────────┘
                              │
                              ▼
@@ -51,9 +50,9 @@ CoreBlow is designed as an industrial-grade, deterministic **Enterprise Autonomo
 │          ┌──────────────────────────┴──────────────────────────┐            │
 │          ▼                                                     ▼            │
 │  ┌─────────────────────────────────┐   ┌─────────────────────────────────┐  │
-│  │ Multi-Agent War Room and ACP    │   │ 3-Stage Dynamic Compaction      │  │
-│  │ Parallel Worker Subagents       │   │ 1. Verbatim Pruning             │  │
-│  │ Bounded Thread Execution Time   │   │ 2. Offload to ~/.coreblow/scratch│ │
+│  │ CoreFlow Orchestration and ACP  │   │ 3-Stage Dynamic Compaction      │  │
+│  │ 3-Tier Auto-Bypass Router       │   │ 1. Verbatim Pruning             │  │
+│  │ Deterministic PR 5-Gate Runner  │   │ 2. Offload to ~/.coreblow/scratch│ │
 │  │ Nonce-Signed Agent Envelopes    │   │ 3. Recursive Summarization      │  │
 │  │ Kanban DAG Task Orchestration   │   │ (Immutable Governance Tags)     │  │
 │  └─────────────────────────────────┘   └─────────────────────────────────┘  │
@@ -78,15 +77,17 @@ CoreBlow is designed as an industrial-grade, deterministic **Enterprise Autonomo
 ## 2. Layer-by-Layer Architectural Breakdown
 
 ### 2.1 Layer 1: Application and Edge Layer
-The Application Layer provides native client surfaces and high-performance local edge acceleration:
-- **Native Companion Apps:**
-  - `apps/desktop`: Sole cross-platform Desktop application across macOS, Windows, and Linux (Electron + Vite + React) featuring a built-in Menu Bar / System Tray, `electron-updater` release checks, and local Gateway supervision.
-  - `apps/ios`: iOS mobile companion client providing background push synchronization and secure pairing authorization.
-  - `apps/android`: Kotlin-based Jetpack Compose companion application connecting over secure WebSocket gateways.
+The Application Layer provides unified thin-client surfaces backed by the single-brain Gateway (`src/gateway/server.impl.ts`) and `CognitiveCoordinator`:
+- **Active Workspace Surfaces:**
+  - `apps/desktop/`: Sole cross-platform Desktop application across macOS, Windows, and Linux (Electron + Vite + React) featuring a built-in Menu Bar / System Tray, `electron-updater` release checks, and local Gateway supervision.
+  - `apps/android/`: Kotlin-based Jetpack Compose companion application connecting over authenticated Gateway WebSockets.
+  - `apps/shared/`: Shared native assets and manifests (`apps/shared/CoreBlowKit/Sources/CoreBlowKit/Resources/tool-display.json`).
   - `ui/`: Modern React/Vite web control center for real-time fleet observation, agent status tracking, and configuration management.
-- **Apple Silicon Edge Inference (`apps/macos-mlx-tts`):**
-  - Ultra-low-latency voice synthesis executing natively on Apple Silicon Neural Engine hardware and unified memory.
-  - Achieves Real-Time Factor (RTF) <= 0.4 with zero outbound network calls, ensuring air-gapped sovereign speech generation.
+  - `packages/memory-host-sdk/` & `packages/plugin-sdk/`: Active workspace SDK packages (`packages/gateway-sdk`, `packages/plugin-package-contract`, and `packages/sdk` retired in v2.6.0).
+  - `deploy/examples/`: Relocated PaaS deployment templates (`fly.toml`, `fly.private.toml`, `render.yaml`).
+- **75 Built-In Native MCP Tools & 6 Execution Backends:**
+  - `coreblow mcp serve` exposes 75 built-in native MCP tools over stdio.
+  - Execution isolation spans 6 active backends: `local`, `vm_isolate`, `docker` (`--read-only` + `--tmpfs /tmp`), `ssh`, Daytona & E2B `PersistentSandboxSession` REST adapters (`src/sandbox/persistent-session.ts`), plus optional `corebox` (`bwrap`). Unimplemented cloud backends (`modal`, `vercel`) fail closed with `*_NOT_IMPLEMENTED`.
 
 ### 2.2 Layer 2: Communication and Gateway Layer
 Engineered with resilient, battle-tested networking architecture, this layer unifies multi-channel communication:
@@ -130,13 +131,13 @@ Registered in `src/gateway/microkernel-services.ts`, the microkernel enforces de
 | **3** | `tool-runtime` | `NativeToolRuntimeService` | Level 1 | `["provider-runtime"]` | Manages `ToolRegistry` and `ToolExecutor`; validates schemas against JSON Schema and reports active tool count. |
 | **4** | `browser-runtime` | `NativeBrowserRuntimeService` | Level 2 | `["tool-runtime"]` | Wraps `BrowserTool`; manages CDP connections; tracks active page IDs; executes `cleanupBrowserSessionsForLifecycleEnd` on `stop()`. |
 | **5** | `voice-runtime` | `NativeVoiceRuntimeService` | Level 0 | `[]` | Wraps `TtsEngine`; lists active TTS voices; clears synthesis cache on `stop()`. |
-| **6** | `cory-memory` | `CoryBootstrapService` | Level 1 | `["provider-runtime"]` | Four-layer Markdown store (`USER.md`, `MEMORY.md`, `CONSTRAINTS.md`, `daily/`) + SQLite WAL index (`cory-search.sqlite`); startup snapshot prevents prompt-cache invalidation. Strictly isolated from CoreHub. |
+| **6** | `cory-memory` | `CoryBootstrapService` | Level 1 | `["provider-runtime"]` | Four-layer Markdown store (`USER.md`, `MEMORY.md`, `CONSTRAINTS.md`, `daily/`), SQLite WAL + FTS5 index (`cory-search.sqlite`), and `dialectic-user-model.ts`; startup snapshot prevents prompt-cache invalidation. |
 | **7** | `cory-skill-synthesizer` | `CorySkillSynthesizerService` | Level 2 | `["cory-memory"]` | Closed-loop EvoLoop engine; distills `SKILL.md` V2 from friction trajectories; tracks Bayesian Wilson fitness ($z=1.28$); enforces immutable `SKILL_LOCKED` tags, auto-rollback, and 3-Gate Zero-Trust security. |
 | **8** | `extension-tier-policy` | `ExtensionTierPolicy` | Level 0 | `[]` | Enforces structural boundary separating Core Built-in capabilities from CoreHub On-Demand extensions; guarantees `< 1ms` boot. |
 | **9** | `corehub-app-store` | `CoreHubAppStoreRuntime` | Level 1 | `["extension-tier-policy"]` | 7-pillar App Store runtime; manages 15 externalized community channel `.coreblow-plugin.tgz` packages; pre-extraction SHA-256 validation, atomic staging (`~/.coreblow/tmp/<uuid>`), consent ledger, and instant rollback. |
-| **10** | `war-room-orchestrator` | `WarRoomOrchestratorService` | Level 3 | `["cory-skill-synthesizer", "provider-runtime"]` | Multi-agent coordination; Lead Agent decomposition; Kanban DAG task board (`backlog -> in_progress -> review -> done`); sibling thread forking; child approval relay; collective skill mesh injection. |
+| **10** | `war-room-orchestrator` | `CoreFlowOrchestratorService` (`WarRoomOrchestratorService` alias) | Level 3 | `["cory-skill-synthesizer", "provider-runtime"]` | CoreFlow multi-agent coordination with 3-Tier Auto-Bypass (`src/agents/cognitive/tier-router.ts`); Kanban DAG task board (`backlog -> in_progress -> review -> done`); `/api/corehub/coreflow/*` (with `/api/corehub/war-room/*` aliases). |
 | **11** | `cory-knowledge-scribe` | `CoryKnowledgeScribeService` | Level 3 | `["cory-memory", "cory-skill-synthesizer"]` | Autonomous knowledge scribe; compiles durable decisions, constraints, workflows into browsable cross-linked Markdown Wiki topic pages (`~/.coreblow/memory/wiki/<slug>.md`); provides Zero-Stall Prepared Compaction pinning user intent. |
-| **12** | `pr-workflow-orchestrator` | `PrWorkflowOrchestratorService` | Level 4 | `["tool-runtime", "war-room-orchestrator"]` | Autonomous Git and PR engine; evaluates 5 pre-flight gates (`typecheck`, `linter`, `unit_tests`, `secret_scan`, `forbidden_paths`); generates deterministic PR Markdown; enforces human-in-the-loop approval. |
+| **12** | `pr-workflow-orchestrator` | `PrWorkflowOrchestratorService` | Level 4 | `["tool-runtime", "war-room-orchestrator"]` | Autonomous Git and PR engine; runs deterministic 5-gate pipeline (0-token Gates 1–4 + Tier 2 diff-only Gate 5) with a hard 2-retry circuit breaker; generates deterministic PR Markdown. |
 
 ```
                     TOPOLOGICAL DEPENDENCY GRAPH
@@ -204,14 +205,16 @@ The microkernel lifecycle is governed by topological sorting algorithms inside `
   - Tracks token usage against 5-hour and 24-hour rolling provider quota windows (`UsageWindowGauge`).
   - When quota window exceeds threshold ($> 95\%$) or triggers rate-limit cooldowns, the router switches (`daybreakSwitched: true`) immediately to secondary cloud backends or zero-cost local inference without failing user turns.
 
-### 2.5.3 Multi-Agent War Room, Kanban DAG and Lead Orchestrator: src/agents/war-room
-- **Architecture:** Stateful OOP service (`WarRoomOrchestratorService`) managing pure DOP session models (`WarRoomSession`), member states (`WarRoomMember`), and task DAGs (`KanbanTaskCard`).
+### 2.5.3 CoreFlow Orchestration, 3-Tier Auto-Bypass, and Kanban DAG: src/agents/war-room & src/agents/cognitive/tier-router.ts
+- **Architecture:** Stateful OOP service (`CoreFlowOrchestratorService`, aliased from `WarRoomOrchestratorService`) paired with the deterministic 3-Tier Auto-Bypass Router (`classifyExecutionTier` in `src/agents/cognitive/tier-router.ts`):
+  - *Tier 0 (`auto_bypass_single_agent`):* Q&A turns or lightweight non-sensitive edits (`<= 2` files, `< 50` LOC) bypass CoreFlow with zero multi-agent overhead.
+  - *Tier 1 (`verified_single_agent`):* Medium non-sensitive edits (`3–8` files) run single-agent execution plus 0-token Gates 1–4.
+  - *Tier 2 (`isolated_coreflow`):* Large (`> 8` files), sensitive-path (`src/security/`, `src/auth/`, `.github/workflows/`, `package.json`), or untrusted edits escalate to isolated CoreFlow with Gates 1–4 + single-pass diff-only Gate 5.
 - **Core Orchestration Mechanics:**
-  - *Specialist Roles:* Coordinates `lead`, `coder`, `researcher`, `auditor`, and `verifier` agents.
+  - *Specialist Roles:* Coordinates `lead`, `coder`, `researcher`, `auditor`, and `verifier` agents over `/api/corehub/coreflow/*` (preserving `/api/corehub/war-room/*` route aliases).
   - *Kanban DAG State Machine:* Strict linear transitions: `backlog -> in_progress -> review -> done`.
-  - *Sibling Thread Forking:* Lead agent can branch sub-sessions to parallelize investigation or implementation.
-  - *Child Approval Relay:* Safely intercepts dangerous tool calls within child threads, escalating approval requests to the parent War Room lead or human operator (`ChildApprovalRelayRequest`).
-  - *Collective Skill Mesh:* Automatically exposes proven EvoLoop skills to all member subagents in the room.
+  - *Sibling Thread Forking & Child Approval Relay:* Safely intercepts dangerous tool calls within child threads, escalating approval requests to the parent CoreFlow lead or human operator (`ChildApprovalRelayRequest`).
+  - *Collective Skill Mesh:* Automatically exposes proven EvoLoop skills to all member subagents in the session.
 
 ### 2.5.4 Cory Knowledge Scribe, Memory Wiki and Zero-Stall Compaction: src/memory/knowledge-scribe.ts
 - **Architecture:** Stateful OOP service (`CoryKnowledgeScribeService`) running pure functional transformations (`compileWikiTopicPages()`, `generateMemoryAuditPanelMarkdown()`).
@@ -228,13 +231,13 @@ The microkernel lifecycle is governed by topological sorting algorithms inside `
   - *Preview-First Dry Run:* Generates deterministic `ImportedAgentBundle` reports detailing detected memories, rules, MCP servers, and sanitized skills before committing changes to Cory Memory.
 
 ### 2.5.6 Autonomous Git and PR Workflow Orchestrator: src/agents/pr-workflow
-- **Architecture:** Stateful OOP orchestrator (`PrWorkflowOrchestratorService`) enforcing pure DOP gate evaluation (`evaluatePrPreFlightGates()`).
-- **5-Gate Pre-Flight Pipeline:**
-  1. `typecheck`: Enforces zero TypeScript compile errors.
-  2. `linter`: Enforces zero Oxlint / style warnings.
-  3. `unit_tests`: Enforces green Vitest test status.
-  4. `secret_scan`: Enforces zero unredacted API keys or private tokens in diff.
-  5. `forbidden_paths`: Blocks modifications to sensitive or private directories (`.env`, `.agents/`, `.evidence/`, `docs/ANTIGRAVITY_*`).
+- **Architecture:** Stateful OOP orchestrator (`PrWorkflowOrchestratorService`) and deterministic 5-gate runner (`runDeterministicPrGates()` in `src/agents/pr-workflow/deterministic-gates.ts`) with a hard 2-retry circuit breaker per failing gate (`reason: "circuit_breaker_tripped"`).
+- **Deterministic 5-Gate Pipeline:**
+  1. `typecheck` (0 tokens): TypeScript validation (`tsgo --noEmit`) via active `ExecutionBackend`.
+  2. `lint` (0 tokens): Oxlint / static hygiene checks (`corepack pnpm check`).
+  3. `unit_tests` (0 tokens): Scoped Vitest execution via active `ExecutionBackend`.
+  4. `security` (0 tokens): Secret pattern scan, forbidden-path enforcement, and optional `coreblow-trust` OWASP Agentic AI check.
+  5. `diff_auditor` (Tier 2 only): Single-pass diff-only audit hook.
 - **Deterministic PR Synthesis:** Generates standardized GitHub-ready PR Markdown bodies detailing changes, motivation, verification evidence, and security checklists.
 
 ### 2.5.7 Interactive Multi-Surface Plugin Views in Chat: src/plugins/chat-views
@@ -295,11 +298,12 @@ To prevent indirect prompt injection from public messaging channels into privile
 2. **Context Partitioning:** Zone 0 messages are wrapped in fenced delimiters (`<untrusted_channel_payload>`) with instruction-override neutralization filters. The model is forbidden from executing administrative or destructive tools when processing Zone 0 context without explicit operator confirmation.
 3. **Memory Space Segregation:** Public channel sessions cannot read or write to private user memory spaces or shared enterprise vector stores.
 
-### 3.2 CoreHub Extension Sandboxing (OWASP ASI04)
+### 3.2 CoreHub Extension Sandboxing & Plugin Host Security (OWASP ASI04)
 Third-party extensions are untrusted by default and governed by strict isolation rules:
-1. **Manifest Validation:** Plugins must supply a signed `coreblow.plugin.json` declaring required capabilities (`contracts`, `providers`, `channels`, `tools`).
-2. **Filesystem Boundary Defense:** Plugins are confined to their workspace directory using `src/infra/boundary-path.ts` and `src/infra/boundary-file-read.ts`. Path traversal attempts (`../../`) or symlink breakouts trigger immediate security termination.
-3. **Import Barrier Enforcement:** Static analysis and runtime module resolution prevent plugins from loading Node.js native bindings or internal modules outside `coreblow/plugin-sdk/*`.
+1. **Manifest Validation & Dependency Denylist:** Plugins must supply a signed `coreblow.plugin.json` declaring required capabilities, and `src/plugins/install.ts` enforces a dependency denylist during installation.
+2. **Third-Party Consent & Fault Containment (`src/plugins/loader.ts`):** Non-bundled plugins undergo explicit consent checks (`isThirdPartyPluginConsented`) and per-plugin sync/async fault containment (`containPluginExecution` + Promise rejection isolation) so a crashing third-party plugin cannot terminate the Gateway.
+3. **Filesystem Boundary Defense & Import Barrier:** Plugins are confined to their workspace directory using `src/infra/boundary-path.ts` and `src/infra/boundary-file-read.ts`, and extensions may only import `coreblow/plugin-sdk/*` or local barrels.
+4. **Operational Lifecycle Hardening:** `coreblow update` executes staged `package-update-steps` with backup and rollback, while `coreblow doctor` surfaces codex route warnings, device pairing checks, and plugin registry diagnostics.
 
 ### 3.3 Reversible Compaction and Immutable Governance Tags (OWASP ASI06, ASI07)
 During long-running multi-day sessions, context compaction risks stripping safety rules or prompt guardrails:
@@ -373,4 +377,4 @@ To maintain architectural integrity across continuous commits, every change must
 2. **Lint and Code Style:** `./node_modules/.bin/oxlint -c .oxlintrc.json src/` (zero warnings, zero errors).
 3. **Colocated Test Suites:** `./node_modules/.bin/vitest run` (Vitest with V8 coverage enforcement > 70%).
 4. **Sovereign Brand Purity Gate:** Case-insensitive verification confirming zero competitor brand names across documentation and source trees.
-5. **Sovereign Release Certification:** `compileSovereignReleaseManifest` evaluating all 5 readiness gates (`microkernel_health`, `private_artifact_exclusion`, `brand_sovereignty`, `security_invariants`, and `corehub_catalog_integrity`) with deterministic SHA-256 release manifest output.
+5. **Sovereign Release Certification & Federated Satellite Fleet:** `compileSovereignReleaseManifest` evaluates all 5 readiness gates, while `scripts/fleet/fleet-engine.mjs` (`status`, `verify`, `sync`) coordinates the **12 active public repositories** (`coreblow`, `docs`, `corehub`, `corechat`, `dolphin`, `trust`, `coreblow.com`, `homebrew-tap`, `nix-coreblow`, `corebox`, `corebench` behavioral eval suite, `corebar`) plus **1 private repository** (`coreblow-internal`).
