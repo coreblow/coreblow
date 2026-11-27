@@ -30,6 +30,12 @@ import {
   noteMacLaunchctlGatewayEnvOverrides,
 } from "../commands/doctor-platform-notes.js";
 import { maybeRepairLegacyPluginManifestContracts } from "../commands/doctor-plugin-manifests.js";
+import { maybeRepairPluginRegistryState } from "../commands/doctor-plugin-registry.js";
+import { noteDevicePairingHealth } from "../commands/doctor-device-pairing.js";
+import {
+  maybeRepairCodexRoutes,
+  maybeRepairCodexSessionRoutes,
+} from "../commands/doctor/shared/codex-route-warnings.js";
 import type { DoctorOptions, DoctorPrompter } from "../commands/doctor-prompter.js";
 import { maybeRepairSandboxImages, noteSandboxScopeWarnings } from "../commands/doctor-sandbox.js";
 import { noteSecurityWarnings } from "../commands/doctor-security.js";
@@ -139,6 +145,25 @@ async function runGatewayConfigHealth(ctx: DoctorHealthFlowContext): Promise<voi
 async function runAuthProfileHealth(ctx: DoctorHealthFlowContext): Promise<void> {
   ctx.cfg = await maybeRepairLegacyOAuthProfileIds(ctx.cfg, ctx.prompter);
   ctx.cfg = await maybeRemoveDeprecatedCliAuthProfiles(ctx.cfg, ctx.prompter);
+  const codexRouteRepair = maybeRepairCodexRoutes({
+    cfg: ctx.cfg,
+    env: process.env,
+    shouldRepair: ctx.prompter.shouldRepair,
+  });
+  ctx.cfg = codexRouteRepair.cfg;
+  const codexSessionRepair = await maybeRepairCodexSessionRoutes({
+    cfg: ctx.cfg,
+    env: process.env,
+    shouldRepair: ctx.prompter.shouldRepair,
+  });
+  const codexWarnings = [...codexRouteRepair.warnings, ...codexSessionRepair.warnings];
+  const codexChanges = [...codexRouteRepair.changes, ...codexSessionRepair.changes];
+  if (codexWarnings.length > 0) {
+    note(codexWarnings.join("\n"), "Codex routes");
+  }
+  if (codexChanges.length > 0) {
+    note(codexChanges.join("\n"), "Codex routes");
+  }
   await noteAuthProfileHealth({
     cfg: ctx.cfg,
     prompter: ctx.prompter,
@@ -240,6 +265,14 @@ async function runLegacyPluginManifestHealth(ctx: DoctorHealthFlowContext): Prom
   await maybeRepairLegacyPluginManifestContracts({
     env: process.env,
     runtime: ctx.runtime,
+    prompter: ctx.prompter,
+  });
+}
+
+async function runPluginRegistryHealth(ctx: DoctorHealthFlowContext): Promise<void> {
+  ctx.cfg = await maybeRepairPluginRegistryState({
+    config: ctx.cfg,
+    env: process.env,
     prompter: ctx.prompter,
   });
 }
@@ -408,6 +441,13 @@ async function runGatewayHealthChecks(ctx: DoctorHealthFlowContext): Promise<voi
     : { checked: false, ready: false };
 }
 
+async function runDevicePairingHealth(ctx: DoctorHealthFlowContext): Promise<void> {
+  await noteDevicePairingHealth({
+    cfg: ctx.cfg,
+    healthOk: ctx.healthOk ?? false,
+  });
+}
+
 async function runMemorySearchHealthContribution(ctx: DoctorHealthFlowContext): Promise<void> {
   await noteMemorySearchHealth(ctx.cfg, {
     gatewayMemoryProbe: ctx.gatewayMemoryProbe ?? { checked: false, ready: false },
@@ -497,6 +537,11 @@ export function resolveDoctorHealthContributions(): DoctorHealthContribution[] {
       run: runLegacyPluginManifestHealth,
     }),
     createDoctorHealthContribution({
+      id: "doctor:plugin-registry",
+      label: "Plugin registry",
+      run: runPluginRegistryHealth,
+    }),
+    createDoctorHealthContribution({
       id: "doctor:state-integrity",
       label: "State integrity",
       run: runStateIntegrityHealth,
@@ -570,6 +615,11 @@ export function resolveDoctorHealthContributions(): DoctorHealthContribution[] {
       id: "doctor:gateway-health",
       label: "Gateway health",
       run: runGatewayHealthChecks,
+    }),
+    createDoctorHealthContribution({
+      id: "doctor:device-pairing",
+      label: "Device pairing",
+      run: runDevicePairingHealth,
     }),
     createDoctorHealthContribution({
       id: "doctor:memory-search",

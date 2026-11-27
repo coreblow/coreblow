@@ -291,8 +291,6 @@ export async function maybeRepairManagedNpmCoreBlowPeerLinks(
   return result.repaired > 0;
 }
 
-export { maybeRepairManagedNpmCoreBlowPeerLinks as maybeRepairManagedNpmOpenClawPeerLinks };
-
 async function loadInstallRecordsWithoutPluginIds(
   params: PluginRegistryDoctorRepairParams,
   pluginIds: readonly string[],
