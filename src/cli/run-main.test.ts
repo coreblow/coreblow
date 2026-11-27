@@ -223,6 +223,16 @@ describe("shouldDivertToHeadless", () => {
       }),
     ).toBe(false);
   });
+
+  it("does NOT divert when unknown root flags are passed on piped stdin", () => {
+    expect(
+      shouldDivertToHeadless({
+        argv: ["node", "coreblow", "--nonexistent-flag-qc"],
+        isPipedStdin: true,
+        primaryCommand: null,
+      }),
+    ).toBe(false);
+  });
 });
 
 describe("resolveSessionResumeParams", () => {

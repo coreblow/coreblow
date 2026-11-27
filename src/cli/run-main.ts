@@ -89,6 +89,62 @@ export function shouldUseRootHelpFastPath(argv: string[]): boolean {
   return isRootHelpInvocation(argv);
 }
 
+const KNOWN_ROOT_OR_HEADLESS_VALUE_FLAGS = new Set([
+  "-p",
+  "--print",
+  "-q",
+  "--query",
+  "--output-format",
+  "--model",
+  "--permission-mode",
+  "--backend",
+  "--backend-target",
+  "--max-turns",
+  "--container",
+  "--log-level",
+  "--profile",
+  "-r",
+  "--resume",
+]);
+
+const KNOWN_ROOT_OR_HEADLESS_BOOL_FLAGS = new Set([
+  "--bare",
+  "-c",
+  "--continue",
+  "--dev",
+  "--no-color",
+  "-h",
+  "--help",
+  "-V",
+  "--version",
+]);
+
+function hasUnknownRootOrHeadlessFlag(argv: string[]): boolean {
+  const args = argv.slice(2);
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === "--") {
+      break;
+    }
+    if (!arg.startsWith("-") || arg === "-") {
+      continue;
+    }
+    const eqIdx = arg.indexOf("=");
+    const flagName = eqIdx === -1 ? arg : arg.slice(0, eqIdx);
+    if (KNOWN_ROOT_OR_HEADLESS_VALUE_FLAGS.has(flagName)) {
+      if (eqIdx === -1) {
+        i += 1;
+      }
+      continue;
+    }
+    if (KNOWN_ROOT_OR_HEADLESS_BOOL_FLAGS.has(flagName)) {
+      continue;
+    }
+    return true;
+  }
+  return false;
+}
+
 export function shouldDivertToHeadless(params: {
   argv: string[];
   isPipedStdin: boolean;
@@ -100,7 +156,10 @@ export function shouldDivertToHeadless(params: {
   return Boolean(
     printPrompt !== undefined ||
       outputFormat !== undefined ||
-      (params.isPipedStdin && params.primaryCommand === null && !hasHelpOrVersion(params.argv)),
+      (params.isPipedStdin &&
+        params.primaryCommand === null &&
+        !hasHelpOrVersion(params.argv) &&
+        !hasUnknownRootOrHeadlessFlag(params.argv)),
   );
 }
 
@@ -217,7 +276,11 @@ export async function runCli(argv: string[] = process.argv) {
       }
     }
 
-    if (primaryCommand === null && !hasHelpOrVersion(normalizedArgv)) {
+    if (
+      primaryCommand === null &&
+      !hasHelpOrVersion(normalizedArgv) &&
+      !hasUnknownRootOrHeadlessFlag(normalizedArgv)
+    ) {
       const isInteractiveTty = Boolean(
         process.stdin.isTTY && process.stdout.isTTY && !process.env.VITEST,
       );
