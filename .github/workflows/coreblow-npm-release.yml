@@ -198,4 +198,6 @@ jobs:
           fi
 
       - name: Publish to npm via OIDC Trusted Publishing
-        run: npm publish --tag "${{ steps.npm-tag.outputs.tag }}" --provenance --access public
+        run: |
+          echo "OIDC request URL present: $([ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ] && echo yes || echo no)"
+          npm publish --tag "${{ steps.npm-tag.outputs.tag }}" --provenance --access public --loglevel=verbose
