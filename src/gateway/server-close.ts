@@ -7,6 +7,7 @@ import { createInternalHookEvent, triggerInternalHook } from "../hooks/internal-
 import type { HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
+import { closeGatewayRbacRuntime } from "./rbac-runtime.js";
 
 export type ShutdownResult = {
   durationMs: number;
@@ -280,6 +281,7 @@ export function createGatewayCloseHandler(params: {
       }
       params.clients.clear();
       await shutdownStep("config-reloader", () => params.configReloader.stop(), warnings);
+      await shutdownStep("gateway-rbac-store", () => closeGatewayRbacRuntime(), warnings);
       const wsClients = params.wss.clients ?? new Set();
       const websocketClosePromise = new Promise<void>((resolve) =>
         params.wss.close(() => resolve()),

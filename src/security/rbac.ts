@@ -198,3 +198,5 @@ export class RBACSystem {
         return perms;
     }
 }
+
+export * from "./rbac-store.js";

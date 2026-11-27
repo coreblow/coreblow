@@ -50,9 +50,10 @@ import { updateHandlers } from "./server-methods/update.js";
 import { usageHandlers } from "./server-methods/usage.js";
 import { voicewakeHandlers } from "./server-methods/voicewake.js";
 import { webHandlers } from "./server-methods/web.js";
+import { authorizeGatewayRbacMethod } from "./rbac-runtime.js";
 import { wizardHandlers } from "./server-methods/wizard.js";
 
-function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["client"]) {
+export function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["client"]) {
   if (!client?.connect) {
     return null;
   }
@@ -71,14 +72,13 @@ function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["c
   if (role === "node") {
     return null;
   }
-  if (scopes.includes(ADMIN_SCOPE)) {
-    return null;
+  if (!scopes.includes(ADMIN_SCOPE)) {
+    const scopeAuth = authorizeOperatorScopesForMethod(method, scopes);
+    if (!scopeAuth.allowed) {
+      return errorShape(ErrorCodes.INVALID_REQUEST, `missing scope: ${scopeAuth.missingScope}`);
+    }
   }
-  const scopeAuth = authorizeOperatorScopesForMethod(method, scopes);
-  if (!scopeAuth.allowed) {
-    return errorShape(ErrorCodes.INVALID_REQUEST, `missing scope: ${scopeAuth.missingScope}`);
-  }
-  return null;
+  return authorizeGatewayRbacMethod(method, client);
 }
 
 export const coreGatewayHandlers: GatewayRequestHandlers = {

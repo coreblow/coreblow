@@ -203,4 +203,121 @@ export function registerSecurityCli(program: Command) {
 
       defaultRuntime.log(lines.join("\n"));
     });
+
+  const rbac = security
+    .command("rbac")
+    .description("Manage persistent Gateway RBAC roles and principal bindings");
+
+  rbac
+    .command("list")
+    .description("List RBAC roles and active principal bindings")
+    .option("--principal <id>", "Filter bindings by principal id")
+    .option("--all", "Include expired bindings", false)
+    .option("--json", "Print JSON", false)
+    .action(async (opts: { principal?: string; all?: boolean; json?: boolean }) => {
+      const { PersistentRbacStore } = await import("../security/rbac-store.js");
+      const store = new PersistentRbacStore();
+      try {
+        const roles = store.listRoles();
+        const bindings = store.listBindings({
+          principalId: opts.principal,
+          includeExpired: opts.all,
+        });
+        const bootstrapMode = store.getBootstrapMode();
+        if (opts.json) {
+          defaultRuntime.log(
+            JSON.stringify({ dbPath: store.dbPath, bootstrapMode, roles, bindings }, null, 2),
+          );
+          return;
+        }
+        const lines = [
+          `RBAC Store: ${store.dbPath} (bootstrap=${bootstrapMode ?? "none"})`,
+          `Roles (${roles.length}): ${roles.map((r) => r.name).join(", ")}`,
+          `Bindings (${bindings.length}):`,
+          ...bindings.map(
+            (b) =>
+              `  - ${b.principalId} -> ${b.roleName} (by ${b.grantedBy}${b.expiresAtMs ? `, expires ${new Date(b.expiresAtMs).toISOString()}` : ""})`,
+          ),
+        ];
+        defaultRuntime.log(lines.join("\n"));
+      } finally {
+        store.close();
+      }
+    });
+
+  rbac
+    .command("grant")
+    .description("Grant an RBAC role to a principal")
+    .requiredOption("--principal <id>", "Principal id (e.g. device:<id> or client:<id>)")
+    .requiredOption("--role <role>", "Role name (owner, admin, operator, viewer)")
+    .option("--expires-in <duration>", "Optional TTL duration (e.g. 30m, 24h, 7d)")
+    .option("--json", "Print JSON", false)
+    .action(
+      async (opts: { principal: string; role: string; expiresIn?: string; json?: boolean }) => {
+        const { PersistentRbacStore, parseDurationToMs, formatRedactedRbacAudit } = await import(
+          "../security/rbac-store.js"
+        );
+        const { invalidateGatewayRbacCache } = await import("../gateway/rbac-runtime.js");
+        const store = new PersistentRbacStore();
+        try {
+          const expiresAtMs = opts.expiresIn
+            ? Date.now() + parseDurationToMs(opts.expiresIn)
+            : null;
+          const binding = store.grantBinding({
+            principalId: opts.principal,
+            roleName: opts.role,
+            grantedBy: "cli",
+            expiresAtMs,
+          });
+          invalidateGatewayRbacCache();
+          if (opts.json) {
+            defaultRuntime.log(JSON.stringify({ ok: true, binding }, null, 2));
+            return;
+          }
+          defaultRuntime.log(
+            formatRedactedRbacAudit(
+              `Granted role '${binding.roleName}' to '${binding.principalId}'`,
+            ),
+          );
+        } finally {
+          store.close();
+        }
+      },
+    );
+
+  rbac
+    .command("revoke")
+    .description("Revoke an RBAC role from a principal")
+    .requiredOption("--principal <id>", "Principal id")
+    .requiredOption("--role <role>", "Role name")
+    .option("--json", "Print JSON", false)
+    .action(async (opts: { principal: string; role: string; json?: boolean }) => {
+      const { PersistentRbacStore, formatRedactedRbacAudit } = await import(
+        "../security/rbac-store.js"
+      );
+      const { invalidateGatewayRbacCache } = await import("../gateway/rbac-runtime.js");
+      const store = new PersistentRbacStore();
+      try {
+        const revoked = store.revokeBinding({
+          principalId: opts.principal,
+          roleName: opts.role,
+        });
+        invalidateGatewayRbacCache();
+        if (opts.json) {
+          defaultRuntime.log(
+            JSON.stringify({ ok: true, revoked, principalId: opts.principal, roleName: opts.role }, null, 2),
+          );
+          return;
+        }
+        defaultRuntime.log(
+          formatRedactedRbacAudit(
+            revoked
+              ? `Revoked role '${opts.role}' from '${opts.principal}'`
+              : `No binding found for '${opts.principal}' -> '${opts.role}'`,
+          ),
+        );
+      } finally {
+        store.close();
+      }
+    });
 }
