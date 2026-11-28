@@ -1,7 +1,11 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   resolveSessionResumeParams,
   rewriteUpdateFlagArgv,
+  shouldAutoRunFirstRunOnboard,
   shouldDivertToHeadless,
   shouldEnsureCliPath,
   shouldRegisterPrimarySubcommand,
@@ -300,5 +304,75 @@ describe("resolveSessionResumeParams", () => {
     expect(params.hasResume).toBe(false);
     expect(params.resumeValue).toBeUndefined();
     expect(params.initialModal).toBe("none");
+  });
+});
+
+describe("shouldAutoRunFirstRunOnboard", () => {
+  it("returns true for bare interactive TTY invocation when config is missing", () => {
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "coreblow-onboard-check-"));
+    try {
+      expect(
+        shouldAutoRunFirstRunOnboard({
+          argv: ["node", "coreblow"],
+          isInteractiveTty: true,
+          primaryCommand: null,
+          env: { COREBLOW_STATE_DIR: stateDir },
+        }),
+      ).toBe(true);
+
+      fs.writeFileSync(path.join(stateDir, "coreblow.json"), "{}", "utf8");
+      expect(
+        shouldAutoRunFirstRunOnboard({
+          argv: ["node", "coreblow"],
+          isInteractiveTty: true,
+          primaryCommand: null,
+          env: { COREBLOW_STATE_DIR: stateDir },
+        }),
+      ).toBe(false);
+    } finally {
+      fs.rmSync(stateDir, { recursive: true, force: true });
+    }
+  });
+
+  it("returns false for non-TTY, CI=true, VITEST, subcommands, help/version, or opt-out flags", () => {
+    const base = {
+      argv: ["node", "coreblow"],
+      isInteractiveTty: true,
+      primaryCommand: null as string | null,
+      env: {} as NodeJS.ProcessEnv,
+      configExists: false,
+    };
+
+    expect(shouldAutoRunFirstRunOnboard({ ...base, isInteractiveTty: false })).toBe(false);
+    expect(shouldAutoRunFirstRunOnboard({ ...base, env: { CI: "true" } })).toBe(false);
+    expect(shouldAutoRunFirstRunOnboard({ ...base, env: { VITEST: "true" } })).toBe(false);
+    expect(shouldAutoRunFirstRunOnboard({ ...base, primaryCommand: "status" })).toBe(false);
+    expect(shouldAutoRunFirstRunOnboard({ ...base, argv: ["node", "coreblow", "--help"] })).toBe(
+      false,
+    );
+    expect(shouldAutoRunFirstRunOnboard({ ...base, argv: ["node", "coreblow", "-V"] })).toBe(
+      false,
+    );
+    expect(
+      shouldAutoRunFirstRunOnboard({ ...base, argv: ["node", "coreblow", "--unknown-flag"] }),
+    ).toBe(false);
+    expect(shouldAutoRunFirstRunOnboard({ ...base, argv: ["node", "coreblow", "--bare"] })).toBe(
+      false,
+    );
+    expect(shouldAutoRunFirstRunOnboard({ ...base, argv: ["node", "coreblow", "--go"] })).toBe(
+      false,
+    );
+    expect(shouldAutoRunFirstRunOnboard({ ...base, argv: ["node", "coreblow", "-c"] })).toBe(
+      false,
+    );
+    expect(
+      shouldAutoRunFirstRunOnboard({ ...base, argv: ["node", "coreblow", "--continue"] }),
+    ).toBe(false);
+    expect(shouldAutoRunFirstRunOnboard({ ...base, argv: ["node", "coreblow", "-r"] })).toBe(
+      false,
+    );
+    expect(
+      shouldAutoRunFirstRunOnboard({ ...base, argv: ["node", "coreblow", "--resume", "abc"] }),
+    ).toBe(false);
   });
 });

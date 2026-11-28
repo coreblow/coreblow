@@ -2,8 +2,8 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { resolveStateDir } from "../config/paths.js";
-import { normalizeEnv } from "../infra/env.js";
+import { resolveConfigPath, resolveStateDir } from "../config/paths.js";
+import { isTruthyEnvValue, normalizeEnv } from "../infra/env.js";
 import { formatUncaughtError } from "../infra/errors.js";
 import { i18n } from "../infra/i18n/index.js";
 import { isMainModule } from "../infra/is-main.js";
@@ -109,6 +109,8 @@ const KNOWN_ROOT_OR_HEADLESS_VALUE_FLAGS = new Set([
 
 const KNOWN_ROOT_OR_HEADLESS_BOOL_FLAGS = new Set([
   "--bare",
+  "--go",
+  "--simple",
   "-c",
   "--continue",
   "--dev",
@@ -161,6 +163,43 @@ export function shouldDivertToHeadless(params: {
         !hasHelpOrVersion(params.argv) &&
         !hasUnknownRootOrHeadlessFlag(params.argv)),
   );
+}
+
+class FirstRunOnboardCancelledError extends Error {
+  constructor() {
+    super("First-run onboarding cancelled");
+  }
+}
+
+export function shouldAutoRunFirstRunOnboard(params: {
+  argv: string[];
+  isInteractiveTty: boolean;
+  primaryCommand: string | null;
+  env?: NodeJS.ProcessEnv;
+  configExists?: boolean;
+}): boolean {
+  const env = params.env ?? process.env;
+  if (params.primaryCommand !== null) {
+    return false;
+  }
+  if (hasHelpOrVersion(params.argv) || hasUnknownRootOrHeadlessFlag(params.argv)) {
+    return false;
+  }
+  if (!params.isInteractiveTty || Boolean(env.VITEST) || isTruthyEnvValue(env.CI)) {
+    return false;
+  }
+  if (
+    hasFlag(params.argv, "--bare") ||
+    hasFlag(params.argv, "--go") ||
+    hasFlag(params.argv, "-c") ||
+    hasFlag(params.argv, "--continue") ||
+    hasFlag(params.argv, "-r") ||
+    hasFlag(params.argv, "--resume")
+  ) {
+    return false;
+  }
+  const configExists = params.configExists ?? existsSync(resolveConfigPath(env));
+  return !configExists;
 }
 
 export function resolveSessionResumeParams(argv: string[]): {
@@ -285,6 +324,41 @@ export async function runCli(argv: string[] = process.argv) {
         process.stdin.isTTY && process.stdout.isTTY && !process.env.VITEST,
       );
       if (isInteractiveTty) {
+        if (
+          shouldAutoRunFirstRunOnboard({
+            argv: normalizedArgv,
+            isInteractiveTty,
+            primaryCommand,
+          })
+        ) {
+          const [{ onboardCommand }, { defaultRuntime }] = await Promise.all([
+            import("../commands/onboard.js"),
+            import("../runtime.js"),
+          ]);
+          try {
+            await onboardCommand(
+              {},
+              {
+                ...defaultRuntime,
+                exit: (code: number) => {
+                  if (code === 0 || code === 1) {
+                    throw new FirstRunOnboardCancelledError();
+                  }
+                  defaultRuntime.exit(code);
+                },
+              },
+            );
+          } catch (err) {
+            if (err instanceof FirstRunOnboardCancelledError) {
+              return;
+            }
+            throw err;
+          }
+          if (!existsSync(resolveConfigPath(process.env))) {
+            return;
+          }
+        }
+
         // Session resume flags: -c / --continue or -r / --resume
         const { continueFlag, hasResume, resumeValue, initialModal: initialModalFromResume } =
           resolveSessionResumeParams(normalizedArgv);
