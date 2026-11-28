@@ -5,6 +5,7 @@ import type { ResolvedTimeFormat } from "../date-time.js";
 import type { EmbeddedContextFile } from "../pi-embedded-helpers.js";
 import { buildAgentSystemPrompt, type PromptMode } from "../system-prompt.js";
 import { buildToolSummaryMap } from "../tool-summaries.js";
+import { setAgentSystemPrompt } from "./agent-state.js";
 import type { EmbeddedSandboxInfo } from "./types.js";
 import type { ReasoningLevel, ThinkLevel } from "./utils.js";
 
@@ -94,16 +95,7 @@ export function applySystemPromptOverrideToSession(
   override: string | ((defaultPrompt?: string) => string),
 ) {
   const prompt = typeof override === "function" ? override() : override.trim();
-  const agent = session.agent as unknown as {
-    setSystemPrompt?: (prompt: string) => void;
-    state?: { systemPrompt?: string };
-  };
-  if (typeof agent.setSystemPrompt === "function") {
-    agent.setSystemPrompt(prompt);
-  }
-  if (agent.state && typeof agent.state === "object") {
-    agent.state.systemPrompt = prompt;
-  }
+  setAgentSystemPrompt(session.agent, prompt);
   const mutableSession = session as unknown as {
     _baseSystemPrompt?: string;
     _rebuildSystemPrompt?: (toolNames: string[]) => string;

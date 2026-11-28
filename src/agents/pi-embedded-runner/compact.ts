@@ -85,6 +85,7 @@ import {
   type SkillSnapshot,
 } from "../skills.js";
 import { resolveTranscriptPolicy } from "../transcript-policy.js";
+import { replaceAgentMessages } from "./agent-state.js";
 import { classifyCompactionReason, resolveCompactionFailureReason } from "./compact-reasons.js";
 import {
   asCompactionHookRunner,
@@ -758,8 +759,7 @@ export async function compactEmbeddedPiSessionDirect(
           : validatedGemini;
         // Apply validated transcript to the live session even when no history limit is configured,
         // so compaction and hook metrics are based on the same message set.
-        // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
-        session.agent.replaceMessages(validated);
+        replaceAgentMessages(session.agent, validated);
         // "Original" compaction metrics should describe the validated transcript that enters
         // limiting/compaction, not the raw on-disk session snapshot.
         const originalMessages = session.messages.slice();
@@ -774,8 +774,7 @@ export async function compactEmbeddedPiSessionDirect(
           ? sanitizeToolUseResultPairing(truncated)
           : truncated;
         if (limited.length > 0) {
-          // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
-          session.agent.replaceMessages(limited);
+          replaceAgentMessages(session.agent, limited);
         }
         const hookRunner = asCompactionHookRunner(getGlobalHookRunner());
         const observedTokenCount = normalizeObservedTokenCount(params.currentTokenCount);

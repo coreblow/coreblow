@@ -102,6 +102,7 @@ import { sanitizeToolCallIdsForCloudCodeAssist } from "../../tool-call-id.js";
 import { resolveTranscriptPolicy } from "../../transcript-policy.js";
 import { DEFAULT_BOOTSTRAP_FILENAME } from "../../workspace.js";
 import { isRunnerAbortError } from "../abort.js";
+import { replaceAgentMessages } from "../agent-state.js";
 import { isCacheTtlEligibleProvider } from "../cache-ttl.js";
 import { resolveCompactionTimeoutMs } from "../compaction-safety-timeout.js";
 import { runContextEngineMaintenance } from "../context-engine-maintenance.js";
@@ -1087,7 +1088,7 @@ export async function runEmbeddedAttempt(
           : truncated;
         cacheTrace?.recordStage("session:limited", { messages: limited });
         if (limited.length > 0) {
-          (activeSession.agent as unknown as { replaceMessages: (msgs: unknown[]) => void }).replaceMessages(limited);
+          replaceAgentMessages(activeSession.agent, limited);
         }
 
         if (params.contextEngine) {
@@ -1105,7 +1106,7 @@ export async function runEmbeddedAttempt(
               throw new Error("context engine assemble returned no result");
             }
             if (assembled.messages !== activeSession.messages) {
-              (activeSession.agent as unknown as { replaceMessages: (msgs: unknown[]) => void }).replaceMessages(assembled.messages);
+              replaceAgentMessages(activeSession.agent, assembled.messages);
             }
             if (assembled.systemPromptAddition) {
               systemPromptText = prependSystemPromptAddition({
@@ -1419,7 +1420,7 @@ export async function runEmbeddedAttempt(
             sessionManager.resetLeaf();
           }
           const sessionContext = sessionManager.buildSessionContext();
-          (activeSession.agent as unknown as { replaceMessages: (msgs: unknown[]) => void }).replaceMessages(sessionContext.messages);
+          replaceAgentMessages(activeSession.agent, sessionContext.messages);
           log.warn(
             `Removed orphaned user message to prevent consecutive user turns. ` +
               `runId=${params.runId} sessionId=${params.sessionId}`,
@@ -1433,7 +1434,7 @@ export async function runEmbeddedAttempt(
           // Called each run; only mutates already-answered user turns that still carry image blocks.
           const didPruneImages = pruneProcessedHistoryImages(activeSession.messages);
           if (didPruneImages) {
-            (activeSession.agent as unknown as { replaceMessages: (msgs: unknown[]) => void }).replaceMessages(activeSession.messages);
+            replaceAgentMessages(activeSession.agent, activeSession.messages);
           }
 
           // Detect and load images referenced in the prompt for vision-capable models.

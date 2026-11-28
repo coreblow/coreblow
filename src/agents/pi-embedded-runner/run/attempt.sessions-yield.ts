@@ -1,5 +1,6 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import { log } from "../logger.js";
+import { replaceAgentMessages } from "../agent-state.js";
 
 const SESSIONS_YIELD_INTERRUPT_CUSTOM_TYPE = "coreblow.sessions_yield_interrupt";
 const SESSIONS_YIELD_CONTEXT_CUSTOM_TYPE = "coreblow.sessions_yield";
@@ -147,7 +148,10 @@ export async function persistSessionsYieldContextMessage(
 // Remove the synthetic yield interrupt + aborted assistant entry from the live transcript.
 export function stripSessionsYieldArtifacts(activeSession: {
   messages: AgentMessage[];
-  agent: { replaceMessages: (messages: AgentMessage[]) => void };
+  agent: {
+    replaceMessages?: (messages: AgentMessage[]) => void;
+    state?: { messages?: AgentMessage[] };
+  };
   sessionManager?: unknown;
 }) {
   const strippedMessages = activeSession.messages.slice();
@@ -170,7 +174,7 @@ export function stripSessionsYieldArtifacts(activeSession: {
     break;
   }
   if (strippedMessages.length !== activeSession.messages.length) {
-    activeSession.agent.replaceMessages(strippedMessages);
+    replaceAgentMessages(activeSession.agent, strippedMessages);
   }
 
   const sessionManager = activeSession.sessionManager as
