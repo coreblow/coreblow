@@ -3,5 +3,10 @@
   "name": "Azure Speech",
   "description": "Microsoft Azure Cognitive Services Speech and TTS provider extension.",
   "enabledByDefault": false,
-  "status": "preview"
+  "status": "preview",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

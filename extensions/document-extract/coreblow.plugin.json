@@ -3,5 +3,10 @@
   "name": "Document Extract",
   "description": "Multi-format document parsing and text extraction extension.",
   "enabledByDefault": false,
-  "status": "preview"
+  "status": "preview",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

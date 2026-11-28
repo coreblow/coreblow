@@ -3,5 +3,10 @@
   "name": "Prometheus Diagnostics",
   "description": "Prometheus metrics exporter and diagnostics telemetry extension.",
   "enabledByDefault": false,
-  "status": "preview"
+  "status": "preview",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }

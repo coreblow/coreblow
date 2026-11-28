@@ -3,5 +3,10 @@
   "name": "SenseAudio Understanding",
   "description": "Audio intelligence and acoustic perception understanding provider extension.",
   "enabledByDefault": false,
-  "status": "preview"
+  "status": "preview",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
 }
