@@ -1,6 +1,10 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import { describe, expect, it, vi } from "vitest";
-import { replaceAgentMessages, setAgentSystemPrompt } from "./agent-state.js";
+import {
+  replaceAgentMessages,
+  resolveSdkSessionToolOptions,
+  setAgentSystemPrompt,
+} from "./agent-state.js";
 
 describe("pi-embedded-runner agent state helpers", () => {
   it("updates agent.state.messages when replaceMessages is absent (pi-agent-core >=0.70)", () => {
@@ -31,5 +35,16 @@ describe("pi-embedded-runner agent state helpers", () => {
     setAgentSystemPrompt(withLegacy, "prompt-2");
     expect(setSystemPrompt).toHaveBeenCalledWith("prompt-2");
     expect(withLegacy.state.systemPrompt).toBe("prompt-2");
+  });
+
+  it("maps customTools to pi-coding-agent >=0.70 session allowlist and noTools options", () => {
+    expect(resolveSdkSessionToolOptions([{ name: "read" }, { name: "write" }])).toEqual({
+      noTools: "builtin",
+      tools: ["read", "write"],
+    });
+    expect(resolveSdkSessionToolOptions([])).toEqual({
+      noTools: "all",
+      tools: [],
+    });
   });
 });

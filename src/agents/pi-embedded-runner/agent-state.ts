@@ -42,3 +42,18 @@ export function setAgentSystemPrompt(agent: unknown, prompt: string): void {
     target.state.systemPrompt = prompt;
   }
 }
+
+/**
+ * Maps CoreBlow's `customTools` list into `createAgentSession` options for pi-coding-agent >=0.70,
+ * where `options.tools` is a name allowlist and `noTools: "builtin"` suppresses default built-in tools.
+ */
+export function resolveSdkSessionToolOptions(customTools: ReadonlyArray<{ name: string }>): {
+  noTools: "builtin" | "all";
+  tools: string[];
+} {
+  const toolNames = customTools.map((tool) => tool.name);
+  return {
+    noTools: toolNames.length > 0 ? "builtin" : "all",
+    tools: toolNames,
+  };
+}

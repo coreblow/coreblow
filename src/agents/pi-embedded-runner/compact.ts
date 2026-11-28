@@ -85,7 +85,7 @@ import {
   type SkillSnapshot,
 } from "../skills.js";
 import { resolveTranscriptPolicy } from "../transcript-policy.js";
-import { replaceAgentMessages } from "./agent-state.js";
+import { replaceAgentMessages, resolveSdkSessionToolOptions } from "./agent-state.js";
 import { classifyCompactionReason, resolveCompactionFailureReason } from "./compact-reasons.js";
 import {
   asCompactionHookRunner,
@@ -709,7 +709,7 @@ export async function compactEmbeddedPiSessionDirect(
         await resourceLoader.reload();
       }
 
-      const { builtInTools, customTools } = splitSdkTools({
+      const { customTools } = splitSdkTools({
         tools: effectiveTools,
         sandboxEnabled: !!sandbox?.enabled,
       });
@@ -721,8 +721,7 @@ export async function compactEmbeddedPiSessionDirect(
         modelRegistry,
         model: effectiveModel,
         thinkingLevel: mapThinkingLevel(params.thinkLevel),
-        // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
-        tools: builtInTools,
+        ...resolveSdkSessionToolOptions(customTools),
         customTools,
         sessionManager,
         settingsManager,
