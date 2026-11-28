@@ -371,9 +371,13 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
         }
       }
 
+      // FTS5 BM25 on a small corpus (e.g. 1 file) produces tiny negative ranks (-1e-6),
+      // well below the default vector cosine minScore (0.35). Honor explicit caller minScore,
+      // otherwise return all FTS5 MATCH hits ranked by BM25.
+      const ftsMinScore = opts?.minScore ?? 0;
       const merged = [...seenIds.values()]
         .toSorted((a, b) => b.score - a.score)
-        .filter((entry) => entry.score >= minScore)
+        .filter((entry) => entry.score >= ftsMinScore)
         .slice(0, maxResults);
 
       return merged;

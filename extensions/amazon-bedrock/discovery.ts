@@ -1,10 +1,10 @@
-// @ts-nocheck
 import {
   BedrockClient,
   ListFoundationModelsCommand,
   type ListFoundationModelsCommandOutput,
 } from "@aws-sdk/client-bedrock";
 import { createSubsystemLogger } from "coreblow/plugin-sdk/core";
+import { resolveAwsSdkEnvVarName } from "coreblow/plugin-sdk/provider-auth-runtime";
 import type {
   BedrockDiscoveryConfig,
   ModelDefinitionConfig,

@@ -553,11 +553,11 @@ export abstract class MemoryManagerEmbeddingOps extends MemoryManagerSyncOps {
           .run(pathname, source);
       } catch {}
     }
-    if (this.fts.enabled && this.fts.available && this.provider) {
+    if (this.fts.enabled && this.fts.available) {
       try {
         this.db
           .prepare(`DELETE FROM ${FTS_TABLE} WHERE path = ? AND source = ? AND model = ?`)
-          .run(pathname, source, this.provider.model);
+          .run(pathname, source, this.provider?.model ?? "fts-only");
       } catch {}
     }
     this.db.prepare(`DELETE FROM chunks WHERE path = ? AND source = ?`).run(pathname, source);
@@ -590,9 +590,9 @@ export abstract class MemoryManagerEmbeddingOps extends MemoryManagerSyncOps {
     entry: MemoryFileEntry | SessionFileEntry,
     options: { source: MemorySource; content?: string },
   ) {
-    // FTS-only mode: skip indexing if no provider
-    if (!this.provider) {
-      log.debug("Skipping embedding indexing in FTS-only mode", {
+    const ftsOnly = !this.provider;
+    if (ftsOnly && !(this.fts.enabled && this.fts.available)) {
+      log.debug("Skipping indexing (no embedding provider and FTS unavailable)", {
         path: entry.path,
         source: options.source,
       });
@@ -602,6 +602,9 @@ export abstract class MemoryManagerEmbeddingOps extends MemoryManagerSyncOps {
     let chunks: MemoryChunk[];
     let structuredInputBytes: number | undefined;
     if ("kind" in entry && entry.kind === "multimodal") {
+      if (ftsOnly) {
+        return;
+      }
       const multimodalChunk = await buildMultimodalChunkForIndexing(entry);
       if (!multimodalChunk) {
         this.clearIndexedFileData(entry.path, options.source);
@@ -612,41 +615,45 @@ export abstract class MemoryManagerEmbeddingOps extends MemoryManagerSyncOps {
       chunks = [multimodalChunk.chunk];
     } else {
       const content = options.content ?? (await fs.readFile(entry.absPath, "utf-8"));
-      chunks = enforceEmbeddingMaxInputTokens(
-        this.provider,
-        chunkMarkdown(content, this.settings.chunking).filter(
-          (chunk: MemoryChunk) => chunk.text.trim().length > 0,
-        ),
-        EMBEDDING_BATCH_MAX_TOKENS,
+      const rawChunks = chunkMarkdown(content, this.settings.chunking).filter(
+        (chunk: MemoryChunk) => chunk.text.trim().length > 0,
       );
+      chunks = this.provider
+        ? enforceEmbeddingMaxInputTokens(this.provider, rawChunks, EMBEDDING_BATCH_MAX_TOKENS)
+        : rawChunks;
       if (options.source === "sessions" && "lineMap" in entry) {
         remapChunkLines(chunks, entry.lineMap);
       }
     }
+    const modelName = this.provider?.model ?? "fts-only";
     let embeddings: number[][];
-    try {
-      embeddings = this.batch.enabled
-        ? await this.embedChunksWithBatch(chunks, entry, options.source)
-        : await this.embedChunksInBatches(chunks);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      if (
-        "kind" in entry &&
-        entry.kind === "multimodal" &&
-        this.isStructuredInputTooLargeError(message)
-      ) {
-        log.warn("memory embeddings: skipping multimodal file rejected as too large", {
-          path: entry.path,
-          bytes: structuredInputBytes,
-          provider: this.provider.id,
-          model: this.provider.model,
-          error: message,
-        });
-        this.clearIndexedFileData(entry.path, options.source);
-        this.upsertFileRecord(entry, options.source);
-        return;
+    if (!this.provider) {
+      embeddings = chunks.map(() => []);
+    } else {
+      try {
+        embeddings = this.batch.enabled
+          ? await this.embedChunksWithBatch(chunks, entry, options.source)
+          : await this.embedChunksInBatches(chunks);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        if (
+          "kind" in entry &&
+          entry.kind === "multimodal" &&
+          this.isStructuredInputTooLargeError(message)
+        ) {
+          log.warn("memory embeddings: skipping multimodal file rejected as too large", {
+            path: entry.path,
+            bytes: structuredInputBytes,
+            provider: this.provider.id,
+            model: this.provider.model,
+            error: message,
+          });
+          this.clearIndexedFileData(entry.path, options.source);
+          this.upsertFileRecord(entry, options.source);
+          return;
+        }
+        throw err;
       }
-      throw err;
     }
     const sample = embeddings.find((embedding) => embedding.length > 0);
     const vectorReady = sample ? await this.ensureVectorReady(sample.length) : false;
@@ -656,7 +663,7 @@ export abstract class MemoryManagerEmbeddingOps extends MemoryManagerSyncOps {
       const chunk = chunks[i];
       const embedding = embeddings[i] ?? [];
       const id = hashText(
-        `${options.source}:${entry.path}:${chunk.startLine}:${chunk.endLine}:${chunk.hash}:${this.provider.model}`,
+        `${options.source}:${entry.path}:${chunk.startLine}:${chunk.endLine}:${chunk.hash}:${modelName}`,
       );
       this.db
         .prepare(
@@ -676,7 +683,7 @@ export abstract class MemoryManagerEmbeddingOps extends MemoryManagerSyncOps {
           chunk.startLine,
           chunk.endLine,
           chunk.hash,
-          this.provider.model,
+          modelName,
           chunk.text,
           JSON.stringify(embedding),
           now,
@@ -700,7 +707,7 @@ export abstract class MemoryManagerEmbeddingOps extends MemoryManagerSyncOps {
             id,
             entry.path,
             options.source,
-            this.provider.model,
+            modelName,
             chunk.startLine,
             chunk.endLine,
           );

@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   resetBedrockDiscoveryCacheForTest,
   resolveBedrockConfigApiKey,
+  resolveImplicitBedrockProvider,
 } from "./discovery.js";
 
 describe("resetBedrockDiscoveryCacheForTest", () => {
@@ -27,5 +28,11 @@ describe("resolveBedrockConfigApiKey", () => {
   });
   it("does not throw for empty env", () => {
     expect(() => resolveBedrockConfigApiKey({})).not.toThrow();
+  });
+});
+
+describe("resolveImplicitBedrockProvider", () => {
+  it("resolves cleanly without ReferenceError when AWS credentials are absent", async () => {
+    await expect(resolveImplicitBedrockProvider({ env: {} })).resolves.toBeNull();
   });
 });
