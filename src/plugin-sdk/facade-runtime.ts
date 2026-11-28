@@ -107,10 +107,11 @@ type BundledPluginPublicSurfaceParams = {
 type FacadeActivationCheckRuntimeModule = typeof import("./facade-activation-check.runtime.js");
 
 const nodeRequire = createRequire(import.meta.url);
-const FACADE_ACTIVATION_CHECK_RUNTIME_CANDIDATES = [
+const FACADE_ACTIVATION_CHECK_JS_CANDIDATES = [
   "./facade-activation-check.runtime.js",
-  "./facade-activation-check.runtime.ts",
+  "../facade-activation-check.runtime.js",
 ] as const;
+const FACADE_ACTIVATION_CHECK_TS_CANDIDATES = ["./facade-activation-check.runtime.ts"] as const;
 
 let facadeActivationCheckRuntimeModule: FacadeActivationCheckRuntimeModule | undefined;
 const facadeActivationCheckRuntimeLoaders: PluginModuleLoaderCache = new Map();
@@ -126,11 +127,10 @@ function getFacadeActivationCheckRuntimeSourceLoader(modulePath: string) {
 }
 
 function loadFacadeActivationCheckRuntimeFromCandidates(
-  loadCandidate: (
-    candidate: (typeof FACADE_ACTIVATION_CHECK_RUNTIME_CANDIDATES)[number],
-  ) => unknown,
+  candidates: readonly string[],
+  loadCandidate: (candidate: string) => unknown,
 ): FacadeActivationCheckRuntimeModule | undefined {
-  for (const candidate of FACADE_ACTIVATION_CHECK_RUNTIME_CANDIDATES) {
+  for (const candidate of candidates) {
     try {
       return loadCandidate(candidate) as FacadeActivationCheckRuntimeModule;
     } catch {
@@ -144,14 +144,16 @@ function loadFacadeActivationCheckRuntime(): FacadeActivationCheckRuntimeModule 
   if (facadeActivationCheckRuntimeModule) {
     return facadeActivationCheckRuntimeModule;
   }
-  facadeActivationCheckRuntimeModule = loadFacadeActivationCheckRuntimeFromCandidates((candidate) =>
-    nodeRequire(candidate),
+  facadeActivationCheckRuntimeModule = loadFacadeActivationCheckRuntimeFromCandidates(
+    FACADE_ACTIVATION_CHECK_JS_CANDIDATES,
+    (candidate) => nodeRequire(candidate),
   );
   if (facadeActivationCheckRuntimeModule) {
     return facadeActivationCheckRuntimeModule;
   }
-  facadeActivationCheckRuntimeModule = loadFacadeActivationCheckRuntimeFromCandidates((candidate) =>
-    getFacadeActivationCheckRuntimeSourceLoader(candidate)(candidate),
+  facadeActivationCheckRuntimeModule = loadFacadeActivationCheckRuntimeFromCandidates(
+    FACADE_ACTIVATION_CHECK_TS_CANDIDATES,
+    (candidate) => getFacadeActivationCheckRuntimeSourceLoader(candidate)(candidate),
   );
   if (facadeActivationCheckRuntimeModule) {
     return facadeActivationCheckRuntimeModule;
