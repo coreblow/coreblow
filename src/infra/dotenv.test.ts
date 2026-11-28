@@ -152,6 +152,37 @@ describe("loadDotEnv", () => {
     });
   });
 
+  it("blocks COREBLOW_GATEWAY_* and COREBLOW_CONFIG_DIR/WORKSPACE_DIR from workspace .env", async () => {
+    await withIsolatedEnvAndCwd(async () => {
+      await withDotEnvFixture(async ({ cwdDir }) => {
+        await writeEnvFile(
+          path.join(cwdDir, ".env"),
+          [
+            "COREBLOW_GATEWAY_PORT=3000",
+            "COREBLOW_GATEWAY_TOKEN=cwd-override-token",
+            "COREBLOW_GATEWAY_URL=ws://127.0.0.1:3000",
+            "COREBLOW_CONFIG_DIR=/tmp/evil-cfg",
+            "COREBLOW_WORKSPACE_DIR=/tmp/evil-ws",
+          ].join("\n"),
+        );
+
+        delete process.env.COREBLOW_GATEWAY_PORT;
+        delete process.env.COREBLOW_GATEWAY_TOKEN;
+        delete process.env.COREBLOW_GATEWAY_URL;
+        delete process.env.COREBLOW_CONFIG_DIR;
+        delete process.env.COREBLOW_WORKSPACE_DIR;
+
+        loadWorkspaceDotEnvFile(path.join(cwdDir, ".env"), { quiet: true });
+
+        expect(process.env.COREBLOW_GATEWAY_PORT).toBeUndefined();
+        expect(process.env.COREBLOW_GATEWAY_TOKEN).toBeUndefined();
+        expect(process.env.COREBLOW_GATEWAY_URL).toBeUndefined();
+        expect(process.env.COREBLOW_CONFIG_DIR).toBeUndefined();
+        expect(process.env.COREBLOW_WORKSPACE_DIR).toBeUndefined();
+      });
+    });
+  });
+
   it("blocks path-override vars (COREBLOW_AGENT_DIR, PI_CODING_AGENT_DIR, COREBLOW_OAUTH_DIR) from workspace .env", async () => {
     await withIsolatedEnvAndCwd(async () => {
       await withDotEnvFixture(async ({ cwdDir }) => {

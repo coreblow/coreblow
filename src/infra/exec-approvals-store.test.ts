@@ -25,6 +25,7 @@ let resolveExecApprovalsSocketPath: ExecApprovalsModule["resolveExecApprovalsSoc
 
 const tempDirs: string[] = [];
 const originalCoreBlowHome = process.env.COREBLOW_HOME;
+const originalCoreBlowStateDir = process.env.COREBLOW_STATE_DIR;
 
 beforeEach(async () => {
   vi.resetModules();
@@ -48,6 +49,11 @@ afterEach(() => {
     delete process.env.COREBLOW_HOME;
   } else {
     process.env.COREBLOW_HOME = originalCoreBlowHome;
+  }
+  if (originalCoreBlowStateDir === undefined) {
+    delete process.env.COREBLOW_STATE_DIR;
+  } else {
+    process.env.COREBLOW_STATE_DIR = originalCoreBlowStateDir;
   }
   for (const dir of tempDirs.splice(0)) {
     fs.rmSync(dir, { recursive: true, force: true });
@@ -78,6 +84,19 @@ describe("exec approvals store helpers", () => {
     );
     expect(path.normalize(resolveExecApprovalsSocketPath())).toBe(
       path.normalize(path.join(dir, ".coreblow", "exec-approvals.sock")),
+    );
+  });
+
+  it("honors COREBLOW_STATE_DIR for exec approvals file and socket paths", () => {
+    const dir = makeTempDir();
+    tempDirs.push(dir);
+    process.env.COREBLOW_STATE_DIR = dir;
+
+    expect(path.normalize(resolveExecApprovalsPath())).toBe(
+      path.normalize(path.join(dir, "exec-approvals.json")),
+    );
+    expect(path.normalize(resolveExecApprovalsSocketPath())).toBe(
+      path.normalize(path.join(dir, "exec-approvals.sock")),
     );
   });
 

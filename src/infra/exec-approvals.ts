@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { resolveStateDir } from "../config/paths.js";
 import { DEFAULT_AGENT_ID } from "../routing/session-key.js";
 import type { CommandExplanationSummary } from "./command-analysis/explain.js";
 import { expandHomePrefix } from "./home-dir.js";
@@ -162,8 +163,8 @@ const DEFAULT_ASK: ExecAsk = "on-miss";
 const DEFAULT_ASK_FALLBACK: ExecSecurity = "deny";
 export const DEFAULT_EXEC_APPROVAL_ASK_FALLBACK: ExecSecurity = DEFAULT_ASK_FALLBACK;
 const DEFAULT_AUTO_ALLOW_SKILLS = false;
-const DEFAULT_SOCKET = "~/.coreblow/exec-approvals.sock";
-const DEFAULT_FILE = "~/.coreblow/exec-approvals.json";
+const EXEC_APPROVALS_SOCKET_FILENAME = "exec-approvals.sock";
+const EXEC_APPROVALS_FILENAME = "exec-approvals.json";
 
 function hashExecApprovalsRaw(raw: string | null): string {
   return crypto
@@ -173,11 +174,11 @@ function hashExecApprovalsRaw(raw: string | null): string {
 }
 
 export function resolveExecApprovalsPath(): string {
-  return expandHomePrefix(DEFAULT_FILE);
+  return path.join(resolveStateDir(process.env), EXEC_APPROVALS_FILENAME);
 }
 
 export function resolveExecApprovalsSocketPath(): string {
-  return expandHomePrefix(DEFAULT_SOCKET);
+  return path.join(resolveStateDir(process.env), EXEC_APPROVALS_SOCKET_FILENAME);
 }
 
 function normalizeAllowlistPattern(value: string | undefined): string | null {
