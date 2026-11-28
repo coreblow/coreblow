@@ -72,11 +72,23 @@ function buildLmstudioProviderConfig(params: {
 
 export async function discoverLmstudioProvider(ctx: ProviderCatalogContext) {
   const explicit = ctx.config.models?.providers?.[LMSTUDIO_PROVIDER_ID];
-  const { apiKey, headers } = await resolveLmstudioRequestContext({
-    config: ctx.config,
-    agentDir: ctx.agentDir,
-    providerHeaders: explicit?.headers,
-  });
+  let apiKey: string | undefined;
+  let headers: Record<string, string> | undefined;
+  try {
+    ({ apiKey, headers } = await resolveLmstudioRequestContext({
+      config: ctx.config,
+      agentDir: ctx.agentDir,
+      env: ctx.env,
+      providerHeaders: explicit?.headers,
+    }));
+  } catch (error) {
+    if (!explicit && error instanceof Error && /LM Studio API key is required/iu.test(error.message)) {
+      apiKey = undefined;
+      headers = undefined;
+    } else {
+      throw error;
+    }
+  }
   if (!explicit && !apiKey && (ctx.env.VITEST || ctx.env.NODE_ENV === "test")) {
     return null;
   }
