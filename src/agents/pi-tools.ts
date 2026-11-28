@@ -18,6 +18,7 @@ import {
   type ProcessToolDefaults,
 } from "./bash-tools.js";
 import { listChannelAgentTools } from "./channel-tools.js";
+import { createExecuteCodeTool } from "./code-execution/index.js";
 import { resolveImageSanitizationLimits } from "./image-sanitization.js";
 import type { ModelAuthMode } from "./model-auth.js";
 import { createCoreBlowTools } from "./coreblow-tools.js";
@@ -501,6 +502,18 @@ export function createCoreBlowCodingTools(options?: {
     ...(applyPatchTool ? [applyPatchTool as unknown as AnyAgentTool] : []),
     execTool as unknown as AnyAgentTool,
     processTool as unknown as AnyAgentTool,
+    ...(sandbox?.enabled
+      ? [
+          createExecuteCodeTool({
+            getSessionTools: () => withAbort as unknown as Parameters<typeof createExecuteCodeTool>[0]["getSessionTools"] extends () => infer R ? R : never,
+            sandbox: {
+              sandboxEnabled: Boolean(sandbox.enabled),
+              backend: sandbox.backendId,
+              dockerReadOnly: sandbox.docker?.readOnlyRoot,
+            },
+          }) as unknown as AnyAgentTool,
+        ]
+      : []),
     // Channel docking: include channel-defined agent tools (login, etc.).
     ...listChannelAgentTools({ cfg: options?.config }),
     ...createCoreBlowTools({
