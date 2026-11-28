@@ -73,6 +73,10 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
     { name: "pool", description: "Open credential pool monitor" },
     { name: "cron", description: "Manage 24/7 cron orchestration jobs" },
     { name: "schedule", description: "Alias for /cron" },
+    {
+      name: "goal",
+      description: "Manage persistent CoreFlow /goal loop (draft | status | wait <pid> | cancel)",
+    },
     { name: "bots", description: "Manage connected bot messaging channels" },
     { name: "channels", description: "Alias for /bots" },
     { name: "backend", description: "Switch shell and tool execution backend" },
