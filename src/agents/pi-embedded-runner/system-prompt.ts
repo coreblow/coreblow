@@ -94,7 +94,16 @@ export function applySystemPromptOverrideToSession(
   override: string | ((defaultPrompt?: string) => string),
 ) {
   const prompt = typeof override === "function" ? override() : override.trim();
-  (session.agent as unknown as Record<string, (p: string) => void>).setSystemPrompt(prompt);
+  const agent = session.agent as unknown as {
+    setSystemPrompt?: (prompt: string) => void;
+    state?: { systemPrompt?: string };
+  };
+  if (typeof agent.setSystemPrompt === "function") {
+    agent.setSystemPrompt(prompt);
+  }
+  if (agent.state && typeof agent.state === "object") {
+    agent.state.systemPrompt = prompt;
+  }
   const mutableSession = session as unknown as {
     _baseSystemPrompt?: string;
     _rebuildSystemPrompt?: (toolNames: string[]) => string;

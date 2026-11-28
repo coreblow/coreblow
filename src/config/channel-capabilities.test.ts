@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { resolveChannelCapabilities, listKnownChannels, channelSupports } from './channel-capabilities.js';
+import {
+    resolveChannelCapabilities,
+    resolveChannelCapabilityList,
+    listKnownChannels,
+    channelSupports,
+} from './channel-capabilities.js';
 
 describe('Channel Capabilities', () => {
     it('returns defaults for discord', () => {
@@ -55,5 +60,13 @@ describe('Channel Capabilities', () => {
     it('channelSupports utility works', () => {
         expect(channelSupports('discord', 'supportsReactions')).toBe(true);
         expect(channelSupports('signal', 'supportsRichEmbed')).toBe(false);
+    });
+
+    it('converts ChannelCapabilities matrices into string capability tags safely', () => {
+        expect(resolveChannelCapabilityList(resolveChannelCapabilities({ channel: 'webchat' }))).toEqual([]);
+        expect(resolveChannelCapabilityList(resolveChannelCapabilities({ channel: 'discord' }))).toContain(
+            'inlineButtons',
+        );
+        expect(resolveChannelCapabilityList(['  custom  ', ''])).toEqual(['custom']);
     });
 });

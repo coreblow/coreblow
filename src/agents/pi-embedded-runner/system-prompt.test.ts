@@ -62,4 +62,18 @@ describe("applySystemPromptOverrideToSession", () => {
     const { mutable } = applyAndGetMutableSession("rebuild test");
     expect(mutable._rebuildSystemPrompt?.(["tool1"])).toBe("rebuild test");
   });
+
+  it("updates agent.state.systemPrompt when agent.setSystemPrompt is absent (pi-agent-core >=0.70)", () => {
+    const session = {
+      agent: {
+        state: { systemPrompt: "" },
+      },
+    } as unknown as AgentSession & {
+      agent: { state: { systemPrompt: string } };
+      _baseSystemPrompt?: string;
+    };
+    applySystemPromptOverrideToSession(session, "  state-backed prompt  ");
+    expect(session.agent.state.systemPrompt).toBe("state-backed prompt");
+    expect(session._baseSystemPrompt).toBe("state-backed prompt");
+  });
 });

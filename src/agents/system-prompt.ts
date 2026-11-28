@@ -424,7 +424,8 @@ export function buildAgentSystemPrompt(params: SystemPromptParams): string {
     const userTimezone = params.userTimezone?.trim();
     const runtimeInfo = params.runtimeInfo;
     const runtimeChannel = runtimeInfo?.channel?.trim().toLowerCase();
-    const runtimeCapabilities = (runtimeInfo?.capabilities ?? []).map((c) => String(c).trim()).filter(Boolean);
+    const rawCapabilities = Array.isArray(runtimeInfo?.capabilities) ? runtimeInfo.capabilities : [];
+    const runtimeCapabilities = rawCapabilities.map((c) => String(c).trim()).filter(Boolean);
     const runtimeCapabilitiesLower = new Set(runtimeCapabilities.map((c) => c.toLowerCase()));
     const inlineButtonsEnabled = runtimeCapabilitiesLower.has('inlinebuttons');
     const sanitizedWorkspaceDir = sanitizeForPromptLiteral(params.workspaceDir);

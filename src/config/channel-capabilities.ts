@@ -144,3 +144,40 @@ export function channelSupports(
     const caps = resolveChannelCapabilities({ cfg, channel });
     return caps[capability] as boolean;
 }
+
+const CAPABILITY_TAG_MAP: ReadonlyArray<readonly [keyof ChannelCapabilities, string]> = [
+    ['supportsAttachments', 'attachments'],
+    ['supportsReactions', 'reactions'],
+    ['supportsThreads', 'threads'],
+    ['supportsTypingIndicator', 'typing'],
+    ['supportsEditMessage', 'edit'],
+    ['supportsDeleteMessage', 'delete'],
+    ['supportsRichEmbed', 'richEmbed'],
+    ['supportsInlineButtons', 'inlineButtons'],
+    ['supportsVoice', 'voice'],
+    ['nativeCommands', 'nativeCommands'],
+];
+
+/**
+ * Convert a resolved {@link ChannelCapabilities} matrix (or raw string list) into prompt tags.
+ */
+export function resolveChannelCapabilityList(
+    capabilities: ChannelCapabilities | string[] | undefined | null,
+): string[] {
+    if (!capabilities) {
+        return [];
+    }
+    if (Array.isArray(capabilities)) {
+        return capabilities.map((entry) => String(entry).trim()).filter(Boolean);
+    }
+    if (typeof capabilities !== 'object') {
+        return [];
+    }
+    const tags: string[] = [];
+    for (const [key, tag] of CAPABILITY_TAG_MAP) {
+        if (capabilities[key] === true) {
+            tags.push(tag);
+        }
+    }
+    return tags;
+}

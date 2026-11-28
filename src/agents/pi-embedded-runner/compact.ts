@@ -9,7 +9,10 @@ import {
 } from "@mariozechner/pi-coding-agent";
 import { resolveHeartbeatPrompt } from "../../auto-reply/heartbeat.js";
 import type { ReasoningLevel, ThinkLevel } from "../../auto-reply/thinking.js";
-import { resolveChannelCapabilities } from "../../config/channel-capabilities.js";
+import {
+  resolveChannelCapabilities,
+  resolveChannelCapabilityList,
+} from "../../config/channel-capabilities.js";
 import type { CoreBlowConfig } from "../../config/config.js";
 import {
   ensureContextEnginesInitialized,
@@ -517,11 +520,13 @@ export async function compactEmbeddedPiSessionDirect(
     const machineName = await getMachineDisplayName();
     const runtimeChannel = normalizeMessageChannel(params.messageChannel ?? params.messageProvider);
     let runtimeCapabilities = runtimeChannel
-      ? (resolveChannelCapabilities({
-          cfg: params.config,
-          channel: runtimeChannel,
-          accountId: params.agentAccountId,
-        }) ?? [])
+      ? resolveChannelCapabilityList(
+          resolveChannelCapabilities({
+            cfg: params.config,
+            channel: runtimeChannel,
+            accountId: params.agentAccountId,
+          }),
+        )
       : undefined;
     if (runtimeChannel === "telegram" && params.config) {
       const inlineButtonsScope = resolveTelegramInlineButtonsScope({
@@ -530,14 +535,11 @@ export async function compactEmbeddedPiSessionDirect(
       });
       if (inlineButtonsScope !== "off") {
         if (!runtimeCapabilities) {
-          // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
           runtimeCapabilities = [];
         }
         if (
-          // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
-          !runtimeCapabilities.some((cap: any) => String(cap).trim().toLowerCase() === "inlinebuttons")
+          !runtimeCapabilities.some((cap) => String(cap).trim().toLowerCase() === "inlinebuttons")
         ) {
-          // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
           runtimeCapabilities.push("inlineButtons");
         }
       }
@@ -639,7 +641,6 @@ export async function compactEmbeddedPiSessionDirect(
       ttsHint,
       promptMode,
       acpEnabled: params.config?.acp?.enabled !== false,
-      // @ts-expect-error — API drift (tracked: remove after upstream types fixed)
       runtimeInfo,
       reactionGuidance,
       messageToolHints,
