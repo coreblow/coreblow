@@ -194,6 +194,16 @@ export const AgentDefaultsSchema = z
       .strict()
       .optional(),
     sandbox: AgentSandboxSchema,
+    toolSearch: z
+      .object({
+        enabled: z.union([z.literal("auto"), z.boolean()]).optional(),
+        threshold: z.number().int().min(1).max(500).optional(),
+        thresholdPct: z.number().min(0).max(100).optional(),
+        listingMaxTokens: z.number().int().min(200).max(60000).optional(),
+        coreTools: z.array(z.string()).optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .optional();

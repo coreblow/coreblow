@@ -323,6 +323,26 @@ export type AgentDefaultsConfig = {
   };
   /** Optional sandbox settings for non-main sessions. */
   sandbox?: AgentSandboxConfig;
+  /** Optional progressive-disclosure Tool Search configuration. */
+  toolSearch?: AgentToolSearchConfig;
+};
+
+export type AgentToolSearchConfig = {
+  /**
+   * Enable cache-preserving 3-bridge Tool Search (`tool_search`, `tool_describe`, `tool_call`).
+   * - `"auto"` (default): activates automatically when active tools exceed `threshold`.
+   * - `true`: always defer non-core tools.
+   * - `false`: expose all active tool schemas eagerly.
+   */
+  enabled?: "auto" | boolean;
+  /** Minimum active tool count before `"auto"` mode activates Tool Search (default: 12). */
+  threshold?: number;
+  /** Maximum share (%) of model context window for the compact deferred-tool listing (default: 5). */
+  thresholdPct?: number;
+  /** Hard token cap for the compact deferred-tool listing (default: 4000). */
+  listingMaxTokens?: number;
+  /** Additional tool names to keep eager in the core always-on toolset. */
+  coreTools?: string[];
 };
 
 export type AgentCompactionMode = "default" | "safeguard";

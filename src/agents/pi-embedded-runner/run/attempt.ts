@@ -99,6 +99,7 @@ import {
 import { buildSystemPromptParams } from "../../system-prompt-params.js";
 import { buildSystemPromptReport } from "../../system-prompt-report.js";
 import { sanitizeToolCallIdsForCloudCodeAssist } from "../../tool-call-id.js";
+import { applyToolSearchAssembly } from "../../tool-search/index.js";
 import { resolveTranscriptPolicy } from "../../transcript-policy.js";
 import { DEFAULT_BOOTSTRAP_FILENAME } from "../../workspace.js";
 import { isRunnerAbortError } from "../abort.js";
@@ -477,11 +478,19 @@ export async function runEmbeddedAttempt(
       ...(bundleMcpRuntime?.tools ?? []),
       ...(bundleLspRuntime?.tools ?? []),
     ];
-    const allowedToolNames = collectAllowedToolNames({
+    const toolSearchAssembly = applyToolSearchAssembly({
       tools: effectiveTools,
+      config: params.config,
+      provider: params.provider,
+      modelId: params.modelId,
+      contextWindowTokens: params.model.contextWindow,
+    });
+    const modelVisibleTools = toolSearchAssembly.tools;
+    const allowedToolNames = collectAllowedToolNames({
+      tools: [...effectiveTools, ...modelVisibleTools],
       clientTools,
     });
-    logToolSchemasForGoogle({ tools: effectiveTools, provider: params.provider });
+    logToolSchemasForGoogle({ tools: modelVisibleTools, provider: params.provider });
 
     const machineName = await getMachineDisplayName();
     const runtimeChannel = normalizeMessageChannel(params.messageChannel ?? params.messageProvider);
@@ -619,7 +628,7 @@ export async function runEmbeddedAttempt(
       runtimeInfo,
       messageToolHints,
       sandboxInfo,
-      tools: effectiveTools,
+      tools: modelVisibleTools,
       modelAliasLines: buildModelAliasLines(params.config),
       userTimezone,
       userTime,
@@ -653,7 +662,7 @@ export async function runEmbeddedAttempt(
       bootstrapFiles: hookAdjustedBootstrapFiles as never,
       injectedFiles: contextFiles as never,
       skillsPrompt,
-      tools: effectiveTools,
+      tools: modelVisibleTools,
     });
     const systemPromptOverride = createSystemPromptOverride(appendPrompt);
     let systemPromptText = systemPromptOverride();
@@ -679,6 +688,10 @@ export async function runEmbeddedAttempt(
       }
     } catch (err) {
       log.warn(`cognitive context assembly skipped: ${String(err)}`);
+    }
+
+    if (toolSearchAssembly.catalogListing) {
+      systemPromptText = `${systemPromptText}\n\n${toolSearchAssembly.catalogListing}`;
     }
 
     const sessionLock = await acquireSessionWriteLock({
@@ -789,7 +802,7 @@ export async function runEmbeddedAttempt(
       const hookRunner = getGlobalHookRunner();
 
       const { customTools } = splitSdkTools({
-        tools: effectiveTools,
+        tools: modelVisibleTools,
         sandboxEnabled: !!sandbox?.enabled,
       });
 
