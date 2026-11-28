@@ -6,6 +6,7 @@ import {
   buildBootstrapTruncationReportMeta,
   analyzeBootstrapBudget,
 } from "../bootstrap-budget.js";
+import { resolveBootstrapRunContextFields } from "../bootstrap-context-fields.js";
 import { makeBootstrapWarn, resolveBootstrapContextForRun } from "../bootstrap-files.js";
 import { resolveCliBackendConfig } from "../cli-backends.js";
 import { hashCliSessionText, resolveCliSessionReuse } from "../cli-session.js";
@@ -122,9 +123,12 @@ export async function prepareCliRunContext(
   const modelDisplay = `${params.provider}/${modelId}`;
 
   const sessionLabel = params.sessionKey ?? params.sessionId;
-  const { files: bootstrapFiles, content: contextFiles } = await resolveBootstrapContextForRun({
-    workspaceDir,
-  } as Parameters<typeof resolveBootstrapContextForRun>[0]);
+  const { bootstrapFiles, contextFiles } = resolveBootstrapRunContextFields(
+    await resolveBootstrapContextForRun({
+      workspaceDir,
+      config: params.config,
+    } as Parameters<typeof resolveBootstrapContextForRun>[0]),
+  );
   const bootstrapMaxChars = resolveBootstrapMaxChars(params.config);
   const bootstrapTotalMaxChars = resolveBootstrapTotalMaxChars(params.config);
   const bootstrapAnalysis = analyzeBootstrapBudget({

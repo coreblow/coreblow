@@ -43,6 +43,7 @@ import {
   buildBootstrapInjectionStats,
   prependBootstrapPromptWarning,
 } from "../../bootstrap-budget.js";
+import { resolveBootstrapRunContextFields } from "../../bootstrap-context-fields.js";
 import { makeBootstrapWarn, resolveBootstrapContextForRun } from "../../bootstrap-files.js";
 import { createCacheTrace } from "../../cache-trace.js";
 import {
@@ -331,11 +332,14 @@ export async function runEmbeddedAttempt(
     });
 
     const sessionLabel = params.sessionKey ?? params.sessionId;
-    const { files: hookAdjustedBootstrapFiles, content: contextFiles } =
-      await resolveBootstrapContextForRun({
-        workspaceDir: effectiveWorkspace,
-        contextMode: params.bootstrapContextMode,
-      } as Parameters<typeof resolveBootstrapContextForRun>[0]);
+    const { bootstrapFiles: hookAdjustedBootstrapFiles, contextFiles } =
+      resolveBootstrapRunContextFields(
+        await resolveBootstrapContextForRun({
+          workspaceDir: effectiveWorkspace,
+          config: params.config,
+          contextMode: params.bootstrapContextMode,
+        } as Parameters<typeof resolveBootstrapContextForRun>[0]),
+      );
     const bootstrapMaxChars = resolveBootstrapMaxChars(params.config);
     const bootstrapTotalMaxChars = resolveBootstrapTotalMaxChars(params.config);
     const bootstrapAnalysis = analyzeBootstrapBudget({

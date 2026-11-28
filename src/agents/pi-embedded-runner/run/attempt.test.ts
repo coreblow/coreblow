@@ -1,3 +1,6 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { resolveHeartbeatPrompt } from "../../../auto-reply/heartbeat.js";
 import type { CoreBlowConfig } from "../../../config/config.js";
@@ -9,6 +12,8 @@ import {
   wrapOllamaCompatNumCtx,
 } from "../../../plugin-sdk/ollama.js";
 import { appendBootstrapPromptWarning } from "../../bootstrap-budget.js";
+import { resolveBootstrapRunContextFields } from "../../bootstrap-context-fields.js";
+import { resolveBootstrapContextForRun } from "../../bootstrap-files.js";
 import { buildAgentSystemPrompt } from "../../system-prompt.js";
 import { buildEmbeddedSystemPrompt } from "../system-prompt.js";
 import {
@@ -1996,5 +2001,49 @@ describe("buildAfterTurnRuntimeContext", () => {
       currentThreadTs: "thread-9",
       currentMessageId: "msg-42",
     });
+  });
+
+  it("normalizes workspace bootstrap contextFiles as EmbeddedContextFile[] for embedded system prompt", async () => {
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "coreblow-attempt-ctx-"));
+    try {
+      await fs.writeFile(path.join(tmpDir, "AGENTS.md"), "# Workspace Rules\nStay green.", "utf8");
+      const resolved = await resolveBootstrapContextForRun({ workspaceDir: tmpDir });
+      expect(typeof resolved.content).toBe("string");
+      expect(Array.isArray(resolved.contextFiles)).toBe(true);
+
+      const { bootstrapFiles, contextFiles } = resolveBootstrapRunContextFields(resolved);
+      expect(bootstrapFiles.length).toBeGreaterThan(0);
+      expect(Array.isArray(contextFiles)).toBe(true);
+      expect(contextFiles[0]?.content).toContain("Stay green.");
+
+      const prompt = buildEmbeddedSystemPrompt({
+        workspaceDir: tmpDir,
+        reasoningLevel: "off",
+        reasoningTagHint: false,
+        runtimeInfo: {
+          host: "host",
+          os: "Darwin",
+          arch: "arm64",
+          node: "v22.0.0",
+          model: "ollama/gemma4:12b",
+        },
+        modelAliasLines: [],
+        userTimezone: "UTC",
+        tools: [],
+        contextFiles,
+      });
+      expect(prompt).toContain("# Project Context");
+      expect(prompt).toContain("Stay green.");
+
+      // Defensive guard against malformed non-array contextFiles callers
+      const guarded = buildAgentSystemPrompt({
+        workspaceDir: tmpDir,
+        toolNames: [],
+        contextFiles: "raw-string-content" as never,
+      });
+      expect(typeof guarded).toBe("string");
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
   });
 });

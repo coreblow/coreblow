@@ -563,8 +563,9 @@ export function buildAgentSystemPrompt(params: SystemPromptParams): string {
     }
 
     // Context files
-    const validContextFiles = (params.contextFiles ?? []).filter(
-        (f) => typeof f.path === 'string' && f.path.trim().length > 0,
+    const rawContextFiles = Array.isArray(params.contextFiles) ? params.contextFiles : [];
+    const validContextFiles = rawContextFiles.filter(
+        (f) => f && typeof f.path === 'string' && f.path.trim().length > 0,
     );
     if (validContextFiles.length > 0) {
         lines.push('# Project Context', '');
