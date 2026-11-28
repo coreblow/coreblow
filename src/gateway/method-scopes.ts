@@ -102,6 +102,10 @@ const METHOD_SCOPE_GROUPS: Record<OperatorScope, readonly string[]> = {
     "talk.config",
     "agents.files.list",
     "agents.files.get",
+    "goals.list",
+    "goals.get",
+    "goals.draft",
+    "goals.command",
   ],
   [WRITE_SCOPE]: [
     "send",
@@ -126,6 +130,9 @@ const METHOD_SCOPE_GROUPS: Record<OperatorScope, readonly string[]> = {
     "sessions.abort",
     "push.test",
     "node.pending.enqueue",
+    "goals.set",
+    "goals.wait",
+    "goals.cancel",
   ],
   [TALK_SECRETS_SCOPE]: [],
   [ADMIN_SCOPE]: [
