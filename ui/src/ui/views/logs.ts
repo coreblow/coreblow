@@ -70,10 +70,10 @@ export class LogsView extends LitElement {
         <div class="card">
            <div style="display: flex; align-items: center; gap: 12px;">
               <div style="flex: 1;">
-                 <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                 <h1 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
                     ${renderIcon("scrollText", "16px")}
                     <span>${t("logs.title")}</span>
-                 </div>
+                 </h1>
                  <div class="card-sub">${t("logs.entriesSummary", { shown: String(entries.length), total: String(totalCount) })}</div>
               </div>
               <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px; display: inline-flex; align-items: center; gap: 6px;"
@@ -84,7 +84,8 @@ export class LogsView extends LitElement {
 
            <!-- Filters -->
            <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <input style="flex: 1; min-width: 200px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px;"
+              <input aria-label=${t("logs.filterPlaceholder")}
+                     style="flex: 1; min-width: 200px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px;"
                      placeholder=${t("logs.filterPlaceholder")}
                      .value=${this.filterText}
                      @input=${(e: Event) => this.filterText = (e.target as HTMLInputElement).value} />

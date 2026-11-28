@@ -410,11 +410,11 @@ export class ChannelsView extends LitElement {
         >
           <div>
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span
-                style="font-size: 20px; font-weight: 700; color: var(--text-strong); letter-spacing: -0.02em;"
+              <h1
+                style="font-size: 20px; font-weight: 700; margin: 0; color: var(--text-strong); letter-spacing: -0.02em;"
               >
                 Channels
-              </span>
+              </h1>
               <span
                 style="display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 3px 9px; border-radius: 12px; background: ${isConnected
                   ? "var(--surface-flat-hover)"
@@ -443,13 +443,15 @@ export class ChannelsView extends LitElement {
             <div style="position: relative; width: 220px;">
               <input
                 type="text"
+                aria-label="Search channels"
                 placeholder="Search channels..."
-                style="width: 100%; background: var(--card); border: 1px solid var(--border-hairline); padding: 7px 10px 7px 30px; border-radius: var(--radius-sm); color: var(--text-strong); font-size: 12px; font-family: var(--mono); outline: none;"
+                style="width: 100%; background: var(--card); border: 1px solid var(--border-hairline); padding: 7px 28px 7px 30px; border-radius: var(--radius-sm); color: var(--text-strong); font-size: 12px; font-family: var(--mono);"
                 .value=${this.searchQuery}
                 @input=${(e: Event) => (this.searchQuery = (e.target as HTMLInputElement).value)}
               />
               <span
-                style="position: absolute; left: 9px; top: 8px; width: 14px; height: 14px; color: var(--muted); pointer-events: none;"
+                aria-hidden="true"
+                style="position: absolute; left: 9px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--muted); pointer-events: none;"
               >
                 ${renderIcon("search")}
               </span>
@@ -457,7 +459,8 @@ export class ChannelsView extends LitElement {
                 ? html`
                     <button
                       type="button"
-                      style="position: absolute; right: 8px; top: 8px; width: 14px; height: 14px; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0;"
+                      aria-label="Clear channel search"
+                      style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
                       @click=${() => (this.searchQuery = "")}
                     >
                       ${renderIcon("x")}
@@ -605,12 +608,13 @@ export class ChannelsView extends LitElement {
                         <button
                           type="button"
                           role="switch"
+                          aria-label="Toggle ${ch.name} channel"
                           aria-checked="${ch.enabled}"
                           style="width: 36px; height: 20px; border-radius: 10px; background: ${ch.enabled
                             ? "var(--accent)"
                             : "var(--bg-muted)"}; border: 1px solid ${ch.enabled
                             ? "var(--accent)"
-                            : "var(--border-hairline)"}; cursor: pointer; position: relative; padding: 0; outline: none; transition: background 0.2s ease;"
+                            : "var(--border-hairline)"}; cursor: pointer; position: relative; padding: 0; transition: background 0.2s ease;"
                           title="${ch.enabled ? "Disable channel" : "Enable channel"}"
                           @click=${() => this.toggleChannelEnabled(ch)}
                         >
@@ -626,6 +630,7 @@ export class ChannelsView extends LitElement {
                         <!-- Expand Config Drawer -->
                         <button
                           type="button"
+                          aria-expanded="${isExpanded}"
                           style="background: transparent; border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 5px 10px; color: var(--text); font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px;"
                           @click=${() => {
                             this.expandedChannelId = isExpanded ? null : ch.id;
@@ -646,11 +651,12 @@ export class ChannelsView extends LitElement {
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
                               <!-- dmScope Selector -->
                               <div>
-                                <label style="display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-strong); margin-bottom: 6px;">
+                                <label for="ch-scope-${ch.id}" style="display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-strong); margin-bottom: 6px;">
                                   DM Session Scope
                                 </label>
                                 <select
-                                  style="width: 100%; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); color: var(--text-strong); padding: 7px 10px; font-size: 12px; font-family: var(--mono); outline: none;"
+                                  id="ch-scope-${ch.id}"
+                                  style="width: 100%; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); color: var(--text-strong); padding: 7px 10px; font-size: 12px; font-family: var(--mono);"
                                   @change=${(e: Event) =>
                                     this.updateDmScope(
                                       ch,
@@ -674,15 +680,16 @@ export class ChannelsView extends LitElement {
 
                               <!-- Bot Token / Secret Credential -->
                               <div>
-                                <label style="display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-strong); margin-bottom: 6px;">
+                                <label for="ch-token-${ch.id}" style="display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-strong); margin-bottom: 6px;">
                                   Bot Token / API Secret
                                 </label>
                                 <div style="display: flex; gap: 8px;">
                                   <div style="position: relative; flex: 1;">
                                     <input
+                                      id="ch-token-${ch.id}"
                                       type=${isRevealed ? "text" : "password"}
                                       placeholder="••••••••••••••••"
-                                      style="width: 100%; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); color: var(--text-strong); padding: 7px 32px 7px 10px; font-size: 12px; font-family: var(--mono); outline: none;"
+                                      style="width: 100%; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); color: var(--text-strong); padding: 7px 32px 7px 10px; font-size: 12px; font-family: var(--mono);"
                                       .value=${currentToken}
                                       @input=${(e: Event) => {
                                         this.editedTokens.set(ch.id, (e.target as HTMLInputElement).value);
@@ -691,7 +698,8 @@ export class ChannelsView extends LitElement {
                                     />
                                     <button
                                       type="button"
-                                      style="position: absolute; right: 6px; top: 6px; width: 20px; height: 20px; background: transparent; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;"
+                                      aria-label=${isRevealed ? `Hide ${ch.name} token` : `Reveal ${ch.name} token`}
+                                      style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; background: transparent; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;"
                                       title="${isRevealed ? "Hide token" : "Reveal token"}"
                                       @click=${() => this.toggleRevealSecret(ch.id)}
                                     >

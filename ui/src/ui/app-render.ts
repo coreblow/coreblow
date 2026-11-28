@@ -20,6 +20,7 @@ import "./views/mcp.ts";
 
 export function renderApp(app: CoreBlowApp) {
   return html`
+    <a href="#main-content" class="skip-link visually-hidden">Skip to main content</a>
     <div class="shell ${app.navDrawerOpen ? "shell--nav-open" : ""}">
       <!-- Topbar -->
       <header class="topbar">
@@ -38,7 +39,8 @@ export function renderApp(app: CoreBlowApp) {
               <button
                 type="button"
                 class="pill"
-                style="cursor: pointer; height: 30px; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px; background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--muted); font-size: 11px; white-space: nowrap;"
+                aria-label="Open Command Palette (⌘K)"
+                style="cursor: pointer; min-height: 36px; height: 36px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--muted); font-size: 11px; white-space: nowrap;"
                 title="Command Palette (⌘K)"
                 @click=${() => {
                   const palette = document.querySelector("coreblow-command-palette") as {
@@ -60,8 +62,10 @@ export function renderApp(app: CoreBlowApp) {
             <!-- Light/Dark Mode Toggle -->
             <div class="topbar-status">
               <button
+                type="button"
                 class="pill"
-                style="cursor: pointer; width: 30px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--text);"
+                aria-label="Toggle Light / Dark Mode"
+                style="cursor: pointer; min-width: 36px; width: 36px; min-height: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--text);"
                 title="Toggle Light / Dark Mode"
                 @click=${() => app.toggleThemeMode()}
               >
@@ -76,8 +80,10 @@ export function renderApp(app: CoreBlowApp) {
             <!-- Theme Family Switcher -->
             <div class="topbar-status">
               <button
+                type="button"
                 class="pill"
-                style="cursor: pointer; height: 30px; padding: 0 11px; display: inline-flex; align-items: center; gap: 6px; background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); font-size: 12px; white-space: nowrap;"
+                aria-label="Switch CoreBlow Theme (${app.theme})"
+                style="cursor: pointer; min-height: 36px; height: 36px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); font-size: 12px; white-space: nowrap;"
                 title="Switch CoreBlow Theme (${app.theme})"
                 @click=${() => {
                   app.setTheme(
@@ -99,7 +105,7 @@ export function renderApp(app: CoreBlowApp) {
             <div class="topbar-status">
               <div
                 class="pill"
-                style="height: 30px; padding: 0 11px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;"
+                style="min-height: 36px; height: 36px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;"
               >
                 <div class="statusDot ${app.connected ? "ok" : ""}"></div>
                 ${app.connected ? "Online" : "Offline"}
@@ -110,7 +116,7 @@ export function renderApp(app: CoreBlowApp) {
       </header>
 
       <!-- Navigation Sidebar -->
-      <nav class="shell-nav">
+      <nav class="shell-nav" aria-label="Primary">
         <div class="sidebar">
           <div class="sidebar-shell">
             <div class="sidebar-shell__header">
@@ -129,12 +135,13 @@ export function renderApp(app: CoreBlowApp) {
             </div>
 
             <div class="sidebar-shell__body">
-              <div class="sidebar-nav" style="display: flex; flex-direction: column; gap: 4px;">
+              <div class="sidebar-nav">
                 ${TAB_GROUPS.flatMap((group) => group.tabs).map(
                   (tab: any) => html`
                     <button
                       type="button"
                       class="nav-item ${app.tab === tab ? "nav-item--active active" : ""}"
+                      aria-current=${app.tab === tab ? "page" : "false"}
                       style="width: 100%; text-align: left; font: inherit;"
                       @click=${() => app.setTab(tab)}
                     >
@@ -195,11 +202,11 @@ export function renderApp(app: CoreBlowApp) {
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
                 <button
                   type="button"
-                  style="display: flex; align-items: center; justify-content: center; gap: 4px; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 5px 6px; font-size: 10px; font-weight: 500; color: ${app.connected
+                  style="display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 28px; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 5px 6px; font-size: 10px; font-weight: 500; color: ${app.connected
                     ? "var(--text)"
                     : "var(--muted)"}; cursor: ${app.connected && !app.gatewayRestarting
                     ? "pointer"
-                    : "default"}; opacity: ${app.connected ? "1" : "0.6"}; outline: none;"
+                    : "default"}; opacity: ${app.connected ? "1" : "0.6"};"
                   title=${app.connected ? "Restart Gateway process" : "Gateway is offline"}
                   ?disabled=${!app.connected || app.gatewayRestarting}
                   @click=${() => app.restartGateway()}
@@ -212,11 +219,11 @@ export function renderApp(app: CoreBlowApp) {
 
                 <button
                   type="button"
-                  style="display: flex; align-items: center; justify-content: center; gap: 4px; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 5px 6px; font-size: 10px; font-weight: 500; color: ${app.connected
+                  style="display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 28px; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 5px 6px; font-size: 10px; font-weight: 500; color: ${app.connected
                     ? "var(--text)"
                     : "var(--muted)"}; cursor: ${app.connected && !app.updateChecking
                     ? "pointer"
-                    : "default"}; opacity: ${app.connected ? "1" : "0.6"}; outline: none;"
+                    : "default"}; opacity: ${app.connected ? "1" : "0.6"};"
                   title=${app.connected ? "Check for CoreBlow updates" : "Gateway is offline"}
                   ?disabled=${!app.connected || app.updateChecking}
                   @click=${() => app.checkUpdate()}
@@ -252,7 +259,7 @@ export function renderApp(app: CoreBlowApp) {
       </nav>
 
       <!-- Main Content Area -->
-      <main class="content" style="padding: var(--shell-pad); overflow-y: auto;">
+      <main id="main-content" tabindex="-1" class="content" style="padding: var(--shell-pad); overflow-y: auto;">
         ${renderCurrentTab(app)}
       </main>
     </div>

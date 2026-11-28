@@ -729,6 +729,33 @@ select {
   box-shadow: var(--focus-ring);
 }
 
+/* Visually hidden accessibility utility (keeps element in a11y tree) */
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
+.skip-link:focus-visible {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 10001;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--primary-foreground);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
 /* ==========================================================================
    CSS-Driven Icon Engine (Modern Web Guidance Standard)
    ========================================================================== */

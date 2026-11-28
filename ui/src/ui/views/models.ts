@@ -512,9 +512,11 @@ export class ModelsView extends LitElement {
           <div style="display: flex; align-items: center; gap: 8px;">
             <!-- Routing Mode Selector -->
             <div style="display: flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--border-hairline); padding: 4px 10px; border-radius: var(--radius-sm); font-size: 12px;">
-              <span style="color: var(--muted); font-size: 11px; text-transform: uppercase; font-weight: 600;">Mode</span>
+              <label for="models-routing-mode" style="color: var(--muted); font-size: 11px; text-transform: uppercase; font-weight: 600;">Mode</label>
               <select
-                style="background: transparent; border: none; color: var(--accent); font-weight: 600; font-size: 12px; cursor: pointer; outline: none;"
+                id="models-routing-mode"
+                aria-label="Model routing mode"
+                style="background: transparent; border: none; color: var(--accent); font-weight: 600; font-size: 12px; cursor: pointer;"
                 .value=${this.routingMode}
                 @change=${(e: Event) => this.setRoutingMode((e.target as HTMLSelectElement).value as any)}
               >
@@ -620,8 +622,10 @@ export class ModelsView extends LitElement {
 
         <!-- Provider Credentials Slots (Collapsible / Accordion) -->
         <div style="background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); overflow: hidden;">
-          <div
-            style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); background: var(--surface-flat-muted); cursor: pointer;"
+          <button
+            type="button"
+            aria-expanded="${this.expandedProviderId === "all-providers"}"
+            style="width: 100%; font: inherit; text-align: left; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border: none; border-bottom: 1px solid var(--border-subtle); background: var(--surface-flat-muted); cursor: pointer;"
             @click=${() =>
               (this.expandedProviderId = this.expandedProviderId === "all-providers" ? null : "all-providers")}
           >
@@ -632,13 +636,12 @@ export class ModelsView extends LitElement {
               </span>
               <span style="font-size: 11px; color: var(--muted);">(${activeProviders} configured)</span>
             </div>
-            <button
-              type="button"
-              style="background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 11px; font-weight: 600; text-transform: uppercase;"
+            <span
+              style="color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase;"
             >
               ${this.expandedProviderId === "all-providers" ? "Hide Keys" : "Configure Keys"}
-            </button>
-          </div>
+            </span>
+          </button>
 
           ${this.expandedProviderId === "all-providers"
             ? html`
@@ -660,6 +663,7 @@ export class ModelsView extends LitElement {
                           <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 11px; color: var(--muted);">
                             <input
                               type="checkbox"
+                              aria-label="Enable ${p.name} provider"
                               style="accent-color: var(--accent);"
                               .checked=${p.enabled}
                               @change=${() => this.toggleProviderEnabled(p)}
@@ -678,8 +682,9 @@ export class ModelsView extends LitElement {
                               <div style="display: flex; align-items: center; gap: 6px;">
                                 <input
                                   type=${isRevealed ? "text" : "password"}
+                                  aria-label="${p.name} API Key"
                                   placeholder="Enter ${p.name} API Key"
-                                  style="flex: 1; background: var(--card); border: 1px solid var(--border-hairline); color: var(--text-strong); font-family: var(--mono); font-size: 11px; padding: 6px 10px; border-radius: var(--radius-sm); outline: none;"
+                                  style="flex: 1; background: var(--card); border: 1px solid var(--border-hairline); color: var(--text-strong); font-family: var(--mono); font-size: 11px; padding: 6px 10px; border-radius: var(--radius-sm);"
                                   .value=${displayValue}
                                   @input=${(e: Event) => {
                                     const val = (e.target as HTMLInputElement).value;
@@ -689,7 +694,8 @@ export class ModelsView extends LitElement {
                                 />
                                 <button
                                   type="button"
-                                  style="background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--muted); padding: 6px 8px; border-radius: var(--radius-sm); cursor: pointer;"
+                                  aria-label=${isRevealed ? `Hide ${p.name} Key` : `Reveal ${p.name} Key`}
+                                  style="background: var(--surface-flat-muted); border: 1px solid var(--border-hairline); color: var(--muted); padding: 6px 8px; border-radius: var(--radius-sm); cursor: pointer; min-width: 28px; min-height: 28px;"
                                   title=${isRevealed ? "Hide Key" : "Reveal Key"}
                                   @click=${() => this.toggleRevealKey(p.id)}
                                 >
@@ -742,8 +748,9 @@ export class ModelsView extends LitElement {
           <div style="position: relative; min-width: 240px;">
             <input
               type="text"
+              aria-label="Search models by name or id"
               placeholder="Search models by name or id..."
-              style="width: 100%; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 6px 10px 6px 30px; font-size: 12px; color: var(--text-strong); outline: none;"
+              style="width: 100%; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 6px 10px 6px 30px; font-size: 12px; color: var(--text-strong);"
               .value=${this.searchQuery}
               @input=${(e: Event) => (this.searchQuery = (e.target as HTMLInputElement).value)}
             />

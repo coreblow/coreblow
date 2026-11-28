@@ -128,10 +128,10 @@ export class AgentsView extends LitElement {
       }
       return html`
          <div class="card">
-            <div class="card-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px;">
+            <h2 class="card-title" style="margin: 0; font-size: 14px; display: flex; align-items: center; gap: 8px;">
                ${renderIcon("wrench", "16px", "color: var(--muted);")}
                <span>${t("agents.registeredTools")}</span>
-            </div>
+            </h2>
             <div class="card-sub">${t("agents.toolsAvailable", { count: String(this.tools.length) })}</div>
             <div style="margin-top: 12px;">
                ${[...grouped.entries()].map(([cat, items]) => html`
@@ -157,10 +157,10 @@ export class AgentsView extends LitElement {
          <div class="card">
             <div style="display: flex; align-items: center; gap: 12px;">
                <div style="flex: 1;">
-                  <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                  <h1 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
                      ${renderIcon("bot", "18px", "color: var(--accent);")}
                      <span>${t("agents.title")}</span>
-                  </div>
+                  </h1>
                   <div class="card-sub">${t("agents.activeSummary", { count: String(this.agents.length) })}</div>
                </div>
                <button class="btn" style="background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;"
@@ -179,11 +179,13 @@ export class AgentsView extends LitElement {
                <div style="margin-top: 16px; padding: 16px; background: var(--bg-elevated); border-radius: var(--radius-sm); border: 1px solid var(--border);">
                   <div style="font-weight: 600; font-size: 13px; margin-bottom: 10px;">${t("agents.createAgent")}</div>
                   <div style="display: grid; gap: 8px;">
-                     <input style="background: var(--bg-surface, #1a1a2e); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
+                     <input aria-label=${t("agents.modelPlaceholder")}
+                            style="background: var(--bg-surface, #1a1a2e); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--mono); font-size: 12px;"
                             placeholder=${t("agents.modelPlaceholder")}
                             .value=${this.newModel}
                             @input=${(e: Event) => this.newModel = (e.target as HTMLInputElement).value} />
-                     <textarea style="background: var(--bg-surface, #1a1a2e); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px; resize: vertical; min-height: 60px;"
+                     <textarea aria-label=${t("agents.systemPromptPlaceholder")}
+                               style="background: var(--bg-surface, #1a1a2e); border: 1px solid var(--border); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px; resize: vertical; min-height: 60px;"
                                placeholder=${t("agents.systemPromptPlaceholder")}
                                .value=${this.newPrompt}
                                @input=${(e: Event) => this.newPrompt = (e.target as HTMLTextAreaElement).value}></textarea>

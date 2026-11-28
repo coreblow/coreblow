@@ -371,6 +371,8 @@ export function renderSchemaField(ctx: FieldRenderContext): TemplateResult {
   const nodeType = resolveNodeType(schema);
   const enumOptions = resolveEnumOptions(schema);
   const fieldLabel = schema.title || formatSectionLabel(key);
+  const fieldId = `cb-cfg-${path.replace(/[^a-zA-Z0-9_-]+/g, "-")}`;
+  const labelId = `${fieldId}-label`;
 
   // Nested Object (up to depth 2)
   if (nodeType === "object" && schema.properties && depth < 2) {
@@ -383,9 +385,11 @@ export function renderSchemaField(ctx: FieldRenderContext): TemplateResult {
         class="cb-schema-nested ${isModified ? "modified" : ""}"
         style="margin: 20px 0 10px;"
       >
-        <div
+        <button
+          type="button"
           class="cb-nested-header"
-          style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle);"
+          aria-expanded="${!isCollapsed}"
+          style="width: 100%; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; padding: 0 0 8px; background: transparent; border: none; border-bottom: 1px solid var(--border-subtle); font: inherit; text-align: left;"
           @click=${() => onToggleCollapse(path)}
         >
           <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-strong);">${fieldLabel}</span>
@@ -397,7 +401,7 @@ export function renderSchemaField(ctx: FieldRenderContext): TemplateResult {
           >
             ${countLeafFields(schema, depth)} fields
           </span>
-        </div>
+        </button>
         ${!isCollapsed
           ? html`
               <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 8px;">
@@ -431,7 +435,7 @@ export function renderSchemaField(ctx: FieldRenderContext): TemplateResult {
     >
       <div style="flex: 1; min-width: 220px;">
         <div style="display: flex; align-items: center; gap: 6px;">
-          <span style="font-size: 12px; font-weight: 600; color: var(--text-strong);">${fieldLabel}</span>
+          <label id="${labelId}" for="${fieldId}" style="font-size: 12px; font-weight: 600; color: var(--text-strong); cursor: pointer;">${fieldLabel}</label>
           ${isModified
             ? html`<span style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block;"></span>`
             : ""}
@@ -446,22 +450,26 @@ export function renderSchemaField(ctx: FieldRenderContext): TemplateResult {
         ${nodeType === "boolean"
           ? html`
               <button
+                id="${fieldId}"
                 type="button"
                 role="switch"
                 aria-checked="${Boolean(value)}"
+                aria-labelledby="${labelId}"
                 class="cb-toggle-switch ${value ? "active" : ""}"
-                style="width: 40px; height: 22px; border-radius: 11px; background: ${value ? "var(--accent)" : "var(--bg-muted)"}; border: 1px solid ${value ? "var(--accent)" : "var(--border-hairline)"}; cursor: pointer; position: relative; padding: 0; outline: none; transition: background 0.2s ease;"
+                style="width: 40px; height: 22px; min-width: 40px; min-height: 24px; border-radius: 12px; background: ${value ? "var(--accent)" : "var(--bg-muted)"}; border: 1px solid ${value ? "var(--accent)" : "var(--border-hairline)"}; cursor: pointer; position: relative; padding: 0; transition: background 0.2s ease;"
                 @click=${() => onChange(path, !value)}
               >
                 <span
-                  style="display: block; width: 16px; height: 16px; border-radius: 50%; background: ${value ? "var(--primary-foreground)" : "var(--muted)"}; position: absolute; top: 2px; left: ${value ? "20px" : "2px"}; transition: left 0.2s ease;"
+                  style="display: block; width: 16px; height: 16px; border-radius: 50%; background: ${value ? "var(--primary-foreground)" : "var(--muted)"}; position: absolute; top: 3px; left: ${value ? "20px" : "2px"}; transition: left 0.2s ease;"
                 ></span>
               </button>
             `
           : nodeType === "enum" && enumOptions
             ? html`
                 <select
-                  style="width: 100%; background: var(--input, var(--bg-elevated)); border: 1px solid ${isModified ? "var(--accent)" : "var(--border-hairline)"}; border-radius: var(--radius-sm); color: var(--text-strong); padding: 7px 10px; font-size: 12px; font-family: var(--mono); outline: none;"
+                  id="${fieldId}"
+                  aria-labelledby="${labelId}"
+                  style="width: 100%; min-height: 36px; background: var(--input, var(--bg-elevated)); border: 1px solid ${isModified ? "var(--accent)" : "var(--border-hairline)"}; border-radius: var(--radius-sm); color: var(--text-strong); padding: 7px 10px; font-size: 12px; font-family: var(--mono);"
                   @change=${(e: Event) => onChange(path, (e.target as HTMLSelectElement).value)}
                 >
                   <option value="" ?selected=${value === undefined || value === null}>-- select --</option>
@@ -474,8 +482,10 @@ export function renderSchemaField(ctx: FieldRenderContext): TemplateResult {
             : nodeType === "number"
               ? html`
                   <input
+                    id="${fieldId}"
                     type="number"
-                    style="width: 100%; background: var(--input, var(--bg-elevated)); border: 1px solid ${isModified ? "var(--accent)" : "var(--border-hairline)"}; border-radius: var(--radius-sm); color: var(--text-strong); padding: 7px 10px; font-size: 12px; font-family: var(--mono); outline: none;"
+                    aria-labelledby="${labelId}"
+                    style="width: 100%; min-height: 36px; background: var(--input, var(--bg-elevated)); border: 1px solid ${isModified ? "var(--accent)" : "var(--border-hairline)"}; border-radius: var(--radius-sm); color: var(--text-strong); padding: 7px 10px; font-size: 12px; font-family: var(--mono);"
                     .value=${value !== undefined && value !== null ? String(value) : ""}
                     min=${schema.minimum ?? schema.exclusiveMinimum ?? ""}
                     max=${schema.maximum ?? schema.exclusiveMaximum ?? ""}
@@ -488,9 +498,11 @@ export function renderSchemaField(ctx: FieldRenderContext): TemplateResult {
               : nodeType === "array"
                 ? html`
                     <input
+                      id="${fieldId}"
                       type="text"
+                      aria-labelledby="${labelId}"
                       placeholder="comma-separated values"
-                      style="width: 100%; background: var(--input, var(--bg-elevated)); border: 1px solid ${isModified ? "var(--accent)" : "var(--border-hairline)"}; border-radius: var(--radius-sm); color: var(--text-strong); padding: 7px 10px; font-size: 12px; font-family: var(--mono); outline: none;"
+                      style="width: 100%; min-height: 36px; background: var(--input, var(--bg-elevated)); border: 1px solid ${isModified ? "var(--accent)" : "var(--border-hairline)"}; border-radius: var(--radius-sm); color: var(--text-strong); padding: 7px 10px; font-size: 12px; font-family: var(--mono);"
                       .value=${Array.isArray(value) ? value.join(", ") : ""}
                       @change=${(e: Event) => {
                         const raw = (e.target as HTMLInputElement).value.trim();
@@ -510,9 +522,11 @@ export function renderSchemaField(ctx: FieldRenderContext): TemplateResult {
                   ? html`
                       <div style="position: relative; width: 100%; display: flex; align-items: center;">
                         <input
+                          id="${fieldId}"
                           type=${isSecret && !isRevealed ? "password" : "text"}
+                          aria-labelledby="${labelId}"
                           placeholder=${schema.default !== undefined ? String(schema.default) : ""}
-                          style="width: 100%; background: var(--input, var(--bg-elevated)); border: 1px solid ${isModified ? "var(--accent)" : "var(--border-hairline)"}; border-radius: var(--radius-sm); color: var(--text-strong); padding: 7px 10px; padding-right: ${isSecret ? "34px" : "10px"}; font-size: 12px; font-family: var(--mono); outline: none;"
+                          style="width: 100%; min-height: 36px; background: var(--input, var(--bg-elevated)); border: 1px solid ${isModified ? "var(--accent)" : "var(--border-hairline)"}; border-radius: var(--radius-sm); color: var(--text-strong); padding: 7px 10px; padding-right: ${isSecret ? "36px" : "10px"}; font-size: 12px; font-family: var(--mono);"
                           .value=${value !== undefined && value !== null ? String(value) : ""}
                           @change=${(e: Event) => onChange(path, (e.target as HTMLInputElement).value)}
                         />
@@ -520,7 +534,8 @@ export function renderSchemaField(ctx: FieldRenderContext): TemplateResult {
                           ? html`
                               <button
                                 type="button"
-                                style="position: absolute; right: 6px; width: 22px; height: 22px; background: transparent; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;"
+                                aria-label=${isRevealed ? `Mask ${fieldLabel}` : `Reveal ${fieldLabel}`}
+                                style="position: absolute; right: 4px; width: 26px; height: 26px; background: transparent; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;"
                                 title=${isRevealed ? "Mask Secret" : "Reveal Secret"}
                                 @click=${() => onToggleReveal(path)}
                               >
@@ -532,8 +547,10 @@ export function renderSchemaField(ctx: FieldRenderContext): TemplateResult {
                     `
                   : html`
                       <textarea
+                        id="${fieldId}"
                         rows="3"
-                        style="width: 100%; background: var(--input, var(--bg-elevated)); border: 1px solid ${isModified ? "var(--accent)" : "var(--border-hairline)"}; border-radius: var(--radius-sm); color: var(--text-strong); padding: 6px 10px; font-size: 11px; font-family: var(--mono); resize: vertical; outline: none;"
+                        aria-labelledby="${labelId}"
+                        style="width: 100%; background: var(--input, var(--bg-elevated)); border: 1px solid ${isModified ? "var(--accent)" : "var(--border-hairline)"}; border-radius: var(--radius-sm); color: var(--text-strong); padding: 6px 10px; font-size: 11px; font-family: var(--mono); resize: vertical;"
                         .value=${typeof value === "object" && value !== null ? JSON.stringify(value, null, 2) : String(value ?? "{}")}
                         @change=${(e: Event) => {
                           const text = (e.target as HTMLTextAreaElement).value.trim();

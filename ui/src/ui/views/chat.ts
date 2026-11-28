@@ -66,7 +66,7 @@ export class ChatView extends LitElement {
   }
 
   private handleKeyDown(e: KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
       e.preventDefault();
       this.handleSend();
     }
@@ -272,8 +272,8 @@ export class ChatView extends LitElement {
           </div>
         ` : ""}
         ${!msg.streaming && cleanContent.trim().length > 0 ? html`
-          <div style="margin-top: 8px; display: flex; align-items: center;">
-            <button class="bubble-copy-btn" style="background: transparent; border: none; color: var(--muted); font-size: 11px; padding: 2px 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border-radius: var(--radius-xs); transition: color 0.15s ease;">
+            <div style="margin-top: 8px; display: flex; align-items: center;">
+            <button type="button" class="bubble-copy-btn" style="background: transparent; border: none; color: var(--muted); font-size: 11px; padding: 2px 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border-radius: var(--radius-xs); transition: color 0.15s ease;">
               ${renderIcon("fileText", "12px", "color: currentColor;")}
               <span>Copy</span>
             </button>
@@ -362,17 +362,17 @@ export class ChatView extends LitElement {
       <div class="chat-sessions-popover" style="position: absolute; top: 48px; right: 12px; width: 280px; max-height: 320px; overflow-y: auto; background: var(--bg-elevated, #0A1815); border: 1px solid var(--border, #16322C); border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 100; padding: 8px;">
         <div style="font-size: 11px; font-weight: 600; padding: 4px 8px; border-bottom: 1px solid var(--border); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
           <span>Recent Sessions (${sessions.length})</span>
-          <button style="background: transparent; border: none; color: var(--muted); cursor: pointer;" @click=${() => { this.showSessionList = false; }}>×</button>
+          <button type="button" aria-label="Close sessions list" style="background: transparent; border: none; color: var(--muted); cursor: pointer; min-width: 24px; min-height: 24px;" @click=${() => { this.showSessionList = false; }}>×</button>
         </div>
         ${sessions.length === 0 ? html`<div style="font-size: 11px; color: var(--muted); padding: 8px; text-align: center;">No saved sessions</div>` : ""}
         ${sessions.map((s) => {
           const isActive = s.id === this.app.chat.sessionKey;
           return html`
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 4px; font-size: 11px; background: ${isActive ? "rgba(16, 185, 129, 0.15)" : "transparent"}; color: ${isActive ? "#10b981" : "var(--foreground)"}; margin-bottom: 2px;">
-              <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;" @click=${() => { this.app.chat.selectSession(s.id); this.showSessionList = false; }}>
+              <button type="button" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; background: transparent; border: none; color: inherit; font: inherit; text-align: left; padding: 2px 0;" @click=${() => { this.app.chat.selectSession(s.id); this.showSessionList = false; }}>
                 ${s.title}
-              </span>
-              <button title="Delete session" style="background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0 4px; font-size: 12px;" @click=${(e: MouseEvent) => { e.stopPropagation(); this.app.chat.deleteSession(s.id); }}>×</button>
+              </button>
+              <button type="button" aria-label="Delete session ${s.title}" title="Delete session" style="background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0 4px; font-size: 12px; min-width: 24px; min-height: 24px;" @click=${(e: MouseEvent) => { e.stopPropagation(); this.app.chat.deleteSession(s.id); }}>×</button>
             </div>
           `;
         })}
@@ -456,8 +456,10 @@ export class ChatView extends LitElement {
             </button>
           </div>
           <button
+            type="button"
             class="workspace-close-btn"
-            style="background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px 6px;"
+            aria-label="Close workspace drawer"
+            style="background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px 6px; min-width: 24px; min-height: 24px;"
             @click=${() => { this.showWorkspaceDrawer = false; }}
             title="Close workspace drawer"
           >×</button>
@@ -494,9 +496,10 @@ export class ChatView extends LitElement {
             Active Files (${this.workspaceFiles.length})
           </div>
           ${this.workspaceFiles.map((file) => html`
-            <div
+            <button
+              type="button"
               class="workspace-file-row"
-              style="display: flex; align-items: center; justify-content: space-between; padding: 5px 8px; border-radius: var(--radius-sm); font-size: 11px; cursor: pointer; background: var(--surface-flat-muted); border: 1px solid var(--border-subtle); margin-bottom: 2px;"
+              style="width: 100%; font: inherit; text-align: left; display: flex; align-items: center; justify-content: space-between; padding: 5px 8px; border-radius: var(--radius-sm); font-size: 11px; cursor: pointer; background: var(--surface-flat-muted); border: 1px solid var(--border-subtle); margin-bottom: 2px; color: inherit;"
               @click=${() => this.selectFileForPreview(file)}
             >
               <span style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -506,7 +509,7 @@ export class ChatView extends LitElement {
               <span style="font-size: 9px; padding: 1px 4px; border-radius: 2px; text-transform: lowercase; font-family: var(--mono); background: ${file.status === 'modified' ? 'rgba(245, 158, 11, 0.15)' : file.status === 'staged' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.05)'}; color: ${file.status === 'modified' ? 'var(--warn, #f59e0b)' : file.status === 'staged' ? 'var(--ok, #22c55e)' : 'var(--muted)'};">
                 ${file.status ?? "clean"}
               </span>
-            </div>
+            </button>
           `)}
         </div>
       </div>
@@ -552,24 +555,27 @@ export class ChatView extends LitElement {
 
           <!-- Header -->
           <div class="chat-header" style="padding: 10px var(--shell-pad); border-bottom: 1px solid var(--border-hairline); display: flex; align-items: center; gap: 10px;">
-            <span style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <h1 style="font-size: 16px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; color: var(--text-strong);">
               ${renderIcon("messageSquare", "16px", "color: var(--accent);")}
               <span>${t("tabs.chat")}</span>
-            </span>
+            </h1>
 
             <!-- Search Chats Filter -->
             <div style="position: relative; flex: 1; max-width: 240px;">
               <input
                 type="text"
+                aria-label="Search chats"
                 placeholder="Search chats..."
                 .value=${this.searchQuery}
                 @input=${(e: Event) => { this.searchQuery = (e.target as HTMLInputElement).value; }}
-                style="width: 100%; height: 26px; padding: 2px 24px 2px 8px; font-size: 11px; background: var(--bg-elevated); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); color: var(--foreground); outline: none;"
+                style="width: 100%; height: 28px; padding: 2px 26px 2px 8px; font-size: 11px; background: var(--bg-elevated); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); color: var(--foreground);"
               />
               ${this.searchQuery ? html`
                 <button
+                  type="button"
+                  aria-label="Clear chat search"
                   @click=${() => { this.searchQuery = ""; }}
-                  style="position: absolute; right: 4px; top: 3px; background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 12px;"
+                  style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 12px; min-width: 24px; min-height: 24px;"
                 >×</button>
               ` : ""}
             </div>
@@ -634,9 +640,11 @@ export class ChatView extends LitElement {
           <div class="chat-input-area" style="padding: 10px var(--shell-pad); border-top: 1px solid var(--border-hairline); display: flex; flex-direction: column; gap: 8px;">
             <!-- Quiet Instrument Tool Toolbar: Permission Profile & Workspace Cwd & Context Ring -->
             <div style="display: flex; align-items: center; gap: 8px; font-size: 11px;">
-              <span style="color: var(--muted); font-size: 10px;">Permission:</span>
+              <label for="chat-permission-profile" style="color: var(--muted); font-size: 10px;">Permission:</label>
               <select
-                style="font-size: 10px; padding: 2px 6px; background: var(--bg-elevated); border: 1px solid var(--border-hairline); border-radius: 4px; color: #10b981; cursor: pointer;"
+                id="chat-permission-profile"
+                aria-label="Execution permission profile"
+                style="font-size: 10px; padding: 2px 6px; min-height: 28px; background: var(--bg-elevated); border: 1px solid var(--border-hairline); border-radius: 4px; color: #10b981; cursor: pointer;"
                 .value=${this.executionProfile}
                 @change=${(e: Event) => { this.executionProfile = (e.target as HTMLSelectElement).value as ExecutionProfile; }}
               >
@@ -646,13 +654,15 @@ export class ChatView extends LitElement {
                 <option value="Read-only">Read-only (No mutations)</option>
               </select>
 
-              <span style="color: var(--muted); font-size: 10px; margin-left: 4px;">Cwd:</span>
+              <label for="chat-cwd-input" style="color: var(--muted); font-size: 10px; margin-left: 4px;">Cwd:</label>
               <input
+                id="chat-cwd-input"
                 type="text"
+                aria-label="Workspace working directory"
                 placeholder="Workspace dir (/path/to/project)"
                 .value=${this.projectCwd}
                 @input=${(e: Event) => { this.projectCwd = (e.target as HTMLInputElement).value; }}
-                style="flex: 1; max-width: 260px; height: 22px; font-size: 10px; background: var(--bg-elevated); border: 1px solid var(--border-hairline); border-radius: 4px; color: var(--foreground); padding: 2px 6px; outline: none; font-family: var(--font-mono, monospace);"
+                style="flex: 1; max-width: 260px; height: 28px; font-size: 10px; background: var(--bg-elevated); border: 1px solid var(--border-hairline); border-radius: 4px; color: var(--foreground); padding: 2px 6px; font-family: var(--font-mono, monospace);"
               />
 
               <div style="margin-left: auto; display: flex; align-items: center;">
@@ -664,7 +674,8 @@ export class ChatView extends LitElement {
             <div class="chat-input-box" style="display: flex; gap: 8px; background: var(--bg-elevated); padding: 8px; border-radius: var(--radius-md); border: 1px solid var(--border-hairline);">
               <input
                 class="chat-input"
-                style="flex: 1; background: transparent; border: none; color: var(--text); padding: 8px; outline: none; font-family: var(--font-sans);"
+                aria-label=${busy ? t("chat.waiting") : t("chat.messagePlaceholder")}
+                style="flex: 1; background: transparent; border: none; color: var(--text); padding: 8px; font-family: var(--font-sans);"
                 placeholder=${busy ? t("chat.waiting") : t("chat.messagePlaceholder")}
                 .value=${this.inputText}
                 ?disabled=${busy}

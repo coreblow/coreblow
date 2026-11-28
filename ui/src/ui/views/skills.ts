@@ -78,11 +78,11 @@ export class SkillsView extends LitElement {
         <div class="card">
            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 240px;">
-                 <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                 <h1 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
                     ${renderIcon("zap", "16px")}
                     <span>${t("skills.title")}</span>
                     <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(34,197,94,0.12); color: var(--ok, #22c55e); font-family: var(--mono); font-weight: 600;">TypeScript AST Guard Active</span>
-                 </div>
+                 </h1>
                  <div class="card-sub">${t("skills.readySummary", { ready: String(ready), total: String(total) })} · Zero-Trust Static AST Security Verification</div>
               </div>
               <button style="background: var(--bg-elevated); border: 1px solid var(--border-hairline); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px;"
@@ -96,7 +96,8 @@ export class SkillsView extends LitElement {
            </div>
 
            <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
-              <input style="flex: 1; background: var(--bg-elevated); border: 1px solid var(--border-hairline); padding: 6px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px;"
+              <input aria-label=${t("skills.searchPlaceholder")}
+                     style="flex: 1; background: var(--bg-elevated); border: 1px solid var(--border-hairline); padding: 6px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px;"
                      placeholder=${t("skills.searchPlaceholder")}
                      .value=${this.filter}
                      @input=${(e: Event) => this.filter = (e.target as HTMLInputElement).value} />
@@ -118,7 +119,7 @@ export class SkillsView extends LitElement {
 
         ${[...groups.entries()].map(([cat, items]) => html`
            <div class="card">
-              <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 12px;">${cat}</div>
+              <h2 style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin: 0 0 12px;">${cat}</h2>
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px;">
                  ${items.map(s => html`
                     <div style="background: var(--surface-flat-muted); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-hairline); ${!s.enabled ? 'opacity: 0.5;' : ''}">

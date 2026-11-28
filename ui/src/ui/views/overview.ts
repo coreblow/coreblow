@@ -155,11 +155,11 @@ export class OverviewView extends LitElement {
             </div>
             <div style="flex: 1; min-width: 200px;">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="font-weight: 700; font-size: 16px;">
+                <h1 style="font-weight: 700; font-size: 18px; margin: 0; color: var(--text-strong);">
                   ${connected
                     ? t("overview.status.coreblowOnline")
                     : t("overview.status.notConnected")}
-                </div>
+                </h1>
                 <span
                   style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: var(--accent-subtle); color: var(--accent); font-weight: 700; font-family: var(--mono);"
                   >v2.3.1</span
@@ -313,19 +313,22 @@ export class OverviewView extends LitElement {
             <div
               style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;"
             >
-              <div
+              <h2
                 class="card-title"
                 style="display: flex; align-items: center; gap: 8px; margin: 0;"
               >
                 ${renderIcon("zap", "16px", "color: var(--accent);")}
                 <span>${t("common.actions")}</span>
-              </div>
+              </h2>
               <label
+                for="overview-locale-select"
                 style="display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted);"
               >
                 <span>${t("overview.access.language")}</span>
                 <select
-                  style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px;"
+                  id="overview-locale-select"
+                  aria-label=${t("overview.access.language")}
+                  style="min-height: 36px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px;"
                   .value=${currentLocale}
                   @input=${(e: Event) => this.handleLocaleChange(e)}
                   @change=${(e: Event) => this.handleLocaleChange(e)}
@@ -414,10 +417,10 @@ export class OverviewView extends LitElement {
         <!-- Event Log -->
         <div class="card">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <div class="card-title" style="flex: 1; display: flex; align-items: center; gap: 8px;">
+            <h2 class="card-title" style="flex: 1; display: flex; align-items: center; gap: 8px; margin: 0;">
               ${renderIcon("scrollText", "16px", "color: var(--muted);")}
               <span>${t("common.events")}</span>
-            </div>
+            </h2>
             <span style="font-size: 11px; color: var(--muted);"
               >${this.app.eventLog.length} entries</span
             >

@@ -462,11 +462,12 @@ export class McpView extends LitElement {
                 style="background: var(--card); border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border-hairline)); border-radius: var(--radius-sm); padding: 16px; display: flex; flex-direction: column; gap: 14px;"
               >
                 <div style="display: flex; align-items: center; justify-content: space-between;">
-                  <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--text-strong);">
+                  <h2 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--text-strong);">
                     Register New MCP Server
-                  </h3>
+                  </h2>
                   <button
                     type="button"
+                    aria-label="Close Register MCP Server form"
                     style="background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 14px;"
                     @click=${() => (this.showAddServerModal = false)}
                   >
@@ -476,24 +477,26 @@ export class McpView extends LitElement {
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
                   <div>
-                    <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px;">
+                    <label for="mcp-new-server-id" style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px;">
                       Server Identifier
                     </label>
                     <input
+                      id="mcp-new-server-id"
                       type="text"
                       placeholder="e.g. github, filesystem, sqlite"
-                      style="width: 100%; background: var(--bg); border: 1px solid var(--border-hairline); color: var(--text-strong); font-size: 12px; padding: 6px 10px; border-radius: var(--radius-sm); outline: none;"
+                      style="width: 100%; background: var(--bg); border: 1px solid var(--border-hairline); color: var(--text-strong); font-size: 12px; padding: 6px 10px; border-radius: var(--radius-sm);"
                       .value=${this.newServerName}
                       @input=${(e: Event) => (this.newServerName = (e.target as HTMLInputElement).value)}
                     />
                   </div>
 
                   <div>
-                    <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px;">
+                    <label for="mcp-new-server-transport" style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px;">
                       Transport Type
                     </label>
                     <select
-                      style="width: 100%; background: var(--bg); border: 1px solid var(--border-hairline); color: var(--text-strong); font-size: 12px; padding: 6px 10px; border-radius: var(--radius-sm); outline: none;"
+                      id="mcp-new-server-transport"
+                      style="width: 100%; background: var(--bg); border: 1px solid var(--border-hairline); color: var(--text-strong); font-size: 12px; padding: 6px 10px; border-radius: var(--radius-sm);"
                       .value=${this.newServerTransport}
                       @change=${(e: Event) => (this.newServerTransport = (e.target as HTMLSelectElement).value as any)}
                     >
@@ -508,25 +511,27 @@ export class McpView extends LitElement {
                   ? html`
                       <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
                         <div>
-                          <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px;">
+                          <label for="mcp-new-server-cmd" style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px;">
                             Command
                           </label>
                           <input
+                            id="mcp-new-server-cmd"
                             type="text"
                             placeholder="e.g. npx, uvx, node"
-                            style="width: 100%; background: var(--bg); border: 1px solid var(--border-hairline); color: var(--text-strong); font-family: var(--mono); font-size: 12px; padding: 6px 10px; border-radius: var(--radius-sm); outline: none;"
+                            style="width: 100%; background: var(--bg); border: 1px solid var(--border-hairline); color: var(--text-strong); font-family: var(--mono); font-size: 12px; padding: 6px 10px; border-radius: var(--radius-sm);"
                             .value=${this.newServerCommand}
                             @input=${(e: Event) => (this.newServerCommand = (e.target as HTMLInputElement).value)}
                           />
                         </div>
                         <div>
-                          <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px;">
+                          <label for="mcp-new-server-args" style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px;">
                             Arguments (space-separated)
                           </label>
                           <input
+                            id="mcp-new-server-args"
                             type="text"
                             placeholder="e.g. -y @modelcontextprotocol/server-sqlite --db /data.db"
-                            style="width: 100%; background: var(--bg); border: 1px solid var(--border-hairline); color: var(--text-strong); font-family: var(--mono); font-size: 12px; padding: 6px 10px; border-radius: var(--radius-sm); outline: none;"
+                            style="width: 100%; background: var(--bg); border: 1px solid var(--border-hairline); color: var(--text-strong); font-family: var(--mono); font-size: 12px; padding: 6px 10px; border-radius: var(--radius-sm);"
                             .value=${this.newServerArgs}
                             @input=${(e: Event) => (this.newServerArgs = (e.target as HTMLInputElement).value)}
                           />
@@ -535,13 +540,14 @@ export class McpView extends LitElement {
                     `
                   : html`
                       <div>
-                        <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px;">
+                        <label for="mcp-new-server-url" style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px;">
                           Endpoint URL
                         </label>
                         <input
+                          id="mcp-new-server-url"
                           type="text"
                           placeholder="e.g. http://127.0.0.1:8000/sse"
-                          style="width: 100%; background: var(--bg); border: 1px solid var(--border-hairline); color: var(--text-strong); font-family: var(--mono); font-size: 12px; padding: 6px 10px; border-radius: var(--radius-sm); outline: none;"
+                          style="width: 100%; background: var(--bg); border: 1px solid var(--border-hairline); color: var(--text-strong); font-family: var(--mono); font-size: 12px; padding: 6px 10px; border-radius: var(--radius-sm);"
                           .value=${this.newServerUrl}
                           @input=${(e: Event) => (this.newServerUrl = (e.target as HTMLInputElement).value)}
                         />
@@ -573,8 +579,9 @@ export class McpView extends LitElement {
         <div style="position: relative; max-width: 360px;">
           <input
             type="text"
+            aria-label="Filter servers and exposed tools"
             placeholder="Filter servers and exposed tools..."
-            style="width: 100%; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 6px 10px 6px 30px; font-size: 12px; color: var(--text-strong); outline: none;"
+            style="width: 100%; background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 6px 10px 6px 30px; font-size: 12px; color: var(--text-strong);"
             .value=${this.searchQuery}
             @input=${(e: Event) => (this.searchQuery = (e.target as HTMLInputElement).value)}
           />
@@ -650,6 +657,7 @@ export class McpView extends LitElement {
                         <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 11px; color: var(--muted);">
                           <input
                             type="checkbox"
+                            aria-label="Enable ${server.name} MCP server"
                             style="accent-color: var(--accent);"
                             .checked=${server.enabled}
                             @change=${() => this.toggleServerEnabled(server)}
@@ -660,7 +668,8 @@ export class McpView extends LitElement {
                         <!-- Delete Server Button -->
                         <button
                           type="button"
-                          style="background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 4px; border-radius: 4px;"
+                          aria-label="Remove MCP server ${server.name}"
+                          style="background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 4px; border-radius: 4px; min-width: 24px; min-height: 24px;"
                           title="Remove MCP server"
                           @click=${() => this.deleteServer(server.name)}
                         >

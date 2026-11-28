@@ -75,12 +75,12 @@ export class CronView extends LitElement {
          <div class="card">
             <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                <div style="flex: 1; min-width: 240px;">
-                  <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                  <h1 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
                      ${renderIcon("clock", "16px")}
                      <span>${t("cron.title")}</span>
                      <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(34,197,94,0.12); color: var(--ok, #22c55e); font-family: var(--mono); font-weight: 600;">24/7 Active Scheduler</span>
-                  </div>
-                  <div class="card-sub">${t("cron.scheduledSummary", { count: String(this.jobs.length) })} · CLI parity: <code style="font-family: var(--mono); font-size: 11px; color: var(--accent);">coreblow cron</code></div>
+                  </h1>
+                  <div class="card-sub">${t("cron.scheduledSummary", { count: String(this.jobs.length) })} · CLI command: <code style="font-family: var(--mono); font-size: 11px; color: var(--accent);">coreblow cron</code></div>
                </div>
                <button style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground); font-size: 12px; display: inline-flex; align-items: center; gap: 6px;"
                 @click=${() => this.loadJobs()}>${renderIcon("refresh", "12px")} ${t("common.refresh")}</button>

@@ -733,10 +733,10 @@ export class ConfigView extends LitElement {
       >
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
           <div>
-            <div style="font-size: 14px; font-weight: 700; color: var(--foreground); display: flex; align-items: center; gap: 8px;">
+            <h3 style="font-size: 14px; font-weight: 700; margin: 0; color: var(--foreground); display: flex; align-items: center; gap: 8px;">
               ${renderIcon("settings", "16px", "color: var(--accent);")}
               <span>Connection Mode &amp; Remote Nodes</span>
-            </div>
+            </h3>
             <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">
               Select how this Control UI reaches the CoreBlow Gateway daemon.
             </div>
@@ -749,57 +749,65 @@ export class ConfigView extends LitElement {
         <!-- 3-card Connection Mode grid -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 14px;">
           <!-- 1. Local Gateway -->
-          <div
-            style="padding: 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; background: ${currentMode === "local" ? "var(--accent-subtle)" : "var(--card, var(--bg-elevated))"}; border: 1px solid ${currentMode === "local" ? "var(--accent)" : "var(--border)"};"
+          <button
+            type="button"
+            aria-pressed="${currentMode === "local"}"
+            style="width: 100%; font: inherit; text-align: left; padding: 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; background: ${currentMode === "local" ? "var(--accent-subtle)" : "var(--card, var(--bg-elevated))"}; border: 1px solid ${currentMode === "local" ? "var(--accent)" : "var(--border)"};"
             @click=${() => this.setConnectionMode("local")}
           >
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
               <span style="font-size: 13px; font-weight: 600; color: var(--foreground);">Local Gateway</span>
-              ${currentMode === "local" ? html`<span style="color: var(--accent); font-size: 12px;">✓</span>` : ""}
+              ${currentMode === "local" ? html`<span style="color: var(--accent); font-size: 12px;" aria-hidden="true">✓</span>` : ""}
             </div>
             <div style="font-size: 11px; color: var(--muted); line-height: 1.4;">
               localhost:18789. Private offline-first CoreBlow daemon on this host.
             </div>
-          </div>
+          </button>
 
           <!-- 2. Remote Node -->
-          <div
-            style="padding: 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; background: ${currentMode === "remote" ? "var(--accent-subtle)" : "var(--card, var(--bg-elevated))"}; border: 1px solid ${currentMode === "remote" ? "var(--accent)" : "var(--border)"};"
+          <button
+            type="button"
+            aria-pressed="${currentMode === "remote"}"
+            style="width: 100%; font: inherit; text-align: left; padding: 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; background: ${currentMode === "remote" ? "var(--accent-subtle)" : "var(--card, var(--bg-elevated))"}; border: 1px solid ${currentMode === "remote" ? "var(--accent)" : "var(--border)"};"
             @click=${() => this.setConnectionMode("remote")}
           >
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
               <span style="font-size: 13px; font-weight: 600; color: var(--foreground);">Remote Node</span>
-              ${currentMode === "remote" ? html`<span style="color: var(--accent); font-size: 12px;">✓</span>` : ""}
+              ${currentMode === "remote" ? html`<span style="color: var(--accent); font-size: 12px;" aria-hidden="true">✓</span>` : ""}
             </div>
             <div style="font-size: 11px; color: var(--muted); line-height: 1.4;">
               Connect to a 24/7 CoreBlow VPS, Tailscale, or Docker node.
             </div>
-          </div>
+          </button>
 
           <!-- 3. SSH Tunnel -->
-          <div
-            style="padding: 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; background: ${currentMode === "ssh" ? "var(--accent-subtle)" : "var(--card, var(--bg-elevated))"}; border: 1px solid ${currentMode === "ssh" ? "var(--accent)" : "var(--border)"};"
+          <button
+            type="button"
+            aria-pressed="${currentMode === "ssh"}"
+            style="width: 100%; font: inherit; text-align: left; padding: 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; background: ${currentMode === "ssh" ? "var(--accent-subtle)" : "var(--card, var(--bg-elevated))"}; border: 1px solid ${currentMode === "ssh" ? "var(--accent)" : "var(--border)"};"
             @click=${() => this.setConnectionMode("ssh")}
           >
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
               <span style="font-size: 13px; font-weight: 600; color: var(--foreground);">SSH Tunnel</span>
-              ${currentMode === "ssh" ? html`<span style="color: var(--accent); font-size: 12px;">✓</span>` : ""}
+              ${currentMode === "ssh" ? html`<span style="color: var(--accent); font-size: 12px;" aria-hidden="true">✓</span>` : ""}
             </div>
             <div style="font-size: 11px; color: var(--muted); line-height: 1.4;">
               Tunnel over encrypted SSH to a remote node without opening ports.
             </div>
-          </div>
+          </button>
         </div>
 
         <!-- Mode-specific contextual views -->
         ${currentMode === "remote"
           ? html`
               <div style="padding: 10px 12px; border-radius: var(--radius-sm); background: var(--card, var(--bg)); border: 1px solid var(--border-hairline); margin-bottom: 14px;">
-                <div style="font-size: 12px; font-weight: 600; color: var(--foreground); margin-bottom: 6px;">
+                <label for="cfg-remote-node-select" style="display: block; font-size: 12px; font-weight: 600; color: var(--foreground); margin-bottom: 6px;">
                   Active Remote Gateway Node
-                </div>
+                </label>
                 <div style="display: flex; gap: 8px; align-items: center;">
                   <select
+                    id="cfg-remote-node-select"
+                    aria-label="Active Remote Gateway Node"
                     style="flex: 1; background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 10px; border-radius: var(--radius-sm); color: var(--foreground); font-size: 12px;"
                     .value=${this.app?.settings?.activeRemoteNodeId || "local"}
                     @change=${(e: Event) => {
@@ -1057,9 +1065,9 @@ export class ConfigView extends LitElement {
         >
           <div>
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 20px; font-weight: 700; color: var(--text-strong); letter-spacing: -0.02em;">
+              <h1 style="font-size: 20px; font-weight: 700; margin: 0; color: var(--text-strong); letter-spacing: -0.02em;">
                 ${t("config.title")}
-              </span>
+              </h1>
             </div>
           </div>
 
@@ -1069,13 +1077,15 @@ export class ConfigView extends LitElement {
             <div style="position: relative; width: 230px;">
               <input
                 type="text"
+                aria-label="Search config fields"
                 placeholder="Search config fields..."
-                style="width: 100%; background: var(--card); border: 1px solid var(--border-hairline); padding: 7px 10px 7px 30px; border-radius: var(--radius-sm); color: var(--text-strong); font-size: 12px; font-family: var(--mono); outline: none;"
+                style="width: 100%; min-height: 36px; background: var(--card); border: 1px solid var(--border-hairline); padding: 7px 28px 7px 30px; border-radius: var(--radius-sm); color: var(--text-strong); font-size: 12px; font-family: var(--mono);"
                 .value=${this.searchQuery}
                 @input=${(e: Event) => (this.searchQuery = (e.target as HTMLInputElement).value)}
               />
               <span
-                style="position: absolute; left: 9px; top: 8px; width: 14px; height: 14px; color: var(--muted); pointer-events: none;"
+                aria-hidden="true"
+                style="position: absolute; left: 9px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--muted); pointer-events: none;"
               >
                 ${renderIcon("search")}
               </span>
@@ -1083,7 +1093,8 @@ export class ConfigView extends LitElement {
                 ? html`
                     <button
                       type="button"
-                      style="position: absolute; right: 8px; top: 8px; width: 14px; height: 14px; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0;"
+                      aria-label="Clear config search"
+                      style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
                       @click=${() => (this.searchQuery = "")}
                     >
                       ${renderIcon("x")}
@@ -1173,7 +1184,8 @@ export class ConfigView extends LitElement {
                 <span>${this.saveStatus.message}</span>
                 <button
                   type="button"
-                  style="background: transparent; border: none; color: inherit; cursor: pointer; font-size: 13px;"
+                  aria-label="Dismiss notification"
+                  style="background: transparent; border: none; color: inherit; cursor: pointer; font-size: 13px; min-width: 28px; min-height: 28px;"
                   @click=${() => (this.saveStatus = null)}
                 >
                   ✕
@@ -1190,9 +1202,9 @@ export class ConfigView extends LitElement {
                 style="background: var(--card); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); padding: 16px;"
               >
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-                  <span style="font-size: 12px; font-weight: 600; color: var(--text-strong);">
+                  <h2 style="font-size: 13px; font-weight: 600; margin: 0; color: var(--text-strong);">
                     Raw JSON Config Editor
-                  </span>
+                  </h2>
                   <span style="font-size: 11px; color: var(--muted); font-family: var(--mono);">
                     Direct Draft-07 representation
                   </span>
@@ -1207,7 +1219,8 @@ export class ConfigView extends LitElement {
                     `
                   : ""}
                 <textarea
-                  style="width: 100%; height: 560px; background: var(--bg); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); color: var(--text-strong); padding: 14px; font-size: 12px; font-family: var(--mono); line-height: 1.5; resize: vertical; outline: none;"
+                  aria-label="Raw JSON Config Editor"
+                  style="width: 100%; height: 560px; background: var(--bg); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); color: var(--text-strong); padding: 14px; font-size: 12px; font-family: var(--mono); line-height: 1.5; resize: vertical;"
                   .value=${this.rawJsonText}
                   @input=${(e: Event) => {
                     this.rawJsonText = (e.target as HTMLTextAreaElement).value;
@@ -1326,9 +1339,9 @@ export class ConfigView extends LitElement {
                                   ${renderIcon(activeSection.icon)}
                                 </div>
                                 <div>
-                                  <div style="font-size: 16px; font-weight: 700; color: var(--text-strong);">
+                                  <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: var(--text-strong);">
                                     ${activeSection.label}
-                                  </div>
+                                  </h2>
                                   ${activeSection.description
                                     ? html`<div style="font-size: 12px; color: var(--muted); margin-top: 2px;">
                                         ${activeSection.description}

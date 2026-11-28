@@ -1099,7 +1099,7 @@ export class CoreHubView extends LitElement {
         <div class="card">
           <div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 260px;">
-              <div class="card-title">CoreHub</div>
+              <h1 class="card-title" style="margin: 0;">CoreHub</h1>
               <div class="card-sub">Marketplace, plugin trust, moderation, and operator status inside CoreBlow.</div>
             </div>
             <a href=${coreHubDirectoryUrl(this.registryUrl)} target="_blank" rel="noopener noreferrer"
@@ -1125,7 +1125,7 @@ export class CoreHubView extends LitElement {
         </div>
 
         <div class="card" style="border-color: ${gatewayTokenConfigured && coreHubTokenConfigured ? 'rgba(34,197,94,0.25)' : 'rgba(245,158,11,0.35)'};">
-          <div class="card-title">Admin Session</div>
+          <h2 class="card-title" style="margin: 0;">Admin Session</h2>
           <div class="card-sub">CoreHub admin requests go through the local CoreBlow Gateway proxy.</div>
           <div style="margin-top: 12px; display: grid; gap: 8px;">
             ${this.renderKeyValue("Gateway token", gatewayTokenConfigured ? "configured" : "missing")}
@@ -1201,7 +1201,7 @@ export class CoreHubView extends LitElement {
         <div class="card">
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 240px;">
-              <div class="card-title">Gateway-Backed CoreHub Portal</div>
+              <h2 class="card-title" style="margin: 0;">Gateway-Backed CoreHub Portal</h2>
               <div class="card-sub">All storefront entries, publisher moderation queues, and audit feeds are served directly over the authenticated local Gateway proxy (CSP-safe, zero cross-origin framing).</div>
             </div>
             <a

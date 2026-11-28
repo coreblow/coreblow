@@ -131,7 +131,8 @@ export class CommandPalette extends LitElement {
             <!-- Search Input -->
             <div style="padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;">
                <span style="color: var(--muted); font-size: 14px; display: inline-flex; align-items: center;">${renderIcon("search", "15px")}</span>
-               <input autofocus style="flex: 1; background: transparent; border: none; outline: none; color: var(--foreground); font-size: 14px; font-family: var(--font-sans);"
+               <input autofocus aria-label=${t("overview.palette.placeholder")}
+                      style="flex: 1; background: transparent; border: none; color: var(--foreground); font-size: 14px; font-family: var(--font-sans);"
                       placeholder=${t("overview.palette.placeholder")}
                       .value=${this.query}
                       @input=${(e: Event) => { this.query = (e.target as HTMLInputElement).value; this.selectedIndex = 0; }} />
@@ -150,7 +151,8 @@ export class CommandPalette extends LitElement {
                         const idx = globalIndex++;
                         const isSelected = idx === this.selectedIndex;
                         return html`
-                           <div style="padding: 8px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; ${isSelected ? 'background: var(--bg-elevated);' : ''} transition: background 0.1s;"
+                           <button type="button"
+                                style="width: 100%; font: inherit; text-align: left; border: none; padding: 8px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; background: ${isSelected ? 'var(--bg-elevated)' : 'transparent'}; color: inherit; transition: background 0.1s;"
                                 @click=${() => this.executeItem(item)}
                                 @mouseenter=${() => this.selectedIndex = idx}>
                               <span style="font-size: 14px; min-width: 24px; display: flex; align-items: center; justify-content: center; color: var(--muted);">${renderIcon(item.icon, "16px")}</span>
@@ -159,7 +161,7 @@ export class CommandPalette extends LitElement {
                                  ${this.descriptionFor(item) ? html`<div style="font-size: 11px; color: var(--muted);">${this.descriptionFor(item)}</div>` : ""}
                               </div>
                               ${isSelected ? html`<span style="font-size: 11px; color: var(--muted);">↵</span>` : ""}
-                           </div>
+                           </button>
                         `;
                      })}
                   `;

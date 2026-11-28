@@ -181,28 +181,29 @@ export class SessionsView extends LitElement {
     return html`
       <div style="display: flex; flex-direction: column; gap: 16px;">
 
-        <!-- Header -->
-        <div class="card">
-           <div style="display: flex; align-items: center; gap: 12px;">
-              <div style="flex: 1;">
-                 <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                    <span>${t("sessions.title")}</span>
-                    <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(34,197,94,0.12); color: var(--ok, #22c55e); font-family: var(--mono); font-weight: 600;">SQLite WAL + FTS5</span>
-                 </div>
-                 <div class="card-sub">${t("sessions.managedByAgentEngine", { count: String(this.sessions.length) })} · SQLite WAL + FTS5 Session Store</div>
-              </div>
-              <button class="btn" style="background: var(--accent); color: var(--primary-foreground); border:none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;"
-               @click=${this.createNewSession}>+ ${t("sessions.newSession")}</button>
-              <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border-hairline); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground);"
-               @click=${() => this.loadSessions()}>↻ ${t("common.refresh")}</button>
-           </div>
+         <!-- Header -->
+         <div class="card">
+            <div style="display: flex; align-items: center; gap: 12px;">
+               <div style="flex: 1;">
+                  <h1 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                     <span>${t("sessions.title")}</span>
+                     <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(34,197,94,0.12); color: var(--ok, #22c55e); font-family: var(--mono); font-weight: 600;">SQLite WAL + FTS5</span>
+                  </h1>
+                  <div class="card-sub">${t("sessions.managedByAgentEngine", { count: String(this.sessions.length) })} · SQLite WAL + FTS5 Session Store</div>
+               </div>
+               <button class="btn" style="background: var(--accent); color: var(--primary-foreground); border:none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;"
+                @click=${this.createNewSession}>+ ${t("sessions.newSession")}</button>
+               <button class="btn" style="background: var(--bg-elevated); border: 1px solid var(--border-hairline); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--foreground);"
+                @click=${() => this.loadSessions()}>↻ ${t("common.refresh")}</button>
+            </div>
 
-           <!-- Search + Bulk Actions -->
-           <div style="margin-top: 16px; display: flex; gap: 12px; align-items: center;">
-              <input style="flex: 1; background: var(--bg-elevated); border: 1px solid var(--border-hairline); padding: 8px 12px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--font-sans);"
-                     placeholder=${t("sessions.searchPlaceholder")}
-                     .value=${this.searchQuery}
-                     @input=${(e: Event) => this.searchQuery = (e.target as HTMLInputElement).value} />
+            <!-- Search + Bulk Actions -->
+            <div style="margin-top: 16px; display: flex; gap: 12px; align-items: center;">
+               <input aria-label=${t("sessions.searchPlaceholder")}
+                      style="flex: 1; background: var(--bg-elevated); border: 1px solid var(--border-hairline); padding: 8px 12px; border-radius: var(--radius-sm); color: var(--foreground); font-family: var(--font-sans);"
+                      placeholder=${t("sessions.searchPlaceholder")}
+                      .value=${this.searchQuery}
+                      @input=${(e: Event) => this.searchQuery = (e.target as HTMLInputElement).value} />
               ${hasSelected ? html`
                  <button class="btn" style="background: var(--destructive, #ef4444); color: white; border: none; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px;"
                   @click=${this.deleteSelected}>${t("sessions.deleteSelected", { count: String(this.selectedKeys.size) })}</button>
@@ -228,6 +229,7 @@ export class SessionsView extends LitElement {
                     <tr style="background: var(--bg-elevated); border-bottom: 1px solid var(--border);">
                        <th style="padding: 10px 12px; text-align: left; width: 32px;">
                           <input type="checkbox"
+                                 aria-label="Select all sessions"
                                  @change=${(e: Event) => {
                                     const checked = (e.target as HTMLInputElement).checked;
                                     this.selectedKeys = checked ? new Set(rows.map(r => r.key)) : new Set();
@@ -254,7 +256,7 @@ export class SessionsView extends LitElement {
                               @mouseenter=${(e: Event) => (e.currentTarget as HTMLElement).style.background = isActive ? 'rgba(99,102,241,0.12)' : 'var(--bg-elevated)'}
                               @mouseleave=${(e: Event) => (e.currentTarget as HTMLElement).style.background = isActive ? 'rgba(99,102,241,0.08)' : ''}>
                              <td style="padding: 10px 12px;">
-                                <input type="checkbox" .checked=${isSelected}
+                                <input type="checkbox" aria-label="Select session ${s.key}" .checked=${isSelected}
                                        @change=${() => {
                                           const next = new Set(this.selectedKeys);
                                           if (isSelected) { next.delete(s.key); } else { next.add(s.key); }

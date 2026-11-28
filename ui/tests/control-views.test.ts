@@ -7,6 +7,13 @@ import { ConfigView } from "../src/ui/views/config.ts";
 import { OverviewView } from "../src/ui/views/overview.ts";
 import { SessionsView } from "../src/ui/views/sessions.ts";
 import { UsageView } from "../src/ui/views/usage.ts";
+import { ChatView } from "../src/ui/views/chat.ts";
+import { AgentsView } from "../src/ui/views/agents.ts";
+import { DebugView } from "../src/ui/views/debug.ts";
+import { LogsView } from "../src/ui/views/logs.ts";
+import { SkillsView } from "../src/ui/views/skills.ts";
+import { CronView } from "../src/ui/views/cron.ts";
+import { CoreHubView } from "../src/ui/views/corehub.ts";
 import { loadSettings, resolveQueryToken } from "../src/ui/storage.ts";
 import { HealthController } from "../src/ui/controllers/health.ts";
 import { renderApp } from "../src/ui/app-render.ts";
@@ -431,6 +438,116 @@ describe("Dedicated Control Views Smoke Tests (Offline & Connected)", () => {
       expect((usageView as any).formatTokens(undefined)).toBe("0");
       expect((usageView as any).formatTokens(Number.NaN)).toBe("0");
       expect((usageView as any).formatCost(Number.NaN)).toBe("$0.00");
+    });
+  });
+
+  describe("Accessibility (headings, labels, native controls, landmarks)", () => {
+    it("renders semantic h1 headings across all 14 views", () => {
+      const app = createMockApp({ connected: false });
+      (app as any).chat = {
+        sessionKey: "test-session",
+        isBusy: false,
+        messages: [],
+        recentSessions: [],
+        toolStream: new Map(),
+        toolStreamOrder: [],
+      };
+      (app as any).chatModelsLoading = false;
+      (app as any).chatModelCatalog = [];
+      (app as any).chatModelOverrides = {};
+
+      const views = [
+        new ChatView(),
+        new OverviewView(),
+        new SessionsView(),
+        new ChannelsView(),
+        new ModelsView(),
+        new McpView(),
+        new UsageView(),
+        new CronView(),
+        new CoreHubView(),
+        new AgentsView(),
+        new SkillsView(),
+        new ConfigView(),
+        new DebugView(),
+        new LogsView(),
+      ];
+
+      for (const view of views) {
+        (view as any).app = app;
+        if ("sections" in view && Array.isArray((view as any).sections) && (view as any).sections.length === 0) {
+          (view as any).connectedCallback?.();
+        }
+        const host = document.createElement("div");
+        render((view as any).render(), host);
+        const h1 = host.querySelector("h1");
+        expect(h1, `${view.constructor.name} should render <h1>`).not.toBeNull();
+        expect(h1?.textContent?.trim().length).toBeGreaterThan(0);
+      }
+    });
+
+    it("provides accessible names for ConfigView switches/inputs and ChatView permission select", () => {
+      const app = createMockApp({ connected: false });
+      (app as any).chat = {
+        sessionKey: "test-session",
+        isBusy: false,
+        messages: [],
+        recentSessions: [],
+        toolStream: new Map(),
+        toolStreamOrder: [],
+      };
+      (app as any).chatModelsLoading = false;
+      (app as any).chatModelCatalog = [];
+      (app as any).chatModelOverrides = {};
+
+      const configView = new ConfigView();
+      configView.app = app;
+      configView.connectedCallback();
+      const configHost = document.createElement("div");
+      render(configView.render(), configHost);
+
+      const switches = Array.from(configHost.querySelectorAll('[role="switch"]'));
+      expect(switches.length).toBeGreaterThan(0);
+      for (const sw of switches) {
+        const labelledBy = sw.getAttribute("aria-labelledby");
+        const ariaLabel = sw.getAttribute("aria-label");
+        expect(Boolean(labelledBy || ariaLabel)).toBe(true);
+        if (labelledBy) {
+          expect(configHost.querySelector(`#${labelledBy}`)?.textContent?.trim().length).toBeGreaterThan(0);
+        }
+      }
+
+      const controls = Array.from(configHost.querySelectorAll("input, select, textarea"));
+      expect(controls.length).toBeGreaterThan(0);
+      for (const el of controls) {
+        const id = el.getAttribute("id");
+        const hasLabelFor = Boolean(id && configHost.querySelector(`label[for="${id}"]`));
+        const hasAria = Boolean(el.getAttribute("aria-label") || el.getAttribute("aria-labelledby"));
+        expect(hasLabelFor || hasAria).toBe(true);
+      }
+
+      const chatView = new ChatView();
+      chatView.app = app;
+      const chatHost = document.createElement("div");
+      render(chatView.render(), chatHost);
+      const permSelect = chatHost.querySelector("#chat-permission-profile");
+      expect(permSelect).not.toBeNull();
+      expect(permSelect?.getAttribute("aria-label")).toBe("Execution permission profile");
+      expect(chatHost.querySelector('label[for="chat-permission-profile"]')).not.toBeNull();
+    });
+
+    it("renders primary nav landmark and aria-label on topbar icon controls", () => {
+      const app = createMockApp({ connected: true });
+      (app as any).theme = "core";
+      (app as any).themeMode = "dark";
+      (app as any).navDrawerOpen = false;
+      (app as any).setTheme = vi.fn();
+      (app as any).toggleThemeMode = vi.fn();
+      const host = document.createElement("div");
+      render(renderApp(app), host);
+      expect(host.querySelector('nav.shell-nav[aria-label="Primary"]')).not.toBeNull();
+      expect(host.querySelector('button[aria-label="Toggle Light / Dark Mode"]')).not.toBeNull();
+      expect(host.querySelector('button[aria-label="Open Command Palette (⌘K)"]')).not.toBeNull();
     });
   });
 });
