@@ -26,7 +26,7 @@ const PALETTE_ITEMS: PaletteItem[] = [
    { id: "nav-cron", labelKey: "cron.title", icon: "clock", category: "navigation", action: "nav:cron" },
    { id: "act-reconnect", labelKey: "overview.status.reconnect", icon: "refresh", category: "action", action: "act:reconnect", descriptionKey: "overview.status.reconnectWs" },
    { id: "act-new-session", labelKey: "chat.newSession", icon: "plus", category: "action", action: "act:new-session", descriptionKey: "chat.createSession" },
-   { id: "rpc-health", labelKey: "debug.rpcHealth", icon: "heart", category: "rpc", action: "rpc:health.snapshot", descriptionKey: "overview.health.checkHealth" },
+   { id: "rpc-health", labelKey: "debug.rpcHealth", icon: "heart", category: "rpc", action: "rpc:health", descriptionKey: "overview.health.checkHealth" },
    { id: "rpc-sessions", labelKey: "debug.rpcSessions", icon: "fileText", category: "rpc", action: "rpc:sessions.list", descriptionKey: "sessions.list" },
    { id: "rpc-models", labelKey: "debug.rpcModels", icon: "bot", category: "rpc", action: "rpc:models.list", descriptionKey: "usage.listModels" },
 ];

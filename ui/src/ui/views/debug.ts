@@ -117,7 +117,7 @@ export class DebugView extends LitElement {
 
   private renderQuickRpc() {
      const methods = [
-        "health.snapshot", "sys.presence", "sessions.list", "models.list",
+        "health", "system-presence", "sessions.list", "models.list",
         "config.get", "agents.list", "tools.list",
      ];
      return html`

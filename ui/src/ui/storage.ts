@@ -83,23 +83,89 @@ const DEFAULT_SETTINGS: UiSettings = {
   sshTunnelIdentityFile: "~/.ssh/id_ed25519",
 };
 
+export function resolveQueryToken(): string | null {
+  try {
+    const search = globalThis.location?.search;
+    if (search) {
+      const token = new URLSearchParams(search).get("token")?.trim();
+      if (token) return token;
+    }
+    const hash = globalThis.location?.hash;
+    if (hash && hash.includes("token=")) {
+      const hashBody = hash.startsWith("#") ? hash.slice(1) : hash;
+      const token = new URLSearchParams(hashBody).get("token")?.trim();
+      if (token) return token;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function stripQueryTokenFromLocation(): void {
+  try {
+    const loc = globalThis.location;
+    const history = globalThis.history;
+    if (!loc?.href || typeof history?.replaceState !== "function") return;
+    const url = new URL(loc.href);
+    let changed = false;
+    if (url.searchParams.has("token")) {
+      url.searchParams.delete("token");
+      changed = true;
+    }
+    if (url.hash && url.hash.includes("token=")) {
+      const hashParams = new URLSearchParams(url.hash.slice(1));
+      if (hashParams.has("token")) {
+        hashParams.delete("token");
+        const nextHash = hashParams.toString();
+        url.hash = nextHash ? `#${nextHash}` : "";
+        changed = true;
+      }
+    }
+    if (changed) {
+      history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+  } catch {
+    // Ignore history API errors in restricted contexts
+  }
+}
+
 export function loadSettings(): UiSettings {
   const defaultGatewayUrl = resolveDefaultGatewayUrl();
   const queryGatewayUrl = resolveQueryGatewayUrl();
+  const queryToken = resolveQueryToken();
+  if (queryToken) {
+    stripQueryTokenFromLocation();
+  }
   try {
     const raw = globalThis.localStorage?.getItem(STORAGE_KEY);
-    if (!raw) return { ...DEFAULT_SETTINGS, gatewayUrl: defaultGatewayUrl };
+    if (!raw) {
+      const initial: UiSettings = {
+        ...DEFAULT_SETTINGS,
+        gatewayUrl: defaultGatewayUrl,
+        ...(queryToken ? { token: queryToken } : {}),
+      };
+      if (queryToken) saveSettings(initial);
+      return initial;
+    }
     const parsed = JSON.parse(raw);
     const normalizedTheme = parsed?.theme === "knot" ? "obsidian" : parsed?.theme;
-    return {
+    const merged: UiSettings = {
       ...DEFAULT_SETTINGS,
       ...parsed,
       gatewayUrl: queryGatewayUrl ?? normalizeGatewayUrl(parsed?.gatewayUrl) ?? defaultGatewayUrl,
+      ...(queryToken ? { token: queryToken } : {}),
       ...(normalizedTheme ? { theme: normalizedTheme } : {}),
       locale: isSupportedLocale(parsed?.locale) ? parsed.locale : undefined,
     };
+    if (queryToken) saveSettings(merged);
+    return merged;
   } catch {
-    return { ...DEFAULT_SETTINGS, gatewayUrl: defaultGatewayUrl };
+    return {
+      ...DEFAULT_SETTINGS,
+      gatewayUrl: defaultGatewayUrl,
+      ...(queryToken ? { token: queryToken } : {}),
+    };
   }
 }
 

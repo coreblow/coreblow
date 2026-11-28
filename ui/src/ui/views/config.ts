@@ -307,10 +307,20 @@ export class ConfigView extends LitElement {
     }
   }
 
+  private getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
+    const token = this.app?.settings?.token?.trim();
+    return {
+      ...(extra ?? {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  }
+
   private async loadRemoteNodes() {
     this.loadingNodes = true;
     try {
-      const res = await fetch(`${this.getGatewayHttpUrl()}/api/corehub/nodes`);
+      const res = await fetch(`${this.getGatewayHttpUrl()}/api/corehub/nodes`, {
+        headers: this.getAuthHeaders(),
+      });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.nodes)) {
@@ -331,7 +341,7 @@ export class ConfigView extends LitElement {
     try {
       const res = await fetch(
         `${this.getGatewayHttpUrl()}/api/corehub/nodes/${encodeURIComponent(nodeId)}/probe`,
-        { method: "POST" },
+        { method: "POST", headers: this.getAuthHeaders() },
       );
       if (res.ok) {
         const data = await res.json();
@@ -358,7 +368,7 @@ export class ConfigView extends LitElement {
     try {
       const res = await fetch(
         `${this.getGatewayHttpUrl()}/api/corehub/nodes/${encodeURIComponent(nodeId)}/sync-sessions`,
-        { method: "POST" },
+        { method: "POST", headers: this.getAuthHeaders() },
       );
       if (res.ok) {
         const data = await res.json();
@@ -383,7 +393,9 @@ export class ConfigView extends LitElement {
   private async loadCuratedMemoryFiles() {
     this.loadingMemoryFiles = true;
     try {
-      const res = await fetch(`${this.getGatewayHttpUrl()}/api/cory/files`);
+      const res = await fetch(`${this.getGatewayHttpUrl()}/api/cory/files`, {
+        headers: this.getAuthHeaders(),
+      });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.files) && data.files.length > 0) {
@@ -451,7 +463,7 @@ export class ConfigView extends LitElement {
     try {
       const res = await fetch(`${this.getGatewayHttpUrl()}/api/cory/files/${encodeURIComponent(fileId)}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: this.getAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ content }),
       });
       if (res.ok) {
@@ -492,6 +504,7 @@ export class ConfigView extends LitElement {
     try {
       const res = await fetch(`${this.getGatewayHttpUrl()}/api/cory/files/${encodeURIComponent(fileId)}/reset`, {
         method: "POST",
+        headers: this.getAuthHeaders(),
       });
       if (res.ok) {
         const data = await res.json();

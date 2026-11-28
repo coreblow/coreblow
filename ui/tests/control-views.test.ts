@@ -5,6 +5,11 @@ import { ModelsView, OFFLINE_MODELS_CATALOG, OFFLINE_PROVIDERS } from "../src/ui
 import { McpView, OFFLINE_MCP_SERVERS } from "../src/ui/views/mcp.ts";
 import { ConfigView } from "../src/ui/views/config.ts";
 import { OverviewView } from "../src/ui/views/overview.ts";
+import { SessionsView } from "../src/ui/views/sessions.ts";
+import { UsageView } from "../src/ui/views/usage.ts";
+import { loadSettings, resolveQueryToken } from "../src/ui/storage.ts";
+import { HealthController } from "../src/ui/controllers/health.ts";
+import { renderApp } from "../src/ui/app-render.ts";
 import type { CoreBlowApp } from "../src/ui/app.ts";
 
 function createMockApp(options: { connected?: boolean; onRequest?: (method: string, params: any) => Promise<any> } = {}): CoreBlowApp {
@@ -351,6 +356,81 @@ describe("Dedicated Control Views Smoke Tests (Offline & Connected)", () => {
       (view as any).revertCuratedMemoryFile("constraints");
       expect((view as any).memoryFileStatus?.message).toBe("Reverted");
       expect((view as any).memoryFileStatusMap?.constraints?.message).toBe("Reverted");
+    });
+
+    it("sends Authorization Bearer token when fetching /api/cory/files", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify({ files: [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+      const view = new ConfigView();
+      const app = createMockApp({ connected: true });
+      app.settings.token = "qc-ui-bearer-token";
+      view.app = app;
+
+      await (view as any).loadCuratedMemoryFiles();
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        "http://127.0.0.1:18789/api/cory/files",
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: "Bearer qc-ui-bearer-token",
+          }),
+        }),
+      );
+      fetchSpy.mockRestore();
+    });
+  });
+
+  describe("Token bootstrap, RPC health & NaN/statusDot polish", () => {
+    it("extracts ?token= from URL search and strips it from history", () => {
+      const originalHref = globalThis.location.href;
+      let replaceStateSpy: ReturnType<typeof vi.spyOn> | undefined;
+      try {
+        window.history.replaceState(null, "", "/?token=qc-query-token-123#overview");
+        expect(resolveQueryToken()).toBe("qc-query-token-123");
+        replaceStateSpy = vi.spyOn(globalThis.history, "replaceState").mockImplementation(() => {});
+        const loaded = loadSettings();
+        expect(loaded.token).toBe("qc-query-token-123");
+        expect(replaceStateSpy).toHaveBeenCalled();
+      } finally {
+        replaceStateSpy?.mockRestore();
+        window.history.replaceState(null, "", originalHref);
+      }
+    });
+
+    it("polls canonical 'health' RPC method instead of unknown 'health.snapshot'", async () => {
+      const requestMock = vi.fn(async () => ({ sessions: { count: 2 } }));
+      const app = createMockApp({ connected: true, onRequest: requestMock });
+      const controller = new HealthController(app);
+
+      await controller.poll();
+
+      expect(requestMock).toHaveBeenCalledWith("health");
+      expect(app.sessionsCount).toBe(2);
+    });
+
+    it("renders statusDot.ok when connected and guards NaN token/turn formatting", () => {
+      const app = createMockApp({ connected: true });
+      (app as any).theme = "core";
+      (app as any).themeMode = "dark";
+      (app as any).navDrawerOpen = false;
+      (app as any).setTheme = vi.fn();
+      (app as any).setThemeMode = vi.fn();
+      const container = document.createElement("div");
+      render(renderApp(app), container);
+      expect(container.querySelector(".topbar-status .statusDot.ok")).not.toBeNull();
+
+      const sessionsView = new SessionsView();
+      expect((sessionsView as any).formatTokens(undefined)).toBe("0");
+      expect((sessionsView as any).formatTokens(Number.NaN)).toBe("0");
+
+      const usageView = new UsageView();
+      expect((usageView as any).formatTokens(undefined)).toBe("0");
+      expect((usageView as any).formatTokens(Number.NaN)).toBe("0");
+      expect((usageView as any).formatCost(Number.NaN)).toBe("$0.00");
     });
   });
 });

@@ -83,11 +83,13 @@ export class GatewayController {
   private async requestInitialData() {
      if (!this.client) return;
      try {
-       const health = await this.client.request<{sessions?: {count?: number}}>("health.snapshot");
+       const health = await this.client.request<{sessions?: {count?: number}}>("health");
        this.app.sessionsCount = health?.sessions?.count || 0;
 
-       const presence = await this.client.request<{entries: unknown[]}>("sys.presence");
-       this.app.presenceCount = presence?.entries?.length || 0;
+       const presence = await this.client.request<unknown[] | {entries?: unknown[]}>("system-presence");
+       this.app.presenceCount = Array.isArray(presence)
+         ? presence.length
+         : presence?.entries?.length || 0;
       } catch (err: unknown) {
        const msg = err instanceof Error ? err.message : String(err);
        this.app.addEventLog(`Data fetch error: ${msg}`);

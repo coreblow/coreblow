@@ -32,16 +32,20 @@ export class UsageView extends LitElement {
       if (!client?.connected) return;
       this.loading = true;
       try {
-         const res = await client.request<{ sessions: { key: string; model: string; totalTokens: number; turnCount: number }[] }>("sessions.list", {});
-         this.entries = (res?.sessions ?? []).map(s => ({
-            sessionKey: s.key,
-            model: s.model || t("chat.defaultModel"),
-            inputTokens: Math.round(s.totalTokens * 0.6),
-            outputTokens: Math.round(s.totalTokens * 0.4),
-            totalTokens: s.totalTokens,
-            estimatedCost: this.estimateCost(s.model, s.totalTokens),
-            turnCount: s.turnCount,
-         }));
+         const res = await client.request<{ sessions: { key: string; model: string; totalTokens?: number; turnCount?: number }[] }>("sessions.list", {});
+         this.entries = (res?.sessions ?? []).map(s => {
+            const totalTokens = Number.isFinite(Number(s.totalTokens)) ? Math.max(0, Number(s.totalTokens)) : 0;
+            const turnCount = Number.isFinite(Number(s.turnCount)) ? Math.max(0, Number(s.turnCount)) : 0;
+            return {
+               sessionKey: s.key,
+               model: s.model || t("chat.defaultModel"),
+               inputTokens: Math.round(totalTokens * 0.6),
+               outputTokens: Math.round(totalTokens * 0.4),
+               totalTokens,
+               estimatedCost: this.estimateCost(s.model, totalTokens),
+               turnCount,
+            };
+         });
       } catch { this.entries = []; }
       this.loading = false;
   }
@@ -65,14 +69,14 @@ export class UsageView extends LitElement {
   private get totalTurns() { return this.entries.reduce((s, e) => s + e.turnCount, 0); }
 
   private formatTokens(n: number): string {
-      if (n === 0) return "0";
-      if (n < 1_000) return String(n);
+      if (typeof n !== "number" || !Number.isFinite(n) || n <= 0) return "0";
+      if (n < 1_000) return String(Math.round(n));
       if (n < 1_000_000) return (n / 1_000).toFixed(1) + "K";
       return (n / 1_000_000).toFixed(2) + "M";
   }
 
   private formatCost(n: number): string {
-      if (n === 0) return "$0.00";
+      if (typeof n !== "number" || !Number.isFinite(n) || n <= 0) return "$0.00";
       if (n < 0.01) return "<$0.01";
       return "$" + n.toFixed(3);
   }

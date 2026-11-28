@@ -92,11 +92,14 @@ export class AgentsView extends LitElement {
                </div>
                <div>
                   <div style="color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">${t("agents.turns")}</div>
-                  <div style="margin-top: 2px;">${a.turnCount}</div>
+                  <div style="margin-top: 2px;">${Number.isFinite(Number(a.turnCount)) ? Number(a.turnCount) : 0}</div>
                </div>
                <div>
                   <div style="color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;">${t("agents.tokens")}</div>
-                  <div style="font-family: var(--mono); margin-top: 2px;">${a.totalTokens > 1000 ? (a.totalTokens / 1000).toFixed(1) + "K" : a.totalTokens}</div>
+                  <div style="font-family: var(--mono); margin-top: 2px;">${(() => {
+                    const tok = Number.isFinite(Number(a.totalTokens)) ? Math.max(0, Number(a.totalTokens)) : 0;
+                    return tok > 1000 ? (tok / 1000).toFixed(1) + "K" : tok;
+                  })()}</div>
                </div>
             </div>
 

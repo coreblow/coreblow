@@ -50,10 +50,18 @@ export class OverviewView extends LitElement {
     }
   }
 
+  private getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
+    const token = this.app?.settings?.token?.trim();
+    return {
+      ...(extra ?? {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  }
+
   private async loadEstopStatus() {
     try {
       const url = `${this.getGatewayHttpUrl()}/api/corehub/system/estop`;
-      const res = await fetch(url);
+      const res = await fetch(url, { headers: this.getAuthHeaders() });
       if (res.ok) {
         const data = (await res.json()) as { ok?: boolean; paused?: boolean; reason?: string };
         if (data && typeof data.paused === "boolean") {
@@ -73,7 +81,7 @@ export class OverviewView extends LitElement {
       const url = `${this.getGatewayHttpUrl()}/api/corehub/system/estop`;
       const res = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: this.getAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           paused: nextPaused,
           reason: nextPaused ? "Paused via Web Control UI" : undefined,

@@ -163,8 +163,8 @@ export class SessionsView extends LitElement {
   }
 
   private formatTokens(n: number): string {
-      if (n === 0) return "0";
-      if (n < 1000) return String(n);
+      if (typeof n !== "number" || !Number.isFinite(n) || n <= 0) return "0";
+      if (n < 1000) return String(Math.round(n));
       return `${(n / 1000).toFixed(1)}K`;
   }
 

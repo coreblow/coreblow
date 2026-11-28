@@ -22,7 +22,7 @@ export class HealthController {
        if (!client || !client.connected) return;
 
        try {
-           const health = await client.request<any>("health.snapshot");
+           const health = await client.request<any>("health");
            if (health && health.sessions) {
                this.app.sessionsCount = health.sessions.count;
            }

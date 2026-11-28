@@ -101,7 +101,7 @@ export function renderApp(app: CoreBlowApp) {
                 class="pill"
                 style="height: 30px; padding: 0 11px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;"
               >
-                <div class="statusDot ${app.connected ? "stat-ok" : "stat-error"}"></div>
+                <div class="statusDot ${app.connected ? "ok" : ""}"></div>
                 ${app.connected ? "Online" : "Offline"}
               </div>
             </div>
