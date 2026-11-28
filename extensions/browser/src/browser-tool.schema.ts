@@ -32,6 +32,9 @@ const BROWSER_TOOL_ACTIONS = [
   "upload",
   "dialog",
   "act",
+  "vault_list",
+  "vault_fill",
+  "vault_totp",
 ] as const;
 
 const BROWSER_TARGETS = ["sandbox", "host", "node"] as const;
@@ -135,4 +138,6 @@ export const BrowserToolSchema = Type.Object({
   loadState: Type.Optional(Type.String()),
   fn: Type.Optional(Type.String()),
   request: Type.Optional(BrowserActSchema),
+  vaultEntryId: Type.Optional(Type.String()),
+  vaultSelector: Type.Optional(Type.String()),
 });

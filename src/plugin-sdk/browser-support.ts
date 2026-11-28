@@ -43,6 +43,12 @@ export { danger, info } from "../globals.js";
 export { defaultRuntime } from "../runtime.js";
 export { wrapExternalContent } from "../security/external-content.js";
 export { safeEqualSecret } from "../security/secret-equal.js";
+export {
+  buildBrowserVaultFillExpression,
+  generateVaultTotp,
+  listVaultEntries,
+  resolveVaultSecretForOrigin,
+} from "../security/credential-vault.js";
 export { optionalStringEnum, stringEnum } from "../agents/schema/typebox.js";
 export { formatDocsLink } from "../terminal/links.js";
 export { theme } from "../terminal/theme.js";

@@ -7,6 +7,13 @@ import { runSecretsApply } from "../secrets/apply.js";
 import { resolveSecretsAuditExitCode, runSecretsAudit } from "../secrets/audit.js";
 import { runSecretsConfigureInteractive } from "../secrets/configure.js";
 import { isSecretsApplyPlan, type SecretsApplyPlan } from "../secrets/plan.js";
+import {
+  addVaultEntry,
+  generateVaultTotp,
+  listVaultEntries,
+  removeVaultEntry,
+  type VaultEntryKind,
+} from "../security/credential-vault.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { theme } from "../terminal/theme.js";
 import { addGatewayClientOptions, callGatewayFromCli, type GatewayRpcOpts } from "./gateway-rpc.js";
@@ -274,6 +281,122 @@ export function registerSecretsCli(program: Command) {
             ? `Secrets applied. Updated ${result.changedFiles.length} file(s).`
             : "Secrets apply: no changes.",
         );
+      } catch (err) {
+        defaultRuntime.error(danger(String(err)));
+        defaultRuntime.exit(1);
+      }
+    });
+
+  const vault = secrets
+    .command("vault")
+    .description("Manage encrypted local Credential Vault entries for browser-only blind autofill");
+
+  vault
+    .command("add")
+    .description("Add or update an encrypted Credential Vault entry")
+    .requiredOption("--origin <url>", "Exact allowed origin (e.g. https://example.com)")
+    .requiredOption("--label <label>", "Human-readable label")
+    .option("--id <id>", "Explicit entry ID")
+    .option("--kind <kind>", "Entry kind: login | payment | address", "login")
+    .option("--identifier <value>", "Non-secret login identifier (email/username)")
+    .option("--password <secret>", "Login password (encrypted at rest)")
+    .option("--totp-secret <secret>", "Base32 TOTP seed or otpauth:// URI (encrypted at rest)")
+    .option("--json", "Output JSON metadata (never includes raw secrets)", false)
+    .action(
+      (opts: {
+        id?: string;
+        kind: string;
+        origin: string;
+        label: string;
+        identifier?: string;
+        password?: string;
+        totpSecret?: string;
+        json?: boolean;
+      }) => {
+        try {
+          const kind = opts.kind as VaultEntryKind;
+          if (kind !== "login" && kind !== "payment" && kind !== "address") {
+            throw new Error(`Invalid vault kind "${opts.kind}". Expected login | payment | address.`);
+          }
+          const created = addVaultEntry({
+            id: opts.id,
+            kind,
+            label: opts.label,
+            identifier: opts.identifier,
+            allowedOrigins: [opts.origin],
+            payload: {
+              ...(opts.password ? { password: opts.password } : {}),
+              ...(opts.totpSecret ? { totpSecret: opts.totpSecret } : {}),
+            },
+          });
+          if (opts.json) {
+            defaultRuntime.writeJson(created);
+            return;
+          }
+          defaultRuntime.log(`Saved Credential Vault entry "${created.id}" for ${created.allowedOrigins.join(", ")}.`);
+        } catch (err) {
+          defaultRuntime.error(danger(String(err)));
+          defaultRuntime.exit(1);
+        }
+      },
+    );
+
+  vault
+    .command("list")
+    .description("List Credential Vault metadata (never prints raw secrets)")
+    .option("--json", "Output JSON", false)
+    .action((opts: { json?: boolean }) => {
+      try {
+        const entries = listVaultEntries();
+        if (opts.json) {
+          defaultRuntime.writeJson({ entries });
+          return;
+        }
+        if (entries.length === 0) {
+          defaultRuntime.log("No Credential Vault entries stored.");
+          return;
+        }
+        for (const entry of entries) {
+          defaultRuntime.log(
+            `${entry.id} (${entry.kind}) origins=${entry.allowedOrigins.join(",")} totp=${entry.hasTotp}`,
+          );
+        }
+      } catch (err) {
+        defaultRuntime.error(danger(String(err)));
+        defaultRuntime.exit(1);
+      }
+    });
+
+  vault
+    .command("remove <id>")
+    .description("Remove a Credential Vault entry by ID")
+    .option("--json", "Output JSON", false)
+    .action((id: string, opts: { json?: boolean }) => {
+      try {
+        const removed = removeVaultEntry(id);
+        if (opts.json) {
+          defaultRuntime.writeJson({ id, removed });
+          return;
+        }
+        defaultRuntime.log(removed ? `Removed "${id}".` : `Entry "${id}" not found.`);
+      } catch (err) {
+        defaultRuntime.error(danger(String(err)));
+        defaultRuntime.exit(1);
+      }
+    });
+
+  vault
+    .command("totp <id>")
+    .description("Generate the current TOTP code for a Credential Vault entry")
+    .option("--json", "Output JSON", false)
+    .action((id: string, opts: { json?: boolean }) => {
+      try {
+        const result = generateVaultTotp({ entryId: id });
+        if (opts.json) {
+          defaultRuntime.writeJson(result);
+          return;
+        }
+        defaultRuntime.log(result.code);
       } catch (err) {
         defaultRuntime.error(danger(String(err)));
         defaultRuntime.exit(1);

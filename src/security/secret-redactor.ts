@@ -86,6 +86,28 @@ const SECRET_PATTERNS: SecretPattern[] = [
   },
 ];
 
+const DYNAMIC_SECRETS = new Set<string>();
+
+/**
+ * Registers runtime secret values (e.g. from Credential Vault blind injection)
+ * so subsequent tool/log outputs cannot echo them back.
+ */
+export function registerDynamicRedactionSecrets(secrets: ReadonlyArray<string>): void {
+  for (const secret of secrets) {
+    if (typeof secret === "string" && secret.length >= 4) {
+      DYNAMIC_SECRETS.add(secret);
+    }
+  }
+}
+
+export function getDynamicRedactionSecrets(): ReadonlyArray<string> {
+  return Array.from(DYNAMIC_SECRETS).toSorted((a, b) => b.length - a.length);
+}
+
+export function clearDynamicRedactionSecretsForTest(): void {
+  DYNAMIC_SECRETS.clear();
+}
+
 /**
  * Deterministically redacts API keys, secret credentials, passwords, and private
  * keys from a string.
@@ -98,6 +120,14 @@ export function redactSecrets(text: string): RedactionResult {
   let redacted = text;
   let findingsCount = 0;
   const typesSet = new Set<string>();
+
+  for (const dynamicSecret of getDynamicRedactionSecrets()) {
+    if (redacted.includes(dynamicSecret)) {
+      findingsCount += redacted.split(dynamicSecret).length - 1;
+      typesSet.add("vault_secret");
+      redacted = redacted.replaceAll(dynamicSecret, "[REDACTED_VAULT_SECRET]");
+    }
+  }
 
   for (const pattern of SECRET_PATTERNS) {
     pattern.regex.lastIndex = 0;

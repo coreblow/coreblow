@@ -1,5 +1,6 @@
 import type { CoreBlowConfig } from "../config/config.js";
 import { compileConfigRegex } from "../security/config-regex.js";
+import { getDynamicRedactionSecrets } from "../security/secret-redactor.js";
 import { resolveNodeRequireFromMeta } from "./node-require.js";
 import { replacePatternBounded } from "./redact-bounded.js";
 
@@ -127,15 +128,21 @@ export function redactSensitiveText(text: string, options?: RedactOptions): stri
   if (!text) {
     return text;
   }
+  let next = text;
+  for (const secret of getDynamicRedactionSecrets()) {
+    if (next.includes(secret)) {
+      next = next.replaceAll(secret, "[REDACTED_VAULT_SECRET]");
+    }
+  }
   const resolved = options ?? resolveConfigRedaction();
   if (normalizeMode(resolved.mode) === "off") {
-    return text;
+    return next;
   }
   const patterns = resolvePatterns(resolved.patterns);
   if (!patterns.length) {
-    return text;
+    return next;
   }
-  return redactText(text, patterns);
+  return redactText(next, patterns);
 }
 
 export function redactToolDetail(detail: string): string {

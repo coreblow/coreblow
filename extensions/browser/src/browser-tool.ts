@@ -24,17 +24,22 @@ import {
   browserStart,
   browserStatus,
   browserStop,
+  buildBrowserVaultFillExpression,
+  generateVaultTotp,
   getBrowserProfileCapabilities,
   imageResultFromFile,
   jsonResult,
   listNodes,
+  listVaultEntries,
   loadConfig,
   persistBrowserProxyFiles,
   readStringParam,
+  redactSensitiveText,
   resolveBrowserConfig,
   resolveExistingPathsWithinRoot,
   resolveNodeIdFromList,
   resolveProfile,
+  resolveVaultSecretForOrigin,
   selectDefaultNodeFromList,
   trackSessionBrowserTab,
   untrackSessionBrowserTab,
@@ -740,11 +745,86 @@ export function createBrowserTool(opts?: {
           if (!request) {
             throw new Error("request required");
           }
-          return await executeActAction({
+          const result = await executeActAction({
             request,
             baseUrl,
             profile,
             proxyRequest,
+          });
+          if (Array.isArray(result.content)) {
+            result.content = result.content.map((block) =>
+              block.type === "text" && typeof block.text === "string"
+                ? { ...block, text: redactSensitiveText(block.text) }
+                : block,
+            );
+          }
+          return result;
+        }
+        case "vault_list": {
+          return jsonResult({ entries: listVaultEntries() });
+        }
+        case "vault_fill":
+        case "vault_totp": {
+          const entryId = readStringParam(params, "vaultEntryId", { required: true });
+          const targetId = typeof params.targetId === "string" ? params.targetId.trim() : undefined;
+          const tabsResult = await executeTabsAction({ baseUrl, profile, proxyRequest });
+          const tabList = ((tabsResult.details as { tabs?: Array<{ targetId?: string; url?: string }> } | undefined)?.tabs ??
+            []);
+          const activeUrl =
+            tabList.find((tab) => (targetId ? tab.targetId === targetId : true))?.url ?? "";
+          if (!activeUrl) {
+            throw new Error("Active browser tab URL is required for Credential Vault origin check.");
+          }
+          const customSelector =
+            typeof params.vaultSelector === "string" ? params.vaultSelector.trim() : "";
+
+          if (action === "vault_totp") {
+            const { code } = generateVaultTotp({ entryId, currentOrigin: activeUrl });
+            const expectedOrigin = new URL(activeUrl).origin;
+            const selector =
+              customSelector ||
+              'input[autocomplete="one-time-code"], input[name*="otp" i], input[name*="totp" i], input[type="text"]';
+            const fn = buildBrowserVaultFillExpression({
+              expectedOrigin,
+              fields: [{ selector, value: code }],
+            });
+            await executeActAction({
+              request: { kind: "evaluate", fn, ...(targetId ? { targetId } : {}) },
+              baseUrl,
+              profile,
+              proxyRequest,
+            });
+            return jsonResult({ ok: true, entryId, origin: expectedOrigin, filledFields: ["totp"] });
+          }
+
+          const resolved = resolveVaultSecretForOrigin({ entryId, currentOrigin: activeUrl });
+          const fields: Array<{ selector: string; value: string }> = [];
+          if (resolved.payload.password) {
+            fields.push({
+              selector: customSelector || 'input[type="password"]',
+              value: resolved.payload.password,
+            });
+          }
+          if (fields.length === 0) {
+            throw new Error(`Credential Vault entry "${entryId}" has no fillable field payload.`);
+          }
+          const fn = buildBrowserVaultFillExpression({ expectedOrigin: resolved.origin, fields });
+          const evalResult = await executeActAction({
+            request: { kind: "evaluate", fn, ...(targetId ? { targetId } : {}) },
+            baseUrl,
+            profile,
+            proxyRequest,
+          });
+          const rawDetails = evalResult.details as { ok?: boolean; error?: string; filledFields?: string[] } | undefined;
+          if (rawDetails?.error) {
+            return jsonResult({ ok: false, entryId, origin: resolved.origin, error: rawDetails.error });
+          }
+          return jsonResult({
+            ok: true,
+            entryId,
+            kind: resolved.entry.kind,
+            origin: resolved.origin,
+            filledFields: rawDetails?.filledFields ?? fields.map((f) => f.selector),
           });
         }
         default:
